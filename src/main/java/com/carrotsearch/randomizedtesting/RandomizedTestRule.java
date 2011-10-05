@@ -40,8 +40,8 @@ public final class RandomizedTestRule implements MethodRule {
   }
 
   /**
-   * Current seeds. Seeds are thread-bound to avoid race conditions when interleaved
-   * accesses to randomized data are interleaved.
+   * Current seeds. Seeds are thread-bound to avoid race conditions when
+   * accesses to randoms are interleaved from spawned sub-threads.
    * 
    * @see #getRandom()
    */
