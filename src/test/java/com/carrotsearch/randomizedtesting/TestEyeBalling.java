@@ -1,33 +1,51 @@
 package com.carrotsearch.randomizedtesting;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
  * Just an eyeballing test at the output ;)
  */
-// Global override: -Drandomized.seed=runner:tests
-// Global override: -Drandomized.iter=X
-
-// Fix all starting seeds with: @Seed("runner:tests")
 @RunWith(RandomizedRunner.class)
 public class TestEyeBalling {
+  @BeforeClass
+  public static void setup() {
+    info("before class");
+  }
+
+  @Before
+  public void testSetup() {
+    info("before test");
+  }
+
   @Repeat(iterations = 4)
   @Test
-  public void repeatThreeTimes() {
-    // do nothing.
-  }
-
-  @Seed("456bdce85147941")
-  @Repeat(iterations = 3, useConstantSeed = true)
-  @Test
-  public void repeatThreeTimesFixedStartSeed() {
-    // do nothing.
+  public void test1() {
+    info("test1");
   }
 
   @Test
-  public void repeatOneTime() {
-    // do nothing.
+  public void test2() {
+    info("test2");
+  }
+
+  @After
+  public void testCleanup() {
+    info("after test");
+  }
+
+  @AfterClass
+  public static void cleanup() {
+    info("after class");
+  }
+
+  private static void info(String msg) {
+    System.out.println(msg + " " + 
+        RandomizedContext.current().getRandomness());
   }
 }
 

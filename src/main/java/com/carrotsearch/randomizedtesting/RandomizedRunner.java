@@ -1,7 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
 
-import java.lang.reflect.Proxy;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,23 +9,27 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.MethodRule;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.Filterable;
 import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
-// TODO: eclipse doesn't want to link []-postfixed Descriptions to source code. Anything we can do about it?
+import static com.carrotsearch.randomizedtesting.Randomness.*;
 
 /**
- * A somewhat less hairy, no-fancy design, {@link Runner} implementation for 
+ * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
  * running randomized tests.
  * 
  * <p>Supports the following JUnit4 features:
@@ -51,7 +55,9 @@ import org.junit.runners.model.TestClass;
  * 
  * <p>Deviations from "standard" JUnit:
  * <ul>
- *   <li>test methods are allowed to return values (they are ignored),</li>
+ *   <li>test methods are allowed to return values (the return value is ignored),</li>
+ *   <li>all exceptions are reported to the notifier, there is no suppression or 
+ *   chaining of exceptions,</li>
  * </ul>
  */
 public final class RandomizedRunner extends Runner implements Filterable {
@@ -110,13 +116,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
     this.target = testClass;
     this.targetInfo = new TestClass(testClass);
 
+    // Fail fast if target is inconsistent.
+    validateTarget();
+
     // Initialize the runner's master seed/ randomness source.
     final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED);
     if (globalSeed != null) {
       final long[] seedChain = parseSeedChain(globalSeed);
-      if (seedChain.length == 0 || seedChain.length > 2)
-        throw new IllegalArgumentException("Invalid " + SYSPROP_RANDOM_SEED + " specification: " + globalSeed);
-      
+      if (seedChain.length == 0 || seedChain.length > 2) {
+        throw new IllegalArgumentException("Invalid " 
+            + SYSPROP_RANDOM_SEED + " specification: " + globalSeed);
+      }
+
       if (seedChain.length > 1)
         testRandomnessOverride = new Randomness(seedChain[1]);
       runnerRandomness = new Randomness(seedChain[0]);
@@ -132,7 +143,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Collect all test candidates, regardless if they'll be executed or not.
     classDescription = Description.createSuiteDescription(target);
-
     testCandidates = collectTestCandidates(classDescription);
   }
 
@@ -144,16 +154,104 @@ public final class RandomizedRunner extends Runner implements Filterable {
     return classDescription;
   }
 
+  /**
+   * Runs all tests and hooks.
+   */
   @Override
   public void run(RunNotifier notifier) {
-    for (TestCandidate c : testCandidates) {
-      if (filter != null && !filter.shouldRun(c.description)) {
-        continue;
+    RandomizedContext context = new RandomizedContext();
+    context.targetClass = target;
+    context.randomness = runnerRandomness;
+    RandomizedContext.setContext(context);
+    try {
+      try {
+        runBeforeClassMethods();
+  
+        for (TestCandidate c : testCandidates) {
+          if (filter == null || filter.shouldRun(c.description)) {
+            context.randomness = c.randomness;
+            run(notifier, c);
+          }
+        }
+      } catch (Throwable t) {
+        notifier.fireTestFailure(new Failure(classDescription, t));
       }
 
-      notifier.fireTestStarted(c.description);
-      // TODO: execute test.
-      notifier.fireTestFinished(c.description);
+      context.randomness = runnerRandomness;
+      runAfterClassMethods(notifier);
+    } finally {
+      RandomizedContext.clearContext();
+    }
+  }
+
+  /**
+   * Runs a single test.
+   */
+  private void run(RunNotifier notifier, final TestCandidate c) {
+    notifier.fireTestStarted(c.description);
+    
+    if (c.method.getAnnotation(Ignore.class) != null) {
+      notifier.fireTestIgnored(c.description);
+    } else {
+      Object instance = null;
+      try {
+        // Get the test instance.
+        instance = target.newInstance();
+
+        // Run @Before hooks.
+        for (FrameworkMethod m : getTargetMethods(Before.class))
+          m.invokeExplosively(instance);
+  
+        // Collect rules and execute wrapped method.
+        final Object finalizedInstance = instance;
+        Statement s = new Statement() {
+          public void evaluate() throws Throwable {
+            c.method.invokeExplosively(finalizedInstance);
+          }
+        };
+        for (MethodRule each : targetInfo.getAnnotatedFieldValues(target, Rule.class, MethodRule.class))
+          s = each.apply(s, c.method, instance);
+        s.evaluate();
+      } catch (AssumptionViolatedException e) {
+        notifier.fireTestAssumptionFailed(new Failure(c.description, e));
+      } catch (Throwable e) {
+        notifier.fireTestFailure(new Failure(c.description, e));
+      }
+  
+      // Run @After hooks if an instance has been created.
+      if (instance != null) {
+        for (FrameworkMethod m : getTargetMethods(After.class)) {
+          try {
+            m.invokeExplosively(instance);
+          } catch (Throwable t) {
+            notifier.fireTestFailure(new Failure(c.description, t));
+          }
+        }
+      }
+    }
+
+    notifier.fireTestFinished(c.description);
+  }
+
+  /**
+   * Run before class methods. These fail immediately.
+   */
+  private void runBeforeClassMethods() throws Throwable {
+    for (FrameworkMethod method : getTargetMethods(BeforeClass.class)) {
+      method.invokeExplosively(null);
+    }
+  }
+
+  /**
+   * Run after class methods. Collect exceptions, execute all.
+   */
+  private void runAfterClassMethods(RunNotifier notifier) {
+    for (FrameworkMethod method : getTargetMethods(AfterClass.class)) {
+      try {
+        method.invokeExplosively(null);
+      } catch (Throwable t) {
+        notifier.fireTestFailure(new Failure(classDescription, t));
+      }
     }
   }
 
@@ -174,14 +272,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * @see Rants#RANT_1
    */
   private List<TestCandidate> collectTestCandidates(Description classDescription) {
-    List<FrameworkMethod> testMethods = targetInfo.getAnnotatedMethods(Test.class);
+    List<FrameworkMethod> testMethods = getTargetMethods(Test.class);
     List<TestCandidate> candidates = new ArrayList<TestCandidate>();
     for (FrameworkMethod method : testMethods) {
-      Validation.checkThat(method.getMethod())
-        .describedAs("Test method " + target.getName() + "#" + method.getName())
-        .isPublic()
-        .hasArgsCount(0);
-
       Description parent = classDescription;
       int methodIterations = determineMethodIterationCount(method);
       if (methodIterations > 1) {
@@ -278,32 +371,38 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Formats randomness seed or seeds into something the user can type in to get predictably repeatable
-   * execution.
+   * Validate methods and hooks in the target.
    */
-  private static String formatSeedChain(Randomness... randomnesses) {
-    // TODO: use base64-like encoding to make them shorter and get rid of the '-' character.
-    StringBuilder b = new StringBuilder();
-    b.append("[");
-    for (int i = 0; i < randomnesses.length; i++) {
-      if (i > 0) b.append(":");
-      b.append(Long.toString(randomnesses[i].seed, 16));
+  private void validateTarget() {
+    // Validate test methods.
+    for (FrameworkMethod method : getTargetMethods(Test.class)) {
+      Validation.checkThat(method.getMethod())
+        .describedAs("Test method " + target.getName() + "#" + method.getName())
+        .isPublic()
+        .hasArgsCount(0);
     }
-    b.append("]");
-    return b.toString();
+
+    // TODO: Validate target is accessible (public, conrete, has a parameterless constructor etc).
+    // TODO: Validate @BeforeClass hooks.
+    // TODO: Validate @AfterClass hooks.
+    // TODO: Validate @Before hooks.
+    // TODO: Validate @After hooks.
+    // TODO: Validate @Rule fields.
   }
 
   /**
-   * Parse a seed chain formatted with {@link #formatSeedChain(Randomness...)}. 
+   * Returns a list of target methods with the given annotation. Includes the
+   * logic of ordering the list properly for {@link BeforeClass}, {@link Before},
+   * {@link After} and {@link AfterClass} methods. Shuffles methods at the same level.
    */
-  private static long [] parseSeedChain(String chain) {
-    if (!chain.matches("[0-9A-Za-z\\:]+")) {
-      throw new IllegalArgumentException("Not a valid seed chain: " + chain);
-    }
-    String [] splits = chain.split("[\\:]");
-    long [] longs = new long [splits.length];
-    for (int i = 0; i < splits.length; i++)
-      longs[i] = Long.parseLong(splits[i], 16);
-    return longs;
+  private List<FrameworkMethod> getTargetMethods(Class<? extends Annotation> annotation) {
+    // TODO: implement scanning order and shuffling at the same level properly. For now,
+    // let's use JUnit infrastructure.
+
+    // TODO: JUnit does not invoke @BeforeClass methods that are shadowed by static methods
+    // in subclasses (!). I think this is wrong, but we can add a validation check for this
+    // because it is counterintuitive. We can actually make it invalid to override or shadow
+    // any hooks (?)
+    return targetInfo.getAnnotatedMethods(annotation);
   }
 }

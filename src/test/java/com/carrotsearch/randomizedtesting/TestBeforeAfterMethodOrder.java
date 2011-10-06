@@ -12,10 +12,9 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 
 /**
- * Tests {@link RandomizedRunner}
+ * Before and after hooks order with a class hierarchy.
  */
 public class TestBeforeAfterMethodOrder {
-  
   /**
    * Test superclass.
    */
@@ -26,7 +25,6 @@ public class TestBeforeAfterMethodOrder {
     public static int beforeTestSuperOrder;
     public static int beforeClassSubOrder;
     public static int beforeTestSubOrder;
-    public static int testMethodOrderSuper;
     public static int testMethodOrderSub;
     public static int afterTestSubOrder;
     public static int afterClassSubOrder;
@@ -34,7 +32,7 @@ public class TestBeforeAfterMethodOrder {
     public static int afterClassSuperOrder;
 
     @BeforeClass
-    public static void beforeClass() {
+    public static void beforeClassSuper() {
       beforeClassSuperOrder = ++counter;
     }
 
@@ -43,18 +41,13 @@ public class TestBeforeAfterMethodOrder {
       beforeTestSuperOrder = ++counter;
     }
 
-    @Test
-    public void testMethodSuper() {
-      testMethodOrderSuper = ++counter;
-    }    
-
     @After
     public final void afterTest() {
       afterTestSuperOrder = ++counter;
     }
     
     @AfterClass
-    public static void afterClass() {
+    public static void afterClassSuper() {
       afterClassSuperOrder = ++counter;
     }
   }
@@ -90,20 +83,34 @@ public class TestBeforeAfterMethodOrder {
     }
   }
 
+  @Before 
+  public void cleanup() {
+    Super.beforeClassSuperOrder = 0;
+    Super.beforeClassSubOrder = 0;
+    Super.beforeTestSuperOrder = 0;
+    Super.beforeTestSubOrder = 0;
+    Super.testMethodOrderSub = 0;
+    Super.afterTestSubOrder = 0;
+    Super.afterTestSuperOrder = 0;
+    Super.afterClassSubOrder = 0;
+    Super.afterClassSuperOrder = 0;
+    Super.counter = 0;
+  }
+  
   @Test
   public void beforesCalled() {
     Result result = JUnitCore.runClasses(SubSub.class);
 
-    assertEquals(2, result.getRunCount());
+    assertEquals(1, result.getRunCount());
+
     assertEquals(1, Super.beforeClassSuperOrder);
     assertEquals(2, Super.beforeClassSubOrder);
     assertEquals(3, Super.beforeTestSuperOrder);
     assertEquals(4, Super.beforeTestSubOrder);
-    assertTrue(Super.testMethodOrderSub > 3);
-    assertTrue(Super.testMethodOrderSuper > 3);
-    assertEquals(7, Super.afterTestSubOrder);
-    assertEquals(8, Super.afterTestSuperOrder);
-    assertEquals(9, Super.afterClassSubOrder);
-    assertEquals(10, Super.afterClassSuperOrder);
+    assertEquals(5, Super.testMethodOrderSub);
+    assertEquals(6, Super.afterTestSubOrder);
+    assertEquals(7, Super.afterTestSuperOrder);
+    assertEquals(8, Super.afterClassSubOrder);
+    assertEquals(9, Super.afterClassSuperOrder);
   }
 }
