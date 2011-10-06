@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.examples;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -7,9 +7,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.carrotsearch.randomizedtesting.RandomizedContext;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.Repeat;
+
 /**
- * Just an eyeballing test at the output ;)
+ * Just an eyeballing at the output and fiddling with stuff.
  */
+// @Seed("deadbeef")
+// @Repeat(100)
 @RunWith(RandomizedRunner.class)
 public class TestEyeBalling {
   @BeforeClass

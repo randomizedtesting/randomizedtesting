@@ -28,6 +28,8 @@ import org.junit.runners.model.TestClass;
 
 import static com.carrotsearch.randomizedtesting.Randomness.*;
 
+// TODO: what about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
+
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
  * running randomized tests.
@@ -39,7 +41,7 @@ import static com.carrotsearch.randomizedtesting.Randomness.*;
  *   <li>{@link Test}-annotated methods,</li>
  *   <li>{@link After}-annotated methods (after each test),</li>
  *   <li>{@link AfterClass}-annotated methods (after all tests of a class/superclass),</li>
- *   <li>{@link Rule}-annotated fields implementing {@link MethodRule}.</li>
+ *   <li>{@link Rule}-annotated fields implementing <code>MethodRule</code>.</li>
  * </ul>
  * 
  * <p>Contracts:
@@ -60,6 +62,7 @@ import static com.carrotsearch.randomizedtesting.Randomness.*;
  *   chaining of exceptions,</li>
  * </ul>
  */
+@SuppressWarnings("deprecation")
 public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * System property with an integer defining global initialization seeds for all
@@ -131,8 +134,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (seedChain.length > 1)
         testRandomnessOverride = new Randomness(seedChain[1]);
       runnerRandomness = new Randomness(seedChain[0]);
+    } else if (target.getAnnotation(Seed.class) != null) {
+      runnerRandomness = new Randomness(parseSeedChain(target.getAnnotation(Seed.class).value())[0]);
     } else {
-      runnerRandomness = new Randomness(System.currentTimeMillis());
+      runnerRandomness = new Randomness(MurmurHash3.hash(System.currentTimeMillis()));
     }
 
     if (System.getProperty(SYSPROP_ITERATIONS) != null) {
@@ -323,10 +328,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     Seed seed;
     if ((seed = method.getAnnotation(Seed.class)) != null) {
-      return Long.parseLong(seed.value(), 16);
+      return parseSeedChain(seed.value())[0];
     }
     if ((seed = target.getAnnotation(Seed.class)) != null) {
-      return Long.parseLong(seed.value(), 16);
+      long [] seeds = parseSeedChain(target.getAnnotation(Seed.class).value());
+      if (seeds.length > 1)
+        return seeds[1];
     }
     return runnerRandomness.seed ^ method.getName().hashCode();
   }
@@ -388,6 +395,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // TODO: Validate @Before hooks.
     // TODO: Validate @After hooks.
     // TODO: Validate @Rule fields.
+    // TODO: Validate @Seed annotation on methods: must have at most 1 seed value.
   }
 
   /**

@@ -13,7 +13,17 @@ public final class Randomness {
     this.seed = seed;
     this.random = new Random();
   }
-  
+
+  /** Random instance for this randomness. */
+  public Random getRandom() {
+    return random;
+  }  
+
+  /** Starting seed, read-only. */
+  public long getSeed() {
+    return seed;
+  }
+
   @Override
   public String toString() {
     return "[Randomness, seed=" + formatSeedChain(this) + "]";
@@ -47,5 +57,5 @@ public final class Randomness {
     for (int i = 0; i < splits.length; i++)
       longs[i] = Long.parseLong(splits[i], 16);
     return longs;
-  }  
+  }
 }

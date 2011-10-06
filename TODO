@@ -1,0 +1,22 @@
+Approximately in the order of importance...
+===========================================
+
+- Utility class for selecting values based on randomness (nightly, scaling, picking parameters with vetos, etc.)
+- Base test class providing shortcuts to randomized methods and adding @RunWith
+- Report test failures to console (with reproduction instructions) or add a hookable listener?
+- Address several TODOs in RandomizedRunner (validation, method shuffling)
+- Threads [hangs, deadlocks, interrupting]
+- Rewrite LuceneTestCase on top of RandomizedRunner => proove it's functional.
+- More runner tests (compliance with standard JUnit in particular)
+- Can we integrate with TestNG too?
+
+
+Other things
+============
+
+RandomizedRunner currently logs all exceptions when executing tests (test exceptions, after exception, etc.). This results
+in:
+
+- Eclipse shows all exceptions next to a test case node [NICE],
+- ant: shows both exceptions in xml and plain text dumps (and in reports) [NICE],
+- maven shows and logs the test case multiplied for all exceptions (weird, but can be understood and all information is there),

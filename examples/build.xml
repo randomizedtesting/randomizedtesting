@@ -1,0 +1,42 @@
+
+<project default="__fail__">
+	<target name="run">
+		<echo>
+#################################################################################
+Ignore the information about failed tests. These are examples. Maven build should
+complete normally -- this is what indicates that everything went right.
+#################################################################################
+		</echo>
+
+		<delete dir="${basedir}/target/ant-tests" failonerror="false" quiet="true" />
+		<mkdir dir="${basedir}/target/ant-tests" />
+        <junit fork="true" forkmode="once" printsummary="on">
+            <jvmarg value="-ea" />
+
+            <formatter type="xml" />
+            <formatter type="plain" />
+
+            <classpath location="${basedir}/target/test-classes" />
+        	<classpath>
+        		<fileset dir="${basedir}/target/dependencies" includes="**/*.jar" />
+        	</classpath>
+
+            <batchtest todir="${basedir}/target/ant-tests">
+                <fileset dir="${basedir}/target/test-classes">
+                    <include name="**/*Test*.class" />
+                </fileset>
+            </batchtest>
+		</junit>
+
+	    <junitreport todir="${basedir}/target/ant-tests">
+	      <fileset dir="${basedir}/target/ant-tests">
+	        <include name="TEST-*.xml" />
+	      </fileset>
+	      <report format="frames" todir="${basedir}/target/ant-tests" />
+	    </junitreport>
+	</target>
+
+	<target name="__fail__">
+		<fail>Not to be executed separately. Run: mvn verify</fail>
+	</target>
+</project>

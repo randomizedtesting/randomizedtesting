@@ -1,5 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.util.Random;
+
 /**
  * Context variables for an execution of a test suite (hooks and tests) running
  * under a {@link RandomizedRunner}.
@@ -22,6 +24,13 @@ public final class RandomizedContext {
   /** Source of randomness for the context's thread. */
   public Randomness getRandomness() {
     return randomness;
+  }
+
+  /**
+   * A shorthand for calling {@link #getRandomness()} and then {@link Randomness#getRandom()}. 
+   */
+  public Random getRandom() {
+    return getRandomness().getRandom();
   }
 
   /**
