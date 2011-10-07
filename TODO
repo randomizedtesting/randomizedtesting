@@ -2,8 +2,13 @@
 Approximately in the order of importance...
 ===========================================
 
-- Utility class for selecting values based on randomness (nightly, scaling, picking parameters with vetos, etc.)
+- Add @Nightly support, make test cases out of examples in TestExtendingRandomizedTest.
+  Nightly skipping should be implemented as a compound filter on the runner + a flag on the RandomizedContext.
+
 - Base test class providing shortcuts to randomized methods and adding @RunWith
+
+- Utility class for selecting values based on randomness (nightly, iteration scaling, picking parameters with vetos, etc.)
+
 - RandomizedRunner: method shuffling (hooks, tests)
 
 - Report test failures to console (with reproduction instructions) or add a hookable listener?
