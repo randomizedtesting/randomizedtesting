@@ -16,6 +16,10 @@ public final class RandomizedContext {
   /** @see #getRandomness() */
   Randomness randomness;
 
+  public RandomizedContext(Class<?> targetClass) {
+    this.targetClass = targetClass;
+  }
+  
   /** The class (suite) being tested. */
   public Class<?> getTargetClass() {
     return targetClass;

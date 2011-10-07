@@ -1,22 +1,25 @@
 package com.carrotsearch.randomizedtesting;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.Failure;
 
-import static org.junit.Assert.*;
-
 /**
  * {@link RandomizedRunner} can augment stack traces to include seed info. Check
  * if it works.
  */
-public class TestStackAugmentation {
+public class TestStackAugmentation extends WithNestedTestClass {
   @RunWith(RandomizedRunner.class)
   public static class Nested {
     @Test
     public void testMethod1() {
+      assumeRunningNested();
+
       // Throws a chained exception.
       try {
         throw new RuntimeException("Inner.");

@@ -7,6 +7,7 @@ import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.junit.After;
@@ -29,8 +30,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
-
-// TODO: what about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -173,26 +172,34 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public void run(RunNotifier notifier) {
-    RandomizedContext context = new RandomizedContext();
-    context.targetClass = target;
+    RandomizedContext context = new RandomizedContext(target);
     context.randomness = runnerRandomness;
     RandomizedContext.setContext(context);
+
     try {
-      try {
-        runBeforeClassMethods();
-  
-        for (TestCandidate c : testCandidates) {
-          if (filter == null || filter.shouldRun(c.description)) {
+      // Filter out test candidates to see if there's anything left. If not,
+      // don't bother running class hooks.
+      List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
+      if (filter != null)
+        for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext(); )
+          if (!filter.shouldRun(i.next().description))
+            i.remove();
+
+      if (!filtered.isEmpty()) {
+        try {
+          runBeforeClassMethods();
+    
+          for (TestCandidate c : filtered) {
             context.randomness = c.randomness;
             run(notifier, c);
           }
+        } catch (Throwable t) {
+          notifier.fireTestFailure(new Failure(classDescription, t));
         }
-      } catch (Throwable t) {
-        notifier.fireTestFailure(new Failure(classDescription, t));
-      }
 
-      context.randomness = runnerRandomness;
-      runAfterClassMethods(notifier);
+        context.randomness = runnerRandomness;
+        runAfterClassMethods(notifier);
+      }
     } finally {
       RandomizedContext.clearContext();
     }
@@ -203,7 +210,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private void run(RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
-    
+ 
     if (c.method.getAnnotation(Ignore.class) != null) {
       notifier.fireTestIgnored(c.description);
     } else {
@@ -217,15 +224,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           m.invokeExplosively(instance);
   
         // Collect rules and execute wrapped method.
-        final Object finalizedInstance = instance;
-        Statement s = new Statement() {
-          public void evaluate() throws Throwable {
-            c.method.invokeExplosively(finalizedInstance);
-          }
-        };
-        for (MethodRule each : targetInfo.getAnnotatedFieldValues(target, Rule.class, MethodRule.class))
-          s = each.apply(s, c.method, instance);
-        s.evaluate();
+        runWithRules(c, instance);
       } catch (Throwable e) {
         // Augment stack trace and inject a fake stack entry with seed information.
         e = augmentStackTrace(e, runnerRandomness, c.randomness);
@@ -250,6 +249,22 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     notifier.fireTestFinished(c.description);
+  }
+
+  /**
+   * Wrap with any rules the target has and execute as a {@link Statement}.
+   */
+  private void runWithRules(final TestCandidate c, final Object instance) throws Throwable {
+    Statement s = new Statement() {
+      public void evaluate() throws Throwable {
+        c.method.invokeExplosively(instance);
+      }
+    };
+
+    for (MethodRule each : targetInfo.getAnnotatedFieldValues(target, Rule.class, MethodRule.class))
+      s = each.apply(s, c.method, instance);
+
+    s.evaluate();
   }
 
   /**

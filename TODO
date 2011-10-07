@@ -4,6 +4,7 @@ Approximately in the order of importance...
 
 - Address several TODOs in RandomizedRunner (validation, method shuffling)
 
+- A global sysprop filter for selecting just one test case.
 - Utility class for selecting values based on randomness (nightly, scaling, picking parameters with vetos, etc.)
 - Base test class providing shortcuts to randomized methods and adding @RunWith
 - Report test failures to console (with reproduction instructions) or add a hookable listener?
@@ -11,6 +12,7 @@ Approximately in the order of importance...
 - Rewrite LuceneTestCase on top of RandomizedRunner => proove it's functional.
 - More runner tests (compliance with standard JUnit in particular)
 - Can we integrate with TestNG too?
+- What about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
 
 
 Other things
