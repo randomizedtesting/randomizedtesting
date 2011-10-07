@@ -228,7 +228,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         s.evaluate();
       } catch (Throwable e) {
         // Augment stack trace and inject a fake stack entry with seed information.
-        augmentStackTrace(e, runnerRandomness, c.randomness);
+        e = augmentStackTrace(e, runnerRandomness, c.randomness);
         if (e instanceof AssumptionViolatedException) {
           notifier.fireTestAssumptionFailed(new Failure(c.description, e));
         } else {
@@ -242,6 +242,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           try {
             m.invokeExplosively(instance);
           } catch (Throwable t) {
+            t = augmentStackTrace(t, runnerRandomness, c.randomness);
             notifier.fireTestFailure(new Failure(c.description, t));
           }
         }
@@ -254,22 +255,28 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Augment stack trace of the given exception with seed infos.
    */
-  private void augmentStackTrace(Throwable e, Randomness runner, Randomness method) {
+  private Throwable augmentStackTrace(Throwable e, Randomness... seeds) {
     List<StackTraceElement> stack = new ArrayList<StackTraceElement>(
         Arrays.asList(e.getStackTrace()));
 
     stack.add(0,  new StackTraceElement(AUGMENTED_SEED_PACKAGE + ".SeedInfo", 
-        "seed", Randomness.formatSeedChain(runner, method), 0));
+        "seed", Randomness.formatSeedChain(seeds), 0));
 
     e.setStackTrace(stack.toArray(new StackTraceElement [stack.size()]));
+
+    return e;
   }
 
   /**
    * Run before class methods. These fail immediately.
    */
   private void runBeforeClassMethods() throws Throwable {
-    for (FrameworkMethod method : getTargetMethods(BeforeClass.class)) {
-      method.invokeExplosively(null);
+    try {
+      for (FrameworkMethod method : getTargetMethods(BeforeClass.class)) {
+        method.invokeExplosively(null);
+      }
+    } catch (Throwable t) {
+      throw augmentStackTrace(t, runnerRandomness);
     }
   }
 
@@ -281,6 +288,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       try {
         method.invokeExplosively(null);
       } catch (Throwable t) {
+        t = augmentStackTrace(t, runnerRandomness);
         notifier.fireTestFailure(new Failure(classDescription, t));
       }
     }
