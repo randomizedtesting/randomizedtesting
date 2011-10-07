@@ -526,6 +526,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // TODO: Validate @Rule fields.
+    // TODO: Validate @Seed annotation content.
     // TODO: Validate @Seed annotation on methods: must have at most 1 seed value.
 
     // TODO: Validate hook method shadowing and make it illegal?
