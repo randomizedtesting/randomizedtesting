@@ -1,6 +1,8 @@
+
 Approximately in the order of importance...
 ===========================================
 
+- Stack augmentation to include seeds (?).
 - Utility class for selecting values based on randomness (nightly, scaling, picking parameters with vetos, etc.)
 - Base test class providing shortcuts to randomized methods and adding @RunWith
 - Report test failures to console (with reproduction instructions) or add a hookable listener?

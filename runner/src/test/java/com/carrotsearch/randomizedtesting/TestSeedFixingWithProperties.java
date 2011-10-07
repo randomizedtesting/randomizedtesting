@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting.examples;
+package com.carrotsearch.randomizedtesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;

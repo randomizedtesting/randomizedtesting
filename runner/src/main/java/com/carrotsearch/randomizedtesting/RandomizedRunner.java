@@ -315,8 +315,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Determine a given method's initial random seed.
    * We assign each method a different starting hash based on the global seed
-   * and a hash of their name (so that two identical methods have different 
-   * runtime randomness). Take into account global override and method and class level
+   * and a hash of their name (so that the order of methods does not matter, only
+   * their names). Take into account global override and method and class level
    * {@link Seed} annotations.
    * 
    * @see Seed
@@ -342,6 +342,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Determine if a given method's iterations should run with a fixed seed or not.
    */
   private boolean isConstantSeedForAllIterations(FrameworkMethod method) {
+    if (testRandomnessOverride != null)
+      return true;
+
     Repeat repeat;
     if ((repeat = method.getAnnotation(Repeat.class)) != null) {
       return repeat.useConstantSeed();
@@ -349,6 +352,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if ((repeat = target.getAnnotation(Repeat.class)) != null) {
       return repeat.useConstantSeed();
     }
+    
     return false;
   }
 
