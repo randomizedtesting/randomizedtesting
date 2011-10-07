@@ -1,13 +1,15 @@
 
 <project default="__fail__">
-	<target name="run">
-		<echo>
+	<target name="warn">
+        <echo>
 #################################################################################
 Ignore the information about failed tests. These are examples. Maven build should
 complete normally -- this is what indicates that everything went right.
 #################################################################################
-		</echo>
+        </echo>
+	</target>
 
+	<target name="run" depends="warn">
 		<!-- If run in stand-alone mode, we still want dependencies aggregated
 		     by maven. -->
 		<fail message="No classpath. Run mvn verify from topmost project first.">

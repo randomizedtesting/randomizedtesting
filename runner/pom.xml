@@ -9,10 +9,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent> 
 
-  <groupId>com.carrotsearch.randomizedtesting</groupId>
   <artifactId>randomizedtesting-runner</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-
   <name>RandomizedTesting JUnit Runner</name>
 
   <dependencies>

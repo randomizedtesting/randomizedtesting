@@ -10,7 +10,6 @@
   </parent>
 
   <artifactId>randomizedtesting-examples</artifactId>
-
   <name>RandomizedTesting Examples</name>
 
   <dependencies>
@@ -25,16 +24,6 @@
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.10</version>
-          <configuration>
-            <!-- There are tests that will fail. They are examples after all. -->
-            <testFailureIgnore>true</testFailureIgnore>
-          </configuration>
-        </plugin>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
@@ -68,16 +57,47 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
+            <id>ant-warn-tests</id>
+            <phase>test</phase>
+            <configuration>
+              <target>
+                <ant antfile="${basedir}/build.xml" inheritRefs="true"
+                  inheritAll="true" target="warn" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- There are tests that will fail. They are examples after all. -->
+          <testFailureIgnore>true</testFailureIgnore>
+          <runOrder>random</runOrder>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
             <id>ant-run-tests</id>
             <phase>integration-test</phase>
             <configuration>
               <target>
-                <!-- Save classpath to a temp. file so that local execution directly from ant
-                     is possible. -->
-                <property name="test.classpath" refid="maven.test.classpath"/>
+                <!-- Save classpath to a temp. file so that local execution directly 
+                  from ant is possible. -->
+                <property name="test.classpath" refid="maven.test.classpath" />
                 <echo encoding="UTF-8" file="${project.build.directory}/.classpath">${test.classpath}</echo>
 
-                <ant antfile="${basedir}/build.xml" inheritRefs="true" inheritAll="true" target="run" />
+                <ant antfile="${basedir}/build.xml" inheritRefs="true"
+                  inheritAll="true" target="run" />
               </target>
             </configuration>
             <goals>
