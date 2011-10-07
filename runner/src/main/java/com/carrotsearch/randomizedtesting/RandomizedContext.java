@@ -41,6 +41,9 @@ public final class RandomizedContext {
    * Sets the context for the current thread.
    */
   static void setContext(RandomizedContext ctx) {
+    if (context.get() != null) {
+      throw new Error("Recursive context stack not implemented (yet).");
+    }
     context.set(ctx);
   }
 
@@ -48,7 +51,7 @@ public final class RandomizedContext {
    * Clear the context for the current thread.
    */
   static void clearContext() {
-    setContext(null);
+    context.set(null);
   }
 
   /**
