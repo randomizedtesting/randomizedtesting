@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 /**
  * Seed fixing for static fixtures and/or methods using system properties.
  */
-public class TestSeedFixingWithProperties {
+public class TestSeedFixingWithProperties extends WithNestedTestClass {
   static List<Long> seeds = new ArrayList<Long>();
 
   @RunWith(RandomizedRunner.class)
@@ -70,8 +71,13 @@ public class TestSeedFixingWithProperties {
     assertEquals(copy, seeds);
   }
 
+  @Before
+  public void cleanupBefore() {
+    cleanupAfter();
+  }
+  
   @After
-  public void cleanupProperties() {
+  public void cleanupAfter() {
     System.clearProperty(RandomizedRunner.SYSPROP_ITERATIONS);
     System.clearProperty(RandomizedRunner.SYSPROP_RANDOM_SEED);
     seeds.clear();

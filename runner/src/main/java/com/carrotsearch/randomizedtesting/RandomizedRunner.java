@@ -434,21 +434,63 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Validate methods and hooks in the target.
    */
   private void validateTarget() {
-    // Validate test methods.
+    // Target is accessible (public, concrete, has a parameterless constructor etc).
+    Validation.checkThat(target)
+      .describedAs("Suite class " + target.getName())
+      .isPublic()
+      .isConcreteClass()
+      .hasPublicNoArgsConstructor();
+
+    // @BeforeClass
+    for (FrameworkMethod method : getTargetMethods(BeforeClass.class)) {
+      Validation.checkThat(method.getMethod())
+        .describedAs("@BeforeClass method " + target.getName() + "#" + method.getName())
+        .isPublic()
+        .isStatic()
+        .hasArgsCount(0);
+    }
+
+    // @AfterClass
+    for (FrameworkMethod method : getTargetMethods(AfterClass.class)) {
+      Validation.checkThat(method.getMethod())
+        .describedAs("@AfterClass method " + target.getName() + "#" + method.getName())
+        .isPublic()
+        .isStatic()
+        .hasArgsCount(0);
+    }
+
+    // @Before
+    for (FrameworkMethod method : getTargetMethods(Before.class)) {
+      Validation.checkThat(method.getMethod())
+        .describedAs("@Before method " + target.getName() + "#" + method.getName())
+        .isPublic()
+        .isNotStatic()
+        .hasArgsCount(0);
+    }
+
+    // @After
+    for (FrameworkMethod method : getTargetMethods(After.class)) {
+      Validation.checkThat(method.getMethod())
+        .describedAs("@After method " + target.getName() + "#" + method.getName())
+        .isPublic()
+        .isNotStatic()
+        .hasArgsCount(0);
+    }
+
+    // @Test methods
     for (FrameworkMethod method : getTargetMethods(Test.class)) {
       Validation.checkThat(method.getMethod())
         .describedAs("Test method " + target.getName() + "#" + method.getName())
         .isPublic()
+        .isNotStatic()
         .hasArgsCount(0);
     }
 
-    // TODO: Validate target is accessible (public, conrete, has a parameterless constructor etc).
-    // TODO: Validate @BeforeClass hooks.
-    // TODO: Validate @AfterClass hooks.
-    // TODO: Validate @Before hooks.
-    // TODO: Validate @After hooks.
     // TODO: Validate @Rule fields.
     // TODO: Validate @Seed annotation on methods: must have at most 1 seed value.
+
+    // TODO: Validate hook method shadowing and make it illegal?
+    // TODO: Validate hook method overrides and make it illegal?
   }
 
   /**
