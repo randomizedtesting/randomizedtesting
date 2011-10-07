@@ -30,7 +30,7 @@ public class TestSeedFixing {
 
   @Seed("deadbeef")
   @RunWith(RandomizedRunner.class)
-  public static class ExpectSeed {
+  public static class Nested {
     static Map<String, Object> seeds = new HashMap<String, Object>();
 
     @Test
@@ -58,11 +58,12 @@ public class TestSeedFixing {
    */
   @Test
   public void testSameMethodRandomnessWithFixedRunner() {
-    Result result = JUnitCore.runClasses(ExpectSeed.class);
+    Nested.seeds.clear();
+    Result result = JUnitCore.runClasses(Nested.class);
     assertTrue(result.getFailures().toString(), result.wasSuccessful());
-    result = JUnitCore.runClasses(ExpectSeed.class);
+    result = JUnitCore.runClasses(Nested.class);
     assertTrue(result.wasSuccessful());
-    result = JUnitCore.runClasses(ExpectSeed.class);    
+    result = JUnitCore.runClasses(Nested.class);    
     assertTrue(result.wasSuccessful());
   }
 }

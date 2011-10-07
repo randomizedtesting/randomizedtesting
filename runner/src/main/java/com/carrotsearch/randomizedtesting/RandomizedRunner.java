@@ -1,8 +1,12 @@
 package com.carrotsearch.randomizedtesting;
 
 
+import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
+import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
+
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -25,8 +29,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
-
-import static com.carrotsearch.randomizedtesting.Randomness.*;
 
 // TODO: what about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
 
@@ -75,6 +77,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   public static final String SYSPROP_ITERATIONS = "randomized.iters";
 
+  /**
+   * Fake package of a stack trace entry inserted into exceptions thrown by 
+   * test methods. These stack entries contain additional information about
+   * seeds used during execution. 
+   */
+  public static final String AUGMENTED_SEED_PACKAGE = "__randomizedtesting";
+  
   /**
    * Test candidate (model).
    */
@@ -217,10 +226,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
         for (MethodRule each : targetInfo.getAnnotatedFieldValues(target, Rule.class, MethodRule.class))
           s = each.apply(s, c.method, instance);
         s.evaluate();
-      } catch (AssumptionViolatedException e) {
-        notifier.fireTestAssumptionFailed(new Failure(c.description, e));
       } catch (Throwable e) {
-        notifier.fireTestFailure(new Failure(c.description, e));
+        // Augment stack trace and inject a fake stack entry with seed information.
+        augmentStackTrace(e, runnerRandomness, c.randomness);
+        if (e instanceof AssumptionViolatedException) {
+          notifier.fireTestAssumptionFailed(new Failure(c.description, e));
+        } else {
+          notifier.fireTestFailure(new Failure(c.description, e));
+        }
       }
   
       // Run @After hooks if an instance has been created.
@@ -236,6 +249,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     notifier.fireTestFinished(c.description);
+  }
+
+  /**
+   * Augment stack trace of the given exception with seed infos.
+   */
+  private void augmentStackTrace(Throwable e, Randomness runner, Randomness method) {
+    List<StackTraceElement> stack = new ArrayList<StackTraceElement>(
+        Arrays.asList(e.getStackTrace()));
+
+    stack.add(0,  new StackTraceElement(AUGMENTED_SEED_PACKAGE + ".SeedInfo", 
+        "seed", Randomness.formatSeedChain(runner, method), 0));
+
+    e.setStackTrace(stack.toArray(new StackTraceElement [stack.size()]));
   }
 
   /**
@@ -416,5 +442,30 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // because it is counterintuitive. We can actually make it invalid to override or shadow
     // any hooks (?)
     return targetInfo.getAnnotatedMethods(annotation);
+  }
+
+  /**
+   * {@link RandomizedRunner} augments stack traces of test methods that ended in an exception
+   * and inserts a fake entry starting with {@link #AUGMENTED_SEED_PACKAGE}.
+   * 
+   * @return A string is returned with seeds combined, if any. Null is returned if no augmentation
+   * can be found. 
+   */
+  public static String extractSeed(Throwable t) {
+    StringBuilder b = new StringBuilder();
+    while (t != null) {
+      for (StackTraceElement s : t.getStackTrace()) {
+        if (s.getClassName().startsWith(AUGMENTED_SEED_PACKAGE)) {
+          if (b.length() > 0) b.append(", ");
+          b.append(s.getFileName());
+        }
+      }
+      t = t.getCause();
+    }
+
+    if (b.length() == 0)
+      return null;
+    else
+      return b.toString();
   }
 }
