@@ -6,6 +6,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+
 /**
  * Seed fixing for static fixtures and/or methods using annotations.
  */

@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

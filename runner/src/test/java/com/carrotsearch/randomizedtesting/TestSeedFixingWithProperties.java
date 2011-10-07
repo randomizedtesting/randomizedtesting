@@ -24,7 +24,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   static List<Long> seeds = new ArrayList<Long>();
 
   @RunWith(RandomizedRunner.class)
-  public static class ExpectSeed {
+  public static class Nested {
     @BeforeClass
     public static void staticFixture() {
       seeds.add(RandomizedContext.current().getRandomness().getSeed());
@@ -43,7 +43,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   public void testRunnerAndMethodProperty() {
     System.setProperty(RandomizedRunner.SYSPROP_RANDOM_SEED, "deadbeef:cafebabe");
     System.setProperty(RandomizedRunner.SYSPROP_ITERATIONS, "3");
-    JUnitCore.runClasses(ExpectSeed.class);
+    JUnitCore.runClasses(Nested.class);
     assertEquals(Arrays.asList(0xdeadbeefL, 0xcafebabeL, 0xcafebabeL, 0xcafebabeL), seeds);
   }
 
@@ -55,7 +55,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   public void testFixedRunnerPropertyOnly() {
     System.setProperty(RandomizedRunner.SYSPROP_RANDOM_SEED, "deadbeef");
     System.setProperty(RandomizedRunner.SYSPROP_ITERATIONS, "3");
-    Result result = JUnitCore.runClasses(ExpectSeed.class);
+    Result result = JUnitCore.runClasses(Nested.class);
     assertEquals(3, result.getRunCount());
     assertEquals(0xdeadbeefL, seeds.get(0).longValue());
     // _very_ slim chances of this actually being true...
@@ -67,7 +67,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
     // so check if this is indeed true.
     List<Long> copy = new ArrayList<Long>(seeds);
     seeds.clear();
-    JUnitCore.runClasses(ExpectSeed.class);
+    JUnitCore.runClasses(Nested.class);
     assertEquals(copy, seeds);
   }
 

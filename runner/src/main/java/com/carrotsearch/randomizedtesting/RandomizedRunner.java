@@ -7,6 +7,7 @@ import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -30,6 +31,9 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
+
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -75,6 +79,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * The global override for the number of each test's repetitions.
    */
   public static final String SYSPROP_ITERATIONS = "randomized.iters";
+
+  /**
+   * Global override for picking out a single test class to execute. All other
+   * classes are ignored. 
+   */
+  public static final String SYSPROP_TESTCLASS = "testcase";
+
+  /**
+   * Global override for picking out a single test method to execute. If a
+   * matching method exists in more than one class, it will be executed. 
+   */
+  public static final String SYSPROP_TESTMETHOD = "testmethod";
 
   /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
@@ -179,11 +195,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     try {
       // Filter out test candidates to see if there's anything left. If not,
       // don't bother running class hooks.
-      List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
-      if (filter != null)
-        for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext(); )
-          if (!filter.shouldRun(i.next().description))
-            i.remove();
+      List<TestCandidate> filtered = applyFilters();
 
       if (!filtered.isEmpty()) {
         try {
@@ -203,6 +215,33 @@ public final class RandomizedRunner extends Runner implements Filterable {
     } finally {
       RandomizedContext.clearContext();
     }
+  }
+
+  /**
+   * Apply filtering to candidates.
+   */
+  private List<TestCandidate> applyFilters() {
+    // Check for class filter (most restrictive, immediate answer).
+    if (System.getProperty(SYSPROP_TESTCLASS) != null) {
+      if (!target.getName().equals(System.getProperty(SYSPROP_TESTCLASS))) {
+        return Collections.emptyList();
+      }
+    }
+
+    // Check for method filter, if defined.
+    String methodFilter = System.getProperty(SYSPROP_TESTMETHOD);
+
+    // Apply filters.
+    List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
+    for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext(); ) {
+      final TestCandidate candidate = i.next();
+      if (methodFilter != null && !methodFilter.equals(candidate.method.getName())) {
+        i.remove();
+      } else if (filter != null && !filter.shouldRun(candidate.description)) {
+        i.remove();
+      }
+    }
+    return filtered;
   }
 
   /**

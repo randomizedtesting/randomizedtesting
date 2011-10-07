@@ -2,7 +2,6 @@
 Approximately in the order of importance...
 ===========================================
 
-- A global sysprop filter for selecting just one test case.
 - Utility class for selecting values based on randomness (nightly, scaling, picking parameters with vetos, etc.)
 - Base test class providing shortcuts to randomized methods and adding @RunWith
 - RandomizedRunner: method shuffling (hooks, tests)

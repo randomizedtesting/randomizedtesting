@@ -5,7 +5,7 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.RandomizedContext;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
-import com.carrotsearch.randomizedtesting.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
 import static org.junit.Assert.*;
 

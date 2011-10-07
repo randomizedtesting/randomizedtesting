@@ -1,10 +1,12 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
 
 /**
  * Defines the starting seed for a given test or the entire suite. 

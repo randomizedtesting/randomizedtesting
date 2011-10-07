@@ -9,7 +9,7 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.RandomizedContext;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
-import com.carrotsearch.randomizedtesting.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
 /**
  * Just an eyeballing at the output and fiddling with stuff.

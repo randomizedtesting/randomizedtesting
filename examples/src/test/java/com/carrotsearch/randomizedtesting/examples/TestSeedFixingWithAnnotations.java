@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.RandomizedContext;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
-import com.carrotsearch.randomizedtesting.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
 
 import static org.junit.Assert.*;
 

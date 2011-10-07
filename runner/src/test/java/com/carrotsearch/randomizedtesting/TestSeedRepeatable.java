@@ -11,6 +11,8 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+
 public class TestSeedRepeatable {
   @Seed("deadbeef")
   @RunWith(RandomizedRunner.class)
