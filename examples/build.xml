@@ -8,35 +8,47 @@ complete normally -- this is what indicates that everything went right.
 #################################################################################
 		</echo>
 
-		<delete dir="${basedir}/target/ant-tests" failonerror="false" quiet="true" />
-		<mkdir dir="${basedir}/target/ant-tests" />
+		<!-- If run in stand-alone mode, we still want dependencies aggregated
+		     by maven. -->
+		<fail message="No classpath. Run mvn verify from topmost project first.">
+			<condition>
+			 <not><available file="${basedir}/target/.classpath" type="file" /></not>
+		    </condition>
+		</fail>
+        <loadfile property="classpath.dependencies" srcfile="${basedir}/target/.classpath" 
+            encoding="UTF-8"/>
+
+		<!-- Make room for tests output and report. -->
+		<property name="dir.ant.tests" location="${basedir}/target/ant-tests" />
+		<delete dir="${dir.ant.tests}" failonerror="false" quiet="true" />
+		<mkdir dir="${dir.ant.tests}" />
+
+		<!-- Run the examples. -->
         <junit fork="true" forkmode="once" printsummary="on">
             <jvmarg value="-ea" />
 
             <formatter type="xml" />
             <formatter type="plain" />
 
-            <classpath location="${basedir}/target/test-classes" />
-        	<classpath>
-        		<fileset dir="${basedir}/target/dependencies" includes="**/*.jar" />
-        	</classpath>
+        	<classpath path="${classpath.dependencies}" />
 
-            <batchtest todir="${basedir}/target/ant-tests">
+            <batchtest todir="${dir.ant.tests}">
                 <fileset dir="${basedir}/target/test-classes">
-                    <include name="**/*Test*.class" />
+                    <include name="**/Test*.class" />
                 </fileset>
             </batchtest>
 		</junit>
-
-	    <junitreport todir="${basedir}/target/ant-tests">
-	      <fileset dir="${basedir}/target/ant-tests">
+		
+		<!-- Create the report. -->
+	    <junitreport todir="${dir.ant.tests}">
+	      <fileset dir="${dir.ant.tests}">
 	        <include name="TEST-*.xml" />
 	      </fileset>
-	      <report format="frames" todir="${basedir}/target/ant-tests" />
+	      <report format="frames" todir="${dir.ant.tests}" />
 	    </junitreport>
 	</target>
 
 	<target name="__fail__">
-		<fail>Not to be executed separately. Run: mvn verify</fail>
+		<fail>Not to be executed separately. Run: mvn verify on topmost project.</fail>
 	</target>
 </project>
