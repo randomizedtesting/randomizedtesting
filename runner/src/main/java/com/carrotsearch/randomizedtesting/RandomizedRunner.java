@@ -19,7 +19,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
-import org.junit.rules.MethodRule;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
@@ -37,7 +36,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
- * running randomized tests.
+ * running randomized test cases with predictable and repeatable randomness.
  * 
  * <p>Supports the following JUnit4 features:
  * <ul>
@@ -63,11 +62,12 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
  * <p>Deviations from "standard" JUnit:
  * <ul>
  *   <li>test methods are allowed to return values (the return value is ignored),</li>
- *   <li>all exceptions are reported to the notifier, there is no suppression or 
- *   chaining of exceptions,</li>
+ *   <li>all exceptions raised during hooks or test case execution are reported to the notifier,
+ *       there is no suppression or chaining of exceptions,</li>
  * </ul>
+ * 
+ * @see RandomizedTest
  */
-@SuppressWarnings("deprecation")
 public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * System property with an integer defining global initialization seeds for all
@@ -299,11 +299,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
         c.method.invokeExplosively(instance);
       }
     };
-
-    for (MethodRule each : targetInfo.getAnnotatedFieldValues(target, Rule.class, MethodRule.class))
-      s = each.apply(s, c.method, instance);
-
+    s = wrapMethodRules(s, c, instance);
     s.evaluate();
+  }
+
+  /**
+   * Wrap the given statement in any declared MethodRules.
+   */
+  @SuppressWarnings("deprecation")
+  private Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
+    for (org.junit.rules.MethodRule each : 
+        targetInfo.getAnnotatedFieldValues(target, Rule.class, org.junit.rules.MethodRule.class))
+      s = each.apply(s, c.method, instance);
+    return s;
   }
 
   /**

@@ -3,20 +3,12 @@ Approximately in the order of importance...
 ===========================================
 
 - Add @Nightly support, make test cases out of examples in TestExtendingRandomizedTest.
-  Nightly skipping should be implemented as a compound filter on the runner + a flag on the RandomizedContext.
-
-- tests.multiplier
-- Disk throttling. => aspect.
-- Locale and TimeZone randomization => per test suite? Once?
+  Nightly skipping should be implemented as a compound filter on the runner + a flag on 
+  the RandomizedContext.
 - add tests to generators (!).
-
-- Base test class providing shortcuts to randomized methods and adding @RunWith
-
-- Utility class for selecting values based on randomness (nightly, iteration scaling, picking parameters with vetos, etc.)
+- Report test failures to console (with reproduction instructions) or add a hookable listener?
 
 - RandomizedRunner: method shuffling (hooks, tests); make it _consistent_ based on the runner's seed.
-
-- Report test failures to console (with reproduction instructions) or add a hookable listener?
 - Threads [hangs, deadlocks, interrupting]
 - Add a Random delegate to prevent setSeed(); or an aspect to do so?
 - How to simulate 'tests.iter.min'?
@@ -26,6 +18,12 @@ Approximately in the order of importance...
 - RandomizedRunner: more validations
 - Can we integrate with TestNG too?
 - What about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
+
+
+New LTC:
+    - Locale and TimeZone randomization => per test suite? Once?
+    - Disk throttling. => aspect.
+
 
 Other things
 ============

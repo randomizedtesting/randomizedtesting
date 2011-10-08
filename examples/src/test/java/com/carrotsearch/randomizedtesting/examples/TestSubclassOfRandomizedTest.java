@@ -10,7 +10,7 @@ import com.carrotsearch.randomizedtesting.annotations.Nightly;
  * {@link RandomizedTest} is a scaffolding class for faster setup of a randomized
  * test case.
  */
-public class TestExtendingRandomizedTest extends RandomizedTest {
+public class TestSubclassOfRandomizedTest extends RandomizedTest {
   @BeforeClass
   public static void ensureRunsRandomized() {
     assertNotNull(getContext());
