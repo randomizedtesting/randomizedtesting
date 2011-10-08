@@ -5,14 +5,22 @@ Approximately in the order of importance...
 - Add @Nightly support, make test cases out of examples in TestExtendingRandomizedTest.
   Nightly skipping should be implemented as a compound filter on the runner + a flag on the RandomizedContext.
 
+- tests.multiplier
+- Disk throttling. => aspect.
+- Locale and TimeZone randomization => per test suite? Once?
+- add tests to generators (!).
+
 - Base test class providing shortcuts to randomized methods and adding @RunWith
 
 - Utility class for selecting values based on randomness (nightly, iteration scaling, picking parameters with vetos, etc.)
 
-- RandomizedRunner: method shuffling (hooks, tests)
+- RandomizedRunner: method shuffling (hooks, tests); make it _consistent_ based on the runner's seed.
 
 - Report test failures to console (with reproduction instructions) or add a hookable listener?
 - Threads [hangs, deadlocks, interrupting]
+- Add a Random delegate to prevent setSeed(); or an aspect to do so?
+- How to simulate 'tests.iter.min'?
+- There is an important difference in how we repeat tests: we do full loop (hooks, test case), LTC does simple method repetitions.
 - Rewrite LuceneTestCase on top of RandomizedRunner => proove it's functional.
 - More runner tests (compliance with standard JUnit in particular)
 - RandomizedRunner: more validations
@@ -28,3 +36,15 @@ in:
 - Eclipse shows all exceptions next to a test case node [NICE],
 - ant: shows both exceptions in xml and plain text dumps (and in reports) [NICE],
 - maven shows and logs the test case multiplied for all exceptions (weird, but can be understood and all information is there),
+
+
+LuceneTestCase features intentionally omitted
+=============================================
+
+tests.verbose - What's the point of this anyway? Most test hosts will buffer and redirect sysout/syserr anyway.
+tempDir - Override the entire -Djava.io.tmpdir=... instead.
+
+test iterations (globally overriden) should always be _safe_ because they re-run entire hook chain and 
+   execute on different objects. So this note from LTC should no longer apply: 
+   System.out.println("WARNING: you are using -Dtests.iter=n where n > 1, not all tests support this option.");
+   System.out.println("Some may crash or fail: this is not a bug.");
