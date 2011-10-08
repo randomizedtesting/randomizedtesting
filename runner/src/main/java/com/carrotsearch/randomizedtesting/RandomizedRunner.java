@@ -31,6 +31,7 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 
@@ -73,24 +74,31 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * System property with an integer defining global initialization seeds for all
    * random generators. Should guarantee test reproducibility.
    */
-  public static final String SYSPROP_RANDOM_SEED = "randomized.seed";
+  public static final String SYSPROP_RANDOM_SEED = "tests.seed";
+
+  /**
+   * Global system property indicating that we're running nightly tests.
+   * 
+   * @see Nightly
+   */
+  public static final String SYSPROP_NIGHTLY = "tests.nightly";
 
   /**
    * The global override for the number of each test's repetitions.
    */
-  public static final String SYSPROP_ITERATIONS = "randomized.iters";
+  public static final String SYSPROP_ITERATIONS = "tests.iters";
 
   /**
    * Global override for picking out a single test class to execute. All other
    * classes are ignored. 
    */
-  public static final String SYSPROP_TESTCLASS = "testcase";
+  public static final String SYSPROP_TESTCLASS = "tests.class";
 
   /**
    * Global override for picking out a single test method to execute. If a
    * matching method exists in more than one class, it will be executed. 
    */
-  public static final String SYSPROP_TESTMETHOD = "testmethod";
+  public static final String SYSPROP_TESTMETHOD = "tests.method";
 
   /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
@@ -188,8 +196,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public void run(RunNotifier notifier) {
-    RandomizedContext context = new RandomizedContext(target);
-    context.randomness = runnerRandomness;
+    RandomizedContext context = createContext();
     RandomizedContext.setContext(context);
 
     try {
@@ -215,6 +222,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
     } finally {
       RandomizedContext.clearContext();
     }
+  }
+
+  /**
+   * Create randomized context for the run. 
+   */
+  private RandomizedContext createContext() {
+    final boolean nightlyMode = RandomizedTest.systemPropertyAsBoolean(SYSPROP_NIGHTLY, false);
+    final RandomizedContext context = new RandomizedContext(target, nightlyMode);
+    context.randomness = runnerRandomness;
+    return context;
   }
 
   /**
@@ -250,7 +267,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private void run(RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
  
-    if (c.method.getAnnotation(Ignore.class) != null) {
+    if (isIgnored(c)) {
       notifier.fireTestIgnored(c.description);
     } else {
       Object instance = null;
@@ -288,6 +305,23 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     notifier.fireTestFinished(c.description);
+  }
+
+  /** 
+   * Returns true if we should ignore this test candidate.
+   */
+  private boolean isIgnored(final TestCandidate c) {
+    if (c.method.getAnnotation(Ignore.class) != null)
+      return true;
+
+    if (!RandomizedContext.current().isNightly()) {
+      if (c.method.getAnnotation(Nightly.class) != null ||
+          target.getAnnotation(Nightly.class) != null) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**

@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -14,6 +15,7 @@ import java.util.TimeZone;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.carrotsearch.randomizedtesting.generators.RandomStrings;
@@ -45,6 +47,14 @@ public class RandomizedTest extends Assert {
     return RandomizedContext.current();
   }
 
+  /**
+   * Returns true if we're running nightly tests.
+   * @see Nightly
+   */
+  protected static boolean isNightly() {
+    return getContext().isNightly();
+  }
+  
   /**
    * Shortcut for {@link RandomizedContext#getRandom()}. Even though this method
    * is static, it return per-thread {@link Random} instance, so no race conditions
@@ -231,6 +241,23 @@ public class RandomizedTest extends Assert {
     return String.format("%04d", tempSubFileNameCount++);
   }
 
+  /**
+   * Recursively delete a folder (or file).
+   */
+  protected static void deleteRecursively(File fileOrDir) throws IOException {
+    if (fileOrDir.isDirectory()) {
+      // Not a symlink? Delete contents first.
+      if (fileOrDir.getCanonicalPath().equals(fileOrDir.getAbsolutePath())) {
+        for (File f : fileOrDir.listFiles()) {
+          deleteRecursively(f);
+        }
+      }
+    }
+    if (!fileOrDir.delete()) {
+      throw new IOException("Could not delete: " + fileOrDir.getAbsolutePath());
+    }
+  }
+
   /** 
    * Return a random Locale from the available locales on the system.
    * 
@@ -362,20 +389,37 @@ public class RandomizedTest extends Assert {
     }
   }
 
+  /** Boolean constants mapping. */
+  @SuppressWarnings("serial")
+  private final static HashMap<String, Boolean> BOOLEANS = new HashMap<String, Boolean>() {{
+    put(   "true", true); put(   "false", false);
+    put(     "on", true); put(     "off", false);
+    put(    "yes", true); put(      "no", false);
+    put("enabled", true); put("disabled", false);
+  }};
+
   /**
-   * Recursively delete a folder (or file).
+   * Get a system property and convert it to a boolean, if defined. This method returns
+   * <code>true</code> if the property exists an is set to any of the following strings
+   * (case-insensitive): <code>true</code>, <code>on</code>, <code>yes</code>, <code>enabled</code>.
+   * 
+   * <p><code>false</code> is returned if the property exists and is set to any of the
+   * following strings (case-insensitive):
+   * <code>false</code>, <code>off</code>, <code>no</code>, <code>disabled</code>.
    */
-  protected static void deleteRecursively(File fileOrDir) throws IOException {
-    if (fileOrDir.isDirectory()) {
-      // Not a symlink? Delete contents first.
-      if (fileOrDir.getCanonicalPath().equals(fileOrDir.getAbsolutePath())) {
-        for (File f : fileOrDir.listFiles()) {
-          deleteRecursively(f);
-        }
-      }
-    }
-    if (!fileOrDir.delete()) {
-      throw new IOException("Could not delete: " + fileOrDir.getAbsolutePath());
+  public static boolean systemPropertyAsBoolean(String propertyName, boolean defaultValue) {
+    String v = System.getProperty(propertyName);
+
+    if (v != null && !v.trim().isEmpty()) {
+      v = v.trim();
+      Boolean result = BOOLEANS.get(v);
+      if (result != null) 
+        return result.booleanValue();
+      else
+        throw new IllegalArgumentException("Boolean value expected " +
+      		"(true/false, on/off, enabled/disabled, yes/no): " + v);
+    } else {
+      return defaultValue;
     }
   }
 }

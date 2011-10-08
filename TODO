@@ -2,10 +2,6 @@
 Approximately in the order of importance...
 ===========================================
 
-- Add @Nightly support, make test cases out of examples in TestExtendingRandomizedTest.
-  Nightly skipping should be implemented as a compound filter on the runner + a flag on 
-  the RandomizedContext.
-
 - add tests to all methods in RandomizedTest (!).
 
 - Report test failures to console (with reproduction instructions) or add a hookable listener?

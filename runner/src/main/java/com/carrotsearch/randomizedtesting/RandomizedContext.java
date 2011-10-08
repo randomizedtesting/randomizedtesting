@@ -2,6 +2,8 @@ package com.carrotsearch.randomizedtesting;
 
 import java.util.Random;
 
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
+
 /**
  * Context variables for an execution of a test suite (hooks and tests) running
  * under a {@link RandomizedRunner}.
@@ -11,15 +13,19 @@ public final class RandomizedContext {
   private final static ThreadLocal<RandomizedContext> context = new ThreadLocal<RandomizedContext>();
 
   /** @see #getTargetClass() */
-  Class<?> targetClass;
+  final Class<?> targetClass;
 
   /** @see #getRandomness() */
   Randomness randomness;
-
-  public RandomizedContext(Class<?> targetClass) {
-    this.targetClass = targetClass;
-  }
   
+  /** @see Nightly */
+  private final boolean nightlyMode;
+
+  RandomizedContext(Class<?> targetClass, boolean nightlyMode) {
+    this.targetClass = targetClass;
+    this.nightlyMode = nightlyMode;
+  }
+
   /** The class (suite) being tested. */
   public Class<?> getTargetClass() {
     return targetClass;
@@ -35,6 +41,13 @@ public final class RandomizedContext {
    */
   public Random getRandom() {
     return getRandomness().getRandom();
+  }
+
+  /**
+   * Return <code>true</code> if tests are running in nightly mode.
+   */
+  public boolean isNightly() {
+    return nightlyMode;
   }
 
   /**

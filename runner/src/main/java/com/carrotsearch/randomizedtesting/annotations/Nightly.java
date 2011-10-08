@@ -6,9 +6,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.carrotsearch.randomizedtesting.RandomizedTest;
+
 /**
  * An annotation indicating a given test case (or suite) should run only during
- * nightly tests (assuming these can take longer than usual).
+ * nightly tests.
+ * 
+ * <p>The notion of "nightly" tests is based on an assumption that these tests can
+ * take longer than usual or require more resources than usual. Nightly tests will
+ * be most commonly used with higher scaling multipliers as in 
+ * ({@link RandomizedTest#SYSPROP_MULTIPLIER}.</p>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
