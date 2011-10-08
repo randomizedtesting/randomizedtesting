@@ -68,12 +68,6 @@ public class RandomizedTest extends Assert {
     throw new UnsupportedOperationException("not implemented");
   }
 
-  // final int NUM_TERMS = (int) (1000*RANDOM_MULTIPLIER * (1+random.nextDouble()));
-  // =>
-  // NUM_TERMS = (int) (multiplier() * randomIntBetween(1000, 2000));
-  // or
-  // NUM_TERMS = scaledRandomBetween(1000, 2000);
-
   /**
    * Pick uniform random value between min..max and scale it using {@link #multiplier()}.
    * For example:
