@@ -8,13 +8,14 @@ Approximately in the order of importance...
 - add tests to all methods in RandomizedTest (!).
 - Threads [hangs, deadlocks, interrupting]
 
-- How to simulate 'tests.iter.min'?
 - Rewrite LuceneTestCase on top of RandomizedRunner => prove it is functional.
+
+- How to simulate 'tests.iter.min'?
 - More runner tests (compliance with standard JUnit in particular)
-- RandomizedRunner: more validations
+- RandomizedRunner: more validations (TODOs)
+
 - Can we integrate with TestNG too?
 - What about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
-
 
 New LTC:
     - Locale and TimeZone randomization => per test suite? Once?
