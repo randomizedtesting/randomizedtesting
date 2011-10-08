@@ -5,7 +5,9 @@ Approximately in the order of importance...
 - Add @Nightly support, make test cases out of examples in TestExtendingRandomizedTest.
   Nightly skipping should be implemented as a compound filter on the runner + a flag on 
   the RandomizedContext.
-- add tests to generators (!).
+
+- add tests to all methods in RandomizedTest (!).
+
 - Report test failures to console (with reproduction instructions) or add a hookable listener?
 
 - RandomizedRunner: method shuffling (hooks, tests); make it _consistent_ based on the runner's seed.
@@ -13,7 +15,7 @@ Approximately in the order of importance...
 - Add a Random delegate to prevent setSeed(); or an aspect to do so?
 - How to simulate 'tests.iter.min'?
 - There is an important difference in how we repeat tests: we do full loop (hooks, test case), LTC does simple method repetitions.
-- Rewrite LuceneTestCase on top of RandomizedRunner => proove it's functional.
+- Rewrite LuceneTestCase on top of RandomizedRunner => prove it is functional.
 - More runner tests (compliance with standard JUnit in particular)
 - RandomizedRunner: more validations
 - Can we integrate with TestNG too?
