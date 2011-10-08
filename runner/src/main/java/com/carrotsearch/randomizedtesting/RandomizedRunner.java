@@ -201,6 +201,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     RandomizedContext context = createContext();
     RandomizedContext.setContext(context);
 
+    context.push(runnerRandomness);
     try {
       // Check for automatically hookable listeners.
       subscribeListeners(notifier);
@@ -214,19 +215,23 @@ public final class RandomizedRunner extends Runner implements Filterable {
           runBeforeClassMethods();
     
           for (TestCandidate c : filtered) {
-            context.randomness = c.randomness;
-            run(notifier, c);
+            try {
+              context.push(c.randomness);
+              run(notifier, c);
+            } finally {
+              context.pop();
+            }
           }
         } catch (Throwable t) {
           notifier.fireTestFailure(new Failure(classDescription, t));
         }
 
-        context.randomness = runnerRandomness;
         runAfterClassMethods(notifier);
       }
     } finally {
       unsubscribeListeners(notifier);
       RandomizedContext.clearContext();
+      context.pop();
     }
   }
 
@@ -262,9 +267,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private RandomizedContext createContext() {
     final boolean nightlyMode = RandomizedTest.systemPropertyAsBoolean(SYSPROP_NIGHTLY, false);
-    final RandomizedContext context = new RandomizedContext(target, nightlyMode);
-    context.randomness = runnerRandomness;
-    return context;
+    return new RandomizedContext(runnerRandomness, target, nightlyMode);
   }
 
   /**
@@ -647,5 +650,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
       return null;
     else
       return b.toString();
+  }
+
+  /**
+   * Strip the seed added to a method name in test runs. 
+   */
+  public static String stripSeed(String methodName) {
+    return methodName.replaceAll("(\\#[0-9+])?\\s\\[[A-Za-z0-9\\:]+\\]", "");
   }
 }
