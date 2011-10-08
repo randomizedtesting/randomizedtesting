@@ -25,12 +25,14 @@ import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.Filterable;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
+import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
@@ -200,6 +202,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     RandomizedContext.setContext(context);
 
     try {
+      // Check for automatically hookable listeners.
+      subscribeListeners(notifier);
+
       // Filter out test candidates to see if there's anything left. If not,
       // don't bother running class hooks.
       List<TestCandidate> filtered = applyFilters();
@@ -220,8 +225,36 @@ public final class RandomizedRunner extends Runner implements Filterable {
         runAfterClassMethods(notifier);
       }
     } finally {
+      unsubscribeListeners(notifier);
       RandomizedContext.clearContext();
     }
+  }
+
+  /** @see #subscribeListeners(RunNotifier) */
+  final List<RunListener> autoListeners = new ArrayList<RunListener>();
+
+  /** Subscribe annotation listeners to the notifier. */
+  private void subscribeListeners(RunNotifier notifier) {
+    if (target.getAnnotation(Listeners.class) != null) {
+      for (Class<? extends RunListener> clazz :
+        target.getAnnotation(Listeners.class).value()) {
+        try {
+          RunListener listener = clazz.newInstance();
+          autoListeners.add(listener);
+          notifier.addListener(listener);
+        } catch (Throwable t) {
+          throw new RuntimeException("Could not initialize suite class: "
+              + target.getName() + " because its @Listener is not instantiable: "
+              + clazz.getName(), t); 
+        }
+      }
+    }
+  }
+
+  /** Unsubscribe listeners. */
+  private void unsubscribeListeners(RunNotifier notifier) {
+    for (RunListener r : autoListeners)
+      notifier.removeListener(r);
   }
 
   /**

@@ -2,11 +2,11 @@
 Approximately in the order of importance...
 ===========================================
 
+- Report test failures to console (with reproduction instructions) or add a hookable listener?
+- RandomizedRunner: method shuffling (hooks, tests); make it _consistent_ based on the runner's seed.
+
 - add tests to all methods in RandomizedTest (!).
 
-- Report test failures to console (with reproduction instructions) or add a hookable listener?
-
-- RandomizedRunner: method shuffling (hooks, tests); make it _consistent_ based on the runner's seed.
 - Threads [hangs, deadlocks, interrupting]
 - Add a Random delegate to prevent setSeed(); or an aspect to do so?
 - How to simulate 'tests.iter.min'?
