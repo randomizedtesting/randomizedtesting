@@ -1,5 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -9,8 +11,6 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
-
 /**
  * Before and after hooks order with a class hierarchy.
  */
@@ -18,6 +18,7 @@ public class TestBeforeAfterMethodOrder {
   /**
    * Test superclass.
    */
+  @RunWith(RandomizedRunner.class)
   public static class Super {
     protected static int counter;
 
@@ -41,6 +42,10 @@ public class TestBeforeAfterMethodOrder {
       beforeTestSuperOrder = ++counter;
     }
 
+    protected void testMethod() {
+      throw new RuntimeException("Should be overriden and public.");
+    }
+
     @After
     public final void afterTest() {
       afterTestSuperOrder = ++counter;
@@ -55,7 +60,6 @@ public class TestBeforeAfterMethodOrder {
   /** 
    * Test subclass.
    */
-  @RunWith(RandomizedRunner.class)
   public static class SubSub extends Super {
     @BeforeClass
     public static void beforeClass() {

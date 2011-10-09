@@ -5,6 +5,7 @@ import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -626,14 +627,40 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * {@link After} and {@link AfterClass} methods. Shuffles methods at the same level.
    */
   private List<FrameworkMethod> getTargetMethods(Class<? extends Annotation> annotation) {
-    // TODO: implement scanning order and shuffling at the same level properly. For now,
-    // let's use JUnit infrastructure.
+    List<List<Method>> methods =
+        MethodCollector.removeOverrides(
+            MethodCollector.allDeclaredMethods(target));
 
     // TODO: JUnit does not invoke @BeforeClass methods that are shadowed by static methods
     // in subclasses (!). I think this is wrong, but we can add a validation check for this
     // because it is counterintuitive. We can actually make it invalid to override or shadow
     // any hooks (?)
-    return targetInfo.getAnnotatedMethods(annotation);
+
+    // Filter to only those with the annotation.
+    for (List<Method> classMethods : methods) {
+      for (Iterator<Method> i = classMethods.iterator(); i.hasNext();) {
+        if (i.next().getAnnotation(annotation) == null) {
+          i.remove();
+        }
+      }
+    }
+
+    // Take care about the order in case of certain annotations.
+    if (annotation.equals(Before.class) || annotation.equals(BeforeClass.class)) {
+      Collections.reverse(methods);
+    }
+
+    // TODO: move this to a separate adapt() method and add something like this:
+    // toFrameworkMethod(flatten(shuffleWithinClass(Random, getTargetMethods(annotation))))
+
+    // Adapt to a list of framework methods.
+    List<FrameworkMethod> result = new ArrayList<FrameworkMethod>();
+    for (List<Method> classMethods : methods) {
+      for (Method m : classMethods) {
+        result.add(new FrameworkMethod(m));
+      }
+    }
+    return result;
   }
 
   /**
