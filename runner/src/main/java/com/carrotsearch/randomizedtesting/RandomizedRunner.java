@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -124,6 +125,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   }
   
+  /** 
+   * A sequencer for affecting the initial seed in case of rapid succession of runner's
+   * incarnations. Not likely, but can happen two could get the same seed.
+   */
+  private final static AtomicLong sequencer = new AtomicLong();
+  
   /** The target class with test methods. */
   private final Class<?> target;
 
@@ -171,7 +178,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     } else if (target.getAnnotation(Seed.class) != null) {
       runnerRandomness = new Randomness(parseSeedChain(target.getAnnotation(Seed.class).value())[0]);
     } else {
-      runnerRandomness = new Randomness(MurmurHash3.hash(System.currentTimeMillis()));
+      runnerRandomness = new Randomness(
+          MurmurHash3.hash(
+              sequencer.getAndIncrement() + System.nanoTime()));
     }
 
     if (System.getProperty(SYSPROP_ITERATIONS) != null) {

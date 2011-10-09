@@ -11,7 +11,7 @@ public final class Randomness {
 
   public Randomness(long seed) {
     this.seed = seed;
-    this.random = new Random();
+    this.random = new RandomNoSetSeed(new Random(seed));
   }
 
   /** Random instance for this randomness. */

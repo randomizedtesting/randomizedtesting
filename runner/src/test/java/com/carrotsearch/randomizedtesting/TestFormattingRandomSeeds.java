@@ -7,7 +7,7 @@ import org.junit.runner.RunWith;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
 @RunWith(RandomizedRunner.class)
-public class TestRandomness {
+public class TestFormattingRandomSeeds {
   @Test
   public void minusOne() {
     check(-1L);
