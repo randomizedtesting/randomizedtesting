@@ -1,9 +1,9 @@
 package com.carrotsearch.randomizedtesting;
 
-import com.carrotsearch.randomizedtesting.annotations.ClassValidators;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 
 /**
- * @see ClassValidators
+ * @see Validators
  */
 public interface ClassValidator {
   /**

@@ -37,7 +37,7 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.ClassValidators;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
@@ -73,11 +73,17 @@ import static com.carrotsearch.randomizedtesting.MethodCollector.*;
  * <p>Deviations from "standard" JUnit:
  * <ul>
  *   <li>test methods are allowed to return values (the return value is ignored),</li>
+ *   <li>hook methods need not be public; in fact, it is encouraged to make them private to
+ *       avoid accidental shadowing which silently drops parent hooks from executing
+ *       (applies to class hooks mostly, but also to instance hooks).</li> 
  *   <li>all exceptions raised during hooks or test case execution are reported to the notifier,
  *       there is no suppression or chaining of exceptions,</li>
  * </ul>
  * 
  * @see RandomizedTest
+ * @see Validators
+ * @see Listeners
+ * @see RandomizedContext
  */
 public final class RandomizedRunner extends Runner implements Filterable {
   /**
@@ -261,11 +267,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Run any {@link ClassValidators} declared on the suite.
+   * Run any {@link Validators} declared on the suite.
    */
   private boolean runCustomValidators(RunNotifier notifier) {
 
-    for (ClassValidators ann : getAnnotationsFromClassHierarchy(target, ClassValidators.class)) {
+    for (Validators ann : getAnnotationsFromClassHierarchy(target, Validators.class)) {
       List<ClassValidator> validators = new ArrayList<ClassValidator>();
       try {
         for (Class<? extends ClassValidator> validatorClass : ann.value()) {

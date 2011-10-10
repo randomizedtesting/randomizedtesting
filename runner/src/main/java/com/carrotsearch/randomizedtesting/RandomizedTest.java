@@ -15,13 +15,19 @@ import java.util.TimeZone;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 
+import com.carrotsearch.randomizedtesting.annotations.Validators;
+import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.carrotsearch.randomizedtesting.generators.RandomStrings;
 
 /**
- * Common scaffolding for subclassing randomized tests. 
+ * Common scaffolding for subclassing randomized tests.
+ * 
+ * @see Validators
+ * @see Listeners
+ * @see RandomizedContext
  */
 @RunWith(RandomizedRunner.class)
 public class RandomizedTest extends Assert {

@@ -10,18 +10,16 @@ import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
-import com.carrotsearch.randomizedtesting.annotations.ClassValidators;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 
 /**
  * Test validators on a suite.
  */
 public class TestValidatorsAnnotation extends WithNestedTestClass {
-  static boolean doCheck = false;
-  
   public static class NoCursingInMethodNamesValidator implements ClassValidator {
     public void validate(Class<?> clazz) throws Throwable {
       // Don't validate if executed directly by Eclipse runner...
-      if (!doCheck) return;
+      if (!isRunningNested()) return;
 
       // This validates _all_ methods, anywhere (private non-test methods too).
       for (Method m : flatten(allDeclaredMethods(clazz))) {
@@ -34,7 +32,7 @@ public class TestValidatorsAnnotation extends WithNestedTestClass {
     }
   }
 
-  @ClassValidators({NoCursingInMethodNamesValidator.class})
+  @Validators({NoCursingInMethodNamesValidator.class})
   public static class BadTestClass extends RandomizedTest {
   }
 
@@ -47,10 +45,8 @@ public class TestValidatorsAnnotation extends WithNestedTestClass {
   
   @Test
   public void checkClassValidator() {
-    doCheck = true;
     Result runClasses = JUnitCore.runClasses(BadTestSubClass.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertEquals(0, runClasses.getRunCount());
-    doCheck = false;
   }
 }

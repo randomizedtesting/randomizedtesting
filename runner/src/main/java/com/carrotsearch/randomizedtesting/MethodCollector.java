@@ -117,7 +117,7 @@ public final class MethodCollector {
   /**
    * Collect all declared methods in the class stack up to 
    * <code>java.lang.Object</code> (exclusive). The methods in the returned
-   * list are laid from <code>clazz</code> to the class extending <code>Object</code>.
+   * list are laid from <code>clazz..super</code> order.
    */
   public static List<List<Method>> allDeclaredMethods(Class<?> clazz) {
     List<List<Method>> result = new ArrayList<List<Method>>();
