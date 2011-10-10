@@ -13,6 +13,8 @@ public final class RandomPicks {
    * Pick a random object from the given array.
    */
   public static <T> T randomFrom(Random r, T [] array) {
+    if (array.length == 0)
+      throw new IllegalArgumentException("Can't pick a random object from an empty array.");
     return array[r.nextInt(array.length)];
   }
 
@@ -20,6 +22,8 @@ public final class RandomPicks {
    * Pick a random object from the given list.
    */
   public static <T> T randomFrom(Random r, List<T> list) {
+    if (list.size() == 0)
+      throw new IllegalArgumentException("Can't pick a random object from an empty list.");
     return list.get(r.nextInt(list.size()));
   }
 

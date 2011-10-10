@@ -110,7 +110,7 @@ public class RandomizedTest extends Assert {
   //
   
   /**
-   * Pick a random object from the given array.
+   * Pick a random object from the given array. The array must not be empty.
    */
   protected static <T> T randomFrom(T [] array) {
     return RandomPicks.randomFrom(getRandom(), array);
@@ -135,21 +135,6 @@ public class RandomizedTest extends Assert {
    */
   public static double multiplier() {
     return systemPropertyAsDouble(SYSPROP_MULTIPLIER, DEFAULT_MULTIPLIER);
-  }
-
-  /**
-   * Pick uniform random value between min..max and scale it using {@link #multiplier()}.
-   * For example:
-   * <pre>
-   * NUM_TERMS = (int) (multiplier() * randomIntBetween(1000, 2000));
-   * </pre>
-   * is the same as:
-   * <pre>
-   * NUM_TERMS = multipliedRandomBetween(1000, 2000);
-   * </pre>
-   */
-  protected static int multipliedRandomBetween(int min, int max) {
-    return (int) (randomIntBetween(min, max) * multiplier());
   }
 
   // Methods to help with I/O and environment.  

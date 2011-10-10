@@ -10,8 +10,13 @@ public final class RandomInts {
    * A random integer from <code>min</code> to <code>max</code> (inclusive).
    */
   public static int     randomIntBetween(Random r, int min, int max) {
-    assert max >= min; // TODO: overflows?
-    return min + r.nextInt(max - min + 1); 
+    assert max >= min : "max must be >= min: " + min + ", " + max;
+    long range = (long) max - (long) min;
+    if (range < Integer.MAX_VALUE) {
+      return min + r.nextInt(1 + (int) range);
+    } else {
+      return min + (int) Math.round(r.nextDouble() * range);
+    }
   }
 
   /**
