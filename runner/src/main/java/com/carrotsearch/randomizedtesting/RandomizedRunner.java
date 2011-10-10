@@ -456,7 +456,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * on the annotation (reversing order, etc.). 
    */
   private List<FrameworkMethod> getTargetMethods(Class<? extends Annotation> ann) {
-    List<List<Method>> list = mutableCopy(removeOverrides(annotatedWith(allTargetMethods, ann)));
+    List<List<Method>> list = mutableCopy(
+        removeShadowed(removeOverrides(annotatedWith(allTargetMethods, ann))));
 
     // Reverse processing order to super...clazz for befores
     if (ann == Before.class || ann == BeforeClass.class) {

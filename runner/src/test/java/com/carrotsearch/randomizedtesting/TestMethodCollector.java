@@ -82,4 +82,41 @@ public class TestMethodCollector {
     );
     Assert.assertEquals(expected, actual);
   }
+  
+  @Test
+  public void checkShadowedRemoval() throws Exception {
+    List<List<Method>> methods = 
+        MethodCollector.removeOverrides(
+            MethodCollector.removeShadowed(
+                MethodCollector.sort(
+                    MethodCollector.allDeclaredMethods(SubSub.class))));
+
+    List<String> actual = new ArrayList<String>();
+    for (List<Method> clazzLevel : methods) {
+      String clazz = clazzLevel.get(0).getDeclaringClass().getSimpleName();
+      for (Method m : clazzLevel) {
+        actual.add(clazz + "." + m.getName());
+      }
+    }
+
+    // Expecting sorted alphabetically within class.
+    List<String> expected = Arrays.asList(
+        "SubSub.openingProtectedMethod",
+        "SubSub.packageMethod",
+        "SubSub.privateMethod",
+        "SubSub.protectedMethod",
+        "SubSub.publicMethod",
+        "SubSub.staticPackageMethod",
+        "SubSub.staticPrivateMethod",
+        "SubSub.staticProtectedMethod",
+        "SubSub.staticPublicMethod",
+        "Sub.packageMethod",
+        "Sub.privateMethod",
+        "Sub.staticPackageMethod",
+        "Sub.staticPrivateMethod",
+        "Super.privateMethod",
+        "Super.staticPrivateMethod"
+    );
+    Assert.assertEquals(expected, actual);
+  }  
 }
