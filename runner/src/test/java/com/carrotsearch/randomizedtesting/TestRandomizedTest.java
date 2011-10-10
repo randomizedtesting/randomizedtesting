@@ -85,4 +85,26 @@ public class TestRandomizedTest extends RandomizedTest {
     for (int i = 0; i < ints.size(); i++)
       assertTrue(ints.get(i) == null);
   }
+
+  @Test
+  public void testNewTempDir() {
+    fail("write me.");
+  }
+
+  @Test
+  public void testNewTempFile() {
+    fail("write me.");
+  }
+  
+  @Test
+  public void testRandomLocale() {
+    fail("write me.");
+  }
+  
+  @Test
+  public void testRandomTimeZone() {
+    fail("write me.");
+  }      
+
+  // TODO: port random string tests from Lucene (if there are any).
 }
