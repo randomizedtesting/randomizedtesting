@@ -2,23 +2,24 @@
 Approximately in the order of importance...
 ===========================================
 
-- add tests to all methods in RandomizedTest (!).
+- check if @listeners and @validators must be inherited; what happens if two are declared
+  in a class hierarchy?
+
+- RandomizedTest: 
+    // TODO: Validate hook method shadowing and make it illegal?
+    // TODO: Validate hook method overrides and make it illegal?
 
 - Rewrite LuceneTestCase on top of RandomizedRunner => prove it is functional.
 - Threads [uncaught exceptions, left-over threads, hangs, deadlocks, interrupting]
 
+- Add tests to cover methods in RandomizedTest (these propagate to generators too). 
 - How to simulate 'tests.iter.min'?
-- More runner tests (compliance with standard JUnit in particular)
-- RandomizedRunner: more validations (TODOs)
 - deal with catch clauses that potentially catch assertion errors?
 
 - Can we integrate with TestNG too?
 - What about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
 
 - Add an utility for "smart" rethrow without the need to redeclare throwable?
-
-    // TODO: Validate hook method shadowing and make it illegal?
-    // TODO: Validate hook method overrides and make it illegal?
 
 
 New LTC:

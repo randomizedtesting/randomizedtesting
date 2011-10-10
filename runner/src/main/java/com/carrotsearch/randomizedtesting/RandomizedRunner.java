@@ -35,6 +35,7 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
+import com.carrotsearch.randomizedtesting.annotations.ClassValidators;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
@@ -172,7 +173,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if (globalSeed != null) {
       final long[] seedChain = parseSeedChain(globalSeed);
       if (seedChain.length == 0 || seedChain.length > 2) {
-        throw new IllegalArgumentException("Invalid " 
+        throw new IllegalArgumentException("Invalid system property " 
             + SYSPROP_RANDOM_SEED + " specification: " + globalSeed);
       }
 
@@ -190,8 +191,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if (System.getProperty(SYSPROP_ITERATIONS) != null) {
       this.iterations = Integer.parseInt(System.getProperty(SYSPROP_ITERATIONS, "1"));
       if (iterations < 1)
-        throw new IllegalArgumentException(SYSPROP_ITERATIONS + " must be >= 1: " + iterations);
+        throw new IllegalArgumentException(
+            "System property " + SYSPROP_ITERATIONS + " must be >= 1: " + iterations);
     }
+
+    // TODO: should validation and everything else be done lazily after RunNotifier is available?
 
     // Fail fast if target is inconsistent or "standard" JUnit rules are somehow broken.
     validateTarget();
@@ -221,34 +225,68 @@ public final class RandomizedRunner extends Runner implements Filterable {
     try {
       // Check for automatically hookable listeners.
       subscribeListeners(notifier);
-
-      // Filter out test candidates to see if there's anything left. If not,
-      // don't bother running class hooks.
-      List<TestCandidate> filtered = applyFilters();
-
-      if (!filtered.isEmpty()) {
-        try {
-          runBeforeClassMethods();
-    
-          for (TestCandidate c : filtered) {
-            try {
-              context.push(c.randomness);
-              run(notifier, c);
-            } finally {
-              context.pop();
+      
+      // Validate target with custom validators.
+      if (runCustomValidators(notifier)) {
+        // Filter out test candidates to see if there's anything left. If not,
+        // don't bother running class hooks.
+        List<TestCandidate> filtered = applyFilters();
+  
+        if (!filtered.isEmpty()) {
+          try {
+            runBeforeClassMethods();
+      
+            for (TestCandidate c : filtered) {
+              try {
+                context.push(c.randomness);
+                run(notifier, c);
+              } finally {
+                context.pop();
+              }
             }
+          } catch (Throwable t) {
+            notifier.fireTestFailure(new Failure(classDescription, t));
           }
-        } catch (Throwable t) {
-          notifier.fireTestFailure(new Failure(classDescription, t));
+  
+          runAfterClassMethods(notifier);
         }
-
-        runAfterClassMethods(notifier);
       }
     } finally {
       unsubscribeListeners(notifier);
       RandomizedContext.clearContext();
       context.pop();
     }
+  }
+
+  /**
+   * Run any {@link ClassValidators} declared on the suite.
+   */
+  private boolean runCustomValidators(RunNotifier notifier) {
+    ClassValidators ann = target.getAnnotation(ClassValidators.class);
+    if (ann == null)
+      return true;
+
+    List<ClassValidator> validators = new ArrayList<ClassValidator>();
+    try {
+      for (Class<? extends ClassValidator> validatorClass : ann.value()) {
+        try {
+          validators.add(validatorClass.newInstance());
+        } catch (Throwable t) {
+          throw new RuntimeException("Could not initialize suite class: "
+              + target.getName() + " because its @ClassValidators contains non-instantiable: "
+              + validatorClass.getName(), t); 
+        }
+      }
+
+      for (ClassValidator v : validators) {
+          v.validate(target);
+      }
+    } catch (Throwable t) {
+      notifier.fireTestFailure(new Failure(classDescription, t));
+      return false;
+    }
+
+    return true;
   }
 
   /** @see #subscribeListeners(RunNotifier) */
@@ -668,9 +706,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
 
-    // TODO: disallow shadowing of static methods.
-    // TODO: disallow overriding of @Before/ After methods.
-    // TODO: validate @Rule fields.
+    // TODO: Validate @Rule fields (what are the "rules" for these anyway?)
   }
 
   /**

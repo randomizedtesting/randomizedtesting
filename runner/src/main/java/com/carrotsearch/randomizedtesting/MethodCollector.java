@@ -18,7 +18,7 @@ import java.util.List;
  * Method collection and filtering utilities (using reflection).
  * No particular pressure on performance, should be a fraction of tests' time anyway.
  */
-final class MethodCollector {
+public final class MethodCollector {
   /**
    * Processes the result of {@link #allDeclaredMethods(Class)} and removes
    * any overridden methods (public, protected, package scope if in the same package.). 
