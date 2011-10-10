@@ -5,6 +5,7 @@ import static java.lang.reflect.Modifier.isProtected;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,7 +97,58 @@ final class MethodCollector {
       result.add(clone);
     }
     return result;
-  }  
+  }
+
+  /**
+   * Return an immutable copy of the method list.
+   */
+  public static List<List<Method>> immutableCopy(List<List<Method>> methods) {
+    List<List<Method>> result = new ArrayList<List<Method>>();
+    for (List<Method> classMethods : methods) {
+      result.add(Collections.unmodifiableList(classMethods));
+    }
+    return Collections.unmodifiableList(result);
+  }
+
+  /**
+   * Return a mutable copy of the method list.
+   */
+  public static List<List<Method>> mutableCopy(List<List<Method>> methods) {
+    List<List<Method>> result = new ArrayList<List<Method>>();
+    for (List<Method> classMethods : methods) {
+      result.add(new ArrayList<Method>(classMethods));
+    }
+    return result;
+  }
+
+  /**
+   * Return a copy of the input list of methods, restricted to those having at
+   * least one annotation on them.
+   */
+  public static List<List<Method>> annotatedWith(List<List<Method>> methods, Class<? extends Annotation> annotation) {
+    List<List<Method>> result = new ArrayList<List<Method>>();
+    for (List<Method> classMethods : methods) {
+      ArrayList<Method> subList = new ArrayList<Method>();
+      for (Method m : classMethods) {
+        if (m.isAnnotationPresent(annotation))
+          subList.add(m);
+      }
+      if (!subList.isEmpty())
+        result.add(Collections.unmodifiableList(subList));
+    }
+    return Collections.unmodifiableList(result);
+  }
+
+  /**
+   * Return a flat view of a class-split method list.
+   */
+  public static List<Method> flatten(List<List<Method>> methods) {
+    List<Method> result = new ArrayList<Method>();
+    for (List<Method> classMethods : methods)
+      for (Method m : classMethods)
+        result.add(m);
+    return Collections.unmodifiableList(result);
+  }
 
   private static boolean isPackageScope(int modifiers) {
     return !isPublic(modifiers) && !isProtected(modifiers) && !isPrivate(modifiers);

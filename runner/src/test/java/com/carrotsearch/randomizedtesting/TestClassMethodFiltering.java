@@ -1,6 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +60,9 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
   public void testClassFilter() {
     System.setProperty(RandomizedRunner.SYSPROP_TESTCLASS, Nested1.class.getName());
     JUnitCore.runClasses(Nested1.class, Nested2.class);
-    assertEquals(Arrays.asList("beforeClass1", "method1", "method2"), methods);
+    assertTrue(
+        Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
+        Arrays.asList("beforeClass1", "method2", "method1").equals(methods));
   }
 
   /**

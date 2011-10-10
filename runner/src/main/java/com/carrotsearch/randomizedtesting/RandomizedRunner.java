@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
@@ -38,6 +39,8 @@ import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
+
+import static com.carrotsearch.randomizedtesting.MethodCollector.*;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -135,8 +138,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** The target class with test methods. */
   private final Class<?> target;
 
-  /** JUnit utilities for scanning methods/ fields. */
-  private final TestClass targetInfo;
+  /** 
+   * All methods of the {@link #target} class, unfiltered (including overrides and shadowed
+   * methods), but sorted within class. 
+   */
+  private List<List<Method>> allTargetMethods;
 
   /** The runner's seed (master). */
   private final Randomness runnerRandomness;
@@ -159,10 +165,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     this.target = testClass;
-    this.targetInfo = new TestClass(testClass);
-
-    // Fail fast if target is inconsistent.
-    validateTarget();
+    this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(target)));
 
     // Initialize the runner's master seed/ randomness source.
     final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED);
@@ -189,6 +192,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (iterations < 1)
         throw new IllegalArgumentException(SYSPROP_ITERATIONS + " must be >= 1: " + iterations);
     }
+
+    // Fail fast if target is inconsistent or "standard" JUnit rules are somehow broken.
+    validateTarget();
 
     // Collect all test candidates, regardless if they'll be executed or not.
     classDescription = Description.createSuiteDescription(target);
@@ -388,8 +394,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @SuppressWarnings("deprecation")
   private Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
+    TestClass info = new TestClass(target); 
     for (org.junit.rules.MethodRule each : 
-        targetInfo.getAnnotatedFieldValues(target, Rule.class, org.junit.rules.MethodRule.class))
+        info.getAnnotatedFieldValues(target, Rule.class, org.junit.rules.MethodRule.class))
       s = each.apply(s, c.method, instance);
     return s;
   }
@@ -445,17 +452,48 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
   
   /**
-   * Collect all test candidates, regardless if they'll be executed or not. At this point
+   * Construct a list of ordered framework methods. Minor tweaks are done depending
+   * on the annotation (reversing order, etc.). 
+   */
+  private List<FrameworkMethod> getTargetMethods(Class<? extends Annotation> ann) {
+    List<List<Method>> list = mutableCopy(removeOverrides(annotatedWith(allTargetMethods, ann)));
+
+    // Reverse processing order to super...clazz for befores
+    if (ann == Before.class || ann == BeforeClass.class) {
+      Collections.reverse(list);
+    }
+
+    // Shuffle at class level.
+    Random rnd = new Random(runnerRandomness.seed);
+    for (List<Method> clazzLevel : list) {
+      Collections.shuffle(clazzLevel, rnd);
+    }
+
+    ArrayList<FrameworkMethod> result = new ArrayList<FrameworkMethod>();
+    for (Method m : flatten(list)) {
+      result.add(new FrameworkMethod(m));
+    }
+    return result;
+  }
+
+  /**
+   * Collect all test candidates, regardless if they will be executed or not. At this point
    * individual test methods are also expanded into multiple executions corresponding
    * to the number of iterations ({@link #SYSPROP_ITERATIONS}) and the initial method seed 
    * is preassigned. 
    * 
+   * <p>The order of test candidates is shuffled based on the runner's random.</p> 
+   * 
    * @see Rants#RANT_1
    */
   private List<TestCandidate> collectTestCandidates(Description classDescription) {
-    List<FrameworkMethod> testMethods = getTargetMethods(Test.class);
+    List<Method> testMethods = 
+        new ArrayList<Method>(
+            flatten(removeOverrides(annotatedWith(allTargetMethods, Test.class))));
+    Collections.shuffle(testMethods, new Random(runnerRandomness.seed));
+
     List<TestCandidate> candidates = new ArrayList<TestCandidate>();
-    for (FrameworkMethod method : testMethods) {
+    for (Method method : testMethods) {
       Description parent = classDescription;
       int methodIterations = determineMethodIterationCount(method);
       if (methodIterations > 1) {
@@ -482,7 +520,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
         // Add the candidate.
         parent.addChild(description);
-        candidates.add(new TestCandidate(method, iterRandomness, description));
+        candidates.add(new TestCandidate(new FrameworkMethod(method), iterRandomness, description));
       }
     }
     return candidates;
@@ -497,7 +535,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * 
    * @see Seed
    */
-  private long determineMethodSeed(FrameworkMethod method) {
+  private long determineMethodSeed(Method method) {
     if (testRandomnessOverride != null) {
       return testRandomnessOverride.seed;
     }
@@ -517,7 +555,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Determine if a given method's iterations should run with a fixed seed or not.
    */
-  private boolean isConstantSeedForAllIterations(FrameworkMethod method) {
+  private boolean isConstantSeedForAllIterations(Method method) {
     if (testRandomnessOverride != null)
       return true;
 
@@ -541,7 +579,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    *  <li>The default (1).</li>
    * <ul>
    */
-  private int determineMethodIterationCount(FrameworkMethod method) {
+  private int determineMethodIterationCount(Method method) {
     // Global override.
     if (iterations > 0)
       return iterations;
@@ -558,7 +596,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Validate methods and hooks in the target.
+   * Validate methods and hooks in the target. Follows "standard" JUnit rules,
+   * with some exceptions on return values and more rigorous checking of shadowed
+   * methods and fields.
    */
   private void validateTarget() {
     // Target is accessible (public, concrete, has a parameterless constructor etc).
@@ -569,8 +609,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       .hasPublicNoArgsConstructor();
 
     // @BeforeClass
-    for (FrameworkMethod method : getTargetMethods(BeforeClass.class)) {
-      Validation.checkThat(method.getMethod())
+    for (Method method : flatten(annotatedWith(allTargetMethods, BeforeClass.class))) {
+      Validation.checkThat(method)
         .describedAs("@BeforeClass method " + target.getName() + "#" + method.getName())
         .isPublic()
         .isStatic()
@@ -578,8 +618,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // @AfterClass
-    for (FrameworkMethod method : getTargetMethods(AfterClass.class)) {
-      Validation.checkThat(method.getMethod())
+    for (Method method : flatten(annotatedWith(allTargetMethods, AfterClass.class))) {
+      Validation.checkThat(method)
         .describedAs("@AfterClass method " + target.getName() + "#" + method.getName())
         .isPublic()
         .isStatic()
@@ -587,80 +627,49 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // @Before
-    for (FrameworkMethod method : getTargetMethods(Before.class)) {
-      Validation.checkThat(method.getMethod())
+    for (Method method : flatten(annotatedWith(allTargetMethods, Before.class))) {
+      Validation.checkThat(method)
         .describedAs("@Before method " + target.getName() + "#" + method.getName())
-        .isPublic()
+        // .isPublic()  // Intentional, you can hide it from subclasses.
         .isNotStatic()
         .hasArgsCount(0);
     }
 
     // @After
-    for (FrameworkMethod method : getTargetMethods(After.class)) {
-      Validation.checkThat(method.getMethod())
+    for (Method method : flatten(annotatedWith(allTargetMethods, After.class))) {
+      Validation.checkThat(method)
         .describedAs("@After method " + target.getName() + "#" + method.getName())
-        .isPublic()
+        // .isPublic()  // Intentional, you can hide it from subclasses.
         .isNotStatic()
         .hasArgsCount(0);
     }
 
     // @Test methods
-    for (FrameworkMethod method : getTargetMethods(Test.class)) {
-      Validation.checkThat(method.getMethod())
+    for (Method method : flatten(annotatedWith(allTargetMethods, Test.class))) {
+      Validation.checkThat(method)
         .describedAs("Test method " + target.getName() + "#" + method.getName())
         .isPublic()
         .isNotStatic()
         .hasArgsCount(0);
-    }
 
-    // TODO: Validate @Rule fields.
-    // TODO: Validate @Seed annotation content.
-    // TODO: Validate @Seed annotation on methods: must have at most 1 seed value.
-
-    // TODO: Validate hook method shadowing and make it illegal?
-    // TODO: Validate hook method overrides and make it illegal?
-  }
-
-  /**
-   * Returns a list of target methods with the given annotation. Includes the
-   * logic of ordering the list properly for {@link BeforeClass}, {@link Before},
-   * {@link After} and {@link AfterClass} methods. Shuffles methods at the same level.
-   */
-  private List<FrameworkMethod> getTargetMethods(Class<? extends Annotation> annotation) {
-    List<List<Method>> methods =
-        MethodCollector.removeOverrides(
-            MethodCollector.allDeclaredMethods(target));
-
-    // TODO: JUnit does not invoke @BeforeClass methods that are shadowed by static methods
-    // in subclasses (!). I think this is wrong, but we can add a validation check for this
-    // because it is counterintuitive. We can actually make it invalid to override or shadow
-    // any hooks (?)
-
-    // Filter to only those with the annotation.
-    for (List<Method> classMethods : methods) {
-      for (Iterator<Method> i = classMethods.iterator(); i.hasNext();) {
-        if (i.next().getAnnotation(annotation) == null) {
-          i.remove();
+      // @Seed annotation on test methods must have at most 1 seed value.
+      if (method.isAnnotationPresent(Seed.class)) {
+        try {
+          long[] chain = Randomness.parseSeedChain(method.getAnnotation(Seed.class).value());
+          if (chain.length > 1) {
+            throw new IllegalArgumentException("@Seed on methods must contain method seed only (no runner seed).");
+          }
+        } catch (IllegalArgumentException e) {
+          throw new RuntimeException("@Seed annotation invalid on method "
+              + method.getName() + ", in class " + target.getName() + ": "
+              + e.getMessage());
         }
       }
     }
 
-    // Take care about the order in case of certain annotations.
-    if (annotation.equals(Before.class) || annotation.equals(BeforeClass.class)) {
-      Collections.reverse(methods);
-    }
-
-    // TODO: move this to a separate adapt() method and add something like this:
-    // toFrameworkMethod(flatten(shuffleWithinClass(Random, getTargetMethods(annotation))))
-
-    // Adapt to a list of framework methods.
-    List<FrameworkMethod> result = new ArrayList<FrameworkMethod>();
-    for (List<Method> classMethods : methods) {
-      for (Method m : classMethods) {
-        result.add(new FrameworkMethod(m));
-      }
-    }
-    return result;
+    // TODO: disallow shadowing of static methods.
+    // TODO: disallow overriding of @Before/ After methods.
+    // TODO: validate @Rule fields.
   }
 
   /**
@@ -689,7 +698,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Strip the seed added to a method name in test runs. 
+   * Strip the seed and round number appended to a method name in test runs
+   * (because there is no other place we can append it to). 
    */
   public static String stripSeed(String methodName) {
     return methodName.replaceAll("(\\#[0-9+])?\\s\\[[A-Za-z0-9\\:]+\\]", "");

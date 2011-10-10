@@ -2,9 +2,8 @@
 Approximately in the order of importance...
 ===========================================
 
-- RandomizedRunner: method shuffling (hooks, tests); make it _consistent_ based on the runner's seed.
-
 - add tests to all methods in RandomizedTest (!).
+
 - Rewrite LuceneTestCase on top of RandomizedRunner => prove it is functional.
 - Threads [uncaught exceptions, left-over threads, hangs, deadlocks, interrupting]
 
@@ -17,6 +16,9 @@ Approximately in the order of importance...
 - What about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
 
 - Add an utility for "smart" rethrow without the need to redeclare throwable?
+
+    // TODO: Validate hook method shadowing and make it illegal?
+    // TODO: Validate hook method overrides and make it illegal?
 
 
 New LTC:

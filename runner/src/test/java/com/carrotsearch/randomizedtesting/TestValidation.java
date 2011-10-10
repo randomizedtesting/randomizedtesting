@@ -58,12 +58,6 @@ public class TestValidation extends WithNestedTestClass {
     }
   }
 
-  public static class BeforeNotPublic {
-    @Before
-    void before() {
-    }
-  }
-
   public static class BeforeWithArgs {
     @Before
     public void before(int a) {
@@ -73,12 +67,6 @@ public class TestValidation extends WithNestedTestClass {
   public static class AfterStatic {
     @After
     public static void after() {
-    }
-  }
-
-  public static class AfterNotPublic {
-    @After
-    void after() {
     }
   }
 
@@ -95,8 +83,8 @@ public class TestValidation extends WithNestedTestClass {
         SuiteClassNotPublic.class, SuiteClassNotStatic.class,
         BeforeClassNotPublic.class, BeforeClassNotStatic.class, BeforeClassWithArgs.class,
         AfterClassNotPublic.class, AfterClassNotStatic.class, AfterClassWithArgs.class,
-        BeforeNotPublic.class, BeforeStatic.class, BeforeWithArgs.class,
-        AfterNotPublic.class, AfterStatic.class, AfterWithArgs.class)) {
+        BeforeStatic.class, BeforeWithArgs.class,
+        AfterStatic.class, AfterWithArgs.class)) {
       try {
         new RandomizedRunner(c);
         Assert.fail("Expected validation failure on: " + c.getName());

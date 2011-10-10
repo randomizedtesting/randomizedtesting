@@ -2,6 +2,10 @@ package com.carrotsearch.randomizedtesting;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -11,10 +15,15 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+
 /**
  * Before and after hooks order with a class hierarchy.
  */
 public class TestBeforeAfterMethodOrder {
+  static final List<String> callOrder = new ArrayList<String>();
+  
   /**
    * Test superclass.
    */
@@ -34,12 +43,12 @@ public class TestBeforeAfterMethodOrder {
 
     @BeforeClass
     public static void beforeClassSuper() {
-      beforeClassSuperOrder = ++counter;
+      callOrder.add("beforeClassSuper");
     }
 
     @Before
     public final void beforeTest() {
-      beforeTestSuperOrder = ++counter;
+      callOrder.add("beforeTestSuper");
     }
 
     protected void testMethod() {
@@ -48,12 +57,12 @@ public class TestBeforeAfterMethodOrder {
 
     @After
     public final void afterTest() {
-      afterTestSuperOrder = ++counter;
+      callOrder.add("afterTestSuper");
     }
     
     @AfterClass
     public static void afterClassSuper() {
-      afterClassSuperOrder = ++counter;
+      callOrder.add("afterClassSuper");
     }
   }
 
@@ -63,58 +72,99 @@ public class TestBeforeAfterMethodOrder {
   public static class SubSub extends Super {
     @BeforeClass
     public static void beforeClass() {
-      beforeClassSubOrder = ++counter;
+      callOrder.add("beforeClassSub");
     }
 
     @Before
     public void beforeTestSub() {
-      beforeTestSubOrder = ++counter;
+      callOrder.add("beforeTestSub");
     }
     
     @Test
     public void testMethod() {
-      testMethodOrderSub = ++counter;
+      callOrder.add("testMethodSub");
     }
 
     @After
     public void afterTestSub() {
-      afterTestSubOrder = ++counter;
+      callOrder.add("afterTestSub");
     }
     
     @AfterClass
     public static void afterClass() {
-      afterClassSubOrder = ++counter;
+      callOrder.add("afterClassSub");
     }
   }
 
-  @Before 
-  public void cleanup() {
-    Super.beforeClassSuperOrder = 0;
-    Super.beforeClassSubOrder = 0;
-    Super.beforeTestSuperOrder = 0;
-    Super.beforeTestSubOrder = 0;
-    Super.testMethodOrderSub = 0;
-    Super.afterTestSubOrder = 0;
-    Super.afterTestSuperOrder = 0;
-    Super.afterClassSubOrder = 0;
-    Super.afterClassSuperOrder = 0;
-    Super.counter = 0;
+  /** 
+   * Test subclass.
+   */
+  @Seed("deadbeef")
+  public static class SubSubFixedSeed extends Super {
+    @BeforeClass
+    public static void beforeClass() {
+      callOrder.add("beforeClassSubFS");
+    }
+
+    @Before
+    public void beforeTestSub() {
+      callOrder.add("beforeTestSubFS");
+    }
+
+    @Test @Repeat(iterations = 10)
+    public void testMethod1() {
+      callOrder.add("testMethodSubFS1 " 
+          + RandomizedContext.current().getRandom().nextInt());
+    }
+
+    @Test @Repeat(iterations = 10)
+    public void testMethod2() {
+      callOrder.add("testMethodSubFS2 " 
+          + RandomizedContext.current().getRandom().nextInt());
+    }
+
+    @After
+    public void afterTestSub() {
+      callOrder.add("afterTestSubFS");
+    }
+    
+    @AfterClass
+    public static void afterClass() {
+      callOrder.add("afterClassSubFS");
+    }
   }
-  
+
+  @Before
+  public void cleanup() {
+    callOrder.clear();
+  }
+
   @Test
-  public void beforesCalled() {
+  public void checkOrder() {
     Result result = JUnitCore.runClasses(SubSub.class);
 
     assertEquals(1, result.getRunCount());
 
-    assertEquals(1, Super.beforeClassSuperOrder);
-    assertEquals(2, Super.beforeClassSubOrder);
-    assertEquals(3, Super.beforeTestSuperOrder);
-    assertEquals(4, Super.beforeTestSubOrder);
-    assertEquals(5, Super.testMethodOrderSub);
-    assertEquals(6, Super.afterTestSubOrder);
-    assertEquals(7, Super.afterTestSuperOrder);
-    assertEquals(8, Super.afterClassSubOrder);
-    assertEquals(9, Super.afterClassSuperOrder);
+    List<String> expected = Arrays.asList(
+        "beforeClassSuper",
+        "beforeClassSub",
+        "beforeTestSuper",
+        "beforeTestSub",
+        "testMethodSub",
+        "afterTestSub",
+        "afterTestSuper",
+        "afterClassSub",
+        "afterClassSuper"
+    );
+    assertEquals(expected, callOrder);
+  }
+
+  @Test
+  public void checkOrderFixedSeed() {
+    JUnitCore.runClasses(SubSubFixedSeed.class);
+    ArrayList<String> order = new ArrayList<String>(callOrder);
+    callOrder.clear();
+    JUnitCore.runClasses(SubSubFixedSeed.class);
+    assertEquals(order, callOrder);
   }
 }
