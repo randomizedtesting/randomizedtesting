@@ -17,7 +17,6 @@ import com.carrotsearch.randomizedtesting.ClassValidator;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-@Inherited
 public @interface ClassValidators {
   /**
    * An array of validator classes. These classes must be instantiable (public, static, no-args

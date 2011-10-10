@@ -2,9 +2,6 @@
 Approximately in the order of importance...
 ===========================================
 
-- check if @listeners and @validators must be inherited; what happens if two are declared
-  in a class hierarchy?
-
 - RandomizedTest: 
     // TODO: Validate hook method shadowing and make it illegal?
     // TODO: Validate hook method overrides and make it illegal?

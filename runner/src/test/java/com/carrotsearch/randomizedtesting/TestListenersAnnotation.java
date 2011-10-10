@@ -22,6 +22,9 @@ public class TestListenersAnnotation extends WithNestedTestClass {
   
   public static List<String> buffer = new ArrayList<String>();
 
+  public static class NoopListener extends RunListener {
+  }
+
   public static class BufferAppendListener extends RunListener {
     public void testRunStarted(Description description) throws Exception {
       buffer.add("run started: " + description.getMethodName());
@@ -58,7 +61,11 @@ public class TestListenersAnnotation extends WithNestedTestClass {
   }
 
   @Listeners({BufferAppendListener.class})
-  public static class Nested extends RandomizedTest {
+  public static class Nested1 extends RandomizedTest {
+  }
+
+  @Listeners({NoopListener.class})
+  public static class Nested2 extends Nested1 {
     @Test @Ignore
     public void ignored() {
     }
@@ -81,8 +88,8 @@ public class TestListenersAnnotation extends WithNestedTestClass {
   }
 
   @Test
-  public void nightly() {
-    JUnitCore.runClasses(Nested.class);
+  public void checkListeners() {
+    JUnitCore.runClasses(Nested2.class);
     // Perhaps this is overly simple, but we just want to know that it executed.
     Assert.assertTrue(buffer.size() > 0);
   }

@@ -5,10 +5,12 @@ import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Inherited;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -262,28 +264,27 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Run any {@link ClassValidators} declared on the suite.
    */
   private boolean runCustomValidators(RunNotifier notifier) {
-    ClassValidators ann = target.getAnnotation(ClassValidators.class);
-    if (ann == null)
-      return true;
 
-    List<ClassValidator> validators = new ArrayList<ClassValidator>();
-    try {
-      for (Class<? extends ClassValidator> validatorClass : ann.value()) {
-        try {
-          validators.add(validatorClass.newInstance());
-        } catch (Throwable t) {
-          throw new RuntimeException("Could not initialize suite class: "
-              + target.getName() + " because its @ClassValidators contains non-instantiable: "
-              + validatorClass.getName(), t); 
+    for (ClassValidators ann : getAnnotationsFromClassHierarchy(target, ClassValidators.class)) {
+      List<ClassValidator> validators = new ArrayList<ClassValidator>();
+      try {
+        for (Class<? extends ClassValidator> validatorClass : ann.value()) {
+          try {
+            validators.add(validatorClass.newInstance());
+          } catch (Throwable t) {
+            throw new RuntimeException("Could not initialize suite class: "
+                + target.getName() + " because its @ClassValidators contains non-instantiable: "
+                + validatorClass.getName(), t); 
+          }
         }
+  
+        for (ClassValidator v : validators) {
+            v.validate(target);
+        }
+      } catch (Throwable t) {
+        notifier.fireTestFailure(new Failure(classDescription, t));
+        return false;
       }
-
-      for (ClassValidator v : validators) {
-          v.validate(target);
-      }
-    } catch (Throwable t) {
-      notifier.fireTestFailure(new Failure(classDescription, t));
-      return false;
     }
 
     return true;
@@ -294,9 +295,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /** Subscribe annotation listeners to the notifier. */
   private void subscribeListeners(RunNotifier notifier) {
-    if (target.getAnnotation(Listeners.class) != null) {
-      for (Class<? extends RunListener> clazz :
-        target.getAnnotation(Listeners.class).value()) {
+    for (Listeners ann : getAnnotationsFromClassHierarchy(target, Listeners.class)) {
+      for (Class<? extends RunListener> clazz : ann.value()) {
         try {
           RunListener listener = clazz.newInstance();
           autoListeners.add(listener);
@@ -707,6 +707,30 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // TODO: Validate @Rule fields (what are the "rules" for these anyway?)
+  }
+
+  /**
+   * Collect all annotations from a clazz hierarchy. Superclass's annotations come first. 
+   * {@link Inherited} annotations are removed (hopefully, the spec. isn't clear on this whether
+   * the same object is returned or not for inherited annotations).
+   */
+  static <T extends Annotation> List<T> getAnnotationsFromClassHierarchy(Class<?> clazz, Class<T> annotation) {
+    List<T> anns = new ArrayList<T>();
+    IdentityHashMap<T,T> inherited = new IdentityHashMap<T,T>();
+    for (Class<?> c = clazz; c != Object.class; c = c.getSuperclass()) {
+      if (c.isAnnotationPresent(annotation)) {
+        T ann = c.getAnnotation(annotation);
+        if (ann.annotationType().isAnnotationPresent(Inherited.class) && 
+            inherited.containsKey(ann)) {
+            continue;
+        }
+        anns.add(ann);
+        inherited.put(ann, ann);
+      }
+    }
+
+    Collections.reverse(anns);
+    return anns;
   }
 
   /**

@@ -36,16 +36,19 @@ public class TestValidatorsAnnotation extends WithNestedTestClass {
 
   @ClassValidators({NoCursingInMethodNamesValidator.class})
   public static class BadTestClass extends RandomizedTest {
+  }
+
+  public static class BadTestSubClass extends BadTestClass {
     @Test
     public void longLiveArsenalLondon() throws Exception {
       // Empty.
     }
   }
-
+  
   @Test
   public void checkClassValidator() {
     doCheck = true;
-    Result runClasses = JUnitCore.runClasses(BadTestClass.class);
+    Result runClasses = JUnitCore.runClasses(BadTestSubClass.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertEquals(0, runClasses.getRunCount());
     doCheck = false;
