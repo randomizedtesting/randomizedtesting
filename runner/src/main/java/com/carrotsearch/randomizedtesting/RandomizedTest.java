@@ -35,7 +35,6 @@ public class RandomizedTest extends Assert {
   /**
    * The global multiplier property (Double).
    * 
-   * @see #multipliedRandomBetween(int, int)
    * @see #multiplier()
    */
   public static final String SYSPROP_MULTIPLIER = "randomized.multiplier";
@@ -137,12 +136,13 @@ public class RandomizedTest extends Assert {
   //
 
   /**
-   * A multiplier can be used to linearly scale certain values and ranges available 
-   * from methods like {@link #multipliedRandomBetween(int, int)}.
+   * A multiplier can be used to linearly scale certain values. It can be used to make data
+   * or iterations of certain tests "heavier" for nightly runs, for example.
    *
    * @see #SYSPROP_MULTIPLIER
    */
   public static double multiplier() {
+    checkContext();
     return systemPropertyAsDouble(SYSPROP_MULTIPLIER, DEFAULT_MULTIPLIER);
   }
 
@@ -165,6 +165,7 @@ public class RandomizedTest extends Assert {
    * shouldn't really be the case in practice.
    */
   protected static File globalTempDir() {
+    checkContext();
     synchronized (RandomizedTest.class) {
       if (globalTempDir == null) {
         String tempDirPath = System.getProperty("java.io.tmpdir");
@@ -183,7 +184,7 @@ public class RandomizedTest extends Assert {
           String dirName = tsFormat.format(new Date());
           final File tmpFolder = new File(tempDir, dirName);
           // I assume mkdir is filesystem-atomic and only succeeds if the 
-          // directory didn't exist?
+          // directory didn't previously exist?
           if (tmpFolder.mkdir()) {
             globalTempDir = tmpFolder;
             Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -223,6 +224,7 @@ public class RandomizedTest extends Assert {
    * @see #globalTempDir()
    */
   protected static File newTempDir() {
+    checkContext();
     synchronized (RandomizedTest.class) {
       File tempDir = new File(globalTempDir(), nextTempName());
       if (!tempDir.mkdir()) throw new RuntimeException("Could not create temporary folder: "
@@ -236,6 +238,7 @@ public class RandomizedTest extends Assert {
    * locked or opened.
    */
   protected static File newTempFile() {
+    checkContext();
     synchronized (RandomizedTest.class) {
       File tempDir = new File(globalTempDir(), nextTempName());
       try {
@@ -307,47 +310,56 @@ public class RandomizedTest extends Assert {
   //
 
   /** @see RandomStrings#randomAsciiString(Random) */
-  protected static String randomAsciiString() { 
+  protected static String randomAsciiString() {
+    checkContext();
     return RandomStrings.randomAsciiString(getRandom()); 
   }
 
   /** @see RandomStrings#randomCharString(Random, char, char, int) */
   protected static String randomCharString(char min, char max, int maxLength) {
+    checkContext();
     return RandomStrings.randomCharString(getRandom(), min, max, maxLength);
   }
 
   /** @see RandomStrings#randomUnicodeString(Random) */
   protected static String randomUnicodeString() {
+    checkContext();
     return RandomStrings.randomUnicodeString(getRandom());
   }
 
   /** @see RandomStrings#randomUnicodeString(Random, int) */
   protected static String randomUnicodeString(int maxUtf16Length) {
+    checkContext();
     return RandomStrings.randomUnicodeString(getRandom(), maxUtf16Length);
   }
 
   /** @see RandomStrings#randomUnicodeStringOfUTF8Length(Random, int) */
   protected static String randomUnicodeStringOfUTF8Length(int utf8Length) {
+    checkContext();
     return RandomStrings.randomUnicodeStringOfUTF8Length(getRandom(), utf8Length);
   }
 
   /** @see RandomStrings#randomUnicodeStringOfUTF16Length(Random, int) */
   protected static String randomUnicodeStringOfUTF16Length(int utf16Length) {
+    checkContext();
     return RandomStrings.randomUnicodeStringOfUTF16Length(getRandom(), utf16Length);
   }
 
   /** @see RandomStrings#randomRealisticUnicodeString(Random) */
   protected static String randomRealisticUnicodeString() {
+    checkContext();
     return RandomStrings.randomRealisticUnicodeString(getRandom());
   }
 
   /** @see RandomStrings#randomRealisticUnicodeString(Random, int) */
   protected static String randomRealisticUnicodeString(int maxCodepointLength) {
+    checkContext();
     return RandomStrings.randomRealisticUnicodeString(getRandom(), maxCodepointLength);
   }
 
   /** @see RandomStrings#randomRealisticUnicodeString(Random, int, int) */
   protected static String randomRealisticUnicodeString(int minCodepointLength, int maxCodepointLength) {
+    checkContext();
     return RandomStrings.randomRealisticUnicodeString(getRandom(), minCodepointLength, maxCodepointLength);
   }
 
@@ -473,5 +485,14 @@ public class RandomizedTest extends Assert {
     } else {
       return defaultValue;
     }
+  }
+  
+
+  /**
+   * Ensures we're running with an initialized {@link RandomizedContext}.
+   */
+  private static void checkContext() {
+    // Will throw an exception if not available.
+    RandomizedContext.current(); 
   }
 }
