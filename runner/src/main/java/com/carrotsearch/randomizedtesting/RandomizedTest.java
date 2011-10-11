@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.TimeZone;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
@@ -487,6 +488,16 @@ public class RandomizedTest extends Assert {
     } else {
       return defaultValue;
     }
+  }
+  
+  //
+  // Misc. infrastructure.
+  //
+  
+  /** Before class setup. Called before any other hook in subclasses. */
+  @BeforeClass @SuppressWarnings("unused")
+  private static void setup() {
+    
   }
   
 

@@ -1,12 +1,22 @@
 package com.carrotsearch.randomizedtesting;
 
 
+import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
+import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
+import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
+import static com.carrotsearch.randomizedtesting.MethodCollector.immutableCopy;
+import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
+import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
 import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,13 +47,11 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
-
-import static com.carrotsearch.randomizedtesting.MethodCollector.*;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -129,9 +137,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private static class TestCandidate {
     public final Randomness randomness;
     public final Description description;
-    public final FrameworkMethod method;
+    public final Method method;
 
-    public TestCandidate(FrameworkMethod method, Randomness rnd, Description description) {
+    public TestCandidate(Method method, Randomness rnd, Description description) {
       this.randomness = rnd;
       this.description = description;
       this.method = method;
@@ -204,8 +212,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // TODO: should validation and everything else be done lazily after RunNotifier is available?
-
-    // Fail fast if target is inconsistent or "standard" JUnit rules are somehow broken.
+    
+    // Fail fast if target is inconsistent or selected "standard" JUnit rules are somehow broken.
     validateTarget();
 
     // Collect all test candidates, regardless if they'll be executed or not.
@@ -372,8 +380,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
         instance = target.newInstance();
 
         // Run @Before hooks.
-        for (FrameworkMethod m : getTargetMethods(Before.class))
-          m.invokeExplosively(instance);
+        for (Method m : getTargetMethods(Before.class))
+          invoke(m, instance);
   
         // Collect rules and execute wrapped method.
         runWithRules(c, instance);
@@ -389,9 +397,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   
       // Run @After hooks if an instance has been created.
       if (instance != null) {
-        for (FrameworkMethod m : getTargetMethods(After.class)) {
+        for (Method m : getTargetMethods(After.class)) {
           try {
-            m.invokeExplosively(instance);
+            invoke(m, instance);
           } catch (Throwable t) {
             t = augmentStackTrace(t, runnerRandomness, c.randomness);
             notifier.fireTestFailure(new Failure(c.description, t));
@@ -426,7 +434,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private void runWithRules(final TestCandidate c, final Object instance) throws Throwable {
     Statement s = new Statement() {
       public void evaluate() throws Throwable {
-        c.method.invokeExplosively(instance);
+        invoke(c.method, instance);
       }
     };
     s = wrapMethodRules(s, c, instance);
@@ -438,10 +446,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @SuppressWarnings("deprecation")
   private Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
-    TestClass info = new TestClass(target); 
+    TestClass info = new TestClass(target);
+    FrameworkMethod fm = new FrameworkMethod(c.method);
     for (org.junit.rules.MethodRule each : 
         info.getAnnotatedFieldValues(target, Rule.class, org.junit.rules.MethodRule.class))
-      s = each.apply(s, c.method, instance);
+      s = each.apply(s, fm, instance);
     return s;
   }
 
@@ -465,8 +474,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private void runBeforeClassMethods() throws Throwable {
     try {
-      for (FrameworkMethod method : getTargetMethods(BeforeClass.class)) {
-        method.invokeExplosively(null);
+      for (Method method : getTargetMethods(BeforeClass.class)) {
+        invoke(method, null);
       }
     } catch (Throwable t) {
       throw augmentStackTrace(t, runnerRandomness);
@@ -477,9 +486,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Run after class methods. Collect exceptions, execute all.
    */
   private void runAfterClassMethods(RunNotifier notifier) {
-    for (FrameworkMethod method : getTargetMethods(AfterClass.class)) {
+    for (Method method : getTargetMethods(AfterClass.class)) {
       try {
-        method.invokeExplosively(null);
+        invoke(method, null);
       } catch (Throwable t) {
         t = augmentStackTrace(t, runnerRandomness);
         notifier.fireTestFailure(new Failure(classDescription, t));
@@ -499,7 +508,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Construct a list of ordered framework methods. Minor tweaks are done depending
    * on the annotation (reversing order, etc.). 
    */
-  private List<FrameworkMethod> getTargetMethods(Class<? extends Annotation> ann) {
+  private List<Method> getTargetMethods(Class<? extends Annotation> ann) {
     List<List<Method>> list = mutableCopy(
         removeShadowed(removeOverrides(annotatedWith(allTargetMethods, ann))));
 
@@ -514,11 +523,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       Collections.shuffle(clazzLevel, rnd);
     }
 
-    ArrayList<FrameworkMethod> result = new ArrayList<FrameworkMethod>();
-    for (Method m : flatten(list)) {
-      result.add(new FrameworkMethod(m));
-    }
-    return result;
+    return flatten(list);
   }
 
   /**
@@ -565,7 +570,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
         // Add the candidate.
         parent.addChild(description);
-        candidates.add(new TestCandidate(new FrameworkMethod(method), iterRandomness, description));
+        candidates.add(new TestCandidate(method, iterRandomness, description));
       }
     }
     return candidates;
@@ -641,6 +646,29 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
+   * Invoke a given method on a target instance (can be null for static methods).
+   */
+  private void invoke(Method m, Object instance, Object... args) throws Throwable {
+    if (!Modifier.isPublic(m.getModifiers())) {
+      try {
+        if (!m.isAccessible()) {
+          m.setAccessible(true);
+        }
+      } catch (SecurityException e) {
+        throw new RuntimeException("There is a non-public hook method. This requires " +
+            "ReflectPermission('suppressAccessChecks'). Don't run with the security manager or " +
+            " add this permission to the runner. Offending method: " + m.toGenericString());
+      }
+    }
+
+    try {
+      m.invoke(instance, args);
+    } catch (InvocationTargetException e) {
+      throw e.getCause();
+    }
+  }
+
+  /**
    * Validate methods and hooks in the target. Follows "standard" JUnit rules,
    * with some exceptions on return values and more rigorous checking of shadowed
    * methods and fields.
@@ -657,7 +685,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     for (Method method : flatten(annotatedWith(allTargetMethods, BeforeClass.class))) {
       Validation.checkThat(method)
         .describedAs("@BeforeClass method " + target.getName() + "#" + method.getName())
-        .isPublic()
+        // .isPublic() // Intentional, you can hide it from subclasses.
         .isStatic()
         .hasArgsCount(0);
     }
@@ -666,7 +694,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     for (Method method : flatten(annotatedWith(allTargetMethods, AfterClass.class))) {
       Validation.checkThat(method)
         .describedAs("@AfterClass method " + target.getName() + "#" + method.getName())
-        .isPublic()
+        // .isPublic() // Intentional, you can hide it from subclasses.
         .isStatic()
         .hasArgsCount(0);
     }

@@ -22,12 +22,6 @@ public class TestValidation extends WithNestedTestClass {
     }
   }
 
-  public static class BeforeClassNotPublic {
-    @BeforeClass
-    static void beforeClass() {
-    }
-  }
-
   public static class BeforeClassWithArgs {
     @BeforeClass
     public static void beforeClass(int a) {
@@ -37,12 +31,6 @@ public class TestValidation extends WithNestedTestClass {
   public static class AfterClassNotStatic {
     @AfterClass
     public void afterClass() {
-    }
-  }
-
-  public static class AfterClassNotPublic {
-    @AfterClass
-    static void afterClass() {
     }
   }
 
@@ -81,8 +69,8 @@ public class TestValidation extends WithNestedTestClass {
   public void checkBeforeClass() throws Exception {
     for (Class<?> c : Arrays.asList(
         SuiteClassNotPublic.class, SuiteClassNotStatic.class,
-        BeforeClassNotPublic.class, BeforeClassNotStatic.class, BeforeClassWithArgs.class,
-        AfterClassNotPublic.class, AfterClassNotStatic.class, AfterClassWithArgs.class,
+        BeforeClassNotStatic.class, BeforeClassWithArgs.class,
+        AfterClassNotStatic.class, AfterClassWithArgs.class,
         BeforeStatic.class, BeforeWithArgs.class,
         AfterStatic.class, AfterWithArgs.class)) {
       try {
