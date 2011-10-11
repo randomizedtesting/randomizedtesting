@@ -39,13 +39,16 @@ public class RandomizedTest extends Assert {
    */
   public static final String SYSPROP_MULTIPLIER = "randomized.multiplier";
 
-  /* Must be supported by every JVM. */
+  /* Commonly used charsets (these must be supported by every JVM). */
 
   protected static final Charset UTF8 = Charset.forName("UTF-8");
   protected static final Charset UTF16 = Charset.forName("UTF-16");
-  protected static final Charset UTF32 = Charset.forName("UTF-32");
   protected static final Charset ISO8859_1 = Charset.forName("ISO-8859-1");
   protected static final Charset US_ASCII = Charset.forName("US-ASCII");
+
+  /* This charset does not need to be supported, but I don't know any JVM under which it wouldn't be. */
+  
+  protected static final Charset UTF32 = Charset.forName("UTF-32");
 
   /** 
    * Default multiplier.
@@ -160,7 +163,7 @@ public class RandomizedTest extends Assert {
   private static int  tempSubFileNameCount;
 
   /**
-   * Global temporary directory created for the duration of this class lifespan. If
+   * Global temporary directory created for the duration of this class's lifespan. If
    * multiple class loaders are used, there may be more global temp dirs, but it
    * shouldn't really be the case in practice.
    */
@@ -218,8 +221,7 @@ public class RandomizedTest extends Assert {
 
   /**
    * Creates a new temporary directory, deleted after the virtual machine terminates.
-   * Temporary directory is created relative to a globally picked temporary directory
-   * for the lifetime span of this class.
+   * Temporary directory is created relative to a globally picked temporary directory.
    * 
    * @see #globalTempDir()
    */

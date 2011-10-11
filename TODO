@@ -9,7 +9,13 @@ Approximately in the order of importance...
 
 - Threads [reporting uncaught exceptions, left-over threads, hangs, deadlocks, interrupting]
 
-- Keep the stack trace of threads requesting temporary files and directories. If they cannot be cleaned, dump the stack too.
+   * TODO: add better tracking of temporary folders. The context should carry the 
+   * info about files/folders created at each lifecycle's stage and clean up early (or 
+   * report the inability to do so, along with the stack trace that allocated a given file).
+   * Failure to clean up properly (close all files) could also bring the test case/ 
+   * suite to a failure.
+   * 
+   * TODO: temporary file names could be created with nasty things inside (spaces, etc.). 
 
 - Can we integrate with TestNG too?
 - How to simulate 'tests.iter.min'?
