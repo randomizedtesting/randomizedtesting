@@ -22,7 +22,7 @@ public final class RandomStrings {
    * 
    * @param min Minimum character code, inclusive.
    * @param max Maximum character code, inclusive.
-   * @param maxLength Maximum string length, inclusive.
+   * @param maxLength Maximum string length (as returned by size()), inclusive.
    */
   public static String randomCharString(Random r, char min, char max, int maxLength) {
     final int length = RandomInts.randomInt(r, maxLength);
@@ -46,22 +46,22 @@ public final class RandomStrings {
   }
 
   /**
-   * Returns a random string up to a certain length.
+   * Returns a random string up to a certain UTF-16 length.
    * 
-   * @param maxLength Maximum string length, inclusive.
+   * @param maxUtf16Length Maximum string length, inclusive.
    */
-  public static String randomUnicodeString(Random r, int maxLength) {
-    return randomUnicodeStringOfLength(r, RandomInts.randomInt(r, maxLength + 1));
+  public static String randomUnicodeString(Random r, int maxUtf16Length) {
+    return randomUnicodeStringOfUTF16Length(r, RandomInts.randomInt(r, maxUtf16Length));
   }
 
   /**
-   * Returns a fixed-length string with valid unicode codepoints.
+   * Returns a fixed-UTF16 length string with valid unicode codepoints.
    */
-  public static String randomUnicodeStringOfLength(Random r, int length) {
-    if (length == 0) return "";
+  public static String randomUnicodeStringOfUTF16Length(Random r, int utf16Length) {
+    if (utf16Length == 0) return "";
     
-    char [] buffer = new char [length];
-    randomUnicodeCharacters(r, buffer, 0, length);
+    char [] buffer = new char [utf16Length];
+    randomUnicodeCharacters(r, buffer, 0, utf16Length);
     return new String(buffer);
   }
 
@@ -199,21 +199,21 @@ public final class RandomStrings {
    * Returns a random string of length up to maxLength codepoints, all codepoints
    * within the same unicode block.
    * 
-   * @param maxLength (inclusive)
+   * @param maxCodepointLength (inclusive)
    */
-  public static String randomRealisticUnicodeString(Random r, int maxLength) {
-    return randomRealisticUnicodeString(r, 0, r.nextInt(maxLength));
+  public static String randomRealisticUnicodeString(Random r, int maxCodepointLength) {
+    return randomRealisticUnicodeString(r, 0, RandomInts.randomInt(r, maxCodepointLength));
   }
 
   /**
    * Returns a random string of length between min and max codepoints, all
    * codepoints within the same unicode block.
    * 
-   * @param minLength (inclusive)
-   * @param maxLength (inclusive)
+   * @param minCodepointLength (inclusive)
+   * @param maxCodepointLength (inclusive)
    */
-  public static String randomRealisticUnicodeString(Random r, int minLength, int maxLength) {
-    final int length = Math.max(minLength, r.nextInt(maxLength + 1));
+  public static String randomRealisticUnicodeString(Random r, int minCodepointLength, int maxCodepointLength) {
+    final int length = RandomInts.randomIntBetween(r, minCodepointLength, maxCodepointLength);
     final int block = r.nextInt(blockStarts.length);
     final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++)

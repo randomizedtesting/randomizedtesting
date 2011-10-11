@@ -125,5 +125,65 @@ public class TestRandomizedTest extends RandomizedTest {
     assertNotNull(randomTimeZone());
   }
 
-  // TODO: port random string tests from Lucene (if there are any).
+  @Test
+  public void testRandomCharString() {
+    randomCharString('a', 'z', 0);
+    
+    for (int i = 0; i < 1000; i++) { 
+      int maxLength = randomInt(20);
+      String str = randomCharString('a', 'z', maxLength);
+      assertTrue(str.matches("[a-z]*"));
+      assertTrue(str.length() <= maxLength);
+    }
+  }
+
+  @Test
+  public void testRandomUnicodeString() {
+    for (int i = 0; i < 1000; i++) { 
+      int maxLength = randomInt(20);
+      String str = randomUnicodeString(maxLength);
+      assertTrue(str.length() + " " + maxLength, str.length() <= maxLength);
+    }
+  }
+
+  @Test
+  public void testRandomUnicodeStringOfUtf16Length() {
+    for (int i = 0; i < 1000; i++) { 
+      int maxLength = randomInt(20);
+      String str = randomUnicodeStringOfUTF16Length(maxLength);
+      assertEquals(maxLength, str.length());
+    }
+  }
+
+  @Test
+  public void testRandomUnicodeStringOfUTF8Length() {
+    for (int i = 0; i < 1000; i++) { 
+      int maxLength = randomInt(20);
+      String str = randomUnicodeStringOfUTF8Length(maxLength);
+      byte[] utf8 = str.getBytes(UTF8);
+      assertTrue(utf8.length <= maxLength);
+    }
+  }
+
+  @Test
+  public void testRandomRealisticUnicodeString() {
+    assertTrue(randomRealisticUnicodeString(0).isEmpty());
+
+    for (int i = 0; i < 1000; i++) { 
+      int minLength = randomInt(20);
+      int maxLength = minLength + randomInt(20);
+      String str = randomRealisticUnicodeString(maxLength);
+      int codepoints = countCodepoints(str);
+      assertTrue(codepoints <= maxLength);
+
+      str = randomRealisticUnicodeString(minLength, maxLength);
+      codepoints = countCodepoints(str);
+      assertTrue(codepoints >= minLength);
+      assertTrue(codepoints <= maxLength);
+    }
+  }
+
+  private static int countCodepoints(String str) {
+    return str.getBytes(UTF32).length / 4;
+  }   
 }

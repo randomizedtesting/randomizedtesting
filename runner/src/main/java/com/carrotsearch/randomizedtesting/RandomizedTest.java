@@ -2,6 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -38,6 +39,14 @@ public class RandomizedTest extends Assert {
    * @see #multiplier()
    */
   public static final String SYSPROP_MULTIPLIER = "randomized.multiplier";
+
+  /* Must be supported by every JVM. */
+
+  protected static final Charset UTF8 = Charset.forName("UTF-8");
+  protected static final Charset UTF16 = Charset.forName("UTF-16");
+  protected static final Charset UTF32 = Charset.forName("UTF-32");
+  protected static final Charset ISO8859_1 = Charset.forName("ISO-8859-1");
+  protected static final Charset US_ASCII = Charset.forName("US-ASCII");
 
   /** 
    * Default multiplier.
@@ -313,18 +322,18 @@ public class RandomizedTest extends Assert {
   }
 
   /** @see RandomStrings#randomUnicodeString(Random, int) */
-  protected static String randomUnicodeString(int maxLength) {
-    return RandomStrings.randomUnicodeString(getRandom(), maxLength);
-  }
-
-  /** @see RandomStrings#randomUnicodeStringOfLength(Random, int) */
-  protected static String randomUnicodeStringOfLength(int maxLength) {
-    return RandomStrings.randomUnicodeStringOfLength(getRandom(), maxLength);
+  protected static String randomUnicodeString(int maxUtf16Length) {
+    return RandomStrings.randomUnicodeString(getRandom(), maxUtf16Length);
   }
 
   /** @see RandomStrings#randomUnicodeStringOfUTF8Length(Random, int) */
-  protected static String randomUnicodeStringOfUTF8Length(int length) {
-    return RandomStrings.randomUnicodeStringOfUTF8Length(getRandom(), length);
+  protected static String randomUnicodeStringOfUTF8Length(int utf8Length) {
+    return RandomStrings.randomUnicodeStringOfUTF8Length(getRandom(), utf8Length);
+  }
+
+  /** @see RandomStrings#randomUnicodeStringOfUTF16Length(Random, int) */
+  protected static String randomUnicodeStringOfUTF16Length(int utf16Length) {
+    return RandomStrings.randomUnicodeStringOfUTF16Length(getRandom(), utf16Length);
   }
 
   /** @see RandomStrings#randomRealisticUnicodeString(Random) */
@@ -333,13 +342,13 @@ public class RandomizedTest extends Assert {
   }
 
   /** @see RandomStrings#randomRealisticUnicodeString(Random, int) */
-  protected static String randomRealisticUnicodeString(int maxLength) {
-    return RandomStrings.randomRealisticUnicodeString(getRandom(), maxLength);
+  protected static String randomRealisticUnicodeString(int maxCodepointLength) {
+    return RandomStrings.randomRealisticUnicodeString(getRandom(), maxCodepointLength);
   }
 
   /** @see RandomStrings#randomRealisticUnicodeString(Random, int, int) */
-  protected static String randomRealisticUnicodeString(int minLength, int maxLength) {
-    return RandomStrings.randomRealisticUnicodeString(getRandom(), minLength, maxLength);
+  protected static String randomRealisticUnicodeString(int minCodepointLength, int maxCodepointLength) {
+    return RandomStrings.randomRealisticUnicodeString(getRandom(), minCodepointLength, maxCodepointLength);
   }
 
   //

@@ -8,8 +8,6 @@ Approximately in the order of importance...
 
 - Threads [uncaught exceptions, left-over threads, hangs, deadlocks, interrupting]
 
-- Add tests to cover methods in RandomizedTest (these propagate to generators too). 
-
 - Can we integrate with TestNG too?
 - How to simulate 'tests.iter.min'?
 - deal with catch clauses that potentially catch assertion errors?

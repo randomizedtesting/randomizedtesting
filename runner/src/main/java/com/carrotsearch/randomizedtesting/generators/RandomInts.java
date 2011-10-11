@@ -23,7 +23,11 @@ public final class RandomInts {
    * A random integer between 0 and <code>max</code> (inclusive).
    */
   public static int randomInt(Random r, int max) {
-    // TODO: assert range?
-    return r.nextInt(max + 1);
+    if (max == 0)
+      return 0;
+    else if (max == Integer.MAX_VALUE)
+      return r.nextInt() & 0x7fffffff;
+    else
+      return r.nextInt(max + 1);
   }
 }
