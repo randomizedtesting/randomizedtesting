@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -17,6 +18,7 @@ import com.carrotsearch.randomizedtesting.RandomizedTest;
  * be most commonly used with higher scaling multipliers as in 
  * ({@link RandomizedTest#SYSPROP_MULTIPLIER}.</p>
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited

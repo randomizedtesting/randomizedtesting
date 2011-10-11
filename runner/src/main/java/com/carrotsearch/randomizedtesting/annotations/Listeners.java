@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -15,6 +16,7 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
  * the {@link RunNotifier} used for executing tests inside
  * {@link RandomizedRunner}.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface Listeners {

@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -22,6 +23,7 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
  * scenario. Occasionally if there's a single failing test case for repeated tests, one
  * may want to override both to fix both the class's randomness and a given test case randomness.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited

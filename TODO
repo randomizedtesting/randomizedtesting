@@ -9,6 +9,8 @@ Approximately in the order of importance...
 
 - Threads [reporting uncaught exceptions, left-over threads, hangs, deadlocks, interrupting]
 
+- Keep the stack trace of threads requesting temporary files and directories. If they cannot be cleaned, dump the stack too.
+
 - Can we integrate with TestNG too?
 - How to simulate 'tests.iter.min'?
 - deal with catch clauses that potentially catch assertion errors?

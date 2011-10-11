@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -14,6 +15,7 @@ import com.carrotsearch.randomizedtesting.ClassValidator;
  * <p>This allows custom validation strategies, such as preventing method overrides or shadowing,
  * for example (which may lead to confusion).
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface Validators {
