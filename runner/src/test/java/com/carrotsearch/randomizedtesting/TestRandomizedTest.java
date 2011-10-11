@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.internal.AssumptionViolatedException;
 
 public class TestRandomizedTest extends RandomizedTest {
   @Test
@@ -185,5 +186,27 @@ public class TestRandomizedTest extends RandomizedTest {
 
   private static int countCodepoints(String str) {
     return str.getBytes(UTF32).length / 4;
-  }   
+  }
+  
+  @Test
+  public void testAssumeTrue() {
+    String message = randomUnicodeStringOfUTF16Length(10);
+    try {
+      assumeTrue(false, message);
+    } catch (AssumptionViolatedException e) {
+      assertTrue(e.getMessage().contains(message));
+    }
+  }
+  
+  @Test
+  public void testAssumeNoException() {
+    String message = randomUnicodeStringOfUTF16Length(10);
+    Throwable t = new Throwable();
+    try {
+      assumeNoException(message, t);
+    } catch (AssumptionViolatedException e) {
+      assertTrue(e.getMessage().contains(message));
+      assertSame(t, e.getCause());
+    }
+  }  
 }

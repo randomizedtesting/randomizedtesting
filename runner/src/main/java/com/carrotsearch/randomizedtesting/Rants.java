@@ -28,4 +28,10 @@ final class Rants {
    * changes to the code). 
    */
   public static RantType RANT_1 = RantType.DAMN_TERRIBLE;
+  
+  /**
+   * TODO: this if weird default assumption methods (and constructors in AssumptionViolatedException)
+   * do not allow specifying a custom message? 
+   */
+  public static RantType RANT_2 = RantType.ANNOYANCE;  
 }

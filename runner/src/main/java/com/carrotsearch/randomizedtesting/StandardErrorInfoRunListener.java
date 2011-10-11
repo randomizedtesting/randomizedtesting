@@ -27,7 +27,7 @@ public class StandardErrorInfoRunListener extends RunListener {
   public void testFailure(Failure failure) throws Exception {
     Description d = failure.getDescription();
 
-    // This isn't too pretty... rewrite later if there's time.
+    // This isn't too pretty... rewrite later.
     StringBuilder b = new StringBuilder();
     b.append("** FAILED   : ").append(d.getDisplayName()).append("\n");
     b.append("   Message  : " + failure.getMessage() + "\n");

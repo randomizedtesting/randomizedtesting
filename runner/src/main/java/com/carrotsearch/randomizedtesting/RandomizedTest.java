@@ -16,9 +16,9 @@ import java.util.TimeZone;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 
-import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.carrotsearch.randomizedtesting.generators.RandomStrings;
@@ -349,6 +349,44 @@ public class RandomizedTest extends Assert {
   /** @see RandomStrings#randomRealisticUnicodeString(Random, int, int) */
   protected static String randomRealisticUnicodeString(int minCodepointLength, int maxCodepointLength) {
     return RandomStrings.randomRealisticUnicodeString(getRandom(), minCodepointLength, maxCodepointLength);
+  }
+
+  //
+  // Extensions of Assume (with a message).
+  //
+
+  /**
+   * @param condition
+   *          If <code>false</code> an {@link InternalAssumptionViolatedException} is
+   *          thrown by this method and the test case (should be) ignored (or
+   *          rather technically, flagged as a failure not passing a certain
+   *          assumption). Tests that are assumption-failures do not break
+   *          builds (again: typically).
+   * @param message
+   *          Message to be included in the exception's string.
+   */
+  public static void assumeTrue(boolean condition, String message) {
+    if (!condition) {
+      // @see {@link Rants#RANT_2}.
+      throw new InternalAssumptionViolatedException(message);
+    }
+  }
+
+  /**
+   * Reverse of {@link #assumeTrue(boolean, String)}.
+   */
+  public static void assumeFalse(boolean condition, String message) {
+    assumeTrue(!condition, message);
+  }
+
+  /**
+   * Assume <code>t</code> is <code>null</code>.
+   */
+  public static void assumeNoException(String msg, Throwable t) {
+    if (t != null) {
+      // This does chain the exception as the cause.
+      throw new InternalAssumptionViolatedException(msg, t);
+    }
   }
 
   //
