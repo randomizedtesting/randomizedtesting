@@ -168,25 +168,39 @@ public class RandomizedTest extends Assert {
               + tempDir.getAbsolutePath());
         }
 
-        SimpleDateFormat tsFormat = new SimpleDateFormat("tests-yyyyMMddHHmmss-SSS");
+        SimpleDateFormat tsFormat = new SimpleDateFormat("'tests-'yyyyMMddHHmmss'-'SSS");
+        int retries = 10;
         do {
           String dirName = tsFormat.format(new Date());
           final File tmpFolder = new File(tempDir, dirName);
-          // I assume mkdir is filesystem-atomic and only succeeds if the directory didn't exist?
+          // I assume mkdir is filesystem-atomic and only succeeds if the 
+          // directory didn't exist?
           if (tmpFolder.mkdir()) {
             globalTempDir = tmpFolder;
             Runtime.getRuntime().addShutdownHook(new Thread() {
               public void run() {
                 try {
-                  deleteRecursively(globalTempDir);
+                  // We need canonical path on the root dir because it may
+                  // be symlinked initially (macos).
+                  forceDeleteRecursively(globalTempDir.getCanonicalFile());
                 } catch (IOException e) {
                   // Not much else to do but to log and quit.
-                  System.err.println(e.getMessage());
+                  System.err.println("Error while deleting temporary folder '" +
+                      globalTempDir.getAbsolutePath() +
+                  		"': " + e.getMessage());
                 }
+
+                if (globalTempDir.exists()) {
+                  System.err.println("Could not delete temporary folder entirely: "
+                      + globalTempDir.getAbsolutePath());
+                }                
               }
             });
+            return globalTempDir;
           }
-        } while (true);
+        } while (retries-- > 0);
+        throw new RuntimeException("Could not create temporary space in: "
+            + tempDir);
       }
       return globalTempDir;
     }
@@ -233,20 +247,20 @@ public class RandomizedTest extends Assert {
   }
 
   /**
-   * Recursively delete a folder (or file).
+   * Recursively delete a folder (or file). This attempts to delete everything that
+   * can be deleted, but possibly can leave things behind if files are locked for example.
    */
-  protected static void deleteRecursively(File fileOrDir) throws IOException {
+  protected static void forceDeleteRecursively(File fileOrDir) throws IOException {
     if (fileOrDir.isDirectory()) {
       // Not a symlink? Delete contents first.
       if (fileOrDir.getCanonicalPath().equals(fileOrDir.getAbsolutePath())) {
         for (File f : fileOrDir.listFiles()) {
-          deleteRecursively(f);
+          forceDeleteRecursively(f);
         }
       }
     }
-    if (!fileOrDir.delete()) {
-      throw new IOException("Could not delete: " + fileOrDir.getAbsolutePath());
-    }
+
+    fileOrDir.delete();
   }
 
   /** 

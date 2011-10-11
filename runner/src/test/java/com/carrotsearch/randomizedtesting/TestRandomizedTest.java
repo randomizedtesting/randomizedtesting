@@ -1,5 +1,8 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -88,23 +91,39 @@ public class TestRandomizedTest extends RandomizedTest {
 
   @Test
   public void testNewTempDir() {
-    fail("write me.");
+    for (int i = 0; i < 10; i++) {
+      File dir = newTempDir();
+      assertNotNull(dir);
+      assertTrue(dir.isDirectory());
+      assertTrue(dir.canWrite());
+      assertTrue(dir.canRead());
+      assertTrue(dir.canExecute());
+      assertEquals(0, dir.listFiles().length);
+    }
   }
 
   @Test
-  public void testNewTempFile() {
-    fail("write me.");
+  public void testNewTempFile() throws IOException {
+    for (int i = 0; i < 10; i++) {
+      File file = newTempFile();
+      assertNotNull(file);
+      assertTrue(file.isFile());
+      assertTrue(file.canWrite());
+      assertTrue(file.canRead());
+
+      new FileOutputStream(file).close();
+    }
   }
-  
+
   @Test
   public void testRandomLocale() {
-    fail("write me.");
+    assertNotNull(randomLocale());
   }
-  
+
   @Test
   public void testRandomTimeZone() {
-    fail("write me.");
-  }      
+    assertNotNull(randomTimeZone());
+  }
 
   // TODO: port random string tests from Lucene (if there are any).
 }
