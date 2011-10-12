@@ -13,9 +13,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.TimeZone;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
@@ -494,18 +492,6 @@ public class RandomizedTest extends Assert {
   //
   // Miscellaneous infrastructure.
   //
-
-  /** Before class setup. Called before any other hook in subclasses. */
-  @BeforeClass @SuppressWarnings("unused")
-  private static void setup() {
-    // push a new resource context.
-  }
-
-  /** After class cleanup. Called after all other hooks in subclasses. */
-  @AfterClass @SuppressWarnings("unused")
-  private static void cleanup() {
-    // pop and cleanup resource context.
-  }
 
   /**
    * Ensures we're running with an initialized {@link RandomizedContext}.

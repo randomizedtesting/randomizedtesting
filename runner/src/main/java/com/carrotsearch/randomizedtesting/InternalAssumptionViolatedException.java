@@ -3,12 +3,13 @@ package com.carrotsearch.randomizedtesting;
 import org.hamcrest.Description;
 
 /**
- * We have our own "custom" assumption class because of JUnit's internal closed-up architeture.
+ * We have our own "custom" assumption class because of JUnit's internal closed-up architecture.
  * 
  * <p>We currently subclass and substitute JUnit's internal AVE, but we could as well have our
  * own exception and handle it properly in {@link RandomizedRunner}.
  */
-@SuppressWarnings("serial") class InternalAssumptionViolatedException extends org.junit.internal.AssumptionViolatedException {
+@SuppressWarnings("serial") 
+class InternalAssumptionViolatedException extends org.junit.internal.AssumptionViolatedException {
   private final String message;
 
   public InternalAssumptionViolatedException(String message) {

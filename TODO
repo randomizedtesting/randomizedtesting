@@ -2,6 +2,10 @@
 Approximately in the order of importance...
 ===========================================
 
+- Threads [context propagation]
+- Threads [disposable resource tracking, context cleanup]
+- Threads [reporting uncaught exceptions, left-over threads, hangs, deadlocks, interrupting]
+
    * TODO: add better tracking of temporary folders. The context should carry the 
    * info about files/folders created at each lifecycle's stage and clean up early (or 
    * report the inability to do so, along with the stack trace that allocated a given file).
@@ -14,8 +18,6 @@ Approximately in the order of importance...
     - UseNoMemoryExpensiveCodec
     - Locale and TimeZone randomization => per test suite? Once?
     - Disk throttling. => aspect.
-
-- Threads [reporting uncaught exceptions, left-over threads, hangs, deadlocks, interrupting]
 
 - Can we integrate with TestNG too?
 - How to simulate 'tests.iter.min'?
