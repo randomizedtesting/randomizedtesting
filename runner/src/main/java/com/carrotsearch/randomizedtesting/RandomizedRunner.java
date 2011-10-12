@@ -18,7 +18,15 @@ import java.lang.annotation.Inherited;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
@@ -47,6 +55,7 @@ import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.Validators;
 
 /**
@@ -137,12 +146,36 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public static final String SYSPROP_KILLWAIT = "tests.killwait";
 
   /**
+   * Global override for a single test case's maximum execution time after which
+   * it is considered out of control and an attempt to interrupt it is executed.
+   * Timeout in millis. 
+   */
+  public static final String SYSPROP_TIMEOUT = "tests.timeout";
+
+  /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
    * test methods. These stack entries contain additional information about
    * seeds used during execution. 
    */
   public static final String AUGMENTED_SEED_PACKAGE = "__randomizedtesting";
   
+  /**
+   * Default timeout for a single test case: 60 seconds. Use global system property
+   * {@link #SYSPROP_TIMEOUT} or an annotation {@link Timeout} if you need more. 
+   * Annotation takes precedence, if defined. 
+   */
+  public static final int DEFAULT_TIMEOUT = 1000 * 60;
+
+  /**
+   * The default number of first interrupts, then Thread.stop attempts.
+   */
+  public static final int DEFAULT_KILLATTEMPTS = 10;
+  
+  /**
+   * Time in between interrupt retries or stop retries.
+   */
+  public static final int DEFAULT_KILLWAIT = 1000;
+
   /**
    * Test candidate (model).
    */
@@ -202,6 +235,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private final int killWait;
   
   /**
+   * Test case timeout in millis.
+   * 
+   * @see #SYSPROP_TIMEOUT
+   */
+  private final int timeout;
+
+  /**
    * A set of threads which we could not terminate or kill no matter how hard we tried. Even by
    * driving sharpened silver pencils through their binary cyberhearts.
    */
@@ -245,8 +285,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
             "System property " + SYSPROP_ITERATIONS + " must be >= 1: " + iterations);
     }
 
-    this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS, 5);
-    this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT, 500);
+    this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS, DEFAULT_KILLATTEMPTS);
+    this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT, DEFAULT_KILLWAIT);
+    this.timeout = RandomizedTest.systemPropertyAsInt(SYSPROP_TIMEOUT, DEFAULT_TIMEOUT);
 
     // TODO: should validation and everything else be done lazily after RunNotifier is available?
 
@@ -312,7 +353,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Execute tests under the runner's thread group.
    */
-  private void runUnderAThreadGroup(RandomizedContext context, RunNotifier notifier) {
+  private void runUnderAThreadGroup(final RandomizedContext context, final RunNotifier notifier) {
     context.push(runnerRandomness);
     try {
       // Check for automatically hookable listeners.
@@ -328,13 +369,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
           try {
             runBeforeClassMethods();
 
-            for (TestCandidate c : filtered) {
-              try {
-                context.push(c.randomness);
-                run(notifier, c);
-              } finally {
-                context.pop();
-              }
+            for (final TestCandidate c : filtered) {
+              // This is harsh treatment of jvm -- spawning a thread per test case.
+              // This shouldn't really matter though, I mean: it shouldn't crash anything :)
+              runAndWait(notifier, c, new Runnable() {
+                public void run() {
+                  RandomizedContext current = RandomizedContext.current();
+                  try {
+                    current.push(c.randomness);
+                    runSingleTest(notifier, c);
+                  } finally {
+                    current.pop();
+                  }
+                }
+              });
+              notifier.fireTestFinished(c.description);
             }
           } catch (Throwable t) {
             notifier.fireTestFailure(new Failure(suiteDescription, t));
@@ -353,6 +402,47 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }    
   }
 
+  private void runAndWait(RunNotifier notifier, TestCandidate c, Runnable runnable) {
+    int timeout = this.timeout;
+    if (c.method.getDeclaringClass().isAnnotationPresent(Timeout.class)) {
+      timeout = c.method.getDeclaringClass().getAnnotation(Timeout.class).millis();
+    }
+    if (c.method.isAnnotationPresent(Timeout.class)) {
+      timeout = c.method.getAnnotation(Timeout.class).millis();
+    }
+
+    Thread t = new Thread(runnable);
+    try {
+      t.start();
+      t.join(timeout);
+
+      if (t.isAlive()) {
+        terminateAndFireFailure(t, notifier, c.description, "Test case thread timed out ");
+        if (t.isAlive()) {
+          bulletProofZombies.add(t);
+        }
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException("Interrupted while waiting for worker? Weird.", e);
+    }
+  }
+
+  private void terminateAndFireFailure(Thread t, RunNotifier notifier, Description d, String msg) {
+    StackTraceElement[] stackTrace = t.getStackTrace();
+    tryToTerminate(t);
+
+    State s = t.getState();
+    String message = 
+        msg +
+        (s != State.TERMINATED ? " (and NOT TERMINATED, left in state " + s  + ")": " (and terminated)") +
+        ": " + t.toString() +
+        " (stack trace is a snapshot location).";
+
+    final RuntimeException ex = new RuntimeException(message);
+    ex.setStackTrace(stackTrace);
+    notifier.fireTestFailure(new Failure(d, ex));    
+  }
+
   /**
    * Check for any left-over threads compared to expected state, notify
    * the runner about left-over threads and return the difference. 
@@ -363,19 +453,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     if (!now.isEmpty()) {
       for (Thread t : now) {
-        StackTraceElement[] stackTrace = t.getStackTrace();
-        tryToTerminate(t);
-        
-        State s = t.getState();
-        String message = 
-            "Left-over thread detected" +
-            (s != State.TERMINATED ? " (and NOT TERMINATED, left in state " + s  + ")": " (and terminated)") +
-            ": " + t.toString() +
-            " (stack trace is a snapshot location).";
-
-        final RuntimeException ex = new RuntimeException(message);
-        ex.setStackTrace(stackTrace);
-        notifier.fireTestFailure(new Failure(d, ex));
+        terminateAndFireFailure(t, notifier, d, "Left-over thread detected ");
       }
     }
 
@@ -389,23 +467,29 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private void tryToTerminate(Thread t) {
     if (!t.isAlive()) return;
 
+    String tname = t.getName() + "(#" + System.identityHashCode(t) + ")";
+
     Logger logger = Logger.getLogger(getClass().getSimpleName());
-    logger.warning("A runaway thread detected. Attempting to stop it: " + t.getName());
+    logger.warning("Attempting to stop thread: " + tname + ", currently at:\n"
+        + formatStackTrace(t.getStackTrace()));
 
     // Try to interrupt first.
     int interruptAttempts = this.killAttempts;
     int interruptWait = this.killWait;
     do {
       try {
-        logger.fine("Trying to interrupt runaway thread: " + t.getName() 
-            + ", retries: " + interruptAttempts + "...");
         t.interrupt();
         t.join(interruptWait);
       } catch (InterruptedException e) { /* ignore */ }
-    } while (--interruptAttempts >= 0 && t.isAlive());
+
+      if (!t.isAlive()) break;
+      logger.fine("Trying to interrupt thread: " + tname 
+          + ", retries: " + interruptAttempts + ", currently at: "
+          + formatStackTrace(t.getStackTrace()));
+    } while (--interruptAttempts >= 0);
 
     if (!t.isAlive()) {
-      logger.warning("Interrupted a runaway thread: " + t.getName());
+      logger.warning("Interrupted a runaway thread: " + tname);
     }
 
     if (t.isAlive()) {
@@ -414,12 +498,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
       int killWait = this.killWait;
       do {
         try {
-          logger.fine("Trying to kill runaway thread: " + t.getName() 
-              + ", retries: " + killAttempts + "...");
           t.stop();
           t.join(killWait);
         } catch (InterruptedException e) { /* ignore */ }
-      } while (--killAttempts >= 0 && t.isAlive());
+        if (!t.isAlive()) break;
+        logger.fine("Trying to kill runaway thread: " + tname 
+            + ", retries: " + killAttempts + ", currently at: "
+            + formatStackTrace(t.getStackTrace()));
+      } while (--killAttempts >= 0);
     }
 
     if (!t.isAlive()) {
@@ -436,6 +522,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
           i.remove();
       }
     }
+  }
+
+  /** Format a list of stack entries into a string. */
+  private String formatStackTrace(StackTraceElement[] stackTrace) {
+    StringBuilder b = new StringBuilder();
+    for (StackTraceElement e : stackTrace) {
+      b.append("    ").append(e.toString()).append("\n");
+    }
+    return b.toString();
   }
 
   /**
@@ -556,12 +651,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Runs a single test.
    */
-  private void run(RunNotifier notifier, final TestCandidate c) {
+  private void runSingleTest(RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
 
     if (isIgnored(c)) {
       notifier.fireTestIgnored(c.description);
-      notifier.fireTestFinished(c.description);
       return;
     }
 
@@ -577,6 +671,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
       // Collect rules and execute wrapped method.
       runWithRules(c, instance);
+    } catch (ThreadDeath e) {
+      // Do-nothing. We've been killed. This is next to panic.
+      return;
     } catch (Throwable e) {
       // Augment stack trace and inject a fake stack entry with seed information.
       e = augmentStackTrace(e, runnerRandomness, c.randomness);
@@ -604,7 +701,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Process uncaught exceptions, if any.
     processUncaught(notifier, c.description);
-    notifier.fireTestFinished(c.description);
   }
 
   /** 
