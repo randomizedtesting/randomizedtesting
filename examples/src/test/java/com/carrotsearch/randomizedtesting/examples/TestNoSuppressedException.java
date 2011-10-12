@@ -13,7 +13,7 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
  * Check what happens if an exception occurs in the test case _and_ in after and in afterclass...
  */
 @RunWith(RandomizedRunner.class)
-public class TestSuppressedException {
+public class TestNoSuppressedException {
   @AfterClass
   public static void afterClass() {
     throw new RuntimeException("afterClass exception");
