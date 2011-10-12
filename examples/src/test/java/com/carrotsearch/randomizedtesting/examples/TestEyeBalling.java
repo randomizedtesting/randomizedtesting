@@ -10,13 +10,13 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.carrotsearch.randomizedtesting.NoHookMethodShadowing;
-import com.carrotsearch.randomizedtesting.NoTestMethodOverrides;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.StandardErrorInfoRunListener;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Validators;
+import com.carrotsearch.randomizedtesting.validators.NoHookMethodShadowing;
+import com.carrotsearch.randomizedtesting.validators.NoTestMethodOverrides;
 
 /*
  * Just a showcase of various things RandomizedRunner can do.

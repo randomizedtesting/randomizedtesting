@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.validators;
 
 import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
 import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
+
+import com.carrotsearch.randomizedtesting.ClassValidator;
 
 /**
  * Prevent:

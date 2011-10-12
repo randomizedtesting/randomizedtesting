@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.validators;
 
 import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
 import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
@@ -10,6 +10,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.Test;
+
+import com.carrotsearch.randomizedtesting.ClassValidator;
 
 /**
  * Prevent:

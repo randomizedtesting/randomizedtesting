@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.validators;
 
 import static com.carrotsearch.randomizedtesting.MethodCollector.*;
 
@@ -12,6 +12,8 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+
+import com.carrotsearch.randomizedtesting.ClassValidator;
 
 /**
  * Prevent:
