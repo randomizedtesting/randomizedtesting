@@ -434,7 +434,7 @@ public class RandomizedTest extends Assert {
   /** 
    * Get a system property and convert it to an int, if defined. Otherwise, return the default value.
    */
-  public static float systemPropertyAsInt(String propertyName, int defaultValue) {
+  public static int systemPropertyAsInt(String propertyName, int defaultValue) {
     String v = System.getProperty(propertyName);
     if (v != null && !v.trim().isEmpty()) {
       return Integer.parseInt(v.trim());

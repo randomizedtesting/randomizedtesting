@@ -15,6 +15,8 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
  * Annotate your suite class with this annotation to automatically add hooks to
  * the {@link RunNotifier} used for executing tests inside
  * {@link RandomizedRunner}.
+ * 
+ * @see #value() 
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

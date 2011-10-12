@@ -12,19 +12,15 @@ import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
 import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
+import java.lang.Thread.State;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -125,6 +121,22 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public static final String SYSPROP_TESTMETHOD = "tests.method";
 
   /**
+   * If there's a runaway thread, how many times do we try to interrupt and
+   * then kill it before we give up? Runaway threads may affect other tests (bad idea).
+   *  
+   * @see #SYSPROP_KILLWAIT
+   */
+  public static final String SYSPROP_KILLATTEMPTS = "tests.killattempts";
+
+  /**
+   * If there's a runaway thread, how long should we wait between iterations of 
+   * putting a silver bullet through its heart?
+   * 
+   * @see #SYSPROP_KILLATTEMPTS
+   */
+  public static final String SYSPROP_KILLWAIT = "tests.killwait";
+
+  /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
    * test methods. These stack entries contain additional information about
    * seeds used during execution. 
@@ -152,11 +164,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private final static AtomicLong sequencer = new AtomicLong();
   
-  /** The target class with test methods. */
-  private final Class<?> target;
+  /** The suiteClass class with test methods. */
+  private final Class<?> suiteClass;
 
   /** 
-   * All methods of the {@link #target} class, unfiltered (including overrides and shadowed
+   * All methods of the {@link #suiteClass} class, unfiltered (including overrides and shadowed
    * methods), but sorted within class. 
    */
   private List<List<Method>> allTargetMethods;
@@ -174,15 +186,37 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private List<TestCandidate> testCandidates;
 
   /** Class suite description. */
-  private Description classDescription;
+  private Description suiteDescription;
 
   /** Apply a user-level filter. */
   private Filter filter;
 
+  /** 
+   * How many attempts to interrupt and then kill a runaway thread before giving up?
+   */
+  private final int killAttempts;
+  
+  /**
+   * How long to wait between attempts to kill a runaway thread (millis). 
+   */
+  private final int killWait;
+  
+  /**
+   * A set of threads which we could not terminate or kill no matter how hard we tried. Even by
+   * driving sharpened silver pencils through their binary cyberhearts.
+   */
+  private final Set<Thread> bulletProofZombies = new HashSet<Thread>();
+
+  /**
+   * We'll keep track of uncaught exceptions within the runner's thread group. Synchronize
+   * on this object if accessing it.
+   */
+  private final List<Pair<Thread, Throwable>> uncaughtExceptions = new ArrayList<Pair<Thread, Throwable>>();
+
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
-    this.target = testClass;
-    this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(target)));
+    this.suiteClass = testClass;
+    this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(suiteClass)));
 
     // Initialize the runner's master seed/ randomness source.
     final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED);
@@ -196,8 +230,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (seedChain.length > 1)
         testRandomnessOverride = new Randomness(seedChain[1]);
       runnerRandomness = new Randomness(seedChain[0]);
-    } else if (target.getAnnotation(Seed.class) != null) {
-      runnerRandomness = new Randomness(parseSeedChain(target.getAnnotation(Seed.class).value())[0]);
+    } else if (suiteClass.getAnnotation(Seed.class) != null) {
+      runnerRandomness = new Randomness(parseSeedChain(suiteClass.getAnnotation(Seed.class).value())[0]);
     } else {
       runnerRandomness = new Randomness(
           MurmurHash3.hash(
@@ -211,14 +245,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
             "System property " + SYSPROP_ITERATIONS + " must be >= 1: " + iterations);
     }
 
+    this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS, 5);
+    this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT, 500);
+
     // TODO: should validation and everything else be done lazily after RunNotifier is available?
-    
-    // Fail fast if target is inconsistent or selected "standard" JUnit rules are somehow broken.
+
+    // Fail fast if suiteClass is inconsistent or selected "standard" JUnit rules are somehow broken.
     validateTarget();
 
     // Collect all test candidates, regardless if they'll be executed or not.
-    classDescription = Description.createSuiteDescription(target);
-    testCandidates = collectTestCandidates(classDescription);
+    suiteDescription = Description.createSuiteDescription(suiteClass);
+    testCandidates = collectTestCandidates(suiteDescription);
   }
 
   /**
@@ -226,23 +263,62 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public Description getDescription() {
-    return classDescription;
+    return suiteDescription;
   }
 
   /**
    * Runs all tests and hooks.
    */
   @Override
-  public void run(RunNotifier notifier) {
-    RandomizedContext context = createContext();
-    RandomizedContext.setContext(context);
+  public void run(final RunNotifier notifier) {
+    final ThreadGroup tg = new ThreadGroup("RandomizedRunner " + Randomness.formatSeedChain(runnerRandomness)) {
+      public void uncaughtException(Thread t, Throwable e) {
+        synchronized (uncaughtExceptions) {
+          uncaughtExceptions.add(Pair.newInstance(t, e));
+        }
+      }
+    };
 
+    final Thread runner = new Thread(tg, "main-" + Randomness.formatSeedChain(runnerRandomness)) {
+      public void run() {
+        RandomizedContext context = createContext(tg);
+        runUnderAThreadGroup(context, notifier);
+        context.dispose();
+      }
+    };
+
+    runner.start();
+    try {
+      runner.join();
+    } catch (InterruptedException e) {
+      notifier.fireTestFailure(new Failure(suiteDescription, 
+          new RuntimeException("Interrupted while waiting for the suite runner? Weird.", e)));
+    }
+  }
+
+  /**
+   * Process uncaught exceptions from spun-off threads. 
+   */
+  private void processUncaught(RunNotifier notifier, Description description) {
+    synchronized (uncaughtExceptions) {
+      for (Pair<Thread, Throwable> p : uncaughtExceptions) {
+        notifier.fireTestFailure(new Failure(description, 
+            new RuntimeException("A non-test spin-off thread threw an uncaught exception, thread: "
+                + p.a, p.b)));
+      }
+    }
+  }
+
+  /**
+   * Execute tests under the runner's thread group.
+   */
+  private void runUnderAThreadGroup(RandomizedContext context, RunNotifier notifier) {
     context.push(runnerRandomness);
     try {
       // Check for automatically hookable listeners.
       subscribeListeners(notifier);
       
-      // Validate target with custom validators.
+      // Validate suiteClass with custom validators.
       if (runCustomValidators(notifier)) {
         // Filter out test candidates to see if there's anything left. If not,
         // don't bother running class hooks.
@@ -251,7 +327,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (!filtered.isEmpty()) {
           try {
             runBeforeClassMethods();
-      
+
             for (TestCandidate c : filtered) {
               try {
                 context.push(c.randomness);
@@ -261,17 +337,127 @@ public final class RandomizedRunner extends Runner implements Filterable {
               }
             }
           } catch (Throwable t) {
-            notifier.fireTestFailure(new Failure(classDescription, t));
+            notifier.fireTestFailure(new Failure(suiteDescription, t));
           }
   
           runAfterClassMethods(notifier);
         }
       }
+    } catch (Throwable t) {
+      notifier.fireTestFailure(new Failure(suiteDescription, t));
     } finally {
+      // Clean up any threads left by hooks methods, but don't try to kill the zombies. 
+      checkLeftOverThreads(notifier, suiteDescription, bulletProofZombies);
       unsubscribeListeners(notifier);
-      RandomizedContext.clearContext();
       context.pop();
+    }    
+  }
+
+  /**
+   * Check for any left-over threads compared to expected state, notify
+   * the runner about left-over threads and return the difference. 
+   */
+  private Set<Thread> checkLeftOverThreads(RunNotifier notifier, Description d, Set<Thread> expectedState) {
+    final Set<Thread> now = threadsSnapshot();
+    now.removeAll(expectedState);
+
+    if (!now.isEmpty()) {
+      for (Thread t : now) {
+        StackTraceElement[] stackTrace = t.getStackTrace();
+        tryToTerminate(t);
+        
+        State s = t.getState();
+        String message = 
+            "Left-over thread detected" +
+            (s != State.TERMINATED ? " (and NOT TERMINATED, left in state " + s  + ")": " (and terminated)") +
+            ": " + t.toString() +
+            " (stack trace is a snapshot location).";
+
+        final RuntimeException ex = new RuntimeException(message);
+        ex.setStackTrace(stackTrace);
+        notifier.fireTestFailure(new Failure(d, ex));
+      }
     }
+
+    return now;
+  }
+
+  /**
+   * Try to terminate a given thread.
+   */
+  @SuppressWarnings("deprecation")
+  private void tryToTerminate(Thread t) {
+    if (!t.isAlive()) return;
+
+    Logger logger = Logger.getLogger(getClass().getSimpleName());
+    logger.warning("A runaway thread detected. Attempting to stop it: " + t.getName());
+
+    // Try to interrupt first.
+    int interruptAttempts = this.killAttempts;
+    int interruptWait = this.killWait;
+    do {
+      try {
+        logger.fine("Trying to interrupt runaway thread: " + t.getName() 
+            + ", retries: " + interruptAttempts + "...");
+        t.interrupt();
+        t.join(interruptWait);
+      } catch (InterruptedException e) { /* ignore */ }
+    } while (--interruptAttempts >= 0 && t.isAlive());
+
+    if (!t.isAlive()) {
+      logger.warning("Interrupted a runaway thread: " + t.getName());
+    }
+
+    if (t.isAlive()) {
+      // Try to sent ThreadDeath up its stack if interrupt is not working.
+      int killAttempts = this.killAttempts;
+      int killWait = this.killWait;
+      do {
+        try {
+          logger.fine("Trying to kill runaway thread: " + t.getName() 
+              + ", retries: " + killAttempts + "...");
+          t.stop();
+          t.join(killWait);
+        } catch (InterruptedException e) { /* ignore */ }
+      } while (--killAttempts >= 0 && t.isAlive());
+    }
+
+    if (!t.isAlive()) {
+      logger.warning("Killed a runaway thread: " + t.getName());
+    } else {
+      logger.severe("Could not interrupt or kill thread: " + t.getName());
+    }
+
+    // check if the thread left a ThreadDeath exception and avoid reporting it twice.
+    synchronized (uncaughtExceptions) {
+      for (Iterator<Pair<Thread, Throwable>> i = uncaughtExceptions.iterator(); i.hasNext();) {
+        Pair<Thread,Throwable> p = i.next();
+        if (p.a == t && (p.b instanceof ThreadDeath || p.b instanceof InterruptedException))
+          i.remove();
+      }
+    }
+  }
+
+  /**
+   * Return an estimated set of the group's live threads, excluding the current thread.
+   */
+  private Set<Thread> threadsSnapshot() {
+    final Thread current = Thread.currentThread();
+    final ThreadGroup tg = current.getThreadGroup();
+
+    Thread [] list;
+    do {
+      list = new Thread [tg.activeCount() + /* padding to detect overflow */ 5];
+      tg.enumerate(list);
+    } while (list[list.length - 1] != null);
+
+    final HashSet<Thread> result = new HashSet<Thread>();
+    for (Thread t : list) {
+      if (t != null && t != current) 
+        result.add(t);
+    }
+
+    return result;
   }
 
   /**
@@ -279,7 +465,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private boolean runCustomValidators(RunNotifier notifier) {
 
-    for (Validators ann : getAnnotationsFromClassHierarchy(target, Validators.class)) {
+    for (Validators ann : getAnnotationsFromClassHierarchy(suiteClass, Validators.class)) {
       List<ClassValidator> validators = new ArrayList<ClassValidator>();
       try {
         for (Class<? extends ClassValidator> validatorClass : ann.value()) {
@@ -287,16 +473,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
             validators.add(validatorClass.newInstance());
           } catch (Throwable t) {
             throw new RuntimeException("Could not initialize suite class: "
-                + target.getName() + " because its @ClassValidators contains non-instantiable: "
+                + suiteClass.getName() + " because its @ClassValidators contains non-instantiable: "
                 + validatorClass.getName(), t); 
           }
         }
   
         for (ClassValidator v : validators) {
-            v.validate(target);
+            v.validate(suiteClass);
         }
       } catch (Throwable t) {
-        notifier.fireTestFailure(new Failure(classDescription, t));
+        notifier.fireTestFailure(new Failure(suiteDescription, t));
         return false;
       }
     }
@@ -309,7 +495,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /** Subscribe annotation listeners to the notifier. */
   private void subscribeListeners(RunNotifier notifier) {
-    for (Listeners ann : getAnnotationsFromClassHierarchy(target, Listeners.class)) {
+    for (Listeners ann : getAnnotationsFromClassHierarchy(suiteClass, Listeners.class)) {
       for (Class<? extends RunListener> clazz : ann.value()) {
         try {
           RunListener listener = clazz.newInstance();
@@ -317,7 +503,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           notifier.addListener(listener);
         } catch (Throwable t) {
           throw new RuntimeException("Could not initialize suite class: "
-              + target.getName() + " because its @Listener is not instantiable: "
+              + suiteClass.getName() + " because its @Listener is not instantiable: "
               + clazz.getName(), t); 
         }
       }
@@ -331,11 +517,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Create randomized context for the run. 
+   * Create randomized context for the run. The context is shared by all
+   * threads in a given thread group (but the source of {@link Randomness} 
+   * is assigned per-thread).
    */
-  private RandomizedContext createContext() {
+  private RandomizedContext createContext(ThreadGroup tg) {
     final boolean nightlyMode = RandomizedTest.systemPropertyAsBoolean(SYSPROP_NIGHTLY, false);
-    return new RandomizedContext(runnerRandomness, target, nightlyMode);
+    return RandomizedContext.create(tg, suiteClass, runnerRandomness, nightlyMode);
   }
 
   /**
@@ -344,7 +532,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private List<TestCandidate> applyFilters() {
     // Check for class filter (most restrictive, immediate answer).
     if (System.getProperty(SYSPROP_TESTCLASS) != null) {
-      if (!target.getName().equals(System.getProperty(SYSPROP_TESTCLASS))) {
+      if (!suiteClass.getName().equals(System.getProperty(SYSPROP_TESTCLASS))) {
         return Collections.emptyList();
       }
     }
@@ -370,44 +558,52 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private void run(RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
- 
+
     if (isIgnored(c)) {
       notifier.fireTestIgnored(c.description);
-    } else {
-      Object instance = null;
-      try {
-        // Get the test instance.
-        instance = target.newInstance();
+      notifier.fireTestFinished(c.description);
+      return;
+    }
 
-        // Run @Before hooks.
-        for (Method m : getTargetMethods(Before.class))
-          invoke(m, instance);
-  
-        // Collect rules and execute wrapped method.
-        runWithRules(c, instance);
-      } catch (Throwable e) {
-        // Augment stack trace and inject a fake stack entry with seed information.
-        e = augmentStackTrace(e, runnerRandomness, c.randomness);
-        if (e instanceof AssumptionViolatedException) {
-          notifier.fireTestAssumptionFailed(new Failure(c.description, e));
-        } else {
-          notifier.fireTestFailure(new Failure(c.description, e));
-        }
+    Set<Thread> beforeTestSnapshot = threadsSnapshot();
+    Object instance = null;
+    try {
+      // Get the test instance.
+      instance = suiteClass.newInstance();
+
+      // Run @Before hooks.
+      for (Method m : getTargetMethods(Before.class))
+        invoke(m, instance);
+
+      // Collect rules and execute wrapped method.
+      runWithRules(c, instance);
+    } catch (Throwable e) {
+      // Augment stack trace and inject a fake stack entry with seed information.
+      e = augmentStackTrace(e, runnerRandomness, c.randomness);
+      if (e instanceof AssumptionViolatedException) {
+        notifier.fireTestAssumptionFailed(new Failure(c.description, e));
+      } else {
+        notifier.fireTestFailure(new Failure(c.description, e));
       }
-  
-      // Run @After hooks if an instance has been created.
-      if (instance != null) {
-        for (Method m : getTargetMethods(After.class)) {
-          try {
-            invoke(m, instance);
-          } catch (Throwable t) {
-            t = augmentStackTrace(t, runnerRandomness, c.randomness);
-            notifier.fireTestFailure(new Failure(c.description, t));
-          }
+    }
+
+    // Run @After hooks if an instance has been created.
+    if (instance != null) {
+      for (Method m : getTargetMethods(After.class)) {
+        try {
+          invoke(m, instance);
+        } catch (Throwable t) {
+          t = augmentStackTrace(t, runnerRandomness, c.randomness);
+          notifier.fireTestFailure(new Failure(c.description, t));
         }
       }
     }
 
+    // Check for run-away threads.
+    bulletProofZombies.addAll(checkLeftOverThreads(notifier, c.description, beforeTestSnapshot));
+
+    // Process uncaught exceptions, if any.
+    processUncaught(notifier, c.description);
     notifier.fireTestFinished(c.description);
   }
 
@@ -420,7 +616,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     if (!RandomizedContext.current().isNightly()) {
       if (c.method.getAnnotation(Nightly.class) != null ||
-          target.getAnnotation(Nightly.class) != null) {
+          suiteClass.getAnnotation(Nightly.class) != null) {
         return true;
       }
     }
@@ -429,7 +625,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Wrap with any rules the target has and execute as a {@link Statement}.
+   * Wrap with any rules the suiteClass has and execute as a {@link Statement}.
    */
   private void runWithRules(final TestCandidate c, final Object instance) throws Throwable {
     Statement s = new Statement() {
@@ -446,10 +642,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @SuppressWarnings("deprecation")
   private Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
-    TestClass info = new TestClass(target);
+    TestClass info = new TestClass(suiteClass);
     FrameworkMethod fm = new FrameworkMethod(c.method);
     for (org.junit.rules.MethodRule each : 
-        info.getAnnotatedFieldValues(target, Rule.class, org.junit.rules.MethodRule.class))
+        info.getAnnotatedFieldValues(suiteClass, Rule.class, org.junit.rules.MethodRule.class))
       s = each.apply(s, fm, instance);
     return s;
   }
@@ -491,7 +687,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         invoke(method, null);
       } catch (Throwable t) {
         t = augmentStackTrace(t, runnerRandomness);
-        notifier.fireTestFailure(new Failure(classDescription, t));
+        notifier.fireTestFailure(new Failure(suiteDescription, t));
       }
     }
   }
@@ -566,7 +762,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
                 method.getName() +
                 (methodIterations > 1 ? "#" + i : "") +
                 " " + formatSeedChain(runnerRandomness, iterRandomness) + 
-                "(" + target.getName() + ")");
+                "(" + suiteClass.getName() + ")");
 
         // Add the candidate.
         parent.addChild(description);
@@ -594,8 +790,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if ((seed = method.getAnnotation(Seed.class)) != null) {
       return parseSeedChain(seed.value())[0];
     }
-    if ((seed = target.getAnnotation(Seed.class)) != null) {
-      long [] seeds = parseSeedChain(target.getAnnotation(Seed.class).value());
+    if ((seed = suiteClass.getAnnotation(Seed.class)) != null) {
+      long [] seeds = parseSeedChain(suiteClass.getAnnotation(Seed.class).value());
       if (seeds.length > 1)
         return seeds[1];
     }
@@ -613,7 +809,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if ((repeat = method.getAnnotation(Repeat.class)) != null) {
       return repeat.useConstantSeed();
     }
-    if ((repeat = target.getAnnotation(Repeat.class)) != null) {
+    if ((repeat = suiteClass.getAnnotation(Repeat.class)) != null) {
       return repeat.useConstantSeed();
     }
     
@@ -638,7 +834,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if ((repeat = method.getAnnotation(Repeat.class)) != null) {
       return repeat.iterations();
     }
-    if ((repeat = target.getAnnotation(Repeat.class)) != null) {
+    if ((repeat = suiteClass.getAnnotation(Repeat.class)) != null) {
       return repeat.iterations();
     }
 
@@ -646,7 +842,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Invoke a given method on a target instance (can be null for static methods).
+   * Invoke a given method on a suiteClass instance (can be null for static methods).
    */
   private void invoke(Method m, Object instance, Object... args) throws Throwable {
     if (!Modifier.isPublic(m.getModifiers())) {
@@ -669,14 +865,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Validate methods and hooks in the target. Follows "standard" JUnit rules,
+   * Validate methods and hooks in the suiteClass. Follows "standard" JUnit rules,
    * with some exceptions on return values and more rigorous checking of shadowed
    * methods and fields.
    */
   private void validateTarget() {
     // Target is accessible (public, concrete, has a parameterless constructor etc).
-    Validation.checkThat(target)
-      .describedAs("Suite class " + target.getName())
+    Validation.checkThat(suiteClass)
+      .describedAs("Suite class " + suiteClass.getName())
       .isPublic()
       .isConcreteClass()
       .hasPublicNoArgsConstructor();
@@ -684,7 +880,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // @BeforeClass
     for (Method method : flatten(annotatedWith(allTargetMethods, BeforeClass.class))) {
       Validation.checkThat(method)
-        .describedAs("@BeforeClass method " + target.getName() + "#" + method.getName())
+        .describedAs("@BeforeClass method " + suiteClass.getName() + "#" + method.getName())
         // .isPublic() // Intentional, you can hide it from subclasses.
         .isStatic()
         .hasArgsCount(0);
@@ -693,7 +889,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // @AfterClass
     for (Method method : flatten(annotatedWith(allTargetMethods, AfterClass.class))) {
       Validation.checkThat(method)
-        .describedAs("@AfterClass method " + target.getName() + "#" + method.getName())
+        .describedAs("@AfterClass method " + suiteClass.getName() + "#" + method.getName())
         // .isPublic() // Intentional, you can hide it from subclasses.
         .isStatic()
         .hasArgsCount(0);
@@ -702,7 +898,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // @Before
     for (Method method : flatten(annotatedWith(allTargetMethods, Before.class))) {
       Validation.checkThat(method)
-        .describedAs("@Before method " + target.getName() + "#" + method.getName())
+        .describedAs("@Before method " + suiteClass.getName() + "#" + method.getName())
         // .isPublic()  // Intentional, you can hide it from subclasses.
         .isNotStatic()
         .hasArgsCount(0);
@@ -711,7 +907,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // @After
     for (Method method : flatten(annotatedWith(allTargetMethods, After.class))) {
       Validation.checkThat(method)
-        .describedAs("@After method " + target.getName() + "#" + method.getName())
+        .describedAs("@After method " + suiteClass.getName() + "#" + method.getName())
         // .isPublic()  // Intentional, you can hide it from subclasses.
         .isNotStatic()
         .hasArgsCount(0);
@@ -720,7 +916,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // @Test methods
     for (Method method : flatten(annotatedWith(allTargetMethods, Test.class))) {
       Validation.checkThat(method)
-        .describedAs("Test method " + target.getName() + "#" + method.getName())
+        .describedAs("Test method " + suiteClass.getName() + "#" + method.getName())
         .isPublic()
         .isNotStatic()
         .hasArgsCount(0);
@@ -734,7 +930,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           }
         } catch (IllegalArgumentException e) {
           throw new RuntimeException("@Seed annotation invalid on method "
-              + method.getName() + ", in class " + target.getName() + ": "
+              + method.getName() + ", in class " + suiteClass.getName() + ": "
               + e.getMessage());
         }
       }

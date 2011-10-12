@@ -4,5 +4,9 @@ https://issues.apache.org/jira/browse/LUCENE-3492
 
 Quickstart: 
  - open the projects in eclipse (m2e plugin or mvn eclipse:eclipse and import).
+ 
  - check out simple examples in randomizedtesting-examples.
- - mvn verify
+ - run: mvn verify and see the test reports 
+ 
+ - check out unit tests of randomizedtesting-runner, they provide coverage of all features.
+

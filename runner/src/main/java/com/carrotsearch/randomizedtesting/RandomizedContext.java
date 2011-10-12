@@ -1,7 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.util.ArrayDeque;
-import java.util.Random;
+import java.util.*;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 
@@ -10,14 +9,34 @@ import com.carrotsearch.randomizedtesting.annotations.Nightly;
  * under a {@link RandomizedRunner}.
  */
 public final class RandomizedContext {
-  /** Per thread context. */
-  private final static ThreadLocal<RandomizedContext> context = new ThreadLocal<RandomizedContext>();
+  /**
+   * Per thread assigned resources.
+   */
+  private final static class PerThreadResources {
+    /**
+     * Generators of pseudo-randomness. This is a queue because we stack
+     * them during lifecycle phases (suite/ method level). 
+     */
+    final ArrayDeque<Randomness> randomnesses = new ArrayDeque<Randomness>();
+  }
 
+  /** 
+   * All thread groups we're currently tracking a contexts in. 
+   */
+  final static IdentityHashMap<ThreadGroup, RandomizedContext> contexts 
+    = new IdentityHashMap<ThreadGroup, RandomizedContext>();
+
+  /** 
+   * Per thread resources for this context. 
+   */
+  final IdentityHashMap<Thread, PerThreadResources> perThreadResources 
+    = new IdentityHashMap<Thread, PerThreadResources>();
+
+  /** A thread group that shares this context. */
+  private final ThreadGroup threadGroup;
+  
   /** @see #getTargetClass() */
-  final Class<?> targetClass;
-
-  /** @see #getRandomness() */
-  final ArrayDeque<Randomness> randomnesses = new ArrayDeque<Randomness>();
+  private final Class<?> suiteClass;
 
   /** @see Nightly */
   private final boolean nightlyMode;
@@ -25,15 +44,21 @@ public final class RandomizedContext {
   /** Master seed/ randomness. */
   private final Randomness runnerRandomness;
 
-  RandomizedContext(Randomness runnerRandomness, Class<?> targetClass, boolean nightlyMode) {
-    this.targetClass = targetClass;
+  /** The context and all of its resources are no longer usable. */
+  private volatile boolean disposed;
+  
+  /** */
+  private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, Randomness runnerRandomness, boolean nightlyMode) {
+    this.threadGroup = tg;
+    this.suiteClass = suiteClass;
     this.nightlyMode = nightlyMode;
     this.runnerRandomness = runnerRandomness;
   }
 
   /** The class (suite) being tested. */
   public Class<?> getTargetClass() {
-    return targetClass;
+    checkDisposed();
+    return suiteClass;
   }
 
   /** Master seed/ randomness. */
@@ -45,12 +70,13 @@ public final class RandomizedContext {
    * Returns the runner's seed, formatted.
    */
   public String getRunnerSeed() {
+    checkDisposed();
     return Randomness.formatSeed(getRunnerRandomness().seed);
   }
 
   /** Source of randomness for the context's thread. */
   public Randomness getRandomness() {
-    return randomnesses.peek();
+    return getPerThread().randomnesses.peek();
   }
 
   /**
@@ -64,6 +90,7 @@ public final class RandomizedContext {
    * Return <code>true</code> if tests are running in nightly mode.
    */
   public boolean isNightly() {
+    checkDisposed();
     return nightlyMode;
   }
 
@@ -72,40 +99,82 @@ public final class RandomizedContext {
    *         {@link IllegalStateException} if the thread is out of scope.
    */
   public static RandomizedContext current() {
-    RandomizedContext ctx = context.get();
-    if (ctx == null) {
-      throw new IllegalStateException("No context information, is this test/ thread running under " +
-      		RandomizedRunner.class + " runner? Add @RunWith(" + RandomizedRunner.class + ".class)" +
-      				" to your test class");
+    final Thread currentThread = Thread.currentThread();
+    final ThreadGroup currentGroup = currentThread.getThreadGroup();
+
+    synchronized (contexts) {
+      RandomizedContext context = contexts.get(currentGroup);
+      if (context == null) {
+        throw new IllegalStateException("No context information for thread: " +
+            currentThread.getName() + " (" + currentThread.getThreadGroup() + "). " +
+            "Is this thread running under a " +
+            RandomizedRunner.class + " runner? Add @RunWith(" + RandomizedRunner.class + ".class)" +
+                " to your test class. ");
+      }
+
+      synchronized (context.perThreadResources) {
+        if (!context.perThreadResources.containsKey(currentThread)) {
+          PerThreadResources perThreadResources = new PerThreadResources();
+          perThreadResources.randomnesses.push(
+              new Randomness(context.getRunnerRandomness().seed));
+          context.perThreadResources.put(currentThread, perThreadResources);
+        }
+      }
+
+      return context;
     }
-    return ctx;
   }
 
   /**
-   * Sets the context for the current thread.
+   * Create a new context bound to a thread group.
    */
-  static void setContext(RandomizedContext ctx) {
-    if (context.get() != null) {
-      throw new Error("Recursive context stack not implemented (yet).");
+  static RandomizedContext create(ThreadGroup tg, Class<?> suiteClass,
+      Randomness runnerRandomness, boolean nightlyMode) {
+    assert Thread.currentThread().getThreadGroup() == tg;
+    synchronized (contexts) {
+      RandomizedContext ctx = new RandomizedContext(tg, suiteClass, runnerRandomness, nightlyMode); 
+      contexts.put(tg, ctx);
+      ctx.perThreadResources.put(Thread.currentThread(), new PerThreadResources());
+      return ctx;
     }
-    context.set(ctx);
   }
 
   /**
-   * Clear the context for the current thread.
+   * Dispose of the context.
    */
-  static void clearContext() {
-    context.set(null);
+  void dispose() {
+    checkDisposed();
+    synchronized (contexts) {
+      disposed = true;
+      contexts.remove(threadGroup);
+    }
   }
 
   /** Push a new randomness on top of the stack. */
   void push(Randomness rnd) {
-    randomnesses.push(rnd);
+    getPerThread().randomnesses.push(rnd);
   }
 
   /** Push a new randomness on top of the stack. */
   Randomness pop() {
-    return randomnesses.pop();
+    return getPerThread().randomnesses.pop();
+  }
+
+  /** Return per-thread resources associated with the current thread. */
+  private PerThreadResources getPerThread() {
+    checkDisposed();
+    synchronized (perThreadResources) {
+      return perThreadResources.get(Thread.currentThread());
+    }
+  }
+
+  /**
+   * Throw an exception if disposed.
+   */
+  private void checkDisposed() {
+    if (disposed) 
+      throw new IllegalStateException("Context disposed: " + 
+          toString() + " for thread: " + Thread.currentThread());
   }
 }
 
