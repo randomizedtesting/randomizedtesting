@@ -1,12 +1,60 @@
 
-RandomizedTesting. Spikes and experiments.
-https://issues.apache.org/jira/browse/LUCENE-3492
+RandomizedTesting: a JUnit runner and scaffolding for tests with repeatable pseudo-randomness.
+=================
 
-Quickstart: 
- - open the projects in eclipse (m2e plugin or mvn eclipse:eclipse and import).
- 
- - check out simple examples in randomizedtesting-examples.
- - run: mvn verify and see the test reports 
- 
- - check out unit tests of randomizedtesting-runner, they provide coverage of all features.
+Project status: in development, but working quite nicely :)
 
+What does it do?
+----------------
+
+RandomizedRunner is a JUnit runner, so it is capable of running @Test-annotated test cases. It
+respects regular lifecycle hooks such as @Before, @After, @BeforeClass or @AfterClass, but it
+also adds the following:
+
+Randomized, but repeatable execution and infrastructure for dealing with randomness:
+
+- uses pseudo-randomness (so that a given run can be repeated if given the same starting seed)
+  for many things called "random" below,
+- randomly shuffles test methods to ensure they don't depend on each other,
+- randomly shuffles hooks (within a given class) to ensure they don't depend on each other,
+- base class RandomizedTest provides a number of methods for generating random numbers, strings
+  and picking random objects from collections (again, this is fully repeatable given the
+  initial seed if there are no race conditions),
+- the runner provides infrastructure to augment stack traces with information about the initial
+  seeds used for running the test, so that it can be repeated (or it can be determined that
+  the test is not repeatable -- this indicates a problem with the test case itself).
+
+Thread control:
+
+- any threads created as part of a test case are assigned the same initial random seed 
+  (repeatability),
+- tracks and attempts to terminate any Threads that are created and not terminated inside 
+  a test case (not cleaning up causes a test failure),
+- tracks and attempts to terminate test cases that run for too long (default timeout: 60 seconds,
+  adjustable using global property or annotations),
+
+Improved validation and lifecycle support:
+
+- RandomizedRunner uses relaxed contracts of hook methods' accessibility (hook methods _can_ be
+  private). This helps in avoiding problems with method shadowing (static hooks) or overrides
+  that require tedious super.() chaining). Private hooks are always executed and don't affect
+  subclasses in any way, period.
+- @Listeners annotation on a test class allows it to hook into the execution progress and listen
+  to events.
+- @Validators annotation allows a test class to provide custom validation strategies 
+  (project-specific). For example a base class can request specific test case naming strategy
+  (or reject JUnit3-like methods, for instance).
+- RandomizedRunner does not "chain" or "suppress" exceptions happening during execution of 
+  a test case (including hooks). All exceptions are reported as soon as they happened and multiple
+  failure reports can occur. Most environments we know of then display these failures sequentially
+  allowing a clearer understanding of what actually happened first.
+
+
+How to use it?
+--------------
+
+  simple) extend RandomizedTest, (simpler, OR)
+advanced) annotate your class to use: @With(RandomizedRunner.class) and 
+          get RandomizedContext.current() manually.
+
+Take a look at the examples and test cases of the runner itself.
