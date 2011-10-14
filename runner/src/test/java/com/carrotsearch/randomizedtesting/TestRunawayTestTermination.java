@@ -1,6 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -53,6 +54,12 @@ public class TestRunawayTestTermination extends WithNestedTestClass {
     }
   }
 
+  @BeforeClass
+  public static void speedup() {
+    System.setProperty(RandomizedRunner.SYSPROP_KILLATTEMPTS, "1");
+    System.setProperty(RandomizedRunner.SYSPROP_KILLWAIT, "100");
+  }
+  
   @Test
   public void spinning() throws Throwable {
     Result r = JUnitCore.runClasses(Nested1.class);

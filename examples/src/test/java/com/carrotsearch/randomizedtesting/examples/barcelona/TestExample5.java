@@ -1,10 +1,12 @@
 package com.carrotsearch.randomizedtesting.examples.barcelona;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 
+@Ignore // Remove to enable the example. Disabled to speed up tests.
 public class TestExample5 extends RandomizedTest {
   @Test @Timeout(millis = 1000)
   public void interruptable() throws Exception {
