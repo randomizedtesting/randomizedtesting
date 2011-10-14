@@ -493,6 +493,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     if (t.isAlive()) {
+      logger.warning("Does not respond to interrupt(), trying to stop(): " + tname);
+
       // Try to sent ThreadDeath up its stack if interrupt is not working.
       int killAttempts = this.killAttempts;
       int killWait = this.killWait;
@@ -502,16 +504,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
           t.join(killWait);
         } catch (InterruptedException e) { /* ignore */ }
         if (!t.isAlive()) break;
-        logger.fine("Trying to kill runaway thread: " + tname 
+        logger.fine("Trying to stop a runaway thread: " + tname 
             + ", retries: " + killAttempts + ", currently at: "
             + formatStackTrace(t.getStackTrace()));
       } while (--killAttempts >= 0);
+
+      if (!t.isAlive()) {
+          logger.warning("Stopped a runaway thread: " + tname);
+      }      
     }
 
-    if (!t.isAlive()) {
-      logger.warning("Killed a runaway thread: " + t.getName());
-    } else {
-      logger.severe("Could not interrupt or kill thread: " + t.getName());
+    if (t.isAlive()) {
+      logger.severe("Could not interrupt or stop thread: " + tname);
     }
 
     // check if the thread left a ThreadDeath exception and avoid reporting it twice.
