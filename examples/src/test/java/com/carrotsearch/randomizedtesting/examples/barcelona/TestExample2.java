@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 
-public class TestTestUtil extends RandomizedTest {
+public class TestExample2 extends RandomizedTest {
   @Test
   public void testNextInt() {
     int from = randomInt() & 0x7fffffff;
@@ -16,8 +16,11 @@ public class TestTestUtil extends RandomizedTest {
         value >= from && value <= to);
   }
 
+  // If you can find a seed that will result in a direct immediate sequence of 0, Integer.MAX_VALUE,
+  // I will send you a bottle of a nice scotch :) Yes, this is a hidden gem. ;)
+  // @Seed(?)
   @Test
-  public void testNextInt2() {
+  public void testNextIntFailing() {
     int from = 0;
     int to   = Integer.MAX_VALUE;
     int value = nextInt(getRandom(), from, to);

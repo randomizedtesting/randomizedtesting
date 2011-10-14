@@ -891,7 +891,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (seeds.length > 1)
         return seeds[1];
     }
-    return runnerRandomness.seed ^ method.getName().hashCode();
+    return runnerRandomness.seed ^ MurmurHash3.hash((long) method.getName().hashCode());
   }
 
   /**
