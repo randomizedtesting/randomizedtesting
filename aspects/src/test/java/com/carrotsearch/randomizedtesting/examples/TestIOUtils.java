@@ -28,7 +28,7 @@ public class TestIOUtils extends RandomizedTest
         File tempDir = newTempDir();
         FileOutputStream fos = new FileOutputStream(new File(tempDir, "testFile.txt"));
         fos.write("Hello Barcelona".getBytes(UTF8));
-        // Don't close; locks folder on Windows.
+        // Don't close fos - this results in the parent folder locked (at least on Windows).
         // fos.close();
     }
 }

@@ -2,23 +2,31 @@
 Approximately in the order of importance...
 ===========================================
 
-   * TODO: add better tracking of temporary folders. The context should carry the 
-   * info about files/folders created at each lifecycle's stage and clean up early (or 
-   * report the inability to do so, along with the stack trace that allocated a given file).
-   * Failure to clean up properly (close all files) could also bring the test case/ 
-   * suite to a failure.
-   * 
-   * TODO: temporary file names could be created with nasty things inside (spaces, etc.). 
+- Add better tracking of temporary folders. The context should carry the 
+  info about files/folders created at each lifecycle's stage and clean up early (or 
+  report the inability to do so, along with the stack trace that allocated a given file).
+  Failure to clean up properly (close all files) could also bring the test case/ 
+  suite to a failure. This could also be an aspect, but I think an embedded functionality
+  will be easier to use for beginners.
+
+- Should running in a sub-thread (handling @Timeout) be disabled if there are no timeouts?
+  This would probably speed up execution. The default could then be to not timeout at all?  
+
+- Temporary file names could be created with nasty things inside (spaces, etc.). 
+
+- The code in RandomizedRunner grew a bit complex after thread management has been added; 
+  think of simplifying it?
 
 - Rewrite LuceneTestCase on top of RandomizedRunner => prove it is functional.
-    - UseNoMemoryExpensiveCodec
-    - Locale and TimeZone randomization => per test suite? Once?
+    - @UseNoMemoryExpensiveCodec => aspect that filters the result or input list for randomization?
     - Disk throttling. => aspect.
 
 - Can we integrate with TestNG too?
 - How to simulate 'tests.iter.min'?
-- deal with catch clauses that potentially catch assertion errors?
+- deal with catch clauses that potentially catch assertion errors (and ThreadDeath)? => aspect
 - What about TestRule support (introduced in 4.9?). If we rely on it explicitly, will this cause problems with older shells (ant, eclipse)?
+
+- A rewritten ant task for handling JUnit4 tests properly, without wrappers... 
 
 
 Other things
@@ -38,10 +46,5 @@ LuceneTestCase features intentionally omitted
 tests.verbose - What's the point of this anyway? Most test hosts will buffer and redirect sysout/syserr anyway.
 tempDir - Override the entire -Djava.io.tmpdir=... instead.
 
-There is an important difference in how we repeat tests: we do full loop (hooks, test case), LTC does simple method repetitions.
-
-test iterations (globally overriden) should always be _safe_ because they re-run entire hook chain and 
-   execute on different objects. So this note from LTC should no longer apply: 
-   System.out.println("WARNING: you are using -Dtests.iter=n where n > 1, not all tests support this option.");
-   System.out.println("Some may crash or fail: this is not a bug.");
-
+There is an important difference in how we repeat tests: we do full loop (hooks, test case), 
+LTC does simple method repetitions. Simple method repetition could be added to @Repeat as a runHooks=false flag? 
