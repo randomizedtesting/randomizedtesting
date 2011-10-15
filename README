@@ -58,3 +58,10 @@ advanced) annotate your class to use: @With(RandomizedRunner.class) and
           get RandomizedContext.current() manually.
 
 Take a look at the examples and test cases of the runner itself.
+
+
+IDE support
+-----------
+
+Eclipse:
+ - Indigo, with m2e and ajdt configurator for aspects from: http://dist.springsource.org/release/AJDT/configurator/
