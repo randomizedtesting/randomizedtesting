@@ -29,18 +29,6 @@ public class TestBeforeAfterMethodOrder {
    */
   @RunWith(RandomizedRunner.class)
   public static class Super {
-    protected static int counter;
-
-    public static int beforeClassSuperOrder;
-    public static int beforeTestSuperOrder;
-    public static int beforeClassSubOrder;
-    public static int beforeTestSubOrder;
-    public static int testMethodOrderSub;
-    public static int afterTestSubOrder;
-    public static int afterClassSubOrder;
-    public static int afterTestSuperOrder;
-    public static int afterClassSuperOrder;
-
     @BeforeClass
     public static void beforeClassSuper() {
       callOrder.add("beforeClassSuper");

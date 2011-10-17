@@ -227,7 +227,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * 
    * @see #SYSPROP_ITERATIONS
    */
-  private final int iterationsOverride;
+  private final Integer iterationsOverride;
 
   /**
    * Test case timeout in millis.
@@ -298,10 +298,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
               sequencer.getAndIncrement() + System.nanoTime()));
     }
 
-    this.iterationsOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_ITERATIONS, DEFAULT_ITERATIONS);
-    if (iterationsOverride < 1)
-      throw new IllegalArgumentException(
-          "System property " + SYSPROP_ITERATIONS + " must be >= 1: " + iterationsOverride);
+    // Iterations property is primary wrt to annotations, so we leave an "undefined" value as null.
+    if (System.getProperty(SYSPROP_ITERATIONS) != null) {
+      this.iterationsOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_ITERATIONS, 0);
+      if (iterationsOverride < 1)
+        throw new IllegalArgumentException(
+            "System property " + SYSPROP_ITERATIONS + " must be >= 1: " + iterationsOverride);
+    } else {
+      this.iterationsOverride = null;
+    }
 
     this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS, DEFAULT_KILLATTEMPTS);
     this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT, DEFAULT_KILLWAIT);
@@ -869,7 +874,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private int determineMethodIterationCount(Method method) {
     // Global override.
-    if (iterationsOverride > 0)
+    if (iterationsOverride != null)
       return iterationsOverride;
 
     Repeat repeat;
@@ -880,7 +885,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       return repeat.iterations();
     }
 
-    return /* default */ 1;
+    return DEFAULT_ITERATIONS;
   }
 
   /**
