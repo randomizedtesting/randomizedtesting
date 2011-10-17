@@ -13,6 +13,7 @@ import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
 import java.lang.Thread.State;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.InvocationTargetException;
@@ -197,6 +198,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   }
 
+  /**
+   * 
+   */
+  private final static Logger logger = Logger.getLogger(RandomizedRunner.class.getSimpleName());
+
   /** 
    * A sequencer for affecting the initial seed in case of rapid succession of this class
    * instance creations. Not likely, but can happen two could get the same seed.
@@ -272,6 +278,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * @see #subscribeListeners(RunNotifier) 
    */
   private final List<RunListener> autoListeners = new ArrayList<RunListener>();
+
+  /**
+   * We simply report to syserr. There should be no threads out of runner's control.
+   * This can also be validated with aspects.
+   */
+  private UncaughtExceptionHandler defaultExceptionHandler = new UncaughtExceptionHandler() {
+    public void uncaughtException(Thread t, Throwable e) {
+      logger.severe("A non-test thread threw an uncaught exception. This" +
+      		" should never happen in normal circumstances: report to " +
+          RandomizedRunner.class.getName() + " developers. Thread: " +
+      		t + ", exception: " + e.toString() + ", stack:\n" + formatStackTrace(e.getStackTrace()));
+    }
+  };
 
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
@@ -350,6 +369,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Test execution logic for the entire suite. 
    */
   private void runSuite(final RunNotifier notifier) {
+    if (Thread.getDefaultUncaughtExceptionHandler() == null) {
+      Thread.setDefaultUncaughtExceptionHandler(defaultExceptionHandler);
+    }
+
     this.runnerThreadGroup = new RunnerThreadGroup(
         "RandomizedRunner " + Randomness.formatSeedChain(runnerRandomness));
 
@@ -510,7 +533,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   
     // Check for run-away threads.
     bulletProofZombies.addAll(checkLeftOverThreads(notifier, c.description, beforeTestSnapshot));
-  
+
     // Process uncaught exceptions, if any.
     runnerThreadGroup.processUncaught(notifier, c.description);
   }
@@ -611,7 +634,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // make it clear the thread is being killed.
     runnerThreadGroup.markAsBeingTerminated(t);
   
-    Logger logger = Logger.getLogger(getClass().getSimpleName());
     logger.warning("Attempting to stop thread: " + tname + ", currently at:\n"
         + formatStackTrace(t.getStackTrace()));
   
