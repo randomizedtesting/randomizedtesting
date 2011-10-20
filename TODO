@@ -2,6 +2,8 @@
 Approximately in the order of importance...
 ===========================================
 
+- Check if timeouted threads have their seed properly injected (it's the same as the master seed of the test case, but anyway).
+
 - Add better tracking of temporary folders. The context should carry the 
   info about files/folders created at each lifecycle's stage and clean up early (or 
   report the inability to do so, along with the stack trace that allocated a given file).
