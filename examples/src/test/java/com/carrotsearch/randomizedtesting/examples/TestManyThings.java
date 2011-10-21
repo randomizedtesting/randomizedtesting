@@ -18,12 +18,10 @@ import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.validators.NoHookMethodShadowing;
 import com.carrotsearch.randomizedtesting.validators.NoTestMethodOverrides;
 
-/*
- * Just a showcase of various things RandomizedRunner can do.
+/**
+ * Shows multiple functional elements in one test case:
+ * listeners, validators, hook methods...
  */
-
-// @Seed("deadbeef")
-// @Repeat(100)
 @Listeners({
   StandardErrorInfoRunListener.class
 })
@@ -31,7 +29,7 @@ import com.carrotsearch.randomizedtesting.validators.NoTestMethodOverrides;
   NoHookMethodShadowing.class,
   NoTestMethodOverrides.class
 })
-public class TestEyeBalling extends RandomizedTest {
+public class TestManyThings extends RandomizedTest {
   @BeforeClass
   public static void setup() {
     info("before class");

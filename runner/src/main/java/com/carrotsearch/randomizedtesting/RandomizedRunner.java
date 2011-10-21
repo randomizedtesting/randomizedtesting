@@ -508,10 +508,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
   
       // Collect rules and execute wrapped method.
       runWithRules(c, instance);
-    } catch (ThreadDeath e) {
-      // Do-nothing. We've been killed. This is next to panic and not much we can do.
-      return;
     } catch (Throwable e) {
+      if (e instanceof ThreadDeath || e instanceof InterruptedException) {
+        // Do-nothing. We've been killed. This is next to panic and not much we can do.
+        return;
+      }
+
       // Augment stack trace and inject a fake stack entry with seed information.
       e = augmentStackTrace(e);
       if (e instanceof AssumptionViolatedException) {
@@ -625,7 +627,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         ": " + t.toString() +
         " (stack trace is a snapshot location).";
 
-    ThreadLeakError ex = new ThreadLeakError(message);
+    ThreadingError ex = new ThreadingError(message);
     ex.setStackTrace(stackTrace);
     if (ctx != null) {
       ex = augmentStackTrace(ex);

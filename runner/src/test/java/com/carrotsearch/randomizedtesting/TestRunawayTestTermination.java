@@ -12,7 +12,7 @@ public class TestRunawayTestTermination extends WithNestedTestClass {
   @Timeout(millis = 1000)
   public static class Nested1 extends RandomizedTest {
     @Test
-    public void spinning() throws Exception{
+    public void spinning() throws Exception {
       assumeRunningNested();
       while (true) {
         try {
@@ -26,21 +26,17 @@ public class TestRunawayTestTermination extends WithNestedTestClass {
   
   public static class Nested2 extends RandomizedTest {
     @Test @Timeout(millis = 1000)
-    public void sleeping() throws Exception{
+    public void sleeping() throws Exception {
       assumeRunningNested();
-      try {
-        while (true) {
-          Thread.sleep(1000);
-        }
-      } catch (InterruptedException e) {
-        // fall through.
+      while (true) {
+        Thread.sleep(1000);
       }
     }    
   }
   
   public static class Nested3 extends RandomizedTest {
     @Test @Timeout(millis = 1000)
-    public void bulletProof() throws Exception{
+    public void bulletProof() throws Exception {
       assumeRunningNested();
       while (true) {
         try {

@@ -11,6 +11,14 @@
 
   <artifactId>randomizedtesting-examples</artifactId>
   <name>RandomizedTesting Examples</name>
+  
+  <description>
+  Simple use-case examples meant to be included in some
+  end-user documentation if it's ever going to be written...
+
+  This project also runs JUnit tests in ANT and generates a report
+  to check if multiple failure reports are properly included.
+  </description>
 
   <dependencies>
     <dependency>
@@ -54,6 +62,16 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- There are tests that will fail. They are examples after all. -->
+          <testFailureIgnore>true</testFailureIgnore>
+          <runOrder>random</runOrder>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
@@ -69,23 +87,7 @@
               <goal>run</goal>
             </goals>
           </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <!-- There are tests that will fail. They are examples after all. -->
-          <testFailureIgnore>true</testFailureIgnore>
-          <runOrder>random</runOrder>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
+        
           <execution>
             <id>ant-run-tests</id>
             <phase>integration-test</phase>

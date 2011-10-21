@@ -11,6 +11,11 @@
 
   <artifactId>randomizedtesting-barcelona</artifactId>
   <name>RandomizedTesting Barcelona Examples</name>
+  
+  <description>
+    Examples from Lucene EuroCon Barcelona presentation (October 2011).
+    Including AspectJ-woven "deep code" engineering example (I/O slowdown simulation).
+  </description>  
 
   <dependencies>
     <dependency>

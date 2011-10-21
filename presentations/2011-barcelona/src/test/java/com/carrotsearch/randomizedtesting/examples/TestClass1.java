@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting.examples.barcelona;
+package com.carrotsearch.randomizedtesting.examples;
 
 import org.junit.*;
 

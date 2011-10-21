@@ -10,7 +10,11 @@ import org.junit.runner.RunWith;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 
 /**
- * Check what happens if an exception occurs in the test case _and_ in after and in afterclass...
+ * Shows that multiple thrown exceptions are reported individually
+ * in JUnit runners in IDEs/ batch runners like ANT.
+ * 
+ * <p>Exceptions are not chained or suppressed, they are all reported
+ * back.
  */
 @RunWith(RandomizedRunner.class)
 public class TestNoSuppressedException {
