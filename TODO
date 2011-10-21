@@ -2,7 +2,7 @@
 Approximately in the order of importance...
 ===========================================
 
-- Assumptions on class level don't work.
+- Add Seed [] array to @Repeat to re-run with multiple seeds? Or @Seeds with internal @Seed?
 
 - Add better tracking of temporary folders. The context should carry the 
   info about files/folders created at each lifecycle's stage and clean up early (or 

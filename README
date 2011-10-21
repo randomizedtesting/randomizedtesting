@@ -2,7 +2,7 @@
 RandomizedTesting: a JUnit runner and scaffolding for tests with repeatable pseudo-randomness.
 =================
 
-Project status: in development, but working quite nicely :)
+Project status: internals still in development, but working quite nicely :)
 
 What does it do?
 ----------------
@@ -57,11 +57,15 @@ How to use it?
 advanced) annotate your class to use: @With(RandomizedRunner.class) and 
           get RandomizedContext.current() manually.
 
-Take a look at the examples and test cases of the runner itself.
+Take a look at the examples, test cases of the runner itself and examples included under
+presentations/ folder.
 
 
 IDE support
 -----------
 
 Eclipse:
- - Indigo, with m2e and ajdt configurator for aspects from: http://dist.springsource.org/release/AJDT/configurator/
+
+ - Eclipse Indigo recommended, with m2e and ajdt configurator for aspects from: 
+   http://dist.springsource.org/release/AJDT/configurator/
+   Once you have this installed, Menu->Import->Existing Maven Projects should do.

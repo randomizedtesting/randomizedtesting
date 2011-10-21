@@ -12,8 +12,14 @@ import org.junit.runner.notification.RunListener;
  */
 public class StandardErrorInfoRunListener extends RunListener {
   @Override
+  public void testStarted(Description description) throws Exception {
+    System.err.println("**  Test name: " + description.getMethodName());
+    System.err.flush();
+  }
+
+  @Override
   public void testAssumptionFailure(Failure failure) {
-    System.err.println("** ASSUMPTION: " + failure.getDescription().getMethodName());
+    System.err.println("** IGNORED (assumption): " + failure.getDescription().getMethodName());
     System.err.flush();
   }
 

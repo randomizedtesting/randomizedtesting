@@ -447,7 +447,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
               notifier.fireTestFinished(c.description);
             }
           } catch (Throwable t) {
-            notifier.fireTestFailure(new Failure(suiteDescription, t));
+            if (t instanceof AssumptionViolatedException) {
+              // Class level assumptions cause all tests to be ignored.
+              // see Rants#RANT_3
+              for (final TestCandidate c : filtered) {
+                notifier.fireTestIgnored(c.description);
+              }
+              notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
+            } else {
+              notifier.fireTestFailure(new Failure(suiteDescription, t));
+            }
           }
   
           runAfterClassMethods(notifier);
@@ -501,7 +510,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     try {
       // Get the test instance.
       instance = suiteClass.newInstance();
-  
+
       // Run @Before hooks.
       for (Method m : getTargetMethods(Before.class))
         invoke(m, instance);
@@ -509,17 +518,28 @@ public final class RandomizedRunner extends Runner implements Filterable {
       // Collect rules and execute wrapped method.
       runWithRules(c, instance);
     } catch (Throwable e) {
-      if (e instanceof ThreadDeath || e instanceof InterruptedException) {
-        // Do-nothing. We've been killed. This is next to panic and not much we can do.
+      boolean isKilled = runnerThreadGroup.isKilled(Thread.currentThread());
+
+      // Check if it's the runner trying to kill the thread. If so,
+      // there is no point in reporting such an exception back. Also,
+      // if the thread's been killed, we will not run any hooks (this is
+      // pretty much a situation in which the world ends).
+      if (isKilled && (e instanceof ThreadDeath)) {
+        // TODO: System.exit() wouldn't run any post-cleanup on hooks. A better
+        // way to resolve this would be to mark a global condition to ignore
+        // all the remaining tests (fail with an assumption exception saying
+        // there's a boogieman around or something).
         return;
       }
 
       // Augment stack trace and inject a fake stack entry with seed information.
-      e = augmentStackTrace(e);
-      if (e instanceof AssumptionViolatedException) {
-        notifier.fireTestAssumptionFailed(new Failure(c.description, e));
-      } else {
-        notifier.fireTestFailure(new Failure(c.description, e));
+      if (!isKilled) {
+        e = augmentStackTrace(e);
+        if (e instanceof AssumptionViolatedException) {
+          notifier.fireTestAssumptionFailed(new Failure(c.description, e));
+        } else {
+          notifier.fireTestFailure(new Failure(c.description, e));
+        }
       }
     }
 

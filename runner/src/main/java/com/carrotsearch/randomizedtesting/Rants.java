@@ -33,5 +33,10 @@ final class Rants {
    * TODO: this if weird default assumption methods (and constructors in AssumptionViolatedException)
    * do not allow specifying a custom message? 
    */
-  public static RantType RANT_2 = RantType.ANNOYANCE;  
+  public static RantType RANT_2 = RantType.ANNOYANCE;
+  
+  /**
+   * TODO: Why is failed assumption propagated as a Failure? This is weird an unnatural.
+   */
+  public static RantType RANT_3 = RantType.DAMN_TERRIBLE;    
 }

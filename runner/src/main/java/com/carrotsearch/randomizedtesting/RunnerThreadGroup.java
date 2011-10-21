@@ -94,9 +94,24 @@ final class RunnerThreadGroup extends ThreadGroup {
    * this happened. This is later used to append a message that a potential exception
    * occurred after a forced interrupt or stop call.  
    */
-  public void markAsBeingTerminated(Thread t) {
+  void markAsBeingTerminated(Thread t) {
     synchronized (uncaughtExceptions) {
       uncaughtExceptions.add(Pair.newInstance(t, terminationMarker));
     }
+  }
+
+  /**
+   * Check if a given thread has been marked as killed on the uncaught exception
+   * list. 
+   */
+  boolean isKilled(Thread thread) {
+    synchronized (uncaughtExceptions) {
+      for (Pair<Thread, Throwable> p : uncaughtExceptions) {
+        if (p.a == thread) {
+          return true;
+        }
+      }
+    }
+    return false;
   }  
 }
