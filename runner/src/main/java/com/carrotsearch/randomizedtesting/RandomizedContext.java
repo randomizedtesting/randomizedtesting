@@ -21,13 +21,13 @@ public final class RandomizedContext {
   }
 
   /** 
-   * All thread groups we're currently tracking a contexts in. 
+   * All thread groups we're currently tracking contexts for. 
    */
   final static IdentityHashMap<ThreadGroup, RandomizedContext> contexts 
     = new IdentityHashMap<ThreadGroup, RandomizedContext>();
 
   /** 
-   * Per thread resources for this context. 
+   * Per thread resources for each context. 
    */
   final IdentityHashMap<Thread, PerThreadResources> perThreadResources 
     = new IdentityHashMap<Thread, PerThreadResources>();
@@ -78,6 +78,12 @@ public final class RandomizedContext {
   public Randomness getRandomness() {
     return getPerThread().randomnesses.peek();
   }
+  
+  Randomness [] getRandomnesses() {
+    ArrayDeque<Randomness> randomnesses = getPerThread().randomnesses;
+    return randomnesses.toArray(
+        new Randomness [randomnesses.size()]);
+  }
 
   /**
    * A shorthand for calling {@link #getRandomness()} and then {@link Randomness#getRandom()}. 
@@ -99,25 +105,28 @@ public final class RandomizedContext {
    *         {@link IllegalStateException} if the thread is out of scope.
    */
   public static RandomizedContext current() {
-    final Thread currentThread = Thread.currentThread();
-    final ThreadGroup currentGroup = currentThread.getThreadGroup();
+    return context(Thread.currentThread());
+  }
+
+  static RandomizedContext context(Thread thread) {
+    final ThreadGroup currentGroup = thread.getThreadGroup();
 
     synchronized (contexts) {
       RandomizedContext context = contexts.get(currentGroup);
       if (context == null) {
         throw new IllegalStateException("No context information for thread: " +
-            currentThread.getName() + " (" + currentThread.getThreadGroup() + "). " +
+            thread.getName() + " (" + thread.getThreadGroup() + "). " +
             "Is this thread running under a " +
             RandomizedRunner.class + " runner? Add @RunWith(" + RandomizedRunner.class + ".class)" +
                 " to your test class. ");
       }
 
       synchronized (context.perThreadResources) {
-        if (!context.perThreadResources.containsKey(currentThread)) {
+        if (!context.perThreadResources.containsKey(thread)) {
           PerThreadResources perThreadResources = new PerThreadResources();
           perThreadResources.randomnesses.push(
               new Randomness(context.getRunnerRandomness().seed));
-          context.perThreadResources.put(currentThread, perThreadResources);
+          context.perThreadResources.put(thread, perThreadResources);
         }
       }
 

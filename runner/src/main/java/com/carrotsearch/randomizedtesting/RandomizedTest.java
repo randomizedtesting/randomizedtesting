@@ -365,6 +365,23 @@ public class RandomizedTest extends Assert {
     return RandomStrings.randomRealisticUnicodeString(getRandom(), minCodepointLength, maxCodepointLength);
   }
 
+  // 
+  // wrappers for utility methods elsewhere that don't require try..catch blocks
+  // and rethrow the original checked exception if needed. dirty a bit, but saves
+  // keystrokes...
+  //
+  
+  /**
+   * Same as {@link Thread#sleep(long)}.  
+   */
+  public static void sleep(long millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+      Rethrow.rethrow(e);
+    }
+  }
+
   //
   // Extensions of Assume (with a message).
   //

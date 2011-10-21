@@ -25,6 +25,12 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
  */
 public class TestHookMethodOrderWithExceptions extends RandomizedTest {
   static final List<String> callOrder = new ArrayList<String>();
+
+  /*
+   * We don't want to run nested classes as separate tests, but eclipse still
+   * wants to run them. this is a hack, but I don't know how to do it cleaner.
+   */
+  static boolean testExecution;
   
   /**
    * Test superclass.
@@ -58,7 +64,7 @@ public class TestHookMethodOrderWithExceptions extends RandomizedTest {
     }
     
     public static void maybeThrowException() {
-      if (rnd.nextInt(10) == 0) {
+      if (testExecution && rnd.nextInt(10) == 0) {
         throw new RuntimeException();
       }
     }
@@ -100,8 +106,15 @@ public class TestHookMethodOrderWithExceptions extends RandomizedTest {
   }
   
   @Before
+  public void setup() {
+    callOrder.clear();
+    testExecution = true;
+  }
+  
+  @After
   public void cleanup() {
     callOrder.clear();
+    testExecution = false;
   }
 
   @Test @Repeat(iterations = 20)

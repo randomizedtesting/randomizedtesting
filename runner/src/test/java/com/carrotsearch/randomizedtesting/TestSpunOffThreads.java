@@ -3,8 +3,10 @@ package com.carrotsearch.randomizedtesting;
 import java.util.concurrent.*;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.*;
+import org.junit.runner.notification.Failure;
 
 @RunWith(RandomizedRunner.class)
 public class TestSpunOffThreads extends WithNestedTestClass {
@@ -71,16 +73,35 @@ public class TestSpunOffThreads extends WithNestedTestClass {
   }
   
   public static class Nested extends RandomizedTest {
+    final boolean withJoin;
+
+    public Nested() {
+      this(true);
+    }
+
+    protected Nested(boolean withJoin) {
+      this.withJoin = withJoin;
+    }
+    
     @Test
     public void spinoffAndThrow() throws Exception{
       assumeRunningNested();
       Thread t = new Thread() {
         public void run() {
+          RandomizedTest.sleep(500);
           throw new RuntimeException("spinoff exception");
         }
       };
       t.start();
-      t.join();
+      if (withJoin) {
+        t.join();
+      }
+    }
+  }
+  
+  public static class NestedNoJoin extends Nested {
+    public NestedNoJoin() {
+      super(false);
     }
   }
 
@@ -88,5 +109,48 @@ public class TestSpunOffThreads extends WithNestedTestClass {
   public void subUncaughtExceptionInSpunOffThread() throws Throwable {
     Result r = JUnitCore.runClasses(Nested.class);
     Assert.assertEquals(1, r.getFailureCount());
+    Failure testFailure = r.getFailures().get(0);
+    Throwable testException = testFailure.getException();
+    Throwable threadException = testException.getCause();
+    Assert.assertNotNull(RandomizedRunner.extractSeed(testException));
+    Assert.assertNotNull(RandomizedRunner.extractSeed(threadException));
+  }
+
+  @Test
+  public void subNotJoined() throws Throwable {
+    Result r = JUnitCore.runClasses(NestedNoJoin.class);
+    Assert.assertEquals(1, r.getFailureCount());
+    Failure testFailure = r.getFailures().get(0);
+    Throwable testException = testFailure.getException();
+    Assert.assertNotNull(RandomizedRunner.extractSeed(testException));
   }  
+  
+  public static class NestedClassScope extends RandomizedTest {
+    @BeforeClass
+    public static void startThread() {
+      if (!isRunningNested())
+        return;
+
+      new Thread() {
+        @Override
+        public void run() {
+          RandomizedTest.sleep(5000);
+        }
+      }.start();
+    }
+
+    @Test
+    public void spinoffAndThrow() throws Exception{
+      assumeRunningNested();
+    }
+  }
+  
+  @Test
+  public void subNotJoinOnClassLevel() throws Throwable {
+    Result r = JUnitCore.runClasses(NestedClassScope.class);
+    Assert.assertEquals(1, r.getFailureCount());
+    Failure testFailure = r.getFailures().get(0);
+    Throwable testException = testFailure.getException();
+    Assert.assertNotNull(RandomizedRunner.extractSeed(testException));
+  }    
 }

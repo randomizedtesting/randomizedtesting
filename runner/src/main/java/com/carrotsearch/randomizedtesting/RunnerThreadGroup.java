@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -35,6 +37,18 @@ final class RunnerThreadGroup extends ThreadGroup {
    */
   @Override
   public void uncaughtException(Thread t, Throwable e) {
+    // Try to get the context for this thread and augment the exception
+    // with the seed.
+    try {
+      e = RandomizedRunner.augmentStackTrace(e);
+    } catch (Throwable ignore) {
+      // if there's none, don't panic, but this is weird and should not happen.
+      Logger.getLogger(RunnerThreadGroup.class.getSimpleName())
+        .log(Level.SEVERE,
+            RunnerThreadGroup.class.getSimpleName() + "'s sub thread should " +
+            "always have a context and it didn't have any?", ignore);
+    }
+
     synchronized (uncaughtExceptions) {
       uncaughtExceptions.add(Pair.newInstance(t, e));
     }

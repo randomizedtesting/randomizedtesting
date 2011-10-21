@@ -421,6 +421,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
                   try {
                     current.push(c.randomness);
                     runSingleTest(notifier, c);
+                  } catch (Throwable t) {
+                    Rethrow.rethrow(augmentStackTrace(t));                    
                   } finally {
                     current.pop();
                   }
@@ -511,21 +513,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
       return;
     } catch (Throwable e) {
       // Augment stack trace and inject a fake stack entry with seed information.
-      e = augmentStackTrace(e, runnerRandomness, c.randomness);
+      e = augmentStackTrace(e);
       if (e instanceof AssumptionViolatedException) {
         notifier.fireTestAssumptionFailed(new Failure(c.description, e));
       } else {
         notifier.fireTestFailure(new Failure(c.description, e));
       }
     }
-  
+
     // Run @After hooks if an instance has been created.
     if (instance != null) {
       for (Method m : getTargetMethods(After.class)) {
         try {
           invoke(m, instance);
         } catch (Throwable t) {
-          t = augmentStackTrace(t, runnerRandomness, c.randomness);
+          t = augmentStackTrace(t);
           notifier.fireTestFailure(new Failure(c.description, t));
         }
       }
@@ -573,7 +575,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         invoke(method, null);
       }
     } catch (Throwable t) {
-      throw augmentStackTrace(t, runnerRandomness);
+      throw augmentStackTraceNoContext(t, runnerRandomness);
     }
   }
 
@@ -585,7 +587,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       try {
         invoke(method, null);
       } catch (Throwable t) {
-        t = augmentStackTrace(t, runnerRandomness);
+        t = augmentStackTraceNoContext(t, runnerRandomness);
         notifier.fireTestFailure(new Failure(suiteDescription, t));
       }
     }
@@ -606,6 +608,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private void terminateAndFireFailure(Thread t, RunNotifier notifier, Description d, String msg) {
     StackTraceElement[] stackTrace = t.getStackTrace();
+
+    RandomizedContext ctx = null; 
+    try {
+      ctx = RandomizedContext.context(t);
+    } catch (IllegalStateException e) {
+      logger.severe("No context information for this thread?: " + t);
+    }
+
     tryToTerminate(t);
 
     State s = t.getState();
@@ -615,8 +625,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
         ": " + t.toString() +
         " (stack trace is a snapshot location).";
 
-    final RuntimeException ex = new RuntimeException(message);
+    ThreadLeakError ex = new ThreadLeakError(message);
     ex.setStackTrace(stackTrace);
+    if (ctx != null) {
+      ex = augmentStackTrace(ex);
+    }
     notifier.fireTestFailure(new Failure(d, ex));    
   }
 
@@ -633,8 +646,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // interrupt or stop weird things can happen. Any logged exceptions should
     // make it clear the thread is being killed.
     runnerThreadGroup.markAsBeingTerminated(t);
-  
-    logger.warning("Attempting to stop thread: " + tname + ", currently at:\n"
+
+    logger.warning("Attempting to terminate thread: " + tname + ", currently at:\n"
         + formatStackTrace(t.getStackTrace()));
   
     // Try to interrupt first.
@@ -1059,7 +1072,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Augment stack trace of the given exception with seed infos.
    */
-  private static Throwable augmentStackTrace(Throwable e, Randomness... seeds) {
+  private static <T extends Throwable> T augmentStackTraceNoContext(T e, Randomness... seeds) {
     List<StackTraceElement> stack = new ArrayList<StackTraceElement>(
         Arrays.asList(e.getStackTrace()));
   
@@ -1069,6 +1082,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
     e.setStackTrace(stack.toArray(new StackTraceElement [stack.size()]));
   
     return e;
+  }
+  
+  /**
+   * Augment stack trace of the given exception with seed infos from the
+   * current thread's randomized context.
+   */
+  static <T extends Throwable> T augmentStackTrace(T e) {
+    RandomizedContext context = RandomizedContext.current();
+    return augmentStackTraceNoContext(e, context.getRandomnesses());
   }
 
   /** Format a list of stack entries into a string. */
