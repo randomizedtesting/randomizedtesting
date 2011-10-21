@@ -30,6 +30,8 @@ Approximately in the order of importance...
 
 - A rewritten ant task for handling JUnit4 tests properly, without wrappers... 
 
+- Check if intellij idea/ netbeans show multiple failures properly. how do they behave with the modified
+  test case descriptions (do they lead to source code properly? do they show them properly?)
 
 Other things
 ============
