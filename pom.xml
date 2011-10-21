@@ -23,7 +23,7 @@
 
   <modules>
     <module>runner</module>
-    <module>aspects</module>
+    <module>presentations/2011-barcelona</module>
     <module>examples</module>
   </modules>
 

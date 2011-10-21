@@ -6,11 +6,11 @@
     <groupId>com.carrotsearch.randomizedtesting</groupId>
     <artifactId>randomizedtesting-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>randomizedtesting-aspects</artifactId>
-  <name>RandomizedTesting Aspects</name>
+  <artifactId>randomizedtesting-barcelona</artifactId>
+  <name>RandomizedTesting Barcelona Examples</name>
 
   <dependencies>
     <dependency>
