@@ -29,7 +29,12 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
 @Inherited
 public @interface Seed {
   /**
-   * The seed expressed as a hexadecimal long number.
+   * The seed expressed as a hexadecimal long number or a string <code>random</code> to 
+   * indicate randomized seed should be used (default value).
+   * 
+   * <p>The default value <code>random</code> can be used to construct a list of known
+   * seeds for which a test previously failed and a random seed in addition to that (coverage
+   * of previous failures + randomized run). See {@link Seeds} for more info.
    */
-  String value();
+  String value() default "random";
 }

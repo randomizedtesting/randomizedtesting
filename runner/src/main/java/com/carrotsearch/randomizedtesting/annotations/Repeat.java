@@ -7,8 +7,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Repeats randomized test case a given number of times (with a different seed, but starting
- * from a predictable one).
+ * Repeats randomized test case a given number of times. Repetitions can
+ * start with a different seed (predictably derived from the first one) or 
+ * start from the same seed every time (useful to check if a given test is truly
+ * predictable for a given seed or not).
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})

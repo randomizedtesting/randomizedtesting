@@ -16,9 +16,7 @@ import java.lang.Thread.State;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,12 +50,7 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.Listeners;
-import com.carrotsearch.randomizedtesting.annotations.Nightly;
-import com.carrotsearch.randomizedtesting.annotations.Repeat;
-import com.carrotsearch.randomizedtesting.annotations.Seed;
-import com.carrotsearch.randomizedtesting.annotations.Timeout;
-import com.carrotsearch.randomizedtesting.annotations.Validators;
+import com.carrotsearch.randomizedtesting.annotations.*;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -298,6 +291,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(suiteClass)));
 
     // Initialize the runner's master seed/ randomness source.
+    final long randomSeed = MurmurHash3.hash(sequencer.getAndIncrement() + System.nanoTime());
     final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED);
     if (globalSeed != null) {
       final long[] seedChain = parseSeedChain(globalSeed);
@@ -309,12 +303,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (seedChain.length > 1)
         testCaseRandomnessOverride = new Randomness(seedChain[1]);
       runnerRandomness = new Randomness(seedChain[0]);
-    } else if (suiteClass.getAnnotation(Seed.class) != null) {
-      runnerRandomness = new Randomness(parseSeedChain(suiteClass.getAnnotation(Seed.class).value())[0]);
+    } else if (suiteClass.isAnnotationPresent(Seed.class)) {
+      runnerRandomness = new Randomness(seedFromAnnot(suiteClass, randomSeed)[0]);
     } else {
-      runnerRandomness = new Randomness(
-          MurmurHash3.hash(
-              sequencer.getAndIncrement() + System.nanoTime()));
+      runnerRandomness = new Randomness(randomSeed);
     }
 
     // Iterations property is primary wrt to annotations, so we leave an "undefined" value as null.
@@ -866,6 +858,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     List<Method> testMethods = 
         new ArrayList<Method>(
             flatten(removeOverrides(annotatedWith(allTargetMethods, Test.class))));
+
+    // Shuffle at real test-case level, don't shuffle iterations or explicit @Seeds order.
     Collections.shuffle(testMethods, new Random(runnerRandomness.seed));
 
     List<TestCandidate> candidates = new ArrayList<TestCandidate>();
@@ -878,25 +872,26 @@ public final class RandomizedRunner extends Runner implements Filterable {
         classDescription.addChild(parent);
       }
 
-      final long testSeed = determineMethodSeed(method);
-      final boolean fixedSeed = isConstantSeedForAllIterations(method);
-
-      // Create test iterations.
-      for (int i = 0; i < methodIterations; i++) {
-        final long iterSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
-        Randomness iterRandomness = new Randomness(iterSeed);
-
-        // Create a description that contains everything we need to know to repeat the test.
-        Description description = 
-            Description.createSuiteDescription(
-                method.getName() +
-                (methodIterations > 1 ? "#" + i : "") +
-                " " + formatSeedChain(runnerRandomness, iterRandomness) + 
-                "(" + suiteClass.getName() + ")");
-
-        // Add the candidate.
-        parent.addChild(description);
-        candidates.add(new TestCandidate(method, iterRandomness, description));
+      for (final long testSeed : determineMethodSeeds(method)) {
+        final boolean fixedSeed = isConstantSeedForAllIterations(method);
+  
+        // Create test iterations.
+        for (int i = 0; i < methodIterations; i++) {
+          final long iterSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
+          Randomness iterRandomness = new Randomness(iterSeed);
+  
+          // Create a description that contains everything we need to know to repeat the test.
+          Description description = 
+              Description.createSuiteDescription(
+                  method.getName() +
+                  (methodIterations > 1 ? "#" + i : "") +
+                  " " + formatSeedChain(runnerRandomness, iterRandomness) + 
+                  "(" + suiteClass.getName() + ")");
+  
+          // Add the candidate.
+          parent.addChild(description);
+          candidates.add(new TestCandidate(method, iterRandomness, description));
+        }
       }
     }
     return candidates;
@@ -947,28 +942,67 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /**
    * Determine a given method's initial random seed.
-   * We assign each method a different starting hash based on the global seed
-   * and a hash of their name (so that the order of methods does not matter, only
-   * their names). Take into account global override and method and class level
-   * {@link Seed} annotations.
    * 
    * @see Seed
+   * @see Seeds
    */
-  private long determineMethodSeed(Method method) {
+  private long [] determineMethodSeeds(Method method) {
     if (testCaseRandomnessOverride != null) {
-      return testCaseRandomnessOverride.seed;
+      return new long [] { testCaseRandomnessOverride.seed };
     }
-  
+
+    // We assign each method a different starting hash based on the global seed
+    // and a hash of their name (so that the order of methods does not matter, only
+    // their names). Take into account global override and method and class level
+    // {@link Seed} annotations.    
+    final long randomSeed = 
+        runnerRandomness.seed ^ MurmurHash3.hash((long) method.getName().hashCode());
+    final HashSet<Long> seeds = new HashSet<Long>();
+
+    // Check method-level @Seed and @Seeds annotation first. 
+    // They take precedence over anything else.
     Seed seed;
     if ((seed = method.getAnnotation(Seed.class)) != null) {
-      return parseSeedChain(seed.value())[0];
+      for (long s : seedFromAnnot(method, randomSeed)) {
+        seeds.add(s);
+      }
     }
-    if ((seed = suiteClass.getAnnotation(Seed.class)) != null) {
-      long [] seeds = parseSeedChain(suiteClass.getAnnotation(Seed.class).value());
-      if (seeds.length > 1)
-        return seeds[1];
+
+    // Check a number of seeds on a single method.
+    if (method.isAnnotationPresent(Seeds.class)) {
+      for (Seed s : method.getAnnotation(Seeds.class).value()) {
+        if (s.value().equals("random"))
+          seeds.add(randomSeed);
+        else {
+          for (long s2 : parseSeedChain(s.value())) {
+            seeds.add(s2);
+          }
+        }
+      }
     }
-    return runnerRandomness.seed ^ MurmurHash3.hash((long) method.getName().hashCode());
+
+    // Check suite-level override.
+    if (seeds.isEmpty()) {
+      if ((seed = suiteClass.getAnnotation(Seed.class)) != null) {
+        if (!seed.value().equals("random")) {
+          long [] seedChain = parseSeedChain(suiteClass.getAnnotation(Seed.class).value());
+          if (seedChain.length > 1)
+            seeds.add(seedChain[1]);
+        }
+      }
+    }
+
+    // If still empty, add the derived random seed.
+    if (seeds.isEmpty()) {
+      seeds.add(randomSeed);
+    }
+
+    long [] result = new long [seeds.size()];
+    int i = 0;
+    for (Long s : seeds) {
+      result[i++] = s;
+    }
+    return result;
   }
 
   /**
@@ -1076,9 +1110,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
       // @Seed annotation on test methods must have at most 1 seed value.
       if (method.isAnnotationPresent(Seed.class)) {
         try {
-          long[] chain = Randomness.parseSeedChain(method.getAnnotation(Seed.class).value());
-          if (chain.length > 1) {
-            throw new IllegalArgumentException("@Seed on methods must contain method seed only (no runner seed).");
+          String seedChain = method.getAnnotation(Seed.class).value();
+          if (!seedChain.equals("random")) {
+            long[] chain = Randomness.parseSeedChain(seedChain);
+            if (chain.length > 1) {
+              throw new IllegalArgumentException("@Seed on methods must contain one seed only (no runner seed).");
+            }
           }
         } catch (IllegalArgumentException e) {
           throw new RuntimeException("@Seed annotation invalid on method "
@@ -1169,6 +1206,20 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     Collections.reverse(anns);
     return anns;
+  }
+
+  /**
+   * Get an annotated element's {@link Seed} annotation and determine if it's fixed
+   * or not. If it is fixed, return the seeds. Otherwise return <code>randomSeed</code>.
+   */
+  private long [] seedFromAnnot(AnnotatedElement element, long randomSeed) {
+    Seed seed = element.getAnnotation(Seed.class);
+    String seedChain = seed.value();
+    if (seedChain.equals("random")) {
+      return new long [] { randomSeed };
+    }
+  
+    return parseSeedChain(seedChain);
   }
 
   /**

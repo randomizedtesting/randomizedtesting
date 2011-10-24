@@ -78,7 +78,7 @@ public final class Randomness {
       else if (chr >= 'a' && chr <= 'f')
         result |= (chr - 'a' + 10);
       else
-        throw new RuntimeException("Expected hexadecimal seed: " + seed);
+        throw new IllegalArgumentException("Expected hexadecimal seed: " + seed);
     }
     return result;
   }
