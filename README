@@ -61,11 +61,12 @@ Take a look at the examples, test cases of the runner itself and examples includ
 presentations/ folder.
 
 
-IDE support
------------
+IDE support (runner development)
+--------------------------------
 
-Eclipse:
+Nothing special is required, really. Certain submodules (examples) use AspectJ. For these
+you'll need:
 
- - Eclipse Indigo recommended, with m2e and ajdt configurator for aspects from: 
+ - Eclipse. Eclipse Indigo recommended, with m2e and ajdt configurator for aspects from: 
    http://dist.springsource.org/release/AJDT/configurator/
    Once you have this installed, Menu->Import->Existing Maven Projects should do.
