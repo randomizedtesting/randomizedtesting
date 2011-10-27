@@ -20,6 +20,10 @@
   to check if multiple failure reports are properly included.
   </description>
 
+  <properties>
+    <skip.deployment>true</skip.deployment>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.carrotsearch.randomizedtesting</groupId>

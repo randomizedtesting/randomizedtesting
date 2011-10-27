@@ -17,6 +17,10 @@
     Including AspectJ-woven "deep code" engineering example (I/O slowdown simulation).
   </description>  
 
+  <properties>
+    <skip.deployment>true</skip.deployment>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.carrotsearch.randomizedtesting</groupId>

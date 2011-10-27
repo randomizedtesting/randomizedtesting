@@ -2,6 +2,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- We use SonaType for publishing artefacts. Parent POM makes things easier here. -->
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
   <!-- Project info. -->
   <groupId>com.carrotsearch.randomizedtesting</groupId>
   <artifactId>randomizedtesting-parent</artifactId>
@@ -17,6 +24,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
+
+    <skip.deployment>false</skip.deployment>
 
     <junit.version>4.10</junit.version>
   </properties>
@@ -42,6 +51,13 @@
           <version>2.10</version>
           <configuration>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <configuration>
+            <skip>${skip.deployment}</skip>
           </configuration>
         </plugin>
       </plugins>
