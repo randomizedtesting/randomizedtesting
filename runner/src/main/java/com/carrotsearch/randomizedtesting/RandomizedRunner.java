@@ -155,11 +155,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public static final String AUGMENTED_SEED_PACKAGE = "__randomizedtesting";
   
   /**
-   * Default timeout for a single test case: 60 seconds. Use global system property
-   * {@link #SYSPROP_TIMEOUT} or an annotation {@link Timeout} if you need more. 
-   * Annotation takes precedence, if defined. 
+   * Default timeout for a single test case. By default
+   * the timeout is <b>disabled</b>. Use global system property
+   * {@link #SYSPROP_TIMEOUT} or an annotation {@link Timeout} if you need to set
+   * timeouts or expect some test cases may hang. This will slightly slow down
+   * the tests because each test case is executed in a forked thread.
+   *
+   * <p>Annotation takes precedence, if defined. 
    */
-  public static final int DEFAULT_TIMEOUT = 1000 * 60;
+  public static final int DEFAULT_TIMEOUT = 0;
 
   /**
    * The default number of first interrupts, then Thread.stop attempts.

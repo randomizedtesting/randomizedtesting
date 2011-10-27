@@ -9,9 +9,6 @@ Approximately in the order of importance...
   suite to a failure. This could also be an aspect, but I think an embedded functionality
   will be easier to use for beginners.
 
-- Should running in a sub-thread (handling @Timeout) be disabled if there are no timeouts?
-  This would probably speed up execution. The default could then be to not timeout at all?  
-
 - Temporary file names could be created with nasty things inside (spaces, etc.). 
 
 - The code in RandomizedRunner grew a bit complex after thread management has been added; 

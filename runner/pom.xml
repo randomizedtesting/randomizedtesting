@@ -7,7 +7,7 @@
     <artifactId>randomizedtesting-parent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
-  </parent> 
+  </parent>
 
   <artifactId>randomizedtesting-runner</artifactId>
   <name>RandomizedTesting JUnit Runner</name>
