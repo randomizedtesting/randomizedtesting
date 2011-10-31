@@ -110,6 +110,9 @@ public final class RandomizedContext {
 
   static RandomizedContext context(Thread thread) {
     final ThreadGroup currentGroup = thread.getThreadGroup();
+    if (currentGroup == null) {
+      throw new IllegalStateException("No context for a terminated thread: " + thread.getName());
+    }
 
     synchronized (contexts) {
       RandomizedContext context = contexts.get(currentGroup);

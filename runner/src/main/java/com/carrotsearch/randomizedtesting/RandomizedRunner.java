@@ -659,7 +659,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     try {
       ctx = RandomizedContext.context(t);
     } catch (IllegalStateException e) {
-      logger.severe("No context information for this thread?: " + t);
+      if (t.getThreadGroup() != null)
+        logger.severe("No context information for this thread?: " + t + ", " + e.getMessage());
     }
 
     tryToTerminate(t);
