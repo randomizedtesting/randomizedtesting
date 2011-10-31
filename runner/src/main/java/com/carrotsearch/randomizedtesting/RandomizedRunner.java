@@ -567,8 +567,36 @@ public final class RandomizedRunner extends Runner implements Filterable {
         invoke(c.method, instance);
       }
     };
+    s = wrapExpectedExceptions(s, c, instance);
     s = wrapMethodRules(s, c, instance);
     s.evaluate();
+  }
+
+  /**
+   * Wrap the given statement into another catching the expected exception, if declared.
+   */
+  private Statement wrapExpectedExceptions(final Statement s, TestCandidate c, Object instance) {
+    Test ann = c.method.getAnnotation(Test.class);
+
+    // If there's no expected class, don't wrap. Eh, None is package-private...
+    final Class<? extends Throwable> expectedClass = ann.expected();
+    if (expectedClass.getName().equals("org.junit.Test$None")) {
+      return s;
+    }
+
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        try {
+          s.evaluate();
+        } catch (Throwable t) {
+          if (!expectedClass.isInstance(t)) {
+            throw t;
+          }
+          // We caught something that was expected. No worries then.          
+        }
+      }
+    };
   }
 
   /**
@@ -1041,7 +1069,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           m.setAccessible(true);
         }
       } catch (SecurityException e) {
-        throw new RuntimeException("There is a non-public hook method. This requires " +
+        throw new RuntimeException("There is a non-public method that needs to be called. This requires " +
             "ReflectPermission('suppressAccessChecks'). Don't run with the security manager or " +
             " add this permission to the runner. Offending method: " + m.toGenericString());
       }
