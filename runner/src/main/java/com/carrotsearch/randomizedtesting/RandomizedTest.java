@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.TimeZone;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
@@ -387,6 +388,27 @@ public class RandomizedTest extends Assert {
   //
 
   /**
+   * Making {@link Assume#assumeTrue(boolean)} directly available.
+   */
+  public static void assumeTrue(boolean condition) {
+    Assume.assumeTrue(condition);
+  }
+
+  /**
+   * Reverse of {@link #assumeTrue(boolean)}.
+   */
+  public static void assumeFalse(boolean condition) {
+    assumeTrue(!condition);
+  }
+
+  /**
+   * Making {@link Assume#assumeNotNull(Object...)} directly available.
+   */
+  public static void assumeNotNull(Object... objects) {
+    Assume.assumeNotNull(objects);
+  }
+
+  /**
    * @param condition
    *          If <code>false</code> an {@link InternalAssumptionViolatedException} is
    *          thrown by this method and the test case (should be) ignored (or
@@ -396,7 +418,7 @@ public class RandomizedTest extends Assert {
    * @param message
    *          Message to be included in the exception's string.
    */
-  public static void assumeTrue(boolean condition, String message) {
+  public static void assumeTrue(String message, boolean condition) {
     if (!condition) {
       // @see {@link Rants#RANT_2}.
       throw new InternalAssumptionViolatedException(message);
@@ -404,10 +426,10 @@ public class RandomizedTest extends Assert {
   }
 
   /**
-   * Reverse of {@link #assumeTrue(boolean, String)}.
+   * Reverse of {@link #assumeTrue(String, boolean)}.
    */
-  public static void assumeFalse(boolean condition, String message) {
-    assumeTrue(!condition, message);
+  public static void assumeFalse(String message, boolean condition) {
+    assumeTrue(message, !condition);
   }
 
   /**
@@ -418,6 +440,13 @@ public class RandomizedTest extends Assert {
       // This does chain the exception as the cause.
       throw new InternalAssumptionViolatedException(msg, t);
     }
+  }
+  
+  /**
+   * Making {@link Assume#assumeNoException(Throwable)} directly available.
+   */
+  public static void assumeNoException(Throwable t) {
+    Assume.assumeNoException(t);
   }
 
   //

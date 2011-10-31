@@ -192,7 +192,7 @@ public class TestRandomizedTest extends RandomizedTest {
   public void testAssumeTrue() {
     String message = randomUnicodeStringOfUTF16Length(10);
     try {
-      assumeTrue(false, message);
+      assumeTrue(message, false);
     } catch (AssumptionViolatedException e) {
       assertTrue(e.getMessage().contains(message));
     }
