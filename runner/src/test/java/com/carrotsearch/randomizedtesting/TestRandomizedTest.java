@@ -208,5 +208,16 @@ public class TestRandomizedTest extends RandomizedTest {
       assertTrue(e.getMessage().contains(message));
       assertSame(t, e.getCause());
     }
-  }  
+  }
+
+  @Test
+  public void testIterations() {
+    assertEquals(0, iterations(0, 0));
+    assertEquals(Integer.MAX_VALUE, iterations(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+    for (int i = 0; i < iterations(1, 1000); i++) {
+      int j = iterations(0, 100);
+      assertTrue(j >= 0 && j <= 100);
+    }
+  }      
 }
