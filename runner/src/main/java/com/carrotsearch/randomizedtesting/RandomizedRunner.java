@@ -1049,13 +1049,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if (timeoutAnn != null) {
       timeout = timeoutAnn.millis();
     }
-    
+
+    // @Test annotation timeout value.
+    long junitTimeout = c.method.getAnnotation(Test.class).timeout(); 
+    if (junitTimeout > 0) {
+      timeout = (int) Math.min(Integer.MAX_VALUE, junitTimeout);
+    }
+
     // Method-override.
     timeoutAnn = c.method.getAnnotation(Timeout.class);
     if (timeoutAnn != null) {
       timeout = timeoutAnn.millis();
     }
-  
+
     return timeout;
   }
 
@@ -1138,6 +1144,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
         .isPublic()
         .isNotStatic()
         .hasArgsCount(0);
+
+      // No @Test(timeout=...) and @Timeout at the same time.
+      if (method.getAnnotation(Test.class).timeout() > 0
+          && method.isAnnotationPresent(Timeout.class)) {
+        throw new IllegalArgumentException("Conflicting @Test(timeout=...) and @Timeout " +
+        		"annotations in: " + suiteClass.getName() + "#" + method.getName());
+      }
 
       // @Seed annotation on test methods must have at most 1 seed value.
       if (method.isAnnotationPresent(Seed.class)) {
