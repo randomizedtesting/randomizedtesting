@@ -75,7 +75,6 @@ import com.carrotsearch.randomizedtesting.annotations.*;
  *   <li>{@link BeforeClass}, {@link Before}, {@link AfterClass}, {@link After}
  *   methods declared within the same class are called in <b>randomized</b> order
  *   derived from the master seed (repeatable with the same seed),</li>
- *   <li>
  * </ul>
  * 
  * <p>Deviations from "standard" JUnit:
@@ -86,12 +85,18 @@ import com.carrotsearch.randomizedtesting.annotations.*;
  *       (applies to class hooks mostly, but also to instance hooks).</li> 
  *   <li>all exceptions raised during hooks or test case execution are reported to the notifier,
  *       there is no suppression or chaining of exceptions,</li>
+ *   <li>a test method must not leave behind any active threads; this is detected
+ *       using {@link ThreadGroup} active counts and is sometimes problematic (many classes
+ *       in the standard library leave active threads behind without waiting for them to terminate).
+ *       One can use the {@link ThreadLeaks} annotation to control how aggresive the detection
+ *       strategy is and if it fails the test or not.</li>
  * </ul>
  * 
  * @see RandomizedTest
  * @see Validators
  * @see Listeners
  * @see RandomizedContext
+ * @see ThreadLeaks
  */
 public final class RandomizedRunner extends Runner implements Filterable {
   /**
@@ -289,6 +294,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   };
 
+  /** A dummy class serving as the source of defaults for annotations. */
+  @ThreadLeaks 
+  private static class Dummy {}
+
+  /**
+   * Default instance of {@link ThreadLeaks} annotation. 
+   */
+  private static final ThreadLeaks defaultThreadLeaks = Dummy.class.getAnnotation(ThreadLeaks.class); 
+  
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     this.suiteClass = testClass;
@@ -462,7 +476,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       notifier.fireTestFailure(new Failure(suiteDescription, t));
     } finally {
       // Clean up any threads left by hooks methods, but don't try to kill the zombies. 
-      checkLeftOverThreads(notifier, suiteDescription, bulletProofZombies);
+      ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, suiteClass);
+      checkLeftOverThreads(notifier, tl, suiteDescription, bulletProofZombies);
       unsubscribeListeners(notifier);
       context.pop();
     }    
@@ -551,8 +566,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
   
-    // Check for run-away threads.
-    bulletProofZombies.addAll(checkLeftOverThreads(notifier, c.description, beforeTestSnapshot));
+    // Check for run-away threads at the test level.
+    ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
+    bulletProofZombies.addAll(checkLeftOverThreads(notifier, tl, c.description, beforeTestSnapshot));
 
     // Process uncaught exceptions, if any.
     runnerThreadGroup.processUncaught(notifier, c.description);
@@ -745,15 +761,32 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /**
    * Check for any left-over threads compared to expected state, notify
-   * the runner about left-over threads and return the difference. 
+   * the runner about left-over threads and return the difference.
    */
-  private Set<Thread> checkLeftOverThreads(RunNotifier notifier, Description d, Set<Thread> expectedState) {
-    final Set<Thread> now = threadsSnapshot();
-    now.removeAll(expectedState);
+  private Set<Thread> checkLeftOverThreads(RunNotifier notifier, 
+      ThreadLeaks threadLeaks, Description description, Set<Thread> expectedState) {
+    int lingerTime = threadLeaks.linger();
+    Set<Thread> now;
+    if (lingerTime == 0) {
+      now = threadsSnapshot();
+      now.removeAll(expectedState);
+    } else {
+      final long deadline = System.currentTimeMillis() + lingerTime;
+      try {
+        do {
+          Thread.sleep(/* off the top of my head */ 100);
+          now = threadsSnapshot();
+          now.removeAll(expectedState);
+        } while (!now.isEmpty() && System.currentTimeMillis() <= deadline);
+      } catch (InterruptedException e) {
+        logger.severe("Panic: lingering interrupted?");
+        now = Collections.emptySet();
+      }
+    }
 
-    if (!now.isEmpty()) {
+    if (!now.isEmpty() && threadLeaks.failTestIfLeaking()) {
       for (Thread t : now) {
-        terminateAndFireFailure(t, notifier, d, "Left-over thread detected ");
+        terminateAndFireFailure(t, notifier, description, "Left-over thread detected ");
       }
     }
 
@@ -1252,6 +1285,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     Collections.reverse(anns);
     return anns;
+  }
+
+  /**
+   * Returns an annotation's instance declared on any annotated element (first one wins)
+   * or the default value if not present on any of them.
+   */
+  private static <T extends Annotation> T onElement(Class<T> clazz, T defaultValue, AnnotatedElement... elements) {
+    for (AnnotatedElement element : elements) {
+      T ann = element.getAnnotation(clazz);
+      if (ann != null) return ann;
+    }
+    return defaultValue;
   }
 
   /**
