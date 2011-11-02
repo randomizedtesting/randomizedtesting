@@ -37,5 +37,5 @@ public @interface ThreadLeaks {
    * is <code>false</code> the test will not be marked as failed even if it left threads
    * behind, but these threads will still be interrupted/ stopped.
    */
-  boolean failTestIfLeaking() default false;
+  boolean failTestIfLeaking() default true;
 }

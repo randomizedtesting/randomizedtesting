@@ -767,10 +767,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       ThreadLeaks threadLeaks, Description description, Set<Thread> expectedState) {
     int lingerTime = threadLeaks.linger();
     Set<Thread> now;
-    if (lingerTime == 0) {
-      now = threadsSnapshot();
-      now.removeAll(expectedState);
-    } else {
+    if (lingerTime > 0) {
       final long deadline = System.currentTimeMillis() + lingerTime;
       try {
         do {
@@ -780,9 +777,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
         } while (!now.isEmpty() && System.currentTimeMillis() <= deadline);
       } catch (InterruptedException e) {
         logger.severe("Panic: lingering interrupted?");
-        now = Collections.emptySet();
       }
     }
+
+    now = threadsSnapshot();
+    now.removeAll(expectedState);
 
     if (!now.isEmpty() && threadLeaks.failTestIfLeaking()) {
       for (Thread t : now) {
