@@ -771,10 +771,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
       final long deadline = System.currentTimeMillis() + lingerTime;
       try {
         do {
-          Thread.sleep(/* off the top of my head */ 100);
           now = threadsSnapshot();
           now.removeAll(expectedState);
-        } while (!now.isEmpty() && System.currentTimeMillis() <= deadline);
+          if (now.isEmpty() || System.currentTimeMillis() > deadline) 
+            break;
+          Thread.sleep(/* off the top of my head */ 100);
+        } while (true);
       } catch (InterruptedException e) {
         logger.severe("Panic: lingering interrupted?");
       }
