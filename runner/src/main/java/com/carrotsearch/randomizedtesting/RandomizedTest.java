@@ -152,25 +152,33 @@ public class RandomizedTest extends Assert {
     checkContext();
     return systemPropertyAsDouble(SYSPROP_MULTIPLIER, DEFAULT_MULTIPLIER);
   }
-  
+
   /**
    * Returns a "scaled" number of iterations for loops which can have a variable
-   * iteration count. The number of iterations is calculated as a gaussian distribution
-   * with the average falling between [min, max], but trying to achieve the points
-   * below: 
+   * iteration count. This method is effectively 
+   * an alias to {@link #scaledRandomIntBetween(int, int)}.
+   */
+  public static int iterations(int min, int max) {
+    return scaledRandomIntBetween(min, max);
+  }
+
+  /**
+   * Returns a "scaled" random number between min and max (inclusive). The number of 
+   * iterations will fall between [min, max], but the selection will also try to 
+   * achieve the points below: 
    * <ul>
    *   <li>the multiplier can be used to move the number of iterations closer to min
    *   (if it is smaller than 1) or closer to max (if it is larger than 1). Setting
-   *   the multiplier to 0 will always result in picking min iterations.</li>
-   *   <li>on normal runs, the number of iterations will be closer to min than to max.</li>
-   *   <li>on nightly runs, the number of iterations will be closer to max than to min.</li>
+   *   the multiplier to 0 will always result in picking min.</li>
+   *   <li>on normal runs, the number will be closer to min than to max.</li>
+   *   <li>on nightly runs, the number will be closer to max than to min.</li>
    * </ul>
    * 
-   * @param min Minimum number of iterations (inclusive).
-   * @param max Maximum number of iterations (inclusive).
-   * @return Returns a random number of iterations between min and max.
+   * @param min Minimum (inclusive).
+   * @param max Maximum (inclusive).
+   * @return Returns a random number between min and max.
    */
-  public static int iterations(int min, int max) {
+  public static int scaledRandomIntBetween(int min, int max) {
     if (min < 0) throw new IllegalArgumentException("min must be >= 0: " + min);
     if (min > max) throw new IllegalArgumentException("max must be >= min: " + min + ", " + max);
 
@@ -183,7 +191,7 @@ public class RandomizedTest extends Assert {
       return min + scaled; 
     }
   }
-
+  
   // Methods to help with I/O and environment.  
 
   /**
