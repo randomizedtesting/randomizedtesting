@@ -1,7 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -263,38 +262,74 @@ public class RandomizedTest extends Assert {
   }
 
   /**
-   * Creates a new temporary directory, deleted after the virtual machine terminates.
-   * Temporary directory is created relative to a globally picked temporary directory.
+   * Creates a new temporary directory for the {@link LifecycleScope#TEST} duration.
    * 
    * @see #globalTempDir()
    */
-  protected static File newTempDir() {
+  protected File newTempDir() {
+    return newTempDir(LifecycleScope.TEST);
+  }
+
+  /**
+   * Creates a temporary directory, deleted after the given lifecycle phase. 
+   * Temporary directory is created relative to a globally picked temporary directory.
+   */
+  protected static File newTempDir(LifecycleScope scope) {
     checkContext();
     synchronized (RandomizedTest.class) {
       File tempDir = new File(globalTempDir(), nextTempName());
       if (!tempDir.mkdir()) throw new RuntimeException("Could not create temporary folder: "
           + tempDir.getAbsolutePath());
+      getContext().closeAtEnd(new TempPathResource(tempDir), scope);
       return tempDir;
     }
   }
 
   /**
-   * Creates a new temporary file. The file is physically created on disk, but is not 
-   * locked or opened.
+   * Registers a {@link Closeable} resource that should be closed after the test
+   * completes.
+   * 
+   * @return <code>resource</code> (for call chaining).
    */
-  protected static File newTempFile() {
+  protected <T extends Closeable> T closeAfterTest(T resource) {
+    return getContext().closeAtEnd(resource, LifecycleScope.TEST);
+  }
+
+  /**
+   * Registers a {@link Closeable} resource that should be closed after the suite
+   * completes.
+   * 
+   * @return <code>resource</code> (for call chaining).
+   */
+  protected static <T extends Closeable> T closeAfterSuite(T resource) {
+    return getContext().closeAtEnd(resource, LifecycleScope.SUITE);
+  }
+
+  /**
+   * Creates a new temporary file for the {@link LifecycleScope#TEST} duration.
+   */
+  protected File newTempFile() {
+    return newTempFile(LifecycleScope.TEST);
+  }
+
+  /**
+   * Creates a new temporary file deleted after the given lifecycle phase completes.
+   * The file is physically created on disk, but is not locked or opened.
+   */
+  protected static File newTempFile(LifecycleScope scope) {
     checkContext();
     synchronized (RandomizedTest.class) {
-      File tempDir = new File(globalTempDir(), nextTempName());
+      File tempFile = new File(globalTempDir(), nextTempName());
       try {
-        if (!tempDir.createNewFile()) 
+        if (!tempFile.createNewFile()) 
           throw new RuntimeException("Could not create temporary file: " 
-              + tempDir.getAbsolutePath());
+              + tempFile.getAbsolutePath());
       } catch (IOException e) {
         throw new RuntimeException("Could not create temporary file: " 
-            + tempDir.getAbsolutePath(), e);
+            + tempFile.getAbsolutePath(), e);
       }
-      return tempDir;
+      getContext().closeAtEnd(new TempPathResource(tempFile), scope);
+      return tempFile;
     }
   }
 

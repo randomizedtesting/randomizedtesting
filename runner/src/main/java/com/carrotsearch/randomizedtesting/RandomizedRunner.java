@@ -1,14 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
 
-import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
-import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
-import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
-import static com.carrotsearch.randomizedtesting.MethodCollector.immutableCopy;
-import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy;
-import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
-import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
-import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
+import static com.carrotsearch.randomizedtesting.MethodCollector.*;
 import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
@@ -17,38 +10,17 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
-import org.junit.runner.manipulation.Filter;
-import org.junit.runner.manipulation.Filterable;
-import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
-import org.junit.runner.notification.RunNotifier;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.InitializationError;
-import org.junit.runners.model.Statement;
-import org.junit.runners.model.TestClass;
+import org.junit.runner.manipulation.*;
+import org.junit.runner.notification.*;
+import org.junit.runners.model.*;
 
 import com.carrotsearch.randomizedtesting.annotations.*;
 
@@ -294,6 +266,32 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   };
 
+  /**
+   * Resource disposal snippet.
+   */
+  private static class ResourceDisposal implements ObjectProcedure<CloseableResourceInfo> {
+    private RunNotifier notifier;
+    private Description description;
+
+    public ResourceDisposal(RunNotifier notifier, Description description) {
+      this.notifier = notifier;
+      this.description = description;
+    }
+
+    public void apply(CloseableResourceInfo info) {
+      try {
+        info.getResource().close();
+      } catch (Throwable t) {
+        ResourceDisposalError e = new ResourceDisposalError(
+            info.getScope().name() + " scope resource could not be closed properly. Resource's" 
+                + " registered from thread " + info.getThread().getName() 
+                + ", registration stack trace below.", t);
+        e.setStackTrace(info.getAllocationStack());
+        notifier.fireTestFailure(new Failure(description, e));
+      }
+    }
+  };
+
   /** A dummy class serving as the source of defaults for annotations. */
   @ThreadLeaks 
   private static class Dummy {}
@@ -427,6 +425,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
             for (final TestCandidate c : filtered) {
               final Runnable testRunner = new Runnable() {
                 public void run() {
+                  // This has a side effect of setting up a nested context for the test thread.
+                  // Do not remove.
                   RandomizedContext current = RandomizedContext.current();
                   try {
                     current.push(c.randomness);
@@ -468,8 +468,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
               notifier.fireTestFailure(new Failure(suiteDescription, t));
             }
           }
-  
+
           runAfterClassMethods(notifier);
+
+          // Dispose of resources at suite scope.
+          RandomizedContext.current().closeResources(
+              new ResourceDisposal(notifier, suiteDescription), LifecycleScope.SUITE);
         }
       }
     } catch (Throwable t) {
@@ -508,7 +512,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Runs a single test.
    */
-  private void runSingleTest(RunNotifier notifier, final TestCandidate c) {
+  private void runSingleTest(final RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
   
     if (isIgnored(c)) {
@@ -565,11 +569,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
       }
     }
-  
+
+    // Dispose of resources at test scope.
+    RandomizedContext.current().closeResources(
+        new ResourceDisposal(notifier, c.description), LifecycleScope.TEST);
+
     // Check for run-away threads at the test level.
     ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
     bulletProofZombies.addAll(checkLeftOverThreads(notifier, tl, c.description, beforeTestSnapshot));
-
+    
     // Process uncaught exceptions, if any.
     runnerThreadGroup.processUncaught(notifier, c.description);
   }

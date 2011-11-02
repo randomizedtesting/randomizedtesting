@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.io.Closeable;
 import java.util.*;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
@@ -9,6 +10,11 @@ import com.carrotsearch.randomizedtesting.annotations.Nightly;
  * under a {@link RandomizedRunner}.
  */
 public final class RandomizedContext {
+  /** Coordination at global level. */
+  private static final Object _globalLock = new Object();
+  /** Coordination at context level. */
+  private        final Object _contextLock = new Object();
+
   /**
    * Per thread assigned resources.
    */
@@ -19,7 +25,7 @@ public final class RandomizedContext {
      */
     final ArrayDeque<Randomness> randomnesses = new ArrayDeque<Randomness>();
   }
-
+  
   /** 
    * All thread groups we're currently tracking contexts for. 
    */
@@ -46,7 +52,13 @@ public final class RandomizedContext {
 
   /** The context and all of its resources are no longer usable. */
   private volatile boolean disposed;
-  
+
+  /**
+   * Disposable resources.
+   */
+  private EnumMap<LifecycleScope, List<CloseableResourceInfo>> disposableResources
+    = new EnumMap<LifecycleScope, List<CloseableResourceInfo>>(LifecycleScope.class);
+
   /** */
   private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, Randomness runnerRandomness, boolean nightlyMode) {
     this.threadGroup = tg;
@@ -108,13 +120,47 @@ public final class RandomizedContext {
     return context(Thread.currentThread());
   }
 
+  /**
+   * Dispose the given resource at the end of a given lifecycle scope. If the {@link Closeable}
+   * throws an exception, the test case or suite will end in a failure.
+   * 
+   * @return <code>resource</code> (for call chaining).
+   */
+  public <T extends Closeable> T closeAtEnd(T resource, LifecycleScope scope) {
+    synchronized (_contextLock) {
+      List<CloseableResourceInfo> resources = disposableResources.get(scope);
+      if (resources == null) {
+        disposableResources.put(scope, resources = new ArrayList<CloseableResourceInfo>());
+      }
+      resources.add(new CloseableResourceInfo(
+          resource, scope, Thread.currentThread(), Thread.currentThread().getStackTrace()));
+      return resource;
+    }
+  }
+
+  /**
+   * Dispose of any resources registered in the given scope.
+   */
+  void closeResources(ObjectProcedure<CloseableResourceInfo> consumer, LifecycleScope scope) {
+    List<CloseableResourceInfo> resources;
+    synchronized (_contextLock) {
+      resources = disposableResources.remove(scope);
+    }
+
+    if (resources != null) {
+      for (CloseableResourceInfo info : resources) {
+        consumer.apply(info);
+      }
+    }
+  }
+
   static RandomizedContext context(Thread thread) {
     final ThreadGroup currentGroup = thread.getThreadGroup();
     if (currentGroup == null) {
       throw new IllegalStateException("No context for a terminated thread: " + thread.getName());
     }
 
-    synchronized (contexts) {
+    synchronized (_globalLock) {
       RandomizedContext context = contexts.get(currentGroup);
       if (context == null) {
         throw new IllegalStateException("No context information for thread: " +
@@ -124,7 +170,7 @@ public final class RandomizedContext {
                 " to your test class. ");
       }
 
-      synchronized (context.perThreadResources) {
+      synchronized (context._contextLock) {
         if (!context.perThreadResources.containsKey(thread)) {
           PerThreadResources perThreadResources = new PerThreadResources();
           perThreadResources.randomnesses.push(
@@ -143,7 +189,7 @@ public final class RandomizedContext {
   static RandomizedContext create(ThreadGroup tg, Class<?> suiteClass,
       Randomness runnerRandomness, boolean nightlyMode) {
     assert Thread.currentThread().getThreadGroup() == tg;
-    synchronized (contexts) {
+    synchronized (_globalLock) {
       RandomizedContext ctx = new RandomizedContext(tg, suiteClass, runnerRandomness, nightlyMode); 
       contexts.put(tg, ctx);
       ctx.perThreadResources.put(Thread.currentThread(), new PerThreadResources());
@@ -156,7 +202,7 @@ public final class RandomizedContext {
    */
   void dispose() {
     checkDisposed();
-    synchronized (contexts) {
+    synchronized (_globalLock) {
       disposed = true;
       contexts.remove(threadGroup);
     }
@@ -175,7 +221,7 @@ public final class RandomizedContext {
   /** Return per-thread resources associated with the current thread. */
   private PerThreadResources getPerThread() {
     checkDisposed();
-    synchronized (perThreadResources) {
+    synchronized (_contextLock) {
       return perThreadResources.get(Thread.currentThread());
     }
   }
