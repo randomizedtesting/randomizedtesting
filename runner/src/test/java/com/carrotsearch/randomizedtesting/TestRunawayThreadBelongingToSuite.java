@@ -40,5 +40,35 @@ public class TestRunawayThreadBelongingToSuite extends WithNestedTestClass {
   public void leftOverThread() throws Throwable {
     Result r = JUnitCore.runClasses(Nested.class);
     Assert.assertEquals(0, r.getFailureCount());
-  }    
+  }
+  
+  @ThreadLeaks(linger = 1000, leakedThreadsBelongToSuite = true)
+  public static class Nested2 extends RandomizedTest {
+    @Test @ThreadLeaks(leakedThreadsBelongToSuite = true)
+    public void leaveBehind() throws Exception{
+      assumeRunningNested();
+      Thread t = new Thread() {
+        public void run() {
+            while (true) {
+              try {
+                RandomizedTest.sleep(1000);
+              } catch (Throwable t) {
+                // ignore.
+              }
+            }
+        }
+      };
+      t.setDaemon(true);
+      t.start();
+    }
+  }
+  
+  @Test
+  public void leftOverZombie() throws Throwable {
+    System.setProperty(RandomizedRunner.SYSPROP_KILLWAIT, "100");
+    Result r = JUnitCore.runClasses(Nested2.class);
+    System.clearProperty(RandomizedRunner.SYSPROP_KILLWAIT);
+
+    Assert.assertEquals(1, r.getFailureCount());
+  }
 }
