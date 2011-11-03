@@ -481,7 +481,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     } finally {
       // Clean up any threads left by hooks methods, but don't try to kill the zombies. 
       ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, suiteClass);
-      checkLeftOverThreads(notifier, tl, suiteDescription, bulletProofZombies);
+      checkLeftOverThreads(notifier, LifecycleScope.SUITE, tl, suiteDescription, bulletProofZombies);
       unsubscribeListeners(notifier);
       context.pop();
     }    
@@ -576,7 +576,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Check for run-away threads at the test level.
     ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
-    bulletProofZombies.addAll(checkLeftOverThreads(notifier, tl, c.description, beforeTestSnapshot));
+    checkLeftOverThreads(notifier, LifecycleScope.TEST, tl, c.description, beforeTestSnapshot);
     
     // Process uncaught exceptions, if any.
     runnerThreadGroup.processUncaught(notifier, c.description);
@@ -771,8 +771,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Check for any left-over threads compared to expected state, notify
    * the runner about left-over threads and return the difference.
    */
-  private Set<Thread> checkLeftOverThreads(RunNotifier notifier, 
-      ThreadLeaks threadLeaks, Description description, Set<Thread> expectedState) {
+  private void checkLeftOverThreads(RunNotifier notifier,
+      LifecycleScope scope, ThreadLeaks threadLeaks, 
+      Description description, Set<Thread> expectedState) {
     int lingerTime = threadLeaks.linger();
     Set<Thread> now;
     if (lingerTime > 0) {
@@ -793,13 +794,20 @@ public final class RandomizedRunner extends Runner implements Filterable {
     now = threadsSnapshot();
     now.removeAll(expectedState);
 
-    if (!now.isEmpty() && threadLeaks.failTestIfLeaking()) {
-      for (Thread t : now) {
-        terminateAndFireFailure(t, notifier, description, "Left-over thread detected ");
+    if (!now.isEmpty()) {
+      if (scope == LifecycleScope.TEST && threadLeaks.leakedThreadsBelongToSuite()) {
+        /*
+         * Do nothing. Left-over threads will be re-evaluated at suite level again.
+         */
+      } else {
+        if (threadLeaks.failTestIfLeaking()) {
+          for (Thread t : now) {
+            terminateAndFireFailure(t, notifier, description, "Left-over thread detected ");
+          }
+        }
+        bulletProofZombies.addAll(now);        
       }
     }
-
-    return now;
   }
 
   /**
@@ -1143,7 +1151,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       .isPublic()
       .isConcreteClass()
       .hasPublicNoArgsConstructor();
-
+    
     // @BeforeClass
     for (Method method : flatten(annotatedWith(allTargetMethods, BeforeClass.class))) {
       Validation.checkThat(method)

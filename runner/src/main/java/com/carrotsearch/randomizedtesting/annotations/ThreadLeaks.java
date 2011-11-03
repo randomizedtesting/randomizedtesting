@@ -35,7 +35,14 @@ public @interface ThreadLeaks {
   /**
    * Should left-behind threads cause unit test (or suite-level) failures? If this flag
    * is <code>false</code> the test will not be marked as failed even if it left threads
-   * behind, but these threads will still be interrupted/ stopped.
+   * behind. Also, no leaks will be reported. Use with caution.
    */
   boolean failTestIfLeaking() default true;
+  
+  /**
+   * Instructs the test that any detected left-over threads belong to the suite scope
+   * instead of the test scope. This is occasionally useful, for example if an executor
+   * is allocated for suite scope, but threads are allocated during individual tests.  
+   */
+  boolean leakedThreadsBelongToSuite() default false;
 }

@@ -96,6 +96,7 @@ public class TestResourceDisposal extends WithNestedTestClass {
   public static class Nested2 extends RandomizedTest {
     @Test
     public void testScope() {
+      assumeRunningNested();
       closeAfterTest(closeAfterTest(new DummyCloseable()));
     }
   }
