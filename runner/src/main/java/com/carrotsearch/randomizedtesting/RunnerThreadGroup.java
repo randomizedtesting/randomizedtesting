@@ -37,8 +37,11 @@ final class RunnerThreadGroup extends ThreadGroup {
    */
   @Override
   public void uncaughtException(Thread t, Throwable e) {
-    // Try to get the context for this thread and augment the exception
-    // with the seed.
+    Logger.getLogger(RunnerThreadGroup.class.getSimpleName()).log(Level.WARNING,
+        RunnerThreadGroup.class.getSimpleName() + "'s sub thread threw an " +
+        		"uncaught exception.", e);
+
+    // Try to get the context for this thread and augment the exception with the seed.
     try {
       e = RandomizedRunner.augmentStackTrace(e);
     } catch (Throwable ignore) {
