@@ -536,7 +536,12 @@ public class RandomizedTest extends Assert {
   public static double systemPropertyAsDouble(String propertyName, double defaultValue) {
     String v = System.getProperty(propertyName);
     if (v != null && !v.trim().isEmpty()) {
-      return Double.parseDouble(v.trim());
+      try {
+        return Double.parseDouble(v.trim());
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Double value expected for property " +
+            propertyName + ": " + v, e);
+      }
     } else {
       return defaultValue;
     }
@@ -548,7 +553,12 @@ public class RandomizedTest extends Assert {
   public static float systemPropertyAsFloat(String propertyName, float defaultValue) {
     String v = System.getProperty(propertyName);
     if (v != null && !v.trim().isEmpty()) {
-      return Float.parseFloat(v.trim());
+      try {
+        return Float.parseFloat(v.trim());
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Float value expected for property " +
+            propertyName + ": " + v, e);
+      }
     } else {
       return defaultValue;
     }
@@ -560,7 +570,12 @@ public class RandomizedTest extends Assert {
   public static int systemPropertyAsInt(String propertyName, int defaultValue) {
     String v = System.getProperty(propertyName);
     if (v != null && !v.trim().isEmpty()) {
-      return Integer.parseInt(v.trim());
+      try {
+        return Integer.parseInt(v.trim());
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Integer value expected for property " +
+            propertyName + ": " + v, e);
+      }        
     } else {
       return defaultValue;
     }
@@ -572,7 +587,12 @@ public class RandomizedTest extends Assert {
   public static float systemPropertyAsLong(String propertyName, int defaultValue) {
     String v = System.getProperty(propertyName);
     if (v != null && !v.trim().isEmpty()) {
-      return Long.parseLong(v.trim());
+      try {
+        return Long.parseLong(v.trim());
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Long value expected for property " +
+            propertyName + ": " + v, e);
+      }
     } else {
       return defaultValue;
     }
@@ -605,7 +625,8 @@ public class RandomizedTest extends Assert {
       if (result != null) 
         return result.booleanValue();
       else
-        throw new IllegalArgumentException("Boolean value expected " +
+        throw new IllegalArgumentException("Boolean value expected for property " +
+          propertyName + " " +
       		"(true/false, on/off, enabled/disabled, yes/no): " + v);
     } else {
       return defaultValue;
