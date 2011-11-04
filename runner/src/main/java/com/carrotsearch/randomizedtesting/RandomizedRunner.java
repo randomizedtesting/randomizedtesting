@@ -386,9 +386,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     final Thread runner = new Thread(runnerThreadGroup, "main-" + Randomness.formatSeedChain(runnerRandomness)) {
       public void run() {
-        RandomizedContext context = createContext(runnerThreadGroup);
-        runSuite(context, notifier);
-        context.dispose();
+        try {
+          RandomizedContext context = createContext(runnerThreadGroup);
+          runSuite(context, notifier);
+          context.dispose();
+        } catch (Throwable t) {
+          notifier.fireTestFailure(new Failure(suiteDescription, t));
+        }
       }
     };
 
