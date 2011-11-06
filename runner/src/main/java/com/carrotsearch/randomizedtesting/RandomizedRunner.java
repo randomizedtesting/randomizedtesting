@@ -416,7 +416,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     try {
       // Check for automatically hookable listeners.
       subscribeListeners(notifier);
-      
+
+      // Fire a synthetic "suite started" event.
+      for (RunListener r : autoListeners)
+        r.testRunStarted(suiteDescription);
+
       // Validate suiteClass with custom validators.
       if (runCustomValidators(notifier)) {
         // Filter out test candidates to see if there's anything left. If not,
@@ -870,14 +874,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private List<TestCandidate> getFilteredTestCandidates() {
     // Check for class filter (most restrictive, immediate answer).
-    if (System.getProperty(SYSPROP_TESTCLASS) != null) {
+    if (normalizeNull(System.getProperty(SYSPROP_TESTCLASS)) != null) {
       if (!suiteClass.getName().equals(System.getProperty(SYSPROP_TESTCLASS))) {
         return Collections.emptyList();
       }
     }
 
     // Check for method filter, if defined.
-    String methodFilter = System.getProperty(SYSPROP_TESTMETHOD);
+    String methodFilter = normalizeNull(System.getProperty(SYSPROP_TESTMETHOD));
 
     // Apply filters.
     List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
@@ -890,6 +894,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
     return filtered;
+  }
+
+  /**
+   * 
+   */
+  private static String normalizeNull(String value) {
+    if (value == null || value.trim().isEmpty())
+      return null;
+    return value.trim();
   }
 
   /** 
