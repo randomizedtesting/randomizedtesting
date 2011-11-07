@@ -1,0 +1,55 @@
+package com.carrotsearch.randomizedtesting;
+
+import java.lang.reflect.Method;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
+
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+
+/**
+ * Checks if demon threads spawned by certain library methods are properly
+ * handled.
+ */
+public class TestRunawaySystemThread extends WithNestedTestClass {
+  @ThreadLeaks
+  public static class Nested extends RandomizedTest {
+    @Test
+    public void tokenPoller() throws Exception {
+      assumeRunningNested();
+      try {
+        MessageDigest instance = MessageDigest.getInstance("MD5");
+        instance.update(randomByte());
+        instance.digest();
+      } catch (NoSuchAlgorithmException e) {
+        Logger.getAnonymousLogger().log(Level.SEVERE, "No MD5 in MessageDigest?", e);
+      }
+    }
+
+    @Test
+    public void gcDaemon() throws Exception {
+      assumeRunningNested();
+
+      try {
+        Class<?> clazz = Class.forName("sun.misc.GC");
+        Method method = clazz.getDeclaredMethod("requestLatency",
+            new Class[] {long.class});
+        method.invoke(null, Long.valueOf(3600000));
+      } catch (ClassNotFoundException e) {
+        // Ignore, must be running under a JVM without this class.
+      }
+    }
+  }
+
+  @Test
+  public void leftOverThread() throws Throwable {
+    Result r = JUnitCore.runClasses(Nested.class);
+    Assert.assertEquals(0, r.getFailureCount());
+  }
+}

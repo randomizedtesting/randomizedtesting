@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
  * 
  * <p>A test case leaking threads will end in a failure (by default). 
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings("all")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited

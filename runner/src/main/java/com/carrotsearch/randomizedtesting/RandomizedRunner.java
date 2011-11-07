@@ -1,7 +1,14 @@
 package com.carrotsearch.randomizedtesting;
 
 
-import static com.carrotsearch.randomizedtesting.MethodCollector.*;
+import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
+import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
+import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
+import static com.carrotsearch.randomizedtesting.MethodCollector.immutableCopy;
+import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
+import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
 import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
@@ -9,20 +16,51 @@ import java.lang.Thread.State;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
-import org.junit.runner.manipulation.*;
-import org.junit.runner.notification.*;
-import org.junit.runners.model.*;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.Filterable;
+import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
+import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.*;
+import com.carrotsearch.randomizedtesting.annotations.Listeners;
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+import com.carrotsearch.randomizedtesting.annotations.Timeout;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -790,6 +828,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         do {
           now = threadsSnapshot();
           now.removeAll(expectedState);
+          filterJreDaemonThreads(now);
           if (now.isEmpty() || System.currentTimeMillis() > deadline) 
             break;
           Thread.sleep(/* off the top of my head */ 100);
@@ -801,6 +840,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     now = threadsSnapshot();
     now.removeAll(expectedState);
+    filterJreDaemonThreads(now);
 
     if (!now.isEmpty()) {
       if (scope == LifecycleScope.TEST && threadLeaks.leakedThreadsBelongToSuite()) {
@@ -816,6 +856,33 @@ public final class RandomizedRunner extends Runner implements Filterable {
         bulletProofZombies.addAll(now);        
       }
     }
+  }
+
+  /**
+   * There are certain threads that are spawned by the standard library and over which
+   * we have no direct control. Just ignore them. 
+   */
+  private void filterJreDaemonThreads(Set<Thread> now) {
+    Iterator<Thread> i = now.iterator();
+    while (i.hasNext()) {
+      if (isJreDaemonThread(i.next()))
+        i.remove();
+    }
+  }
+
+  /**
+   * Check against daemon threads.
+   */
+  private boolean isJreDaemonThread(Thread t) {
+    List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
+    Collections.reverse(stack);
+
+    // Check for TokenPoller (MessageDigest spawns it).
+    if (stack.get(1).getClassName().startsWith("sun.security.pkcs11.SunPKCS11$TokenPoller")) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
