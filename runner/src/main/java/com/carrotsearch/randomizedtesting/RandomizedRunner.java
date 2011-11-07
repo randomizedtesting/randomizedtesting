@@ -211,9 +211,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * 
+   * Package scope logger. 
    */
-  private final static Logger logger = Logger.getLogger(RandomizedRunner.class.getSimpleName());
+  final static Logger logger = Logger.getLogger(RandomizedRunner.class.getSimpleName());
 
   /** 
    * A sequencer for affecting the initial seed in case of rapid succession of this class

@@ -1,6 +1,8 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -235,9 +237,7 @@ public class RandomizedTest extends Assert {
             Runtime.getRuntime().addShutdownHook(new Thread() {
               public void run() {
                 try {
-                  // We need canonical path on the root dir because it may
-                  // be symlinked initially (macos).
-                  forceDeleteRecursively(globalTempDir.getCanonicalFile());
+                  forceDeleteRecursively(globalTempDir);
                 } catch (IOException e) {
                   // Not much else to do but to log and quit.
                   System.err.println("Error while deleting temporary folder '" +
@@ -344,15 +344,16 @@ public class RandomizedTest extends Assert {
    */
   protected static void forceDeleteRecursively(File fileOrDir) throws IOException {
     if (fileOrDir.isDirectory()) {
-      // Not a symlink? Delete contents first.
-      if (fileOrDir.getCanonicalPath().equals(fileOrDir.getAbsolutePath())) {
-        for (File f : fileOrDir.listFiles()) {
-          forceDeleteRecursively(f);
-        }
+      // We are not checking for symlinks here!
+      for (File f : fileOrDir.listFiles()) {
+        forceDeleteRecursively(f);
       }
     }
 
-    fileOrDir.delete();
+    if (!fileOrDir.delete()) {
+      RandomizedRunner.logger.warning("Could not delete: "
+          + fileOrDir.getAbsolutePath());
+    }
   }
 
   /** 
