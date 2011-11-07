@@ -878,7 +878,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     Collections.reverse(stack);
 
     // Check for TokenPoller (MessageDigest spawns it).
-    if (stack.get(1).getClassName().startsWith("sun.security.pkcs11.SunPKCS11$TokenPoller")) {
+    if (stack.size() > 2 && 
+        stack.get(1).getClassName().startsWith("sun.security.pkcs11.SunPKCS11$TokenPoller")) {
       return true;
     }
 
