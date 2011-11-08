@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.After;
@@ -41,6 +42,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.Description;
+import org.junit.runner.Result;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.Filterable;
@@ -451,14 +453,23 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * {@link RunnerThreadGroup}.
    */
   private void runSuite(final RandomizedContext context, final RunNotifier notifier) {
+    final Result result = new Result();
+    final RunListener accounting = result.createListener();
+    notifier.addListener(accounting);
+
     context.push(runnerRandomness);
     try {
       // Check for automatically hookable listeners.
       subscribeListeners(notifier);
 
       // Fire a synthetic "suite started" event.
-      for (RunListener r : autoListeners)
-        r.testRunStarted(suiteDescription);
+      for (RunListener r : autoListeners) { 
+        try {
+          r.testRunStarted(suiteDescription);
+        } catch (Throwable e) {
+          logger.log(Level.SEVERE, "Panic: RunListener hook shouldn't throw exceptions.", e);
+        }
+      }
 
       // Validate suiteClass with custom validators.
       if (runCustomValidators(notifier)) {
@@ -529,6 +540,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
       // Clean up any threads left by hooks methods, but don't try to kill the zombies. 
       ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, suiteClass);
       checkLeftOverThreads(notifier, LifecycleScope.SUITE, tl, suiteDescription, bulletProofZombies);
+
+      // Fire a synthetic "suite ended" event and unsubscribe listeners.
+      for (RunListener r : autoListeners) {
+        try {
+          r.testRunFinished(result);
+        } catch (Throwable e) {
+          logger.log(Level.SEVERE, "Panic: RunListener hook shouldn't throw exceptions.", e);
+        }
+      }
+
+      // Final cleanup.
+      notifier.removeListener(accounting);
       unsubscribeListeners(notifier);
       context.pop();
     }    
