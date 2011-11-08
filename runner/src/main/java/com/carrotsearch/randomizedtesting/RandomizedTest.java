@@ -3,6 +3,7 @@ package com.carrotsearch.randomizedtesting;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -342,7 +343,7 @@ public class RandomizedTest extends Assert {
    * Recursively delete a folder (or file). This attempts to delete everything that
    * can be deleted, but possibly can leave things behind if files are locked for example.
    */
-  protected static void forceDeleteRecursively(File fileOrDir) throws IOException {
+  static void forceDeleteRecursively(File fileOrDir) throws IOException {
     if (fileOrDir.isDirectory()) {
       // We are not checking for symlinks here!
       for (File f : fileOrDir.listFiles()) {
@@ -356,6 +357,27 @@ public class RandomizedTest extends Assert {
     }
   }
 
+  /**
+   * Assign a temporary server socket. If you need a temporary port one can
+   * assign a server socket and close it immediately, just to acquire its port
+   * number.
+   * 
+   * @param scope
+   *          The lifecycle scope to close the socket after. If the socket is
+   *          closed earlier, nothing happens (silently dropped).
+   */
+  public static ServerSocket newServerSocket(LifecycleScope scope) throws IOException {
+    final ServerSocket socket = new ServerSocket(0);
+    getContext().closeAtEnd(new Closeable() {
+      public void close() throws IOException {
+        if (!socket.isClosed())
+          socket.close();
+      }
+    }, scope);
+
+    return socket;
+  }
+  
   /** 
    * Return a random Locale from the available locales on the system.
    * 

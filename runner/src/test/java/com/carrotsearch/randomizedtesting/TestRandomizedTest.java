@@ -3,6 +3,7 @@ package com.carrotsearch.randomizedtesting;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -219,5 +220,11 @@ public class TestRandomizedTest extends RandomizedTest {
       int j = iterations(0, 100);
       assertTrue(j >= 0 && j <= 100);
     }
-  }      
+  }
+
+  @Test
+  public void testNewServerSocket() throws IOException {
+    ServerSocket socket = newServerSocket(LifecycleScope.TEST);
+    socket.close();
+  }  
 }
