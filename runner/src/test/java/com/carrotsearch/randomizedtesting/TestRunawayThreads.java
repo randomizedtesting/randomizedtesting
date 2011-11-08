@@ -8,8 +8,10 @@ import org.junit.Test;
 import org.junit.runner.*;
 import org.junit.runner.notification.Failure;
 
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+
 @RunWith(RandomizedRunner.class)
-public class TestSpunOffThreads extends WithNestedTestClass {
+public class TestRunawayThreads extends WithNestedTestClass {
   private abstract static class ThreadWithException extends Thread {
     public volatile Throwable throwable;
     
@@ -82,8 +84,8 @@ public class TestSpunOffThreads extends WithNestedTestClass {
     protected Nested(boolean withJoin) {
       this.withJoin = withJoin;
     }
-    
-    @Test
+
+    @Test @ThreadLeaks(stackSamples = 0)
     public void spinoffAndThrow() throws Exception{
       assumeRunningNested();
       Thread t = new Thread() {

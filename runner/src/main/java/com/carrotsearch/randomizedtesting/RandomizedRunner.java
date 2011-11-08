@@ -61,6 +61,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.Validators;
+import com.carrotsearch.randomizedtesting.generators.RandomInts;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -98,7 +99,7 @@ import com.carrotsearch.randomizedtesting.annotations.Validators;
  *   <li>a test method must not leave behind any active threads; this is detected
  *       using {@link ThreadGroup} active counts and is sometimes problematic (many classes
  *       in the standard library leave active threads behind without waiting for them to terminate).
- *       One can use the {@link ThreadLeaks} annotation to control how aggresive the detection
+ *       One can use the {@link ThreadLeaks} annotation to control how aggressive the detection
  *       strategy is and if it fails the test or not.</li>
  * </ul>
  * 
@@ -545,7 +546,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       t.join(timeout);
   
       if (t.isAlive()) {
-        terminateAndFireFailure(t, notifier, c.description, "Test case thread timed out ");
+        ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
+        terminateAndFireFailure(t, notifier, c.description, tl.stackSamples(), "Test case thread timed out ");
         if (t.isAlive()) {
           bulletProofZombies.add(t);
         }
@@ -722,7 +724,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Attempt to terminate a given thread and log appropriate messages.
    */
-  private void terminateAndFireFailure(Thread t, RunNotifier notifier, Description d, String msg) {
+  private void terminateAndFireFailure(Thread t, RunNotifier notifier, Description d, int stackSamples, String msg) {
+    // The initial early probe.
     StackTraceElement[] stackTrace = t.getStackTrace();
 
     RandomizedContext ctx = null; 
@@ -733,6 +736,24 @@ public final class RandomizedRunner extends Runner implements Filterable {
         logger.severe("No context information for this thread?: " + t + ", " + e.getMessage());
     }
 
+    // Collect stack probes, if requested.
+    List<StackTraceElement[]> stackProbes = new ArrayList<StackTraceElement[]>();
+    Random r = new Random(ctx != null ? ctx.getRunnerRandomness().getSeed() : 0xdeadbeef);
+    for (int i = Math.max(0, stackSamples); i > 0 && t.isAlive(); i--) {
+      try { 
+        Thread.sleep(RandomInts.randomIntBetween(r, 10, 100));
+      } catch (InterruptedException e) {
+        break;
+      }
+      StackTraceElement[] sample = t.getStackTrace();
+      if (sample.length > 0)
+        stackProbes.add(sample);
+    }
+    if (stackProbes.size() > 0) {
+      reportStackProbes(stackProbes);
+    }
+
+    // Finally, try to terminate the thread.
     tryToTerminate(t);
 
     State s = t.getState();
@@ -740,7 +761,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
         msg +
         (s != State.TERMINATED ? " (and NOT TERMINATED, left in state " + s  + ")": " (and terminated)") +
         ": " + t.toString() +
-        " (stack trace is a snapshot location).";
+        " (stack trace is a snapshot location of the thread at the moment of killing, " +
+        "see the system logger for probes and more information).";
 
     ThreadingError ex = new ThreadingError(message);
     ex.setStackTrace(stackTrace);
@@ -748,6 +770,49 @@ public final class RandomizedRunner extends Runner implements Filterable {
       ex = augmentStackTrace(ex);
     }
     notifier.fireTestFailure(new Failure(d, ex));    
+  }
+
+  /**
+   * Analyze the given stacks and try to find the "divergence point" (common root) at which
+   * the thread was all the time during probing. 
+   */
+  private void reportStackProbes(List<StackTraceElement[]> stackProbes) {
+    if (stackProbes.size() == 0)
+      return;
+
+    Iterator<StackTraceElement[]> i = stackProbes.iterator();
+    List<StackTraceElement> commonRoot = new ArrayList<StackTraceElement>();
+    commonRoot.addAll(Arrays.asList(i.next()));
+    Collections.reverse(commonRoot);
+    while (i.hasNext()) {
+      List<StackTraceElement> sample = new ArrayList<StackTraceElement>(Arrays.asList(i.next()));
+      Collections.reverse(sample);
+      int k = 0;
+      for (; k < Math.min(commonRoot.size(), sample.size()); k++) {
+        if (!commonRoot.get(k).equals(sample.get(k)))
+          break;
+      }
+      commonRoot.subList(k, commonRoot.size()).clear();
+    }
+    Collections.reverse(commonRoot);
+    
+    StringBuilder b = new StringBuilder();
+    b.append(stackProbes.size() + " stack trace probe(s) taken and the constant root was:\n"
+        + "    ...\n"
+        + formatStackTrace(commonRoot));
+    b.append("\n    Diverging stack paths from individual probes (if different than the common root):\n");
+    for (int j = 0; j < stackProbes.size(); j++) {
+      StackTraceElement[] sample = stackProbes.get(j);
+      List<StackTraceElement> divergent = 
+          Arrays.asList(sample).subList(0, sample.length - commonRoot.size());
+      if (divergent.size() > 0) {
+        b.append("Probe #" + (j + 1) + "\n");
+        b.append(formatStackTrace(divergent));
+        b.append("    ...\n");
+      }
+    }
+
+    logger.warning(b.toString());
   }
 
   /**
@@ -850,7 +915,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       } else {
         if (threadLeaks.failTestIfLeaking()) {
           for (Thread t : now) {
-            terminateAndFireFailure(t, notifier, description, "Left-over thread detected ");
+            terminateAndFireFailure(t, notifier, description, 
+                threadLeaks.stackSamples(), "Left-over thread detected ");
           }
         }
         bulletProofZombies.addAll(now);        
@@ -1335,6 +1401,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /** Format a list of stack entries into a string. */
   private static String formatStackTrace(StackTraceElement[] stackTrace) {
+    return formatStackTrace(Arrays.asList(stackTrace));
+  }
+
+  /** Format a list of stack entries into a string. */
+  private static String formatStackTrace(Iterable<StackTraceElement> stackTrace) {
     StringBuilder b = new StringBuilder();
     for (StackTraceElement e : stackTrace) {
       b.append("    ").append(e.toString()).append("\n");

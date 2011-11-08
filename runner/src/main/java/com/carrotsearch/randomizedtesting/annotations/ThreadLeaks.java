@@ -33,6 +33,15 @@ public @interface ThreadLeaks {
   int linger() default 0;
 
   /**
+   * The number of "probes" of the offending thread's stack trace before an attempt
+   * is made to kill it. Snapshots are taken at random intervals between 10 and 100 
+   * milliseconds each and dumped to system logger to facilitate debugging of the offending thread.
+   * 
+   * <p>Setting this value to 0 means no samples will be taken. 
+   */
+  int stackSamples() default 10;
+
+  /**
    * Should left-behind threads cause unit test (or suite-level) failures? If this flag
    * is <code>false</code> the test will not be marked as failed even if it left threads
    * behind. Also, no leaks will be reported. Use with caution.
