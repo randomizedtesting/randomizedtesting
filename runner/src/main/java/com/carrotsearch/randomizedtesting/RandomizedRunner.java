@@ -1,14 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
 
-import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
-import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
-import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
-import static com.carrotsearch.randomizedtesting.MethodCollector.immutableCopy;
-import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy;
-import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
-import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
-import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
+import static com.carrotsearch.randomizedtesting.MethodCollector.*;
 import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
@@ -16,53 +9,20 @@ import java.lang.Thread.State;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.internal.AssumptionViolatedException;
-import org.junit.runner.Description;
-import org.junit.runner.Result;
-import org.junit.runner.Runner;
-import org.junit.runner.manipulation.Filter;
-import org.junit.runner.manipulation.Filterable;
-import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
-import org.junit.runner.notification.RunNotifier;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.InitializationError;
-import org.junit.runners.model.Statement;
-import org.junit.runners.model.TestClass;
+import org.junit.runner.*;
+import org.junit.runner.manipulation.*;
+import org.junit.runner.notification.*;
+import org.junit.runners.model.*;
 
-import com.carrotsearch.randomizedtesting.annotations.Listeners;
-import com.carrotsearch.randomizedtesting.annotations.Nightly;
-import com.carrotsearch.randomizedtesting.annotations.Repeat;
-import com.carrotsearch.randomizedtesting.annotations.Seed;
-import com.carrotsearch.randomizedtesting.annotations.Seeds;
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
-import com.carrotsearch.randomizedtesting.annotations.Timeout;
-import com.carrotsearch.randomizedtesting.annotations.Validators;
+import com.carrotsearch.randomizedtesting.annotations.*;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 
 /**
@@ -112,6 +72,20 @@ import com.carrotsearch.randomizedtesting.generators.RandomInts;
  * @see ThreadLeaks
  */
 public final class RandomizedRunner extends Runner implements Filterable {
+  /** A dummy class serving as the source of defaults for annotations. */
+  @ThreadLeaks  @Nightly
+  private static class Dummy {}
+
+  /**
+   * Default instance of {@link ThreadLeaks} annotation. 
+   */
+  private static final ThreadLeaks defaultThreadLeaks = Dummy.class.getAnnotation(ThreadLeaks.class); 
+
+  /**
+   * Default instance of {@link Nightly} annotation. 
+   */
+  private static final Nightly defaultNightly = Dummy.class.getAnnotation(Nightly.class); 
+
   /**
    * System property with an integer defining global initialization seeds for all
    * random generators. Should guarantee test reproducibility.
@@ -123,7 +97,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * 
    * @see Nightly
    */
-  public static final String SYSPROP_NIGHTLY = "tests.nightly";
+  public static final String SYSPROP_NIGHTLY = 
+      new RuntimeGroup(defaultNightly).getSysPropertyName();
 
   /**
    * The global override for the number of each test's repetitions.
@@ -260,6 +235,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** All test candidates, processed (seeds assigned) and flattened. */
   private List<TestCandidate> testCandidates;
 
+  /** All test groups. */
+  private HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups;
+
   /** Class suite description. */
   private Description suiteDescription;
 
@@ -333,15 +311,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   };
 
-  /** A dummy class serving as the source of defaults for annotations. */
-  @ThreadLeaks 
-  private static class Dummy {}
-
-  /**
-   * Default instance of {@link ThreadLeaks} annotation. 
-   */
-  private static final ThreadLeaks defaultThreadLeaks = Dummy.class.getAnnotation(ThreadLeaks.class); 
-  
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     this.suiteClass = testClass;
@@ -388,6 +357,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // Collect all test candidates, regardless if they will be executed or not.
     suiteDescription = Description.createSuiteDescription(suiteClass);
     testCandidates = collectTestCandidates(suiteDescription);
+    testGroups = collectGroups(testCandidates);
   }
 
   /**
@@ -585,7 +555,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private void runSingleTest(final RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
-  
+
     if (isIgnored(c)) {
       notifier.fireTestIgnored(c.description);
       return;
@@ -740,8 +710,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * is assigned per-thread).
    */
   private RandomizedContext createContext(ThreadGroup tg) {
-    final boolean nightlyMode = RandomizedTest.systemPropertyAsBoolean(SYSPROP_NIGHTLY, false);
-    return RandomizedContext.create(tg, suiteClass, runnerRandomness, nightlyMode);
+    return RandomizedContext.create(
+        tg, suiteClass, runnerRandomness, testGroups);
   }
 
   /**
@@ -1054,9 +1024,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * 
+   * Normalize empty strings to nulls.
    */
-  private static String normalizeNull(String value) {
+  static String normalizeNull(String value) {
     if (value == null || value.trim().isEmpty())
       return null;
     return value.trim();
@@ -1065,14 +1035,23 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** 
    * Returns true if we should ignore this test candidate.
    */
+  @SuppressWarnings("all")
   private boolean isIgnored(final TestCandidate c) {
     if (c.method.getAnnotation(Ignore.class) != null)
       return true;
 
-    if (!RandomizedContext.current().isNightly()) {
-      if (c.method.getAnnotation(Nightly.class) != null ||
-          suiteClass.getAnnotation(Nightly.class) != null) {
-        return true;
+    final HashMap<Class<? extends Annotation>,RuntimeGroup> testGroups = 
+        RandomizedContext.current().getTestGroups();
+
+    // Check if any of the test's annotations is a TestGroup. If so, check if it's disabled
+    // and ignore test if so.
+    for (AnnotatedElement element : Arrays.asList(c.method, suiteClass)) {
+      for (Annotation ann : element.getAnnotations()) {
+        RuntimeGroup g = testGroups.get(ann.annotationType());
+        if (g != null && !g.isEnabled()) {
+          // Ignore this test.
+          return true;
+        }
       }
     }
 
@@ -1152,6 +1131,30 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
     return candidates;
+  }
+
+  /**
+   * Collect all test groups.
+   */
+  private HashMap<Class<? extends Annotation>, RuntimeGroup> collectGroups(
+      List<TestCandidate> testCandidates) {
+    final HashMap<Class<? extends Annotation>, RuntimeGroup> groups = 
+        new HashMap<Class<? extends Annotation>, RuntimeGroup>();
+
+    // Always use @Nightly as a group.
+    groups.put(Nightly.class, new RuntimeGroup(defaultNightly));
+
+    // Collect all remaining groups.
+    for (TestCandidate c : testCandidates) {
+      for (Annotation ann : c.method.getAnnotations()) {
+        if (!groups.containsKey(ann) 
+            && ann.annotationType().isAnnotationPresent(TestGroup.class)) {
+          groups.put(ann.annotationType(), new RuntimeGroup(ann));
+        }
+      }
+    }
+
+    return groups;
   }
 
   /**

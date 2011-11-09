@@ -29,8 +29,9 @@ public class TestNightlyMode extends WithNestedTestClass {
   public void invalidValueNightly() {
     System.setProperty(RandomizedRunner.SYSPROP_NIGHTLY, "invalid-value");
     Result result = JUnitCore.runClasses(Nested.class);
-    Assert.assertEquals(0, result.getRunCount());
+    Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(1, result.getFailureCount());
+    Assert.assertEquals(1, result.getIgnoreCount());
   }
 
   @Test

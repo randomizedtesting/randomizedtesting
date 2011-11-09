@@ -22,6 +22,7 @@ import com.carrotsearch.randomizedtesting.RandomizedTest;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
+@TestGroup(enabled = false)
 public @interface Nightly {
   /** Additional description, if needed. */
   String value() default "";

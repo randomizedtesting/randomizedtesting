@@ -1,6 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
 import java.io.Closeable;
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
@@ -44,14 +45,14 @@ public final class RandomizedContext {
   /** @see #getTargetClass() */
   private final Class<?> suiteClass;
 
-  /** @see Nightly */
-  private final boolean nightlyMode;
-
   /** Master seed/ randomness. */
   private final Randomness runnerRandomness;
 
   /** The context and all of its resources are no longer usable. */
   private volatile boolean disposed;
+
+  /** Information about this context's test execution groups. */
+  private final HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups;
 
   /**
    * Disposable resources.
@@ -60,11 +61,12 @@ public final class RandomizedContext {
     = new EnumMap<LifecycleScope, List<CloseableResourceInfo>>(LifecycleScope.class);
 
   /** */
-  private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, Randomness runnerRandomness, boolean nightlyMode) {
+  private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, Randomness runnerRandomness,
+      HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups) {
     this.threadGroup = tg;
     this.suiteClass = suiteClass;
-    this.nightlyMode = nightlyMode;
     this.runnerRandomness = runnerRandomness;
+    this.testGroups = testGroups;
   }
 
   /** The class (suite) being tested. */
@@ -109,7 +111,7 @@ public final class RandomizedContext {
    */
   public boolean isNightly() {
     checkDisposed();
-    return nightlyMode;
+    return testGroups.get(Nightly.class).isEnabled();
   }
 
   /**
@@ -186,11 +188,12 @@ public final class RandomizedContext {
   /**
    * Create a new context bound to a thread group.
    */
-  static RandomizedContext create(ThreadGroup tg, Class<?> suiteClass,
-      Randomness runnerRandomness, boolean nightlyMode) {
+  static RandomizedContext create(ThreadGroup tg, 
+      Class<?> suiteClass, Randomness runnerRandomness, 
+      HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups) {
     assert Thread.currentThread().getThreadGroup() == tg;
     synchronized (_globalLock) {
-      RandomizedContext ctx = new RandomizedContext(tg, suiteClass, runnerRandomness, nightlyMode); 
+      RandomizedContext ctx = new RandomizedContext(tg, suiteClass, runnerRandomness, testGroups); 
       contexts.put(tg, ctx);
       ctx.perThreadResources.put(Thread.currentThread(), new PerThreadResources());
       return ctx;
@@ -233,6 +236,13 @@ public final class RandomizedContext {
     if (disposed) 
       throw new IllegalStateException("Context disposed: " + 
           toString() + " for thread: " + Thread.currentThread());
+  }
+
+  /**
+   * Provide access to test groups.
+   */
+  HashMap<Class<? extends Annotation>,RuntimeGroup> getTestGroups() {
+    return testGroups;
   }
 }
 
