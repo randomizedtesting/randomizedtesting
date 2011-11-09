@@ -52,7 +52,7 @@ public final class RandomizedContext {
   private volatile boolean disposed;
 
   /** Information about this context's test execution groups. */
-  private final HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups;
+  private final HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups;
 
   /**
    * Disposable resources.
@@ -62,7 +62,7 @@ public final class RandomizedContext {
 
   /** */
   private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, Randomness runnerRandomness,
-      HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups) {
+      HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups) {
     this.threadGroup = tg;
     this.suiteClass = suiteClass;
     this.runnerRandomness = runnerRandomness;
@@ -190,7 +190,7 @@ public final class RandomizedContext {
    */
   static RandomizedContext create(ThreadGroup tg, 
       Class<?> suiteClass, Randomness runnerRandomness, 
-      HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups) {
+      HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups) {
     assert Thread.currentThread().getThreadGroup() == tg;
     synchronized (_globalLock) {
       RandomizedContext ctx = new RandomizedContext(tg, suiteClass, runnerRandomness, testGroups); 
@@ -241,7 +241,7 @@ public final class RandomizedContext {
   /**
    * Provide access to test groups.
    */
-  HashMap<Class<? extends Annotation>,RuntimeGroup> getTestGroups() {
+  HashMap<Class<? extends Annotation>,RuntimeTestGroup> getTestGroups() {
     return testGroups;
   }
 }

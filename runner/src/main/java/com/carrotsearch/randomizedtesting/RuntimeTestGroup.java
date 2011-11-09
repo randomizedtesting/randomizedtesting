@@ -7,7 +7,7 @@ import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 /**
  * Runtime information about a {@link TestGroup}.
  */
-public final class RuntimeGroup {
+public final class RuntimeTestGroup {
 
   /** The annotation marked as a group. */
   private final Annotation annotation;
@@ -29,7 +29,7 @@ public final class RuntimeGroup {
   /**
    * Hide from the public.
    */
-  RuntimeGroup(Annotation ann) {
+  RuntimeTestGroup(Annotation ann) {
     this.annotation = ann;
     this.name = getGroupName(ann.annotationType());
     this.sysProperty = getGroupSysProperty(ann.annotationType());

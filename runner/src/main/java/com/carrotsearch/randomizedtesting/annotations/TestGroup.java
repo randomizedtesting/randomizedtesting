@@ -3,6 +3,7 @@ package com.carrotsearch.randomizedtesting.annotations;
 import java.lang.annotation.*;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.RuntimeTestGroup;
 
 /**
  * A test group applied to an annotation indicates that a given annotation
@@ -14,6 +15,11 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
  * can be enabled or disabled using boolean system properties (or test 
  * hooks in the code). A test case is executed if it has no groups or if all of its groups
  * are enabled.
+ * 
+ * <p>{@link RuntimeTestGroup} contains static methods to resolve a given group's annotation
+ * name and system property.
+ * 
+ * @see RuntimeTestGroup
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -93,14 +93,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public static final String SYSPROP_RANDOM_SEED = "tests.seed";
 
   /**
-   * Global system property indicating that we're running nightly tests.
-   * 
-   * @see Nightly
-   */
-  public static final String SYSPROP_NIGHTLY = 
-      new RuntimeGroup(defaultNightly).getSysPropertyName();
-
-  /**
    * The global override for the number of each test's repetitions.
    */
   public static final String SYSPROP_ITERATIONS = "tests.iters";
@@ -236,7 +228,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private List<TestCandidate> testCandidates;
 
   /** All test groups. */
-  private HashMap<Class<? extends Annotation>, RuntimeGroup> testGroups;
+  private HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups;
 
   /** Class suite description. */
   private Description suiteDescription;
@@ -1040,14 +1032,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if (c.method.getAnnotation(Ignore.class) != null)
       return true;
 
-    final HashMap<Class<? extends Annotation>,RuntimeGroup> testGroups = 
+    final HashMap<Class<? extends Annotation>,RuntimeTestGroup> testGroups = 
         RandomizedContext.current().getTestGroups();
 
     // Check if any of the test's annotations is a TestGroup. If so, check if it's disabled
     // and ignore test if so.
     for (AnnotatedElement element : Arrays.asList(c.method, suiteClass)) {
       for (Annotation ann : element.getAnnotations()) {
-        RuntimeGroup g = testGroups.get(ann.annotationType());
+        RuntimeTestGroup g = testGroups.get(ann.annotationType());
         if (g != null && !g.isEnabled()) {
           // Ignore this test.
           return true;
@@ -1136,20 +1128,20 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Collect all test groups.
    */
-  private HashMap<Class<? extends Annotation>, RuntimeGroup> collectGroups(
+  private HashMap<Class<? extends Annotation>, RuntimeTestGroup> collectGroups(
       List<TestCandidate> testCandidates) {
-    final HashMap<Class<? extends Annotation>, RuntimeGroup> groups = 
-        new HashMap<Class<? extends Annotation>, RuntimeGroup>();
+    final HashMap<Class<? extends Annotation>, RuntimeTestGroup> groups = 
+        new HashMap<Class<? extends Annotation>, RuntimeTestGroup>();
 
     // Always use @Nightly as a group.
-    groups.put(Nightly.class, new RuntimeGroup(defaultNightly));
+    groups.put(Nightly.class, new RuntimeTestGroup(defaultNightly));
 
     // Collect all remaining groups.
     for (TestCandidate c : testCandidates) {
       for (Annotation ann : c.method.getAnnotations()) {
         if (!groups.containsKey(ann) 
             && ann.annotationType().isAnnotationPresent(TestGroup.class)) {
-          groups.put(ann.annotationType(), new RuntimeGroup(ann));
+          groups.put(ann.annotationType(), new RuntimeTestGroup(ann));
         }
       }
     }

@@ -6,6 +6,8 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
+
 /**
  * A {@link RunListener} that reports failed tests to standard error, along with the seed
  * information and switches that may be helpful to reproduce the test case.
@@ -44,7 +46,9 @@ public class StandardErrorInfoRunListener extends RunListener {
     if (d.getMethodName() != null)
       b.append(" -D").append(RandomizedRunner.SYSPROP_TESTMETHOD).append("=").append(RandomizedRunner.stripSeed(d.getMethodName()));
 
-    for (String p : Arrays.asList(RandomizedRunner.SYSPROP_ITERATIONS, RandomizedRunner.SYSPROP_NIGHTLY)) {
+    for (String p : Arrays.asList(
+        RandomizedRunner.SYSPROP_ITERATIONS, 
+        RuntimeTestGroup.getGroupSysProperty(Nightly.class))) {
       if (System.getProperty(p) != null) {
         b.append(" -D").append(p).append("=").append(System.getProperty(p));
       }

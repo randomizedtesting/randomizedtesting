@@ -36,18 +36,18 @@ public class TestTestGroups extends WithNestedTestClass {
   
   @Test
   public void checkDefaultNames() {
-    Assert.assertEquals("group1", RuntimeGroup.getGroupName(Group1.class));
-    Assert.assertEquals("abc", RuntimeGroup.getGroupName(Group2.class));
-    Assert.assertEquals("tests.group1", RuntimeGroup.getGroupSysProperty(Group1.class));
-    Assert.assertEquals("custom.abc", RuntimeGroup.getGroupSysProperty(Group2.class));
-    Assert.assertEquals("nightly", RuntimeGroup.getGroupName(Nightly.class));
-    Assert.assertEquals("tests.nightly", RuntimeGroup.getGroupSysProperty(Nightly.class));
+    Assert.assertEquals("group1", RuntimeTestGroup.getGroupName(Group1.class));
+    Assert.assertEquals("abc", RuntimeTestGroup.getGroupName(Group2.class));
+    Assert.assertEquals("tests.group1", RuntimeTestGroup.getGroupSysProperty(Group1.class));
+    Assert.assertEquals("custom.abc", RuntimeTestGroup.getGroupSysProperty(Group2.class));
+    Assert.assertEquals("nightly", RuntimeTestGroup.getGroupName(Nightly.class));
+    Assert.assertEquals("tests.nightly", RuntimeTestGroup.getGroupSysProperty(Nightly.class));
   }  
 
   @Test
   public void invalidValueNightly() {
-    String group1Property = RuntimeGroup.getGroupSysProperty(Group1.class);
-    String group2Property = RuntimeGroup.getGroupSysProperty(Group2.class);
+    String group1Property = RuntimeTestGroup.getGroupSysProperty(Group1.class);
+    String group2Property = RuntimeTestGroup.getGroupSysProperty(Group2.class);
     try {
       checkResult(JUnitCore.runClasses(Nested1.class), 1, 1, 0);
       

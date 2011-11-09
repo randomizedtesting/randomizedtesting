@@ -27,7 +27,7 @@ public class TestNightlyMode extends WithNestedTestClass {
 
   @Test
   public void invalidValueNightly() {
-    System.setProperty(RandomizedRunner.SYSPROP_NIGHTLY, "invalid-value");
+    System.setProperty(RuntimeTestGroup.getGroupSysProperty(Nightly.class), "invalid-value");
     Result result = JUnitCore.runClasses(Nested.class);
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(1, result.getFailureCount());
@@ -36,7 +36,7 @@ public class TestNightlyMode extends WithNestedTestClass {
 
   @Test
   public void nightly() {
-    System.setProperty(RandomizedRunner.SYSPROP_NIGHTLY, "yes");
+    System.setProperty(RuntimeTestGroup.getGroupSysProperty(Nightly.class), "yes");
     Result result = JUnitCore.runClasses(Nested.class);
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(0, result.getFailureCount());
@@ -57,6 +57,6 @@ public class TestNightlyMode extends WithNestedTestClass {
   
   @After
   public void cleanupAfter() {
-    System.clearProperty(RandomizedRunner.SYSPROP_NIGHTLY);
+    System.clearProperty(RuntimeTestGroup.getGroupSysProperty(Nightly.class));
   }
 }
