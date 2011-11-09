@@ -11,10 +11,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
-import com.carrotsearch.randomizedtesting.StandardErrorInfoRunListener;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Validators;
+import com.carrotsearch.randomizedtesting.listeners.VerboseTestInfoPrinter;
 import com.carrotsearch.randomizedtesting.validators.NoHookMethodShadowing;
 import com.carrotsearch.randomizedtesting.validators.NoTestMethodOverrides;
 
@@ -23,7 +23,7 @@ import com.carrotsearch.randomizedtesting.validators.NoTestMethodOverrides;
  * listeners, validators, hook methods...
  */
 @Listeners({
-  StandardErrorInfoRunListener.class
+    VerboseTestInfoPrinter.class
 })
 @Validators({
   NoHookMethodShadowing.class,
@@ -69,7 +69,6 @@ public class TestManyThings extends RandomizedTest {
   @After
   public void testCleanup() {
     info("after test");
-    System.out.println();
   }
 
   @AfterClass
