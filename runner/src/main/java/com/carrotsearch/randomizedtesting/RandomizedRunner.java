@@ -825,7 +825,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     b.append(stackProbes.size())
      .append(" stack trace probe(s) taken and the constant root was:\n    ...\n");
     traces.formatStackTrace(b, commonRoot);
-    b.append("\n    Diverging stack paths from individual probes (if different than the common root):\n");
+    b.append("\nDiverging stack paths from individual probes (if different than the common root):\n");
+    
+    int reported = 0;
     for (int j = 0; j < stackProbes.size(); j++) {
       StackTraceElement[] sample = stackProbes.get(j);
       List<StackTraceElement> divergent = 
@@ -834,7 +836,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
         b.append("Probe #" + (j + 1) + "\n");
         traces.formatStackTrace(b, divergent);
         b.append("    ...\n");
+        reported++;
       }
+    }
+    
+    if (reported == 0) {
+      b.append("(all stacks constant.)\n");
     }
 
     logger.warning(b.toString());
