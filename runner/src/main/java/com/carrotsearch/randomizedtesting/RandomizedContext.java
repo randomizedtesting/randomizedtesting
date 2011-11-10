@@ -45,14 +45,11 @@ public final class RandomizedContext {
   /** @see #getTargetClass() */
   private final Class<?> suiteClass;
 
-  /** Master seed/ randomness. */
-  private final Randomness runnerRandomness;
+  /** The runner to which we're bound. */
+  private final RandomizedRunner runner;
 
   /** The context and all of its resources are no longer usable. */
   private volatile boolean disposed;
-
-  /** Information about this context's test execution groups. */
-  private final HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups;
 
   /**
    * Disposable resources.
@@ -61,12 +58,10 @@ public final class RandomizedContext {
     = new EnumMap<LifecycleScope, List<CloseableResourceInfo>>(LifecycleScope.class);
 
   /** */
-  private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, Randomness runnerRandomness,
-      HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups) {
+  private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, RandomizedRunner runner) {
     this.threadGroup = tg;
     this.suiteClass = suiteClass;
-    this.runnerRandomness = runnerRandomness;
-    this.testGroups = testGroups;
+    this.runner = runner;
   }
 
   /** The class (suite) being tested. */
@@ -77,7 +72,7 @@ public final class RandomizedContext {
 
   /** Master seed/ randomness. */
   Randomness getRunnerRandomness() {
-    return runnerRandomness;
+    return runner.runnerRandomness;
   }
 
   /**
@@ -111,17 +106,25 @@ public final class RandomizedContext {
    */
   public boolean isNightly() {
     checkDisposed();
-    return testGroups.get(Nightly.class).isEnabled();
+    return getTestGroups().get(Nightly.class).isEnabled();
   }
 
   /**
    * @return Returns the context for the calling thread or throws an
    *         {@link IllegalStateException} if the thread is out of scope.
+   * @throws IllegalStateException If context is not available.
    */
   public static RandomizedContext current() {
     return context(Thread.currentThread());
   }
 
+  /**
+   * Access to the runner governing this context.
+   */
+  public RandomizedRunner getRunner() {
+    return runner;
+  }
+  
   /**
    * Dispose the given resource at the end of a given lifecycle scope. If the {@link Closeable}
    * throws an exception, the test case or suite will end in a failure.
@@ -188,12 +191,10 @@ public final class RandomizedContext {
   /**
    * Create a new context bound to a thread group.
    */
-  static RandomizedContext create(ThreadGroup tg, 
-      Class<?> suiteClass, Randomness runnerRandomness, 
-      HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups) {
+  static RandomizedContext create(ThreadGroup tg, Class<?> suiteClass, RandomizedRunner runner) {
     assert Thread.currentThread().getThreadGroup() == tg;
     synchronized (_globalLock) {
-      RandomizedContext ctx = new RandomizedContext(tg, suiteClass, runnerRandomness, testGroups); 
+      RandomizedContext ctx = new RandomizedContext(tg, suiteClass, runner); 
       contexts.put(tg, ctx);
       ctx.perThreadResources.put(Thread.currentThread(), new PerThreadResources());
       return ctx;
@@ -242,7 +243,7 @@ public final class RandomizedContext {
    * Provide access to test groups.
    */
   HashMap<Class<? extends Annotation>,RuntimeTestGroup> getTestGroups() {
-    return testGroups;
+    return runner.testGroups;
   }
 }
 

@@ -83,7 +83,7 @@ public final class RuntimeTestGroup {
       throw new IllegalArgumentException("Annotation must have a @TestGroup annotation: " 
           + annotationClass);
 
-    String tmp = RandomizedRunner.normalizeNull(testGroup.name());
+    String tmp = RandomizedRunner.emptyToNull(testGroup.name());
     return tmp == null ? annotationClass.getSimpleName().toLowerCase() : tmp;
   }
 
@@ -93,7 +93,7 @@ public final class RuntimeTestGroup {
   public static String getGroupSysProperty(Class<? extends Annotation> annotationClass) {
     TestGroup testGroup = annotationClass.getAnnotation(TestGroup.class);
 
-    String tmp = RandomizedRunner.normalizeNull(testGroup.sysProperty());
+    String tmp = RandomizedRunner.emptyToNull(testGroup.sysProperty());
     return (tmp == null ? "tests." + getGroupName(annotationClass) : tmp);
   }  
 }

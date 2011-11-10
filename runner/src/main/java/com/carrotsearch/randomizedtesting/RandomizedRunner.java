@@ -87,6 +87,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private static final Nightly defaultNightly = Dummy.class.getAnnotation(Nightly.class); 
 
   /**
+   * Enable or disable stack filtering. 
+   */
+  public static final String SYSPROP_STACKFILTERING = "tests.stackfiltering";
+  
+  /**
    * System property with an integer defining global initialization seeds for all
    * random generators. Should guarantee test reproducibility.
    */
@@ -190,7 +195,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * instance creations. Not likely, but can happen two could get the same seed.
    */
   private final static AtomicLong sequencer = new AtomicLong();
-  
+
+  private static final List<String> DEFAULT_STACK_FILTERS = Arrays.asList(new String [] {
+      "org.junit.",
+      "junit.framework.",
+      "sun.",
+      "java.lang.reflect.",
+      "com.carrotsearch.randomizedtesting.",
+  });
+
   /** The class with test methods (suite). */
   private final Class<?> suiteClass;
 
@@ -202,7 +215,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private List<List<Method>> allTargetMethods;
 
   /** The runner's seed (master). */
-  private final Randomness runnerRandomness;
+  final Randomness runnerRandomness;
 
   /** 
    * If {@link #SYSPROP_RANDOM_SEED} property is used with two arguments (master:method)
@@ -228,7 +241,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private List<TestCandidate> testCandidates;
 
   /** All test groups. */
-  private HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups;
+  HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups;
 
   /** Class suite description. */
   private Description suiteDescription;
@@ -273,9 +286,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
       logger.severe("A non-test thread threw an uncaught exception. This" +
       		" should never happen in normal circumstances: report to " +
           RandomizedRunner.class.getName() + " developers. Thread: " +
-      		t + ", exception: " + e.toString() + ", stack:\n" + formatStackTrace(e.getStackTrace()));
+      		t + ", exception: " + traces.formatThrowable(e));
     }
   };
+
+  /**
+   * Stack trace filtering/ dumping.
+   */
+  private final Traces traces;
 
   /**
    * Resource disposal snippet.
@@ -305,6 +323,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
+    if (RandomizedTest.systemPropertyAsBoolean(SYSPROP_STACKFILTERING, true)) {
+      this.traces = new Traces(DEFAULT_STACK_FILTERS);
+    } else {
+      this.traces = new Traces();
+    }
+
     this.suiteClass = testClass;
     this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(suiteClass)));
 
@@ -702,8 +726,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * is assigned per-thread).
    */
   private RandomizedContext createContext(ThreadGroup tg) {
-    return RandomizedContext.create(
-        tg, suiteClass, runnerRandomness, testGroups);
+    return RandomizedContext.create(tg, suiteClass, this);
   }
 
   /**
@@ -782,9 +805,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     Collections.reverse(commonRoot);
     
     StringBuilder b = new StringBuilder();
-    b.append(stackProbes.size() + " stack trace probe(s) taken and the constant root was:\n"
-        + "    ...\n"
-        + formatStackTrace(commonRoot));
+    b.append(stackProbes.size())
+     .append(" stack trace probe(s) taken and the constant root was:\n    ...\n");
+    traces.formatStackTrace(b, commonRoot);
     b.append("\n    Diverging stack paths from individual probes (if different than the common root):\n");
     for (int j = 0; j < stackProbes.size(); j++) {
       StackTraceElement[] sample = stackProbes.get(j);
@@ -792,7 +815,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           Arrays.asList(sample).subList(0, sample.length - commonRoot.size());
       if (divergent.size() > 0) {
         b.append("Probe #" + (j + 1) + "\n");
-        b.append(formatStackTrace(divergent));
+        traces.formatStackTrace(b, divergent);
         b.append("    ...\n");
       }
     }
@@ -815,7 +838,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     runnerThreadGroup.markAsBeingTerminated(t);
 
     logger.warning("Attempting to terminate thread: " + tname + ", currently at:\n"
-        + formatStackTrace(t.getStackTrace()));
+        + traces.formatStackTrace(t.getStackTrace()));
   
     // Try to interrupt first.
     int interruptAttempts = this.killAttempts;
@@ -829,7 +852,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (!t.isAlive()) break;
       logger.fine("Trying to interrupt thread: " + tname 
           + ", retries: " + interruptAttempts + ", currently at: "
-          + formatStackTrace(t.getStackTrace()));
+          + traces.formatStackTrace(t.getStackTrace()));
     } while (--interruptAttempts >= 0);
   
     if (!t.isAlive()) {
@@ -850,7 +873,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (!t.isAlive()) break;
         logger.fine("Trying to stop a runaway thread: " + tname 
             + ", retries: " + killAttempts + ", currently at: "
-            + formatStackTrace(t.getStackTrace()));
+            + traces.formatStackTrace(t.getStackTrace()));
       } while (--killAttempts >= 0);
   
       if (!t.isAlive()) {
@@ -993,14 +1016,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private List<TestCandidate> getFilteredTestCandidates() {
     // Check for class filter (most restrictive, immediate answer).
-    if (normalizeNull(System.getProperty(SYSPROP_TESTCLASS)) != null) {
+    if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS)) != null) {
       if (!suiteClass.getName().equals(System.getProperty(SYSPROP_TESTCLASS))) {
         return Collections.emptyList();
       }
     }
 
     // Check for method filter, if defined.
-    String methodFilter = normalizeNull(System.getProperty(SYSPROP_TESTMETHOD));
+    String methodFilter = emptyToNull(System.getProperty(SYSPROP_TESTMETHOD));
 
     // Apply filters.
     List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
@@ -1018,7 +1041,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Normalize empty strings to nulls.
    */
-  static String normalizeNull(String value) {
+  static String emptyToNull(String value) {
     if (value == null || value.trim().isEmpty())
       return null;
     return value.trim();
@@ -1407,7 +1430,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   
     return e;
   }
-  
+
   /**
    * Augment stack trace of the given exception with seed infos from the
    * current thread's randomized context.
@@ -1415,20 +1438,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   static <T extends Throwable> T augmentStackTrace(T e) {
     RandomizedContext context = RandomizedContext.current();
     return augmentStackTraceNoContext(e, context.getRandomnesses());
-  }
-
-  /** Format a list of stack entries into a string. */
-  private static String formatStackTrace(StackTraceElement[] stackTrace) {
-    return formatStackTrace(Arrays.asList(stackTrace));
-  }
-
-  /** Format a list of stack entries into a string. */
-  private static String formatStackTrace(Iterable<StackTraceElement> stackTrace) {
-    StringBuilder b = new StringBuilder();
-    for (StackTraceElement e : stackTrace) {
-      b.append("    ").append(e.toString()).append("\n");
-    }
-    return b.toString();
   }
 
   /**
@@ -1504,6 +1513,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
     return parseSeedChain(seedChain);
   }
 
+  /**
+   * Stack trace formatting utilities. These may be initialized to filter out certain packages.  
+   */
+  public Traces getTraces() {
+    return traces;
+  }
+  
   /**
    * {@link RandomizedRunner} augments stack traces of test methods that ended in an exception
    * and inserts a fake entry starting with {@link #AUGMENTED_SEED_PACKAGE}.

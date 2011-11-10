@@ -1,7 +1,7 @@
 package com.carrotsearch.randomizedtesting.listeners;
 
 import java.io.*;
-import java.util.*;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.runner.Description;
@@ -10,7 +10,6 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import com.carrotsearch.randomizedtesting.*;
-import com.carrotsearch.randomizedtesting.annotations.Nightly;
 
 /**
  * A {@link RunListener} that lists all test cases to standard output. For each test
@@ -135,30 +134,22 @@ public class VerboseTestInfoPrinter extends RunListener {
 
     final Description d = failure.getDescription();
     final StringBuilder b = new StringBuilder();
-    b.append("TEST FAILED : ").append(d.getDisplayName()).append("\n");
+    b.append("FAILURE  : ").append(d.getDisplayName()).append("\n");
     b.append("Message  : " + failure.getMessage() + "\n");
-    b.append("Reproduce:");
-    b.append(" -D").append(RandomizedRunner.SYSPROP_RANDOM_SEED).append("=")
-        .append(RandomizedContext.current().getRunnerSeed());
-    if (d.getClassName() != null) b.append(" -D")
-        .append(RandomizedRunner.SYSPROP_TESTCLASS).append("=")
-        .append(d.getClassName());
-    if (d.getMethodName() != null) b.append(" -D")
-        .append(RandomizedRunner.SYSPROP_TESTMETHOD).append("=")
-        .append(RandomizedRunner.stripSeed(d.getMethodName()));
-
-    final List<String> otherProps = new ArrayList<String>();
-    otherProps.add(RandomizedRunner.SYSPROP_ITERATIONS);
-    otherProps.add(RuntimeTestGroup.getGroupSysProperty(Nightly.class));
-
-    for (String p : otherProps) {
-      if (System.getProperty(p) != null) {
-        b.append(" -D").append(p).append("=").append(System.getProperty(p));
-      }
-    }
+    b.append("Reproduce: ");
+    new ReproduceErrorMessageBuilder(b).appendAllOpts(failure.getDescription());
 
     b.append("\n");
-    b.append("Throwable: " + failure.getTrace());
+    b.append("Throwable:\n");
+    if (failure.getException() != null) {
+      Traces traces = new Traces();
+      try {
+        traces = RandomizedContext.current().getRunner().getTraces();
+      } catch (IllegalStateException e) {
+        // Ignore if no context.
+      }
+      traces.formatThrowable(b, failure.getException());
+    }
 
     System.err.println(b.toString());
   }
