@@ -177,11 +177,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
     public final Randomness randomness;
     public final Description description;
     public final Method method;
+    public final Object instance;
 
-    public TestCandidate(Method method, Randomness rnd, Description description) {
+    public TestCandidate(Method method, Object instance, Randomness rnd, Description description) {
       this.randomness = rnd;
       this.description = description;
       this.method = method;
+      this.instance = instance;
     }
   }
 
@@ -320,6 +322,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
   };
+
+  /**
+   * We're creating test instances early (to allow test factories and annotation scans).
+   * We also defer any instantiation exceptions until a test is actually executed. 
+   */
+  @SuppressWarnings("serial")
+  private class DeferredInstantiationException extends Error {
+    public DeferredInstantiationException(Throwable cause) {
+      super(cause);
+    }
+  }
 
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
@@ -581,7 +594,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     Object instance = null;
     try {
       // Get the test instance.
-      instance = suiteClass.newInstance();
+      if (c.instance instanceof DeferredInstantiationException) {
+        throw ((DeferredInstantiationException) c.instance).getCause();
+      } else {
+        instance = c.instance;
+      }
 
       // Run @Before hooks.
       for (Method m : getTargetMethods(Before.class))
@@ -1141,7 +1158,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
   
           // Add the candidate.
           parent.addChild(description);
-          candidates.add(new TestCandidate(method, iterRandomness, description));
+          
+          // Create an instance and delay instantiation exception if not possible.
+          Object instance = null;
+          try {
+            instance = suiteClass.newInstance();
+          } catch (Throwable t) {
+            instance = new DeferredInstantiationException(t);
+          }
+          candidates.add(new TestCandidate(method, instance, iterRandomness, description));
         }
       }
     }
@@ -1159,13 +1184,22 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // Always use @Nightly as a group.
     groups.put(Nightly.class, new RuntimeTestGroup(defaultNightly));
 
-    // Collect all remaining groups.
+    // Collect all groups declared on methods and instance classes.
+    HashSet<Class<?>> clazzes = new HashSet<Class<?>>();
+    HashSet<Annotation> annotations = new HashSet<Annotation>();
     for (TestCandidate c : testCandidates) {
-      for (Annotation ann : c.method.getAnnotations()) {
-        if (!groups.containsKey(ann) 
-            && ann.annotationType().isAnnotationPresent(TestGroup.class)) {
-          groups.put(ann.annotationType(), new RuntimeTestGroup(ann));
-        }
+      if (!clazzes.contains(c.instance.getClass())) {
+        clazzes.add(c.instance.getClass());
+        annotations.addAll(Arrays.asList(c.instance.getClass().getAnnotations()));
+      }
+      annotations.addAll(Arrays.asList(c.method.getAnnotations()));
+    }
+
+    // Check all annotations. 
+    for (Annotation ann : annotations) {
+      if (!groups.containsKey(ann) 
+          && ann.annotationType().isAnnotationPresent(TestGroup.class)) {
+        groups.put(ann.annotationType(), new RuntimeTestGroup(ann));
       }
     }
 

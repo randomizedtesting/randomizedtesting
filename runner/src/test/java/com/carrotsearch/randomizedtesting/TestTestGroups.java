@@ -33,7 +33,14 @@ public class TestTestGroups extends WithNestedTestClass {
     public void test1() {
     }
   }
-  
+
+  @Group1 @Group2
+  public static class Nested2 extends RandomizedTest {
+    @Test
+    public void test1() {
+    }
+  }
+
   @Test
   public void checkDefaultNames() {
     Assert.assertEquals("group1", RuntimeTestGroup.getGroupName(Group1.class));
@@ -45,7 +52,7 @@ public class TestTestGroups extends WithNestedTestClass {
   }  
 
   @Test
-  public void invalidValueNightly() {
+  public void groupsOnMethods() {
     String group1Property = RuntimeTestGroup.getGroupSysProperty(Group1.class);
     String group2Property = RuntimeTestGroup.getGroupSysProperty(Group2.class);
     try {
@@ -59,6 +66,27 @@ public class TestTestGroups extends WithNestedTestClass {
 
       System.setProperty(group1Property, "false");      
       checkResult(JUnitCore.runClasses(Nested1.class), 1, 1, 0);
+    } finally {
+      System.clearProperty(group1Property);
+      System.clearProperty(group2Property);
+    }
+  }
+
+  @Test
+  public void groupsOnClass() {
+    String group1Property = RuntimeTestGroup.getGroupSysProperty(Group1.class);
+    String group2Property = RuntimeTestGroup.getGroupSysProperty(Group2.class);
+    try {
+      checkResult(JUnitCore.runClasses(Nested2.class), 1, 1, 0);
+      
+      System.setProperty(group1Property, "true");
+      checkResult(JUnitCore.runClasses(Nested2.class), 1, 1, 0);
+
+      System.setProperty(group2Property, "true");
+      checkResult(JUnitCore.runClasses(Nested2.class), 1, 0, 0);
+
+      System.setProperty(group1Property, "false");      
+      checkResult(JUnitCore.runClasses(Nested2.class), 1, 1, 0);
     } finally {
       System.clearProperty(group1Property);
       System.clearProperty(group2Property);
