@@ -38,7 +38,7 @@ public class VerboseTestInfoPrinter extends RunListener {
   private PrintStream prevOut;
   private PrintStream prevErr;
 
-  private int nameLength = 90;
+  private int nameLength = 80;
   private String testNamePatt = "%s%-" + nameLength + "s ";
   
   private class SmartOutputStream extends PrefixedOutputStream {
