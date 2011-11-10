@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting.examples;
+package com.carrotsearch.examples.randomizedtesting;
 
 import junit.framework.Assert;
 
@@ -74,7 +74,11 @@ public class TestManyThings extends RandomizedTest {
   @AfterClass
   public static void cleanup() {
     info("after class");
-    throw new RuntimeException();
+    try {
+        throw new RuntimeException();
+    } catch (Throwable t) {
+        throw new Error("With message", t);
+    }
   }
 
   private static void info(String msg) {

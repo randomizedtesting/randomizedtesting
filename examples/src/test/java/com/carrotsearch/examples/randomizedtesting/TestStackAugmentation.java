@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting.examples;
+package com.carrotsearch.examples.randomizedtesting;
 
 import static org.junit.Assert.assertEquals;
 
