@@ -5,18 +5,18 @@ import java.util.*;
 /**
  * Utilities for dealing with throwables, stacks, etc.
  */
-public final class Traces {
+public final class TraceFormatting {
   /** Stack filtering prefixes. */
   private final List<String> filteredPrefixes;
 
   /**
    * Default stack traces, no filtering.
    */
-  public Traces() {
+  public TraceFormatting() {
     this(Collections.<String> emptyList());
   }
 
-  public Traces(List<String> filteredPrefixes) {
+  public TraceFormatting(List<String> filteredPrefixes) {
     this.filteredPrefixes = filteredPrefixes;
   }
   

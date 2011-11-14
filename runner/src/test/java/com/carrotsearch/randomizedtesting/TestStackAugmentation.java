@@ -38,6 +38,6 @@ public class TestStackAugmentation extends WithNestedTestClass {
     assertEquals(1, result.getFailureCount());
     
     Failure f = result.getFailures().get(0);
-    assertNotNull(RandomizedRunner.extractSeed(f.getException()));
+    assertNotNull(RandomizedRunner.seedFromThrowable(f.getException()));
   }
 }

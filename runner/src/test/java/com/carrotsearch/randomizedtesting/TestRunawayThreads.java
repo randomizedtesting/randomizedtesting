@@ -114,8 +114,8 @@ public class TestRunawayThreads extends WithNestedTestClass {
     Failure testFailure = r.getFailures().get(0);
     Throwable testException = testFailure.getException();
     Throwable threadException = testException.getCause();
-    Assert.assertNotNull(RandomizedRunner.extractSeed(testException));
-    Assert.assertNotNull(RandomizedRunner.extractSeed(threadException));
+    Assert.assertNotNull(RandomizedRunner.seedFromThrowable(testException));
+    Assert.assertNotNull(RandomizedRunner.seedFromThrowable(threadException));
   }
 
   @Test
@@ -124,7 +124,7 @@ public class TestRunawayThreads extends WithNestedTestClass {
     Assert.assertEquals(1, r.getFailureCount());
     Failure testFailure = r.getFailures().get(0);
     Throwable testException = testFailure.getException();
-    Assert.assertNotNull(RandomizedRunner.extractSeed(testException));
+    Assert.assertNotNull(RandomizedRunner.seedFromThrowable(testException));
   }  
   
   public static class NestedClassScope extends RandomizedTest {
@@ -153,6 +153,6 @@ public class TestRunawayThreads extends WithNestedTestClass {
     Assert.assertEquals(1, r.getFailureCount());
     Failure testFailure = r.getFailures().get(0);
     Throwable testException = testFailure.getException();
-    Assert.assertNotNull(RandomizedRunner.extractSeed(testException));
+    Assert.assertNotNull(RandomizedRunner.seedFromThrowable(testException));
   }    
 }

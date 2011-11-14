@@ -44,7 +44,7 @@ public class ReproduceErrorMessageBuilder {
     }
 
     if (description.getMethodName() != null) {
-      appendOpt(SYSPROP_TESTMETHOD, stripSeed(description.getMethodName()));
+      appendOpt(SYSPROP_TESTMETHOD, methodName(description));
     }
 
     appendRunnerProperties();

@@ -295,7 +295,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Stack trace filtering/ dumping.
    */
-  private final Traces traces;
+  private final TraceFormatting traces;
 
   /**
    * Resource disposal snippet.
@@ -337,9 +337,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     if (RandomizedTest.systemPropertyAsBoolean(SYSPROP_STACKFILTERING, true)) {
-      this.traces = new Traces(DEFAULT_STACK_FILTERS);
+      this.traces = new TraceFormatting(DEFAULT_STACK_FILTERS);
     } else {
-      this.traces = new Traces();
+      this.traces = new TraceFormatting();
     }
 
     this.suiteClass = testClass;
@@ -1148,13 +1148,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
     Constructor<?> constructor = suiteClass.getConstructors()[0];
 
+    // TODO: The logic and loops below are truly horrible...
+    int pgroup = 0;
     for (Object [] params : parameters) {
       Description parent1 = classDescription;
+      String pgroupName = "";
       if (params.length > 0) {
-        Description p = Description.createSuiteDescription("parameterized " + Arrays.toString(params));
+        Description p = Description.createSuiteDescription("parameterized: " 
+            + Arrays.toString(params));
         parent1.addChild(p);
         parent1 = p;
+        pgroupName = "#pg-" + pgroup;
       }
+      pgroup++;
 
       for (Method method : testMethods) {
         int methodIterations = determineMethodIterationCount(method);
@@ -1179,6 +1185,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
             Description description = 
                 Description.createSuiteDescription(
                     method.getName() +
+                    pgroupName +
                     (methodIterations > 1 ? "#" + i : "") +
                     " " + formatSeedChain(runnerRandomness, iterRandomness) + 
                     "(" + suiteClass.getName() + ")");
@@ -1612,10 +1619,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Stack trace formatting utilities. These may be initialized to filter out certain packages.  
    */
-  public Traces getTraces() {
+  public TraceFormatting getTraceFormatting() {
     return traces;
   }
-  
+
   /**
    * {@link RandomizedRunner} augments stack traces of test methods that ended in an exception
    * and inserts a fake entry starting with {@link #AUGMENTED_SEED_PACKAGE}.
@@ -1623,7 +1630,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * @return A string is returned with seeds combined, if any. Null is returned if no augmentation
    * can be found. 
    */
-  public static String extractSeed(Throwable t) {
+  public static String seedFromThrowable(Throwable t) {
     StringBuilder b = new StringBuilder();
     while (t != null) {
       for (StackTraceElement s : t.getStackTrace()) {
@@ -1642,10 +1649,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Strip the seed and round number appended to a method name in test runs
-   * (because there is no other place we can append it to). 
+   * Strip the seed, round number and any other attributes appended to a method name in 
+   * test runs (because there is no other place we can append it to). 
    */
-  public static String stripSeed(String methodName) {
-    return methodName.replaceAll("(\\#[0-9+])?\\s\\[[A-Za-z0-9\\:]+\\]", "");
+  public static String methodName(Description description) {
+    return description.getMethodName().replaceAll("(\\#[0-9+])?\\s\\[[A-Za-z0-9\\:]+\\]", "");
   }
 }

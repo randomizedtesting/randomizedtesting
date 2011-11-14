@@ -142,9 +142,9 @@ public class VerboseTestInfoPrinter extends RunListener {
     b.append("\n");
     b.append("Throwable:\n");
     if (failure.getException() != null) {
-      Traces traces = new Traces();
+      TraceFormatting traces = new TraceFormatting();
       try {
-        traces = RandomizedContext.current().getRunner().getTraces();
+        traces = RandomizedContext.current().getRunner().getTraceFormatting();
       } catch (IllegalStateException e) {
         // Ignore if no context.
       }
