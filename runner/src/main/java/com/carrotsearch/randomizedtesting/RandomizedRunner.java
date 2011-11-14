@@ -1137,75 +1137,109 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // Shuffle at real test-case level, don't shuffle iterations or explicit @Seeds order.
     Collections.shuffle(testMethods, new Random(runnerRandomness.seed));
 
-    List<TestCandidate> candidates = new ArrayList<TestCandidate>();
     ArrayList<Object[]> parameters = collectFactoryParameters();
-
-    Constructor<?> [] constructors = suiteClass.getConstructors();
-    if (constructors.length != 1) {
-      throw new RuntimeException("A test class is expected to have one public constructor "
-          + " (parameterless or matching " + ParametersFactory.class + " method's output): " 
-          + suiteClass.getName());
-    }
     Constructor<?> constructor = suiteClass.getConstructors()[0];
 
-    // TODO: The logic and loops below are truly horrible...
-    int pgroup = 0;
-    for (Object [] params : parameters) {
-      Description parent1 = classDescription;
-      String pgroupName = "";
-      if (params.length > 0) {
-        Description p = Description.createSuiteDescription("parameterized: " 
-            + Arrays.toString(params));
-        parent1.addChild(p);
-        parent1 = p;
-        pgroupName = "#pg-" + pgroup;
+    // TODO: The loops and conditions below are truly horrible...
+    List<TestCandidate> allTests = new ArrayList<TestCandidate>();
+    Map<Method, Description> subNodes = new HashMap<Method, Description>();
+    
+    if (parameters.size() > 1) {
+      for (Method method : testMethods) {
+        Description tmp = Description.createSuiteDescription(method.getName());
+        subNodes.put(method, tmp);
+        suiteDescription.addChild(tmp);
       }
-      pgroup++;
+    }
+    
+    for (Object [] params : parameters) {
+      final LinkedHashMap<String, Object> parameterizedArgs = new LinkedHashMap<String, Object>();
+      for (int i = 0; i < params.length; i++) {
+        parameterizedArgs.put("p" + i + "=", params[i]);
+      }
 
       for (Method method : testMethods) {
-        int methodIterations = determineMethodIterationCount(method);
+        final List<TestCandidate> methodTests = 
+            collectCandidatesForMethod(constructor, params, method, parameterizedArgs);
+        final Description parent;
 
-        Description parent2 = parent1;
-        if (methodIterations > 1) {
-          // This will be un-clickable in Eclipse. See Rants.
-          Description p = Description.createSuiteDescription(method.getName());
-          parent2.addChild(p);
-          parent2 = p;
+        Description tmp = subNodes.get(method);
+        if (tmp == null && methodTests.size() > 1) {
+          tmp = Description.createSuiteDescription(method.getName()); 
+          subNodes.put(method, tmp);
+          suiteDescription.addChild(tmp);
+        } else {
+          if (tmp == null)
+            tmp = suiteDescription;
         }
-  
-        for (final long testSeed : determineMethodSeeds(method)) {
-          final boolean fixedSeed = isConstantSeedForAllIterations(method);
-    
-          // Create test iterations.
-          for (int i = 0; i < methodIterations; i++) {
-            final long iterSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
-            Randomness iterRandomness = new Randomness(iterSeed);
-    
-            // Create a description that contains everything we need to know to repeat the test.
-            Description description = 
-                Description.createSuiteDescription(
-                    method.getName() +
-                    pgroupName +
-                    (methodIterations > 1 ? "#" + i : "") +
-                    " " + formatSeedChain(runnerRandomness, iterRandomness) + 
-                    "(" + suiteClass.getName() + ")");
-    
-            // Add the candidate.
-            parent2.addChild(description);
-  
-            // Create an instance and delay instantiation exception if not possible.
-            Object instance = null;
-            try {
-              instance = constructor.newInstance(params);
-            } catch (Throwable t) {
-              instance = new DeferredInstantiationException(t);
-            }
-            candidates.add(new TestCandidate(method, instance, iterRandomness, description));
-          }
+        parent = tmp;
+
+        for (TestCandidate c : methodTests) {
+          parent.addChild(c.description);
+          allTests.add(c);
         }
       }
     }
+
+    return allTests;
+  }
+
+  /**
+   * Collect test candidates for a single method and the given seed.
+   */
+  private List<TestCandidate> collectCandidatesForMethod(
+      Constructor<?> constructor, Object[] params, Method method, 
+      LinkedHashMap<String, Object> parameterizedArgs) {
+    final List<TestCandidate> candidates = new ArrayList<TestCandidate>();
+    final boolean fixedSeed = isConstantSeedForAllIterations(method);
+    final int methodIterations = determineMethodIterationCount(method);
+
+    for (final long testSeed : determineMethodSeeds(method)) {
+      for (int i = 0; i < methodIterations; i++) {
+        final long thisSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
+        final Randomness thisRandomness = new Randomness(thisSeed);
+
+        final LinkedHashMap<String, Object> args = new LinkedHashMap<String, Object>();
+        if (methodIterations > 1) { 
+          args.put("#", i);
+        }
+        args.putAll(parameterizedArgs);
+        args.put("seed=", formatSeedChain(runnerRandomness, thisRandomness));
+        Description description = Description.createSuiteDescription(
+            String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()));
+   
+        // Create an instance and delay instantiation exception if not possible.
+        Object instance = null;
+        try {
+          instance = constructor.newInstance(params);
+        } catch (Throwable t) {
+          instance = new DeferredInstantiationException(t);
+        }
+        candidates.add(new TestCandidate(method, instance, thisRandomness, description));
+      }
+    }
+
     return candidates;
+  }
+
+  private String formatMethodArgs(LinkedHashMap<String, Object> args) {
+    if (args.isEmpty()) return "";
+
+    StringBuilder b = new StringBuilder();
+    b.append(" {");
+    for (Iterator<Map.Entry<String, Object>> i = args.entrySet().iterator(); i.hasNext();) {
+      Map.Entry<String, Object> e = i.next();
+      b.append(e.getKey()).append(toString(e.getValue()));
+      if (i.hasNext()) b.append(" ");
+    }
+    b.append("}");
+    return b.toString();
+  }
+
+  private String toString(Object value) {
+    if (value == null) return "null";
+    // TODO: handle arrays in a nicer way.
+    return value.toString();
   }
 
   /**
@@ -1446,7 +1480,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
       .describedAs("Suite class " + suiteClass.getName())
       .isPublic()
       .isConcreteClass();
-    
+
+    // Check constructors.
+    Constructor<?> [] constructors = suiteClass.getConstructors();
+    if (constructors.length != 1) {
+      throw new RuntimeException("A test class is expected to have one public constructor "
+          + " (parameterless or with types matching static @" + ParametersFactory.class 
+          + "-annotated method's output): " + suiteClass.getName());
+    }
+
     // @BeforeClass
     for (Method method : flatten(annotatedWith(allTargetMethods, BeforeClass.class))) {
       Validation.checkThat(method)
