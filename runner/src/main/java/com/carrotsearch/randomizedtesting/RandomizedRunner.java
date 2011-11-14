@@ -1151,11 +1151,27 @@ public final class RandomizedRunner extends Runner implements Filterable {
         suiteDescription.addChild(tmp);
       }
     }
+
+    String [] parameterNames = new String [constructor.getParameterTypes().length];
+    Annotation [][] anns = constructor.getParameterAnnotations();
+    for (int i = 0; i < parameterNames.length; i++) {
+      for (Annotation ann : anns[i]) {
+        if (ann != null && ann.annotationType().equals(Name.class)) {
+          parameterNames[i] = ((Name) ann).value() + "=";
+          break;
+        }
+      }
+
+      if (parameterNames[i] == null) {
+        parameterNames[i] = "p" + i + "=";
+      }
+    }
     
     for (Object [] params : parameters) {
       final LinkedHashMap<String, Object> parameterizedArgs = new LinkedHashMap<String, Object>();
       for (int i = 0; i < params.length; i++) {
-        parameterizedArgs.put("p" + i + "=", params[i]);
+        parameterizedArgs.put(
+            i < parameterNames.length ? parameterNames[i] : "p" + i + "=", params[i]);
       }
 
       for (Method method : testMethods) {
@@ -1212,6 +1228,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
         Object instance = null;
         try {
           instance = constructor.newInstance(params);
+        } catch (IllegalArgumentException e) {
+          instance = new DeferredInstantiationException(new IllegalArgumentException(
+              "The provided parameters do not match or cannot be assigned to the" +
+              " suite's class constructor parameters of type: " 
+                  + Arrays.toString(constructor.getParameterTypes())));
         } catch (Throwable t) {
           instance = new DeferredInstantiationException(t);
         }
@@ -1491,10 +1512,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // If there is a parameterized constructor, look for a static method that privides parameters.
     if (constructors[0].getParameterTypes().length > 0) {
-      if (annotatedWith(allTargetMethods, ParametersFactory.class).isEmpty()) {
+      List<Method> factories = flatten(removeShadowed(annotatedWith(allTargetMethods, ParametersFactory.class)));
+      if (factories.isEmpty()) {
         throw new RuntimeException("A test class with a parameterized constructor is expected "
             + " to have a static @" + ParametersFactory.class 
             + "-annotated method: " + suiteClass.getName());
+      }
+      
+      for (Method m : factories) {
+        Validation.checkThat(m).isStatic().isPublic().hasArgsCount(0)
+          .hasReturnType(Iterable.class);
       }
     }
 

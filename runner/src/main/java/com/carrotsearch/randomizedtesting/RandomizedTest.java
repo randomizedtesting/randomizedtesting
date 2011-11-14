@@ -314,6 +314,22 @@ public class RandomizedTest extends Assert {
   }
 
   /**
+   * This is an absolutely hacky utility to take a vararg as input and return the array
+   * of arguments as output. The name is a dollar for brevity, idea borrowed from
+   * http://code.google.com/p/junitparams/.
+   */
+  public static Object [] $(Object... objects) {
+    return objects;
+  }
+
+  /**
+   * @see #$
+   */
+  public static Object [][] $$(Object[]... objects) {
+    return objects;
+  }
+
+  /**
    * Creates a new temporary file deleted after the given lifecycle phase completes.
    * The file is physically created on disk, but is not locked or opened.
    */

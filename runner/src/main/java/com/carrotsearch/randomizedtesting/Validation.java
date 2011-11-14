@@ -51,6 +51,14 @@ final class Validation {
       }
       return this;
     }
+
+    public MethodValidation hasReturnType(Class<?> clazz) {
+      if (!clazz.isAssignableFrom(m.getReturnType())) {        
+        throw new RuntimeException(description + " should have a return " +
+        		"type assignable to: " + clazz.getName());
+      }
+      return this;
+    }
   }
 
   public static final class ClassValidation {
