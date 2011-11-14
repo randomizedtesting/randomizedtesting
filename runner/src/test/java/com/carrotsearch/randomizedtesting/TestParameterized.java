@@ -68,5 +68,6 @@ public class TestParameterized extends WithNestedTestClass {
     Result result = JUnitCore.runClasses(Nested2.class);
     Assert.assertEquals(1, result.getFailureCount());
     Assert.assertTrue(result.getFailures().get(0).getDescription().getMethodName().contains("paramName=xyz"));
+    Assert.assertEquals("failing", RandomizedRunner.methodName(result.getFailures().get(0).getDescription()));
   }
 }

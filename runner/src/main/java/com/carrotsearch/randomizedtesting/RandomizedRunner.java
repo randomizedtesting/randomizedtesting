@@ -1727,10 +1727,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Strip the seed, round number and any other attributes appended to a method name in 
-   * test runs (because there is no other place we can append it to). 
+   * Attempts to extract just the method name from parameterized notation. 
    */
   public static String methodName(Description description) {
-    return description.getMethodName().replaceAll("(\\#[0-9+])?\\s\\[[A-Za-z0-9\\:]+\\]", "");
+    return description.getMethodName().replaceAll("\\s?\\{.+\\}", "");
   }
 }
