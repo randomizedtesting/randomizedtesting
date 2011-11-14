@@ -27,7 +27,7 @@ public class TestParameterized extends WithNestedTestClass {
     public void testTwo() {
     }
     
-    @Seeds({@Seed("deadbeef"), @Seed("cafebabe"),})
+    @Seeds({@Seed("deadbeef"), @Seed("cafebabe")})
     @Test
     @Repeat(iterations = 2, useConstantSeed = true)
     public void testThree() {
