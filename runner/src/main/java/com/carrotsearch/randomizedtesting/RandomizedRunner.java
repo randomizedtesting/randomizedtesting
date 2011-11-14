@@ -1483,10 +1483,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Check constructors.
     Constructor<?> [] constructors = suiteClass.getConstructors();
-    if (constructors.length != 1) {
+    if (constructors.length != 1 || !Modifier.isPublic(constructors[0].getModifiers())) {
       throw new RuntimeException("A test class is expected to have one public constructor "
           + " (parameterless or with types matching static @" + ParametersFactory.class 
           + "-annotated method's output): " + suiteClass.getName());
+    }
+
+    // If there is a parameterized constructor, look for a static method that privides parameters.
+    if (constructors[0].getParameterTypes().length > 0) {
+      if (annotatedWith(allTargetMethods, ParametersFactory.class).isEmpty()) {
+        throw new RuntimeException("A test class with a parameterized constructor is expected "
+            + " to have a static @" + ParametersFactory.class 
+            + "-annotated method: " + suiteClass.getName());
+      }
     }
 
     // @BeforeClass
