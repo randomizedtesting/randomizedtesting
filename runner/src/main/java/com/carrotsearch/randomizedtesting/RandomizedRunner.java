@@ -1,7 +1,14 @@
 package com.carrotsearch.randomizedtesting;
 
 
-import static com.carrotsearch.randomizedtesting.MethodCollector.*;
+import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
+import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
+import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
+import static com.carrotsearch.randomizedtesting.MethodCollector.immutableCopy;
+import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
+import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
 import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
 import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
@@ -9,20 +16,60 @@ import java.lang.Thread.State;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
-import org.junit.runner.*;
-import org.junit.runner.manipulation.*;
-import org.junit.runner.notification.*;
-import org.junit.runners.model.*;
+import org.junit.runner.Description;
+import org.junit.runner.Result;
+import org.junit.runner.Runner;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.Filterable;
+import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
+import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.*;
+import com.carrotsearch.randomizedtesting.annotations.Listeners;
+import com.carrotsearch.randomizedtesting.annotations.Name;
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.annotations.TestGroup;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+import com.carrotsearch.randomizedtesting.annotations.Timeout;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 
 /**
@@ -1130,15 +1177,26 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * @see Rants#RANT_1
    */
   private List<TestCandidate> collectTestCandidates(Description classDescription) {
-    List<Method> testMethods = 
+    final List<Method> testMethods = 
         new ArrayList<Method>(
             flatten(removeOverrides(annotatedWith(allTargetMethods, Test.class))));
 
     // Shuffle at real test-case level, don't shuffle iterations or explicit @Seeds order.
     Collections.shuffle(testMethods, new Random(runnerRandomness.seed));
 
-    ArrayList<Object[]> parameters = collectFactoryParameters();
-    Constructor<?> constructor = suiteClass.getConstructors()[0];
+    final Constructor<?> constructor = suiteClass.getConstructors()[0];
+
+    // Collect parameters.
+    ArrayList<Object[]> parameters = new ArrayList<Object[]>();
+    if (constructor.getParameterTypes().length == 0) {
+      parameters.add(new Object[] {});
+    } else {
+      try {
+        parameters = collectFactoryParameters();
+      } catch (AssumptionViolatedException e) {
+        return Collections.emptyList();
+      }
+    }
 
     // TODO: The loops and conditions below are truly horrible...
     List<TestCandidate> allTests = new ArrayList<TestCandidate>();
@@ -1152,6 +1210,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
 
+    // Collect annotated parameter names. We could use .class file parsing to get at
+    // the local variables table, but this seems like an overkill.
     String [] parameterNames = new String [constructor.getParameterTypes().length];
     Annotation [][] anns = constructor.getParameterAnnotations();
     for (int i = 0; i < parameterNames.length; i++) {
@@ -1166,7 +1226,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         parameterNames[i] = "p" + i + "=";
       }
     }
-    
+
     for (Object [] params : parameters) {
       final LinkedHashMap<String, Object> parameterizedArgs = new LinkedHashMap<String, Object>();
       for (int i = 0; i < params.length; i++) {
@@ -1269,6 +1329,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   @SuppressWarnings("all")
   public ArrayList<Object[]> collectFactoryParameters() {
     ArrayList<Object[]> parameters = new ArrayList<Object[]>();
+
     for (Method m : flatten(removeShadowed(annotatedWith(allTargetMethods, ParametersFactory.class)))) {
       Validation.checkThat(m).isStatic().isPublic();
       if (!Iterable.class.isAssignableFrom(m.getReturnType())) {
@@ -1280,19 +1341,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
       try {
         for (Object [] p : (Iterable<Object[]>) m.invoke(null)) 
           result.add(p);
+      } catch (InvocationTargetException e) {
+        Rethrow.rethrow(e.getCause());
       } catch (Throwable t) {
         throw new RuntimeException("Error collecting parameters from: " + m, t);
       }
 
       if (result.isEmpty()) {
-        throw new RuntimeException("Parameter set must be non-empty: " + m);
+        throw new AssumptionViolatedException("Parameters set should not be empty. Ignoring tests.");
       }
 
       parameters.addAll(result);
-    }
-
-    if (parameters.isEmpty()) {
-      parameters.add(new Object[] {});
     }
 
     return parameters;

@@ -1,6 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class TestParameterized extends WithNestedTestClass {
       assumeRunningNested();
       fail();
     }
-    
+
     @ParametersFactory
     public static Iterable<Object[]> parameters() {
       return Arrays.asList($$($("xyz")));
@@ -70,4 +71,38 @@ public class TestParameterized extends WithNestedTestClass {
     Assert.assertTrue(result.getFailures().get(0).getDescription().getMethodName().contains("paramName=xyz"));
     Assert.assertEquals("failing", RandomizedRunner.methodName(result.getFailures().get(0).getDescription()));
   }
+  
+  public static class Nested3 extends Nested2 {
+    public Nested3(@Name("paramName") int value) {
+      super(value);
+    }
+
+    @ParametersFactory
+    public static Iterable<Object[]> parameters() {
+      return Collections.emptyList();
+    }
+  }
+
+  public static class Nested4 extends Nested3 {
+    public Nested4(@Name("paramName") int value) {
+      super(value);
+    }
+
+    @ParametersFactory
+    public static Iterable<Object[]> parameters() {
+      assumeTrue(false);
+      throw new RuntimeException();
+    }
+  }
+
+  @Test
+  public void testEmptyParamsList() {
+    Result result = JUnitCore.runClasses(Nested3.class);
+    Assert.assertEquals(0, result.getRunCount());
+    Assert.assertEquals(0, result.getIgnoreCount());
+    
+    result = JUnitCore.runClasses(Nested4.class);
+    Assert.assertEquals(0, result.getRunCount());
+    Assert.assertEquals(0, result.getIgnoreCount());    
+  }  
 }
