@@ -1,0 +1,12 @@
+
+<project name="junit4" default="junit4">
+	<taskdef resource="junit4.antlib.xml" />
+
+	<target name="junit4">
+		<junit4>
+			<fileset dir="${basedir}">
+				<include name="**/tests/*.class" />
+			</fileset>
+		</junit4>
+	</target>
+</project>
