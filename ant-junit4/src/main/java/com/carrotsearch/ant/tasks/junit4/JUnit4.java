@@ -1,40 +1,35 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.types.Commandline;
-import org.apache.tools.ant.types.CommandlineJava;
-import org.apache.tools.ant.types.Environment;
-import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.PropertySet;
-import org.apache.tools.ant.types.Resource;
-import org.apache.tools.ant.types.ResourceCollection;
+import org.apache.tools.ant.*;
+import org.apache.tools.ant.taskdefs.*;
+import org.apache.tools.ant.types.*;
 import org.apache.tools.ant.types.resources.Resources;
+import org.apache.tools.ant.util.LineOrientedOutputStream;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.Type;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 
 /**
  * A simple ANT task to run JUnit4 tests.
  */
 public class JUnit4 extends Task {
   /**
+   * Listeners receiving test output progress. 
+   */
+  private List<IExecutionListener> listeners = Lists.newArrayList();
+
+  /**
    * Slave vm command line.
    */
   private CommandlineJava slaveCommand = new CommandlineJava();
-  
+
   /**
    * Environment variables to use in the forked JVM.
    */
@@ -44,11 +39,16 @@ public class JUnit4 extends Task {
    * Directory to invoke slave VM in.
    */
   private File dir;
-  
+
   /**
    * Test names.
    */
   private final Resources resources;
+
+  /**
+   * A folder to store temporary files in. Defaults to the project's basedir.
+   */
+  private File tempDir;
   
   public JUnit4() {
     resources = new Resources();
@@ -162,16 +162,165 @@ public class JUnit4 extends Task {
     this.dir = dir;
   }
 
+  /**
+   * The directory to store temporary files in.
+   */
+  public void setTempDir(File tempDir) {
+    this.tempDir = tempDir;
+  }
+
   @Override
   public void execute() throws BuildException {
     getProject().log("<JUnit4> says hello.", Project.MSG_DEBUG);
 
-    final List<String> testClasses = processTestResources();
+    // Process test classes and resources.
+    final List<String> testClassNames = processTestResources();
+    if (!testClassNames.isEmpty()) {
+      executeSlave(testClassNames);
+    }
+  }
 
-    CommandlineJava commandline = getCommandline();
-    commandline.createClasspath(getProject()).add(addSlaveClasspath());
+  /**
+   * Attach listeners and execute a slave process.
+   */
+  private void executeSlave(List<String> testClassNames) {
+    // Dump all test class names to a temporary file.
+    File tempDir = getTempDir();
+    File classNamesFile = null;
+    try {
+      String testClassPerLine = Joiner.on("\n").join(testClassNames);
+      log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
 
-    getProject().log("> " + Arrays.toString(commandline.getCommandline()), Project.MSG_INFO);
+      classNamesFile = File.createTempFile("junit4-", ".testmethods", tempDir);
+      Files.write(testClassPerLine, classNamesFile, Charsets.UTF_8);
+
+      // Prepare command line for java execution.
+      final CommandlineJava commandline = getCommandline();
+      commandline.createClasspath(getProject()).add(addSlaveClasspath());
+      commandline.setClassname(SlaveMainSafe.class.getName());
+      commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
+      log("Slave process command line:\n" + 
+          Joiner.on("\n").join(commandline.getCommandline()), Project.MSG_VERBOSE);
+
+      listeners.add(new AggregatingListener());
+      executeProcess(commandline);
+    } catch (IOException e) {
+      throw new BuildException(e);
+    } finally {
+      if (testClassNames != null) {
+        classNamesFile.delete();
+      }
+    }
+  }
+
+  /**
+   * Stream handler for the subprocess.
+   */
+  private class SlaveStreamHandler implements ExecuteStreamHandler {
+    private List<Thread> pumpers = Lists.newArrayList();
+    private IExecutionListener listener;
+
+    public SlaveStreamHandler(IExecutionListener listener) {
+      this.listener = listener;
+    }
+
+    @Override
+    public void setProcessOutputStream(final InputStream is) throws IOException {
+      Thread t = new Thread("pumper-stdout") {
+        public void run() {
+          EventReader replay = new EventReader(is, listener, IExecutionListener.class);
+          try {
+            replay.replay();
+          } catch (IOException e) {
+            log("PANIC: Event replay exception: " + e.getMessage(), e, Project.MSG_ERR);
+            readUntilEOF(is);
+          }
+        }
+
+        private void readUntilEOF(InputStream is) {
+          byte [] buffer = new byte [1024 * 8];
+          try {
+            while (is.read(buffer) > 0);
+          } catch (IOException e) {
+            // Ignore and exit.
+          }
+        }
+      };
+      pumpers.add(t);
+    }
+
+    @Override
+    public void setProcessInputStream(OutputStream os) throws IOException {
+      // do nothing.
+    }
+    
+    @Override
+    public void setProcessErrorStream(InputStream is) throws IOException {
+      OutputStream os = new LineOrientedOutputStream() {
+        protected void processLine(String line) throws IOException {
+          System.err.println("!> " + line);
+        }
+      };
+      StreamPumper streamPumper = new StreamPumper(is, os, false);
+      pumpers.add(new Thread(streamPumper, "pumper-stderr"));
+    }
+
+    @Override
+    public void start() throws IOException {
+      for (Thread t : pumpers) {
+        t.setDaemon(true);
+        t.start();
+      }
+    }
+
+    @Override
+    public void stop() {
+      try {
+        for (Thread t : pumpers) {
+            log("Stopping: " + t, Project.MSG_DEBUG);
+            t.join();
+        }
+      } catch (InterruptedException e) {
+        // Don't wait.
+      }
+    }
+  }
+
+  /**
+   * Execute a slave process.
+   */
+  private void executeProcess(CommandlineJava commandline) {
+    try {
+      final IExecutionListener listener = SlaveMain.listenerProxy(
+          Multiplexer.forInterface(IExecutionListener.class, listeners));
+      final ExecuteStreamHandler streamHandler = new SlaveStreamHandler(listener);
+      final Execute execute = new Execute();
+      execute.setCommandline(commandline.getCommandline());
+      execute.setVMLauncher(true);
+      execute.setWorkingDirectory(dir == null ? getProject().getBaseDir() : dir);
+      execute.setStreamHandler(streamHandler);
+      int exitStatus = execute.execute();
+
+      if (execute.isFailure()) {
+        if (exitStatus == SlaveMain.ERR_NO_JUNIT) {
+          throw new BuildException("Slave process classpath must include a junit JAR.");
+        }
+        throw new BuildException("Slave process exited with an error code: " + exitStatus);
+      }
+    } catch (IOException e) {
+      throw new BuildException("Could not execute slave process. Run ant with -verbose to get" +
+      		" the execution details.", e);
+    }
+  }
+
+  /**
+   * Resolve temporary folder.
+   */
+  private File getTempDir() {
+    if (this.tempDir == null) {
+      this.tempDir = getProject().getBaseDir();
+    }
+    return tempDir;
   }
 
   /**
@@ -225,7 +374,7 @@ public class JUnit4 extends Task {
     String [] REQUIRED_SLAVE_CLASSES = {
         SlaveMain.class.getName(),
     };
-    
+
     for (String clazz : Arrays.asList(REQUIRED_SLAVE_CLASSES)) {
       String resource = clazz.replace(".", "/") + ".class";
       File f = LoaderUtils.getResourceSource(getClass().getClassLoader(), resource);

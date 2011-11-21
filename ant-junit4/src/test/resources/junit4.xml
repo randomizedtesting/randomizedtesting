@@ -1,12 +1,30 @@
 
 <project name="junit4" default="junit4">
-	<taskdef resource="junit4.antlib.xml" />
+    <path id="junit.classpath">
+        <fileset dir="..">
+            <include name="dependency/junit-*.jar" />
+        </fileset>
+    </path>
 
-	<target name="junit4">
-		<junit4>
-			<fileset dir="${basedir}">
-				<include name="**/tests/*.class" />
-			</fileset>
-		</junit4>
-	</target>
+    <taskdef resource="junit4.antlib.xml">
+        <classpath refid="junit.classpath" />
+        <classpath>
+            <fileset dir="..">
+                <include name="ant-junit4-*-standalone.jar" />
+            </fileset>
+        </classpath>
+    </taskdef>
+
+    <target name="junit4">
+        <junit4>
+            <classpath>
+                <path location="." />
+                <path refid="junit.classpath" />
+            </classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/*.class" />
+            </fileset>
+        </junit4>
+    </target>
 </project>

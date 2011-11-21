@@ -1,34 +1,33 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.notification.Failure;
 
-import com.google.common.collect.Lists;
-
 /**
  * A slave process running the actual tests on the target JVM.
  */
 public class SlaveMain {
+  /** Runtime exception. */
+  static final int ERR_EXCEPTION = 255;
+
+  /** No JUnit on classpath. */
+  static final int ERR_NO_JUNIT = 254;
+
   /**
    * All class names to be executed as tests.
    */
-  private final List<String> classes = Lists.newArrayList();
+  private final List<String> classes = new ArrayList<String>();
 
   /**
    * Listeners subscribed to tests execution.
    */
-  private final List<IExecutionListener> listeners = Lists.newArrayList();
+  private final List<IExecutionListener> listeners = new ArrayList<IExecutionListener>();
 
   /** Stored original system output. */
   private static PrintStream stdout;
@@ -94,7 +93,7 @@ public class SlaveMain {
    * Instantiate test classes (or try to).
    */
   private Class<?>[] instantiate(IExecutionListener multiplexer, Collection<String> classnames) {
-    final List<Class<?>> instantiated = Lists.newArrayList();
+    final List<Class<?>> instantiated = new ArrayList<Class<?>>();
     for (String className : classnames) {
       try {
         instantiated.add(Class.forName(className));
@@ -129,8 +128,9 @@ public class SlaveMain {
    * Creates a proxy for {@link IExecutionListener} to a given handler.
    */
   static IExecutionListener listenerProxy(InvocationHandler handler) {
-    return (IExecutionListener) Proxy.newProxyInstance(Thread.currentThread()
-        .getContextClassLoader(), new Class<?>[] {IExecutionListener.class},                                                 handler);
+    return (IExecutionListener) Proxy.newProxyInstance(
+        SlaveMain.class.getClassLoader(), new Class<?>[] {IExecutionListener.class},
+        handler);
   }
 
   /**
@@ -142,6 +142,7 @@ public class SlaveMain {
       stderr.println("      " + t.toString());
       t.printStackTrace(stderr);
     }
+    stderr.flush();
   }
 
   /**
@@ -154,17 +155,45 @@ public class SlaveMain {
   /**
    * Parse command line arguments.
    */
-  private static void parseArguments(SlaveMain main, String[] args) {
+  private static void parseArguments(SlaveMain main, String[] args) throws IOException {
     for (int i = 0; i < args.length; i++) {
-      // The default expectation is a test class.
-      main.addTestClasses(args[i]);
+      if (args[i].startsWith("@")) {
+        // Arguments file, one line per option.
+        parseArguments(main, readArgsFile(args[i].substring(1)));
+      } else {
+        // The default expectation is a test class.
+        main.addTestClasses(args[i]);
+      }
     }
+  }
+
+  /**
+   * Read arguments from a file. Newline delimited, UTF-8 encoded. No fanciness to 
+   * avoid dependencies.
+   */
+  private static String[] readArgsFile(String argsFile) throws IOException {
+    final ArrayList<String> lines = new ArrayList<String>();
+    final BufferedReader reader = new BufferedReader(
+        new InputStreamReader(
+            new FileInputStream(argsFile), "UTF-8"));
+    try {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        line = line.trim();
+        if (!line.isEmpty() && !line.startsWith("#")) {
+          lines.add(line);
+        }
+      }
+    } finally {
+      reader.close();
+    }
+    return lines.toArray(new String [lines.size()]);
   }
 
   /**
    * Console entry point.
    */
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     EventWriter eventWriter = new EventWriter(System.out);
     IExecutionListener listener = listenerProxy(eventWriter);
 
@@ -179,9 +208,10 @@ public class SlaveMain {
       warn("Exception at main loop level?", t);
       exitStatus = -1;
     } finally {
-      eventWriter.close();
       restoreStreams();
     }
+
+    try { eventWriter.close(); } catch (Throwable e) {/* ignore */}
     System.exit(exitStatus);
   }
 }

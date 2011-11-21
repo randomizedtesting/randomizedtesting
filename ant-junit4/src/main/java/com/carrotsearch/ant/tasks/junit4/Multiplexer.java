@@ -20,7 +20,7 @@ public class Multiplexer<T> implements InvocationHandler {
   }
 
   @Override
-  public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+  public synchronized final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     for (T target : targets) {
       try {
         method.invoke(target, args);

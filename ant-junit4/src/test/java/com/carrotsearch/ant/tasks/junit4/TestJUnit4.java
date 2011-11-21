@@ -15,7 +15,7 @@ public class TestJUnit4 extends BuildFileTest {
     assertNotNull(resource);
     configureProject(resource.getFile());
   }
-  
+
   @Test
   public void testSimple() {
     final StringBuilder builder = new StringBuilder();
@@ -26,7 +26,10 @@ public class TestJUnit4 extends BuildFileTest {
         builder.append("\n");
       }
     });
-    super.executeTarget("junit4");
-    System.out.println(builder.toString());
+    try {
+      super.executeTarget("junit4");
+    } finally {
+      System.out.println(builder.toString());
+    }
   }
 }
