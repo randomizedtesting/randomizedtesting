@@ -104,5 +104,28 @@
                 <include name="**/tests/TestFailing.class" />
             </fileset>
         </junit4>
-    </target>       	
+    </target>
+
+    <target name="failingWithNonStandardException">
+        <junit4 haltonfailure="true">
+            <classpath refid="tests.classpath" />
+        	<classpath>
+        	  <fileset dir=".." includes="dependency/asm*.jar" />
+        	</classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestFailingWithNonStandardException.class" />
+            </fileset>
+        </junit4>
+    </target>
+	
+    <target name="jvmcrash">
+        <junit4 haltonfailure="true">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestJvmCrash.class" />
+            </fileset>
+        </junit4>
+    </target>	
 </project>

@@ -69,5 +69,10 @@ public class TestJUnit4 extends BuildFileTest {
   @Test
   public void testFailing() {
     super.expectBuildExceptionContaining("failing", "tests failures", "1 error, 1 failure");
-  }      
+  }
+  
+  @Test
+  public void testJvmCrash() {
+    super.executeTarget("jvmcrash");
+  }        
 }
