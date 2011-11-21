@@ -119,6 +119,22 @@
         </junit4>
     </target>
 	
+    <target name="failureProperty">
+        <junit4 haltonfailure="false" failureProperty="tests.failed">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestFailing.class" />
+            </fileset>
+        </junit4>
+
+        <fail message="Expected failure property to be set.">
+            <condition>
+                  <not><isset property="tests.failed" /></not>
+            </condition>
+        </fail>    	
+    </target>
+
     <target name="jvmcrash">
         <junit4 haltonfailure="true">
             <classpath refid="tests.classpath" />

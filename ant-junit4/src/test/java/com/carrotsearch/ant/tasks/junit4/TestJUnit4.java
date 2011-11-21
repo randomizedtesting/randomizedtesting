@@ -74,5 +74,10 @@ public class TestJUnit4 extends BuildFileTest {
   @Test
   public void testJvmCrash() {
     super.executeTarget("jvmcrash");
-  }        
+  }
+  
+  @Test
+  public void testFailureProperty() {
+    super.executeTarget("failureProperty");
+  }          
 }

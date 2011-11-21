@@ -13,6 +13,7 @@ import org.objectweb.asm.ClassReader;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
@@ -59,6 +60,11 @@ public class JUnit4 extends Task {
    * Print summary of all tests at the end.
    */
   private boolean printSummary = true;
+
+  /**
+   * Property to set if there were test failures or errors.
+   */
+  private String failureProperty;
   
   /**
    * A folder to store temporary files in. Defaults to the project's basedir.
@@ -70,6 +76,16 @@ public class JUnit4 extends Task {
     resources.setCache(true);
   }
   
+  /**
+   * Property to set to "true" if there is a failure in a test.
+   */
+  public void setFailureProperty(String failureProperty) {
+    this.failureProperty = failureProperty;
+  }
+  
+  /*
+   * 
+   */
   @Override
   public void setProject(Project project) {
     super.setProject(project);
@@ -239,8 +255,14 @@ public class JUnit4 extends Task {
       if (printSummary) {
         log("Tests summary: " + testsSummary, Project.MSG_INFO);
       }
-      if (haltOnFailure && !testsSummary.isSuccessful()) {
-        throw new BuildException("There were test failures: " + testsSummary);
+
+      if (!testsSummary.isSuccessful()) {
+        if (!Strings.isNullOrEmpty(failureProperty)) {
+          getProject().setNewProperty(failureProperty, "true");        
+        }
+        if (haltOnFailure) {
+          throw new BuildException("There were test failures: " + testsSummary);
+        }
       }
     } catch (IOException e) {
       throw new BuildException(e);
