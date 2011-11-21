@@ -10,5 +10,5 @@ public class TestSub1 {
   public void method2() {}
 
   @Test
-  public void method3() {}  
+  public void method3() {}
 }

@@ -1,5 +1,5 @@
 
-<project name="junit4" default="junit4">
+<project name="junit4" default="normal">
     <path id="junit.classpath">
         <fileset dir="..">
             <include name="dependency/junit-*.jar" />
@@ -15,8 +15,24 @@
         </classpath>
     </taskdef>
 
-    <target name="junit4">
+    <target name="normal">
         <junit4>
+            <classpath>
+                <path location="." />
+                <path refid="junit.classpath" />
+            </classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestSub*.class" />
+            </fileset>
+        </junit4>
+    </target>
+
+    <target name="dir">
+    	<delete dir="empty" failonerror="false" />
+    	<mkdir dir="empty" />
+
+        <junit4 dir="empty">
             <classpath>
                 <path location="." />
                 <path refid="junit.classpath" />
@@ -26,5 +42,11 @@
                 <include name="**/tests/*.class" />
             </fileset>
         </junit4>
-    </target>
+
+    	<fail message="Expected marker file to appear.">
+    		<condition>
+    			  <not><available file="empty/touch.me" type="file" /></not>
+		    </condition>
+		</fail>
+    </target>	
 </project>

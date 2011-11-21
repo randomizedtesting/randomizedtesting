@@ -5,31 +5,44 @@ import java.net.URL;
 import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildFileTest;
 import org.apache.tools.ant.DefaultLogger;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class TestJUnit4 extends BuildFileTest {
-  @BeforeClass
-  public void setUp() {
+  private StringBuilder builder;
+  
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
     URL resource = getClass().getClassLoader().getResource("junit4.xml");
     assertNotNull(resource);
     configureProject(resource.getFile());
-  }
 
-  @Test
-  public void testSimple() {
-    final StringBuilder builder = new StringBuilder();
+    builder = new StringBuilder();
     getProject().addBuildListener(new DefaultLogger() {
       @Override
       public void messageLogged(BuildEvent e) {
+        builder.append(e.getPriority() + " ");
         builder.append(e.getMessage());
         builder.append("\n");
       }
     });
-    try {
-      super.executeTarget("junit4");
-    } finally {
-      System.out.println(builder.toString());
-    }
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+    // System.out.println(builder.toString());
+    builder = null;
+  }
+
+  @Test
+  public void testNormal() {
+    super.executeTarget("normal");
+  }
+
+  @Test
+  public void testNormalExecution() {
+    super.executeTarget("dir");
   }
 }
