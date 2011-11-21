@@ -31,6 +31,11 @@ public class JUnit4 extends Task {
   private CommandlineJava slaveCommand = new CommandlineJava();
 
   /**
+   * Set new environment for the forked process?
+   */
+  private boolean newEnvironment;
+
+  /**
    * Environment variables to use in the forked JVM.
    */
   private Environment env = new Environment();
@@ -45,6 +50,16 @@ public class JUnit4 extends Task {
    */
   private final Resources resources;
 
+  /**
+   * Stop the build process if there were errors?
+   */
+  private boolean haltOnFailure;
+
+  /**
+   * Print summary of all tests at the end.
+   */
+  private boolean printSummary = true;
+  
   /**
    * A folder to store temporary files in. Defaults to the project's basedir.
    */
@@ -61,6 +76,20 @@ public class JUnit4 extends Task {
     this.resources.setProject(project);
   }
   
+  /**
+   * Prints the summary of all executed, ignored etc. tests at the end. 
+   */
+  public void setPrintSummary(boolean printSummary) {
+    this.printSummary = printSummary;
+  }
+
+  /**
+   * Stop the build process if there were failures or errors during test execution.
+   */
+  public void setHaltOnFailure(boolean haltOnFailure) {
+    this.haltOnFailure = haltOnFailure;
+  }
+
   /**
    * Set the maximum memory to be used by all forked JVMs.
    * 
@@ -202,8 +231,17 @@ public class JUnit4 extends Task {
       log("Slave process command line:\n" + 
           Joiner.on("\n").join(commandline.getCommandline()), Project.MSG_VERBOSE);
 
-      listeners.add(new AggregatingListener());
+      TestsSummaryListener summaryListener = new TestsSummaryListener();
+      listeners.add(summaryListener);
       executeProcess(commandline);
+
+      final TestsSummary testsSummary = summaryListener.getResult();
+      if (printSummary) {
+        log("Tests summary: " + testsSummary, Project.MSG_INFO);
+      }
+      if (haltOnFailure && !testsSummary.isSuccessful()) {
+        throw new BuildException("There were test failures: " + testsSummary);
+      }
     } catch (IOException e) {
       throw new BuildException(e);
     } finally {
@@ -299,6 +337,9 @@ public class JUnit4 extends Task {
       execute.setVMLauncher(true);
       execute.setWorkingDirectory(dir == null ? getProject().getBaseDir() : dir);
       execute.setStreamHandler(streamHandler);
+      execute.setNewenvironment(newEnvironment);
+      if (env.getVariables() != null)
+        execute.setEnvironment(env.getVariables());
       int exitStatus = execute.execute();
 
       if (execute.isFailure()) {

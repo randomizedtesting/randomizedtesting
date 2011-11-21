@@ -6,6 +6,11 @@
         </fileset>
     </path>
 
+    <path id="tests.classpath">
+        <path location="." />
+        <path refid="junit.classpath" />
+    </path>
+
     <taskdef resource="junit4.antlib.xml">
         <classpath refid="junit.classpath" />
         <classpath>
@@ -16,11 +21,8 @@
     </taskdef>
 
     <target name="normal">
-        <junit4>
-            <classpath>
-                <path location="." />
-                <path refid="junit.classpath" />
-            </classpath>
+        <junit4 haltonfailure="true">
+            <classpath refid="tests.classpath" />
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestSub*.class" />
@@ -32,14 +34,11 @@
     	<delete dir="empty" failonerror="false" />
     	<mkdir dir="empty" />
 
-        <junit4 dir="empty">
-            <classpath>
-                <path location="." />
-                <path refid="junit.classpath" />
-            </classpath>
+        <junit4 dir="empty" haltonfailure="true">
+            <classpath refid="tests.classpath" />
 
             <fileset dir="${basedir}">
-                <include name="**/tests/*.class" />
+                <include name="**/tests/TestDir.class" />
             </fileset>
         </junit4>
 
@@ -48,5 +47,62 @@
     			  <not><available file="empty/touch.me" type="file" /></not>
 		    </condition>
 		</fail>
-    </target>	
+    </target>
+
+    <target name="maxmem">
+        <junit4 maxmemory="100m" haltonfailure="true">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestMaxMem.class" />
+            </fileset>
+        </junit4>
+    </target>
+
+    <target name="jvmarg">
+        <junit4 haltonfailure="true">
+            <classpath refid="tests.classpath" />
+
+        	<jvmarg value="-Xmx100m"/>
+        	<jvmarg value="-Dtest.param=foobar"/>
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestMaxMem.class" />
+            	<include name="**/tests/TestJvmArg.class" />
+            </fileset>
+        </junit4>
+    </target>
+	
+    <target name="sysproperty">
+        <junit4 haltonfailure="true">
+            <classpath refid="tests.classpath" />
+        	<sysproperty key="test.param" value="foobar" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestJvmArg.class" />
+            </fileset>
+        </junit4>
+    </target>
+
+    <target name="env">
+        <junit4 haltonfailure="true">
+            <classpath refid="tests.classpath" />
+
+        	<env key="env.variable" value="foobar" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestEnvVar.class" />
+            </fileset>
+        </junit4>
+    </target>
+
+    <target name="failing">
+        <junit4 haltonfailure="true">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestFailing.class" />
+            </fileset>
+        </junit4>
+    </target>       	
 </project>

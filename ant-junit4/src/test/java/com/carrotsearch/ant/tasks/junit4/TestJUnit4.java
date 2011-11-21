@@ -37,12 +37,37 @@ public class TestJUnit4 extends BuildFileTest {
   }
 
   @Test
-  public void testNormal() {
+  public void testNormalExecution() {
     super.executeTarget("normal");
   }
 
   @Test
-  public void testNormalExecution() {
+  public void testDir() {
     super.executeTarget("dir");
   }
+
+  @Test
+  public void testMaxMem() {
+    super.executeTarget("maxmem");
+  }  
+
+  @Test
+  public void testJvmArg() {
+    super.executeTarget("jvmarg");
+  }
+  
+  @Test
+  public void testSysProperty() {
+    super.executeTarget("sysproperty");
+  }
+
+  @Test
+  public void testEnv() {
+    super.executeTarget("env");
+  }
+
+  @Test
+  public void testFailing() {
+    super.expectBuildExceptionContaining("failing", "tests failures", "1 error, 1 failure");
+  }      
 }
