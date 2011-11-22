@@ -1,7 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
@@ -9,14 +8,17 @@ import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.Failure;
 
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+
 /**
  * {@link RandomizedRunner} can augment stack traces to include seed info. Check
  * if it works.
  */
 public class TestStackAugmentation extends WithNestedTestClass {
   @RunWith(RandomizedRunner.class)
+  @Seed("deadbeef")
   public static class Nested {
-    @Test
+    @Test @Seed("cafebabe")
     public void testMethod1() {
       assumeRunningNested();
 
@@ -36,8 +38,10 @@ public class TestStackAugmentation extends WithNestedTestClass {
   public void testSameMethodRandomnessWithFixedRunner() {
     Result result = JUnitCore.runClasses(Nested.class);
     assertEquals(1, result.getFailureCount());
-    
+
     Failure f = result.getFailures().get(0);
-    assertNotNull(RandomizedRunner.seedFromThrowable(f.getException()));
+    String seedFromThrowable = RandomizedRunner.seedFromThrowable(f.getException());
+    assertNotNull(seedFromThrowable);
+    assertTrue("[DEADBEEF:CAFEBABE]".compareToIgnoreCase(seedFromThrowable) == 0);
   }
 }
