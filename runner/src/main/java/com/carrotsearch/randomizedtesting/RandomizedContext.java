@@ -87,11 +87,20 @@ public final class RandomizedContext {
   public Randomness getRandomness() {
     return getPerThread().randomnesses.peek();
   }
-  
+
+  /**
+   * Return all {@link Randomness} on the stack for the current thread. The most
+   * recent (currently used) randomness comes last in this array.
+   */
   Randomness [] getRandomnesses() {
     ArrayDeque<Randomness> randomnesses = getPerThread().randomnesses;
-    return randomnesses.toArray(
-        new Randomness [randomnesses.size()]);
+    Randomness[] array = randomnesses.toArray(new Randomness [randomnesses.size()]);
+    for (int i = 0, j = array.length - 1; i < j; i++, j--) {
+        Randomness r = array[i];
+        array[i] = array[j];
+        array[j] = r;
+    }
+    return array;
   }
 
   /**
