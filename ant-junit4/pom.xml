@@ -12,6 +12,10 @@
   <artifactId>ant-junit4</artifactId>
   <name>JUnit4 task for ANT</name>
 
+  <properties>
+    <java.rt.classes>${java.home}/lib/rt.jar</java.rt.classes>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>
