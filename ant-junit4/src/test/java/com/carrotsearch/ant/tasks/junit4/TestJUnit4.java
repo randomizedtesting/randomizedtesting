@@ -71,7 +71,7 @@ public class TestJUnit4 extends BuildFileTest {
   
   @Test
   public void testJvmCrash() {
-    super.executeTarget("jvmcrash");
+    super.expectBuildExceptionContaining("jvmcrash", "crash log", "alternate error stream");
   }
   
   @Test
