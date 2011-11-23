@@ -112,13 +112,15 @@ public class SlaveMain {
 
       switch (channel) {
         case STDERR:
-          serializer = new Serializer(System.err);
+          serializer = new Serializer(new BufferedOutputStream(System.err));
           warnings = System.out;
           break;
+
         case STDOUT:
-          serializer = new Serializer(System.out);
+          serializer = new Serializer(new BufferedOutputStream(System.out));
           warnings = System.err;
           break;
+
         default:
           warnings = System.err;
           throw new RuntimeException("Communication not implemented: " + channel);

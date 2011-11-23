@@ -3,6 +3,7 @@ package com.carrotsearch.ant.tasks.junit4;
 import org.apache.tools.ant.Project;
 
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
+import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
 import com.google.common.eventbus.Subscribe;
 
@@ -12,6 +13,11 @@ public class DiagnosticsListener {
 
   public DiagnosticsListener(Project project) {
     this.project = project;
+  }
+
+  @Subscribe
+  public void receiveAll(IEvent e) {
+    project.log("Packet received: " + e.getType(), Project.MSG_VERBOSE);
   }
   
   @Subscribe

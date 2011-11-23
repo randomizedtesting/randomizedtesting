@@ -14,6 +14,7 @@ public class Serializer {
 
   public void serialize(IEvent event) throws IOException {
     os.writeObject(event);
+    os.flush();
   }
 
   public ObjectOutputStream getOutputStream() {
