@@ -159,6 +159,9 @@
           <obfuscate>true</obfuscate>
           <outputDirectory>${project.build.directory}</outputDirectory>
           <proguardInclude>${basedir}/src/proguard/rules.pro</proguardInclude>
+          <options>
+            <option>-libraryjar ${java.rt.classes}(java/**)</option>
+          </options>
         </configuration>
         <dependencies>
           <dependency>
@@ -172,4 +175,16 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>properties-macosx</id>
+      <activation>
+        <os><family>mac</family></os>
+      </activation>
+      <properties>
+        <java.rt.classes>${java.home}/../Classes/classes.jar</java.rt.classes>
+      </properties>
+    </profile>
+  </profiles>
 </project>

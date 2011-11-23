@@ -15,4 +15,3 @@
 }
 
 -dontnote
--libraryjars <java.home>/lib/rt.jar(java/**)

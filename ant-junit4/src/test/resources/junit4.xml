@@ -136,7 +136,7 @@
     </target>
 
     <target name="jvmcrash">
-        <junit4 haltonfailure="true" jvm="/home/dweiss/Applications/java/jdk1.6.0_20/jre/bin/java">
+        <junit4 haltonfailure="true">
             <classpath refid="tests.classpath" />
 
             <fileset dir="${basedir}">
