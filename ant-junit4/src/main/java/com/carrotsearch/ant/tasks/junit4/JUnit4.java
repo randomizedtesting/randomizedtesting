@@ -4,28 +4,23 @@ import java.io.*;
 import java.util.*;
 
 import org.apache.tools.ant.*;
-import org.apache.tools.ant.taskdefs.*;
+import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.types.*;
 import org.apache.tools.ant.types.resources.Resources;
-import org.apache.tools.ant.util.LineOrientedOutputStream;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.objectweb.asm.ClassReader;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
+import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
+import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
+import com.google.common.base.*;
 import com.google.common.collect.Lists;
+import com.google.common.eventbus.EventBus;
 import com.google.common.io.Files;
 
 /**
  * A simple ANT task to run JUnit4 tests.
  */
 public class JUnit4 extends Task {
-  /**
-   * Listeners receiving test output progress. 
-   */
-  private List<IExecutionListener> listeners = Lists.newArrayList();
-
   /**
    * Slave vm command line.
    */
@@ -247,9 +242,16 @@ public class JUnit4 extends Task {
       log("Slave process command line:\n" + 
           Joiner.on("\n").join(commandline.getCommandline()), Project.MSG_VERBOSE);
 
-      TestsSummaryListener summaryListener = new TestsSummaryListener();
-      listeners.add(summaryListener);
-      executeProcess(commandline);
+      final EventBus eventBus = new EventBus("slave");
+      final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
+      eventBus.register(summaryListener);
+      final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(getProject());
+      eventBus.register(diagnosticsListener);
+      executeProcess(eventBus, commandline);
+
+      if (!diagnosticsListener.quitReceived()) {
+        throw new BuildException("Quit event not received from a slave process?");
+      }
 
       final TestsSummary testsSummary = summaryListener.getResult();
       if (printSummary) {
@@ -274,86 +276,12 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Stream handler for the subprocess.
+   * Execute a slave process. Pump events to the given event bus.
    */
-  private class SlaveStreamHandler implements ExecuteStreamHandler {
-    private List<Thread> pumpers = Lists.newArrayList();
-    private IExecutionListener listener;
-
-    public SlaveStreamHandler(IExecutionListener listener) {
-      this.listener = listener;
-    }
-
-    @Override
-    public void setProcessOutputStream(final InputStream is) throws IOException {
-      Thread t = new Thread("pumper-stdout") {
-        public void run() {
-          EventReader replay = new EventReader(is, listener, IExecutionListener.class);
-          try {
-            replay.replay();
-          } catch (IOException e) {
-            log("PANIC: Event replay exception: " + e.getMessage(), e, Project.MSG_ERR);
-            readUntilEOF(is);
-          }
-        }
-
-        private void readUntilEOF(InputStream is) {
-          byte [] buffer = new byte [1024 * 8];
-          try {
-            while (is.read(buffer) > 0);
-          } catch (IOException e) {
-            // Ignore and exit.
-          }
-        }
-      };
-      pumpers.add(t);
-    }
-
-    @Override
-    public void setProcessInputStream(OutputStream os) throws IOException {
-      // do nothing.
-    }
-    
-    @Override
-    public void setProcessErrorStream(InputStream is) throws IOException {
-      OutputStream os = new LineOrientedOutputStream() {
-        protected void processLine(String line) throws IOException {
-          System.err.println("!> " + line);
-        }
-      };
-      StreamPumper streamPumper = new StreamPumper(is, os, false);
-      pumpers.add(new Thread(streamPumper, "pumper-stderr"));
-    }
-
-    @Override
-    public void start() throws IOException {
-      for (Thread t : pumpers) {
-        t.setDaemon(true);
-        t.start();
-      }
-    }
-
-    @Override
-    public void stop() {
-      try {
-        for (Thread t : pumpers) {
-            log("Stopping: " + t, Project.MSG_DEBUG);
-            t.join();
-        }
-      } catch (InterruptedException e) {
-        // Don't wait.
-      }
-    }
-  }
-
-  /**
-   * Execute a slave process.
-   */
-  private void executeProcess(CommandlineJava commandline) {
+  private void executeProcess(EventBus eventBus, CommandlineJava commandline) {
     try {
-      final IExecutionListener listener = SlaveMain.listenerProxy(
-          Multiplexer.forInterface(IExecutionListener.class, listeners));
-      final ExecuteStreamHandler streamHandler = new SlaveStreamHandler(listener);
+      final LocalSlaveStreamHandler streamHandler = 
+          new LocalSlaveStreamHandler(eventBus, System.err);
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
       execute.setVMLauncher(true);
@@ -363,6 +291,19 @@ public class JUnit4 extends Task {
       if (env.getVariables() != null)
         execute.setEnvironment(env.getVariables());
       int exitStatus = execute.execute();
+
+      if (streamHandler.isErrorStreamNonEmpty()) {
+        log("-- error stream from forked JVM (verbatim) --", Project.MSG_ERR);
+        log(streamHandler.getErrorStreamAsString(), Project.MSG_ERR);
+        log("-- EOF --", Project.MSG_ERR);
+
+        // Anything on the altErr will cause a build failure.
+        log("An output appeared on the forked JVM's error stream. This is unexpected and" +
+        		" most likely indicates JVM crash. Inspect the output above and possibly crash" +
+            " dumps in the slave's current working directory.", Project.MSG_ERR);
+        throw new BuildException("An output appeared on alternate error stream from slave process." +
+        		" Check the logs. Subprocess exit code: " + exitStatus);
+      }
 
       if (execute.isFailure()) {
         if (exitStatus == SlaveMain.ERR_NO_JUNIT) {

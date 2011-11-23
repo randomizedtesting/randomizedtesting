@@ -2,9 +2,7 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.net.URL;
 
-import org.apache.tools.ant.BuildEvent;
-import org.apache.tools.ant.BuildFileTest;
-import org.apache.tools.ant.DefaultLogger;
+import org.apache.tools.ant.*;
 import org.junit.Test;
 
 public class TestJUnit4 extends BuildFileTest {
@@ -79,5 +77,5 @@ public class TestJUnit4 extends BuildFileTest {
   @Test
   public void testFailureProperty() {
     super.executeTarget("failureProperty");
-  }          
+  }
 }

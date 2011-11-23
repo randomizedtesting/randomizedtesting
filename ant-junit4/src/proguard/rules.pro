@@ -7,6 +7,9 @@
 -renamepackage org.objectweb=>com.carrotsearch.ant.tasks.junit4.dependencies
 -repackageclasses com.carrotsearch.ant.tasks.junit4.dependencies
 
+-keepattributes SourceFile,LineNumberTable
+-keepattributes *Annotation*
+
 -keep class com.carrotsearch.** {
     <methods>; <fields>;
 }

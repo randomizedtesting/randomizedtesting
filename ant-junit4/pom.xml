@@ -116,7 +116,7 @@
         <executions>
           <execution>
             <id>copy-dependencies</id>
-            <phase>pre-integration-test</phase>
+            <phase>package</phase>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
