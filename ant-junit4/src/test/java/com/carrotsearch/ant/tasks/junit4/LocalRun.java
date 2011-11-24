@@ -19,10 +19,10 @@ public class LocalRun {
     junit4.setProject(p);
     junit4.createClasspath().setLocation(new File("../dependency/junit-4.10.jar"));
     junit4.createClasspath().setLocation(new File("."));
-    
+
     FileSet fs = new FileSet();
     fs.setDir(new File("."));
-    fs.setIncludes("**/TestSub1.class");
+    fs.setIncludes("**/TestFailing.class");
     junit4.addFileSet(fs);
     junit4.execute();
   }

@@ -1,5 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
+import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
@@ -18,5 +19,9 @@ public abstract class FailureEvent extends AbstractEvent {
 
   public FailureMirror getFailure() {
     return failure;
+  }
+
+  public Description getDescription() {
+    return failure.getDescription();
   }
 }

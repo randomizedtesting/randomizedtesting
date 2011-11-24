@@ -9,21 +9,28 @@ import com.google.common.eventbus.Subscribe;
 
 public class DiagnosticsListener {
   private final Project project;
+  private final SlaveID slave;
+
   private boolean quitReceived;
 
-  public DiagnosticsListener(Project project) {
+  public DiagnosticsListener(SlaveID slave, Project project) {
     this.project = project;
+    this.slave = slave;
   }
 
   @Subscribe
   public void receiveAll(IEvent e) {
-    project.log("Packet received: " + e.getType(), Project.MSG_VERBOSE);
+    log("Packet received: " + e.getType());
   }
-  
+
+  private void log(String message) {
+    project.log("slave#" + slave.id + ">" + message, Project.MSG_VERBOSE);
+  }
+
   @Subscribe
   public void receiveBootstrap(BootstrapEvent e) {
-    project.log("Communication channel with the slave: " + e.getEventChannel(), Project.MSG_VERBOSE);
-    project.log("Default character encoding on the slave: " + e.getDefaultCharsetName(), Project.MSG_VERBOSE);
+    log("Communication channel: " + e.getEventChannel() + ", " +
+        "Default encoding: " + e.getDefaultCharsetName());
   }
 
   @Subscribe

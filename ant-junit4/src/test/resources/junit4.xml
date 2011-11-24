@@ -147,5 +147,13 @@
                 <include name="**/tests/TestJvmCrash.class" />
             </fileset>
         </junit4>
-    </target>	
+    </target>
+	
+    <target name="nojunit">
+        <junit4 haltonfailure="true">
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestJvmCrash.class" />
+            </fileset>
+        </junit4>
+    </target>   	
 </project>

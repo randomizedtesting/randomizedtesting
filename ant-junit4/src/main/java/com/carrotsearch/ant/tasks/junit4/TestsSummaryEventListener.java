@@ -1,8 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import com.carrotsearch.ant.tasks.junit4.events.FailureEvent;
-import com.carrotsearch.ant.tasks.junit4.events.IEvent;
-import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedTestResultEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
@@ -18,34 +17,41 @@ public class TestsSummaryEventListener {
   private int assumptions;
   private int ignores;
 
+  private int suites;
+  private int suiteErrors;
+
   /**
-   * Subscribe to all events.
+   * React to suite summaries only.
    */
   @Subscribe
-  public void receiveEvent(IEvent e) {
-    switch (e.getType()) {
-      case TEST_STARTED: 
-        tests++;
-        break;
+  public void suiteSummary(AggregatedSuiteResultEvent e) {
+    suites++;
+    if (!e.getSuiteFailures().isEmpty()) {
+      suiteErrors++;
+    }
 
-      case TEST_FAILURE:
-      case SUITE_FAILURE:
-        FailureMirror failure = ((FailureEvent) e).getFailure(); 
-        if (failure.isAssertionViolation()) {
-          failures++;
-        } else {
-          errors++;
-        }
-        break;
+    for (AggregatedTestResultEvent testResult : e.getTests()) {
+      tests++;
 
-      case TEST_IGNORED_ASSUMPTION:
-        assumptions++;
-        ignores++; // tempting to fallthrough, isn't it? :)
-        break;
+      System.out.println(testResult.getDescription() + " " + testResult.getStatus());
+      switch (testResult.getStatus()) {
+        case ERROR: 
+          errors++; 
+          break;
 
-      case TEST_IGNORED:
-        ignores++;
-        break;
+        case FAILURE: 
+          failures++; 
+          break;
+          
+        case IGNORED:
+          ignores++;
+          break;
+
+        case IGNORED_ASSUMPTION:
+          assumptions++;
+          ignores++;
+          break;
+      }
     }
   }
 
@@ -53,6 +59,6 @@ public class TestsSummaryEventListener {
    * Return the summary of all tests.
    */
   public TestsSummary getResult() {
-    return new TestsSummary(tests, failures, errors, assumptions, ignores);
+    return new TestsSummary(suites, suiteErrors, tests, failures, errors, assumptions, ignores);
   }
 }

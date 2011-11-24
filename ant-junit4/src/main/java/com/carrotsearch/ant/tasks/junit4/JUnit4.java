@@ -1,18 +1,34 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
-import org.apache.tools.ant.*;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
-import org.apache.tools.ant.types.*;
+import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.types.CommandlineJava;
+import org.apache.tools.ant.types.Environment;
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.PropertySet;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.objectweb.asm.ClassReader;
 
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
-import com.google.common.base.*;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.Files;
@@ -22,7 +38,7 @@ import com.google.common.io.Files;
  */
 public class JUnit4 extends Task {
   /**
-   * Slave vm command line.
+   * Slave VM command line.
    */
   private CommandlineJava slaveCommand = new CommandlineJava();
 
@@ -230,15 +246,48 @@ public class JUnit4 extends Task {
 
     // Process test classes and resources.
     final List<String> testClassNames = processTestResources();
+
+    final EventBus aggregatedBus = new EventBus("aggregated");
+    final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
+    aggregatedBus.register(summaryListener);
+
+    // TODO: add class split and multiple slave execution.
+    final int slaves = 1;
+    final int slave = 0;
+    final SlaveID slaveId = new SlaveID(slave, slaves);
+
     if (!testClassNames.isEmpty()) {
-      executeSlave(testClassNames);
+      try {
+        executeSlave(slaveId, aggregatedBus, testClassNames);
+      } catch (Throwable t) {
+        if (t instanceof BuildException)
+          throw (BuildException) t;
+        else
+          throw new BuildException(t);
+      }
+    }
+
+    final TestsSummary testsSummary = summaryListener.getResult();
+    if (printSummary) {
+      log("Tests summary: " + testsSummary, Project.MSG_INFO);
+    }
+
+    if (!testsSummary.isSuccessful()) {
+      if (!Strings.isNullOrEmpty(failureProperty)) {
+        getProject().setNewProperty(failureProperty, "true");        
+      }
+      if (haltOnFailure) {
+        throw new BuildException("There were test failures: " + testsSummary);
+      }
     }
   }
 
   /**
    * Attach listeners and execute a slave process.
    */
-  private void executeSlave(List<String> testClassNames) {
+  private void executeSlave(SlaveID slave, EventBus aggregatedBus, List<String> testClassNames)
+    throws IOException, BuildException
+  {
     // Dump all test class names to a temporary file.
     File tempDir = getTempDir();
     File classNamesFile = null;
@@ -255,37 +304,16 @@ public class JUnit4 extends Task {
       commandline.setClassname(SlaveMainSafe.class.getName());
       commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
       log("Slave process command line:\n" + 
-          Joiner.on("\n").join(commandline.getCommandline()), Project.MSG_VERBOSE);
+          Joiner.on(" ").join(commandline.getCommandline()), Project.MSG_VERBOSE);
 
       final EventBus eventBus = new EventBus("slave");
-      final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
-      eventBus.register(summaryListener);
-      final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(getProject());
+      final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
       eventBus.register(diagnosticsListener);
-      for (Object listener : listeners) {
-        eventBus.register(listener);
-      }
+      eventBus.register(new AggregatingListener(aggregatedBus, slave));
       executeProcess(eventBus, commandline);
-
       if (!diagnosticsListener.quitReceived()) {
         throw new BuildException("Quit event not received from a slave process?");
       }
-
-      final TestsSummary testsSummary = summaryListener.getResult();
-      if (printSummary) {
-        log("Tests summary: " + testsSummary, Project.MSG_INFO);
-      }
-
-      if (!testsSummary.isSuccessful()) {
-        if (!Strings.isNullOrEmpty(failureProperty)) {
-          getProject().setNewProperty(failureProperty, "true");        
-        }
-        if (haltOnFailure) {
-          throw new BuildException("There were test failures: " + testsSummary);
-        }
-      }
-    } catch (IOException e) {
-      throw new BuildException(e);
     } finally {
       if (testClassNames != null) {
         classNamesFile.delete();
@@ -308,7 +336,9 @@ public class JUnit4 extends Task {
       execute.setNewenvironment(newEnvironment);
       if (env.getVariables() != null)
         execute.setEnvironment(env.getVariables());
+      getProject().log("Starting slave.", Project.MSG_DEBUG);
       int exitStatus = execute.execute();
+      getProject().log("Slave finished with exit code: " + exitStatus, Project.MSG_DEBUG);
 
       if (streamHandler.isErrorStreamNonEmpty()) {
         log("-- error stream from forked JVM (verbatim) --", Project.MSG_ERR);
@@ -325,9 +355,9 @@ public class JUnit4 extends Task {
 
       if (execute.isFailure()) {
         if (exitStatus == SlaveMain.ERR_NO_JUNIT) {
-          throw new BuildException("Slave process classpath must include a junit JAR.");
+          throw new BuildException("Forked JVM's classpath must include a junit4 JAR.");
         }
-        throw new BuildException("Slave process exited with an error code: " + exitStatus);
+        throw new BuildException("Forked process exited with an error code: " + exitStatus);
       }
     } catch (IOException e) {
       throw new BuildException("Could not execute slave process. Run ant with -verbose to get" +

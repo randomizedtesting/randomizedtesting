@@ -53,6 +53,11 @@ public class FailureMirror implements Serializable {
     return assertionViolation;
   }  
 
+  public boolean isErrorViolation() {
+    return isAssertionViolation() == false &&
+           isAssumptionViolation() == false;
+  }
+
   /**
    * Attempt to reinstantiate the exception from serialized bytes.
    */

@@ -5,6 +5,7 @@ import java.net.URL;
 import org.apache.tools.ant.*;
 import org.junit.Test;
 
+
 public class TestJUnit4 extends BuildFileTest {
   private StringBuilder builder;
   
@@ -78,4 +79,9 @@ public class TestJUnit4 extends BuildFileTest {
   public void testFailureProperty() {
     super.executeTarget("failureProperty");
   }
+
+  @Test
+  public void testNoJUnitOnClasspath() {
+    super.expectBuildExceptionContaining("nojunit", "junit4 message", "must include a junit4");
+  }  
 }

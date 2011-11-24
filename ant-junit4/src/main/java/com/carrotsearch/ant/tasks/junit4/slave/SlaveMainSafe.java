@@ -4,14 +4,14 @@ public class SlaveMainSafe {
   public static void main(String[] args) {
     try {
       SlaveMain.main(args);
-    } catch (NoClassDefFoundError e) {
-      System.err.println("Could not launch SlaveMain: " + e.toString());
-      e.printStackTrace(System.err);
-      if (e.getMessage().contains("org/junit/")) {
+    } catch (Throwable e) {
+      System.out.close();
+      if (e instanceof NoClassDefFoundError && e.getMessage().contains("org/junit/")) {
         System.exit(SlaveMain.ERR_NO_JUNIT);
-      } else {
-        System.exit(SlaveMain.ERR_EXCEPTION);
       }
+      System.err.println(e.toString());
+      e.printStackTrace(System.err);
+      System.exit(SlaveMain.ERR_EXCEPTION);
     }
   }
 }
