@@ -294,35 +294,30 @@ public class JUnit4 extends Task {
   {
     // Dump all test class names to a temporary file.
     File tempDir = getTempDir();
-    File classNamesFile = null;
-    try {
-      String testClassPerLine = Joiner.on("\n").join(testClassNames);
-      log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
+    String testClassPerLine = Joiner.on("\n").join(testClassNames);
+    log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
 
-      classNamesFile = File.createTempFile("junit4-", ".testmethods", tempDir);
-      Files.write(testClassPerLine, classNamesFile, Charsets.UTF_8);
+    final File classNamesFile = File.createTempFile("junit4-", ".testmethods", tempDir);
+    Files.write(testClassPerLine, classNamesFile, Charsets.UTF_8);
 
-      // Prepare command line for java execution.
-      final CommandlineJava commandline = getCommandline();
-      commandline.createClasspath(getProject()).add(addSlaveClasspath());
-      commandline.setClassname(SlaveMainSafe.class.getName());
-      commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
-      log("Slave process command line:\n" + 
-          Joiner.on(" ").join(commandline.getCommandline()), Project.MSG_VERBOSE);
+    // Prepare command line for java execution.
+    final CommandlineJava commandline = getCommandline();
+    commandline.createClasspath(getProject()).add(addSlaveClasspath());
+    commandline.setClassname(SlaveMainSafe.class.getName());
+    commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
+    log("Slave process command line:\n" + 
+        Joiner.on(" ").join(commandline.getCommandline()), Project.MSG_VERBOSE);
 
-      final EventBus eventBus = new EventBus("slave");
-      final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
-      eventBus.register(diagnosticsListener);
-      eventBus.register(new AggregatingListener(aggregatedBus, slave));
-      executeProcess(eventBus, commandline);
-      if (!diagnosticsListener.quitReceived()) {
-        throw new BuildException("Quit event not received from a slave process?");
-      }
-    } finally {
-      if (testClassNames != null) {
-        classNamesFile.delete();
-      }
+    final EventBus eventBus = new EventBus("slave");
+    final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
+    eventBus.register(diagnosticsListener);
+    eventBus.register(new AggregatingListener(aggregatedBus, slave));
+    executeProcess(eventBus, commandline);
+    if (!diagnosticsListener.quitReceived()) {
+      throw new BuildException("Quit event not received from a slave process?");
     }
+
+    classNamesFile.delete();
   }
 
   /**
