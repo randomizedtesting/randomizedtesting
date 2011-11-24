@@ -31,7 +31,6 @@ public class TestJUnit4 extends BuildFileTest {
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
-    // System.out.println(builder.toString());
     builder = null;
   }
 

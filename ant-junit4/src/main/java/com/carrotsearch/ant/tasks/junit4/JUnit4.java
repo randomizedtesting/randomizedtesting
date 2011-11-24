@@ -250,6 +250,10 @@ public class JUnit4 extends Task {
     final EventBus aggregatedBus = new EventBus("aggregated");
     final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
     aggregatedBus.register(summaryListener);
+    
+    for (Object o : listeners) {
+      aggregatedBus.register(o);
+    }
 
     // TODO: add class split and multiple slave execution.
     final int slaves = 1;

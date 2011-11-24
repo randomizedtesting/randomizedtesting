@@ -98,6 +98,7 @@ public class AggregatingListener {
   public void receiveTestEnd(TestFinishedEvent e) {
     assert e.getDescription().equals(tests.peek().getDescription());
     tests.peek().complete(eventStream.subList(testStartStreamMarker, eventStream.size()));
+    target.post(tests.peek());
   }
 
   @Subscribe

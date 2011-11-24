@@ -51,6 +51,10 @@ public class AggregatedTestResultEvent {
     return slave;
   }
 
+  public List<FailureMirror> getFailures() {
+    return Collections.unmodifiableList(failures);
+  }
+
   /**
    * Raw {@link IEvent} stream received during the duration of this test. 
    */

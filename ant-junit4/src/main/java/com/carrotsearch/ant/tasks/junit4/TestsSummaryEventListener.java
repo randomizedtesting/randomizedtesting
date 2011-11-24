@@ -33,7 +33,6 @@ public class TestsSummaryEventListener {
     for (AggregatedTestResultEvent testResult : e.getTests()) {
       tests++;
 
-      System.out.println(testResult.getDescription() + " " + testResult.getStatus());
       switch (testResult.getStatus()) {
         case ERROR: 
           errors++; 

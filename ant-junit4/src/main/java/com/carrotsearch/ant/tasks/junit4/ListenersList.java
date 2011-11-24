@@ -13,7 +13,7 @@ public class ListenersList {
   }
 
   /**
-   * Creates a named "consoleInfo" listener.
+   * Creates a {@link ConsoleInfoListener} by name.
    */
   public ConsoleInfoListener createConsoleInfo() {
     return addListener(new ConsoleInfoListener());
