@@ -22,7 +22,7 @@ public class LocalRun {
     
     FileSet fs = new FileSet();
     fs.setDir(new File("."));
-    fs.setIncludes("**/TestJvmCrash.class");
+    fs.setIncludes("**/TestSub1.class");
     junit4.addFileSet(fs);
     junit4.execute();
   }

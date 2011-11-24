@@ -66,6 +66,14 @@ public class JUnit4 extends Task {
    */
   private File tempDir;
   
+  /**
+   * Listeners listening on the event bus.
+   */
+  private List<Object> listeners = Lists.newArrayList();
+
+  /**
+   * 
+   */
   public JUnit4() {
     resources = new Resources();
     resources.setCache(true);
@@ -120,6 +128,13 @@ public class JUnit4 extends Task {
    */
   public Commandline.Argument createJvmarg() {
     return getCommandline().createVmArgument();
+  }
+
+  /**
+   * Creates a new list of listeners.
+   */
+  public ListenersList createListeners() {
+    return new ListenersList(listeners);
   }
   
   /**
@@ -247,6 +262,9 @@ public class JUnit4 extends Task {
       eventBus.register(summaryListener);
       final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(getProject());
       eventBus.register(diagnosticsListener);
+      for (Object listener : listeners) {
+        eventBus.register(listener);
+      }
       executeProcess(eventBus, commandline);
 
       if (!diagnosticsListener.quitReceived()) {

@@ -24,6 +24,10 @@
         <junit4 haltonfailure="true">
             <classpath refid="tests.classpath" />
 
+        	<listeners>
+        		<consoleInfo />
+    		</listeners>
+
             <fileset dir="${basedir}">
                 <include name="**/tests/TestSub*.class" />
             </fileset>
