@@ -19,7 +19,7 @@ import com.google.common.eventbus.Subscribe;
  * A listener that will subscribe to test execution and dump
  * informational info about the progress to the console.
  */
-public class ConsoleInfoListener {
+public class ConsoleReport implements AggregatedEventListener {
   private static EnumMap<TestStatus, String> statusNames;
   static {
     statusNames = Maps.newEnumMap(TestStatus.class);

@@ -11,7 +11,7 @@
         <path refid="junit.classpath" />
     </path>
 
-    <taskdef resource="junit4.antlib.xml">
+    <taskdef resource="junit4.antlib.xml" loaderref="junit4.loader">
         <classpath refid="junit.classpath" />
         <classpath>
             <fileset dir="..">
@@ -25,7 +25,7 @@
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <consoleInfo />
+                <report-console />
             </listeners>
 
             <fileset dir="${basedir}">
@@ -39,10 +39,6 @@
     <target name="normal">
         <junit4 haltonfailure="true">
             <classpath refid="tests.classpath" />
-
-        	<listeners>
-        		<consoleInfo />
-    		</listeners>
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestSub*.class" />

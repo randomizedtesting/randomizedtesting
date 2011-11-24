@@ -5,6 +5,8 @@ import java.io.File;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.types.FileSet;
 
+import com.carrotsearch.ant.tasks.junit4.listeners.ConsoleReport;
+
 public class LocalRun {
   public static void main(String[] args) {
     Project p = new Project();
@@ -19,7 +21,8 @@ public class LocalRun {
     junit4.setProject(p);
     junit4.createClasspath().setLocation(new File("../dependency/junit-4.10.jar"));
     junit4.createClasspath().setLocation(new File("."));
-    junit4.createListeners().createConsoleInfo();
+    junit4.createListeners().addConfigured(
+        new ConsoleReport());
 
     FileSet fs = new FileSet();
     fs.setDir(new File("."));

@@ -2,7 +2,7 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.util.List;
 
-import com.carrotsearch.ant.tasks.junit4.listeners.ConsoleInfoListener;
+import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 
 public class ListenersList {
   
@@ -13,17 +13,10 @@ public class ListenersList {
   }
 
   /**
-   * Creates a {@link ConsoleInfoListener} by name.
+   * Adds a listener to the listeners list.
+   * @param listener
    */
-  public ConsoleInfoListener createConsoleInfo() {
-    return addListener(new ConsoleInfoListener());
-  }
-
-  /**
-   * Adds a listener to the shared list. 
-   */
-  private <T> T addListener(T listener) {
+  public void addConfigured(AggregatedEventListener listener) {
     listeners.add(listener);
-    return listener;
   }
 }
