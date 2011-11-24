@@ -78,8 +78,15 @@ public class AggregatingListener {
 
   @Subscribe
   public void receiveTestIgnored(TestIgnoredEvent e) {
-    assert e.getDescription().equals(tests.peek().getDescription());
-    tests.peek().setIgnored();
+    // Test ignored is not emitted within start...end space with default JUnit runners.
+    // Try to correct it here.
+    if (e.getDescription().equals(tests.peek().getDescription())) {
+      tests.peek().setIgnored();
+    } else {
+      receiveTestStart(new TestStartedEvent(e.getDescription()));
+      tests.peek().setIgnored();
+      receiveTestEnd(new TestFinishedEvent(e.getDescription(), 0));
+    }
   }
 
   @Subscribe
@@ -97,7 +104,8 @@ public class AggregatingListener {
   @Subscribe
   public void receiveTestEnd(TestFinishedEvent e) {
     assert e.getDescription().equals(tests.peek().getDescription());
-    tests.peek().complete(eventStream.subList(testStartStreamMarker, eventStream.size()));
+    tests.peek().complete(e.getExecutionTime(),
+                          eventStream.subList(testStartStreamMarker, eventStream.size()));
     target.post(tests.peek());
   }
 

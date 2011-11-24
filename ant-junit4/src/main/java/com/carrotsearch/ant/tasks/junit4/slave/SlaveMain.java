@@ -68,7 +68,10 @@ public class SlaveMain {
                 warn("Event serializer exception.", t);
               }
             }));
-    core.run(instantiate(classes));
+    
+    for (Class<?> suite : instantiate(classes)) {
+      core.run(suite);
+    }
   }
 
   /**

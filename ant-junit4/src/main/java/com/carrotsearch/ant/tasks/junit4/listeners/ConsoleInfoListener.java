@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.listeners;
 
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.runner.Description;
 
@@ -31,7 +32,7 @@ public class ConsoleInfoListener {
 
   @Subscribe
   public void singleTest(AggregatedTestResultEvent e) {
-    format(e.getSlave(), e.getDescription(), e.getStatus(), 0, e.getFailures());
+    format(e.getSlave(), e.getDescription(), e.getStatus(), e.getExecutionTime(), e.getFailures());
   }
 
   @Subscribe
@@ -48,6 +49,7 @@ public class ConsoleInfoListener {
     if (slave.slaves > 1) {
       line.append("S").append(slave.id).append(" ");
     }
+    line.append(formatTime(timeMillis));
     line.append(Strings.padEnd(statusNames.get(status), 7, ' '));
     line.append(" | ");
 
@@ -56,13 +58,25 @@ public class ConsoleInfoListener {
     } else {
       String className = description.getClassName();
       if (className != null) {
-        String [] components = className.split("[\\.\\$]");
+        String [] components = className.split("[\\.]");
         className = components[components.length - 1];
-        line.append(className).append("#");
+        line.append(className).append(".");
       }
       line.append(description.getMethodName());
     }
 
     System.out.println(line.toString());
+  }
+
+  private Object formatTime(int timeMillis) {
+    final int precision;
+    if (timeMillis >= 100 * 1000) {
+      precision = 0;
+    } else if (timeMillis >= 10 * 1000) {
+      precision = 1;
+    } else {
+      precision = 2;
+    }
+    return String.format(Locale.ENGLISH, "%4." + precision + "fs ", timeMillis / 1000.0);
   }
 }

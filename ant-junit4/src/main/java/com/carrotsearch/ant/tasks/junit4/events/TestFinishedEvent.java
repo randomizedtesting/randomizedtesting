@@ -5,7 +5,14 @@ import org.junit.runner.Description;
 
 @SuppressWarnings("serial")
 public class TestFinishedEvent extends AbstractEventWithDescription {
-  public TestFinishedEvent(Description description) {
+  private final int time;
+  
+  public TestFinishedEvent(Description description, int timeMillis) {
     super(EventType.TEST_FINISHED, description);
+    this.time = timeMillis;
+  }
+
+  public int getExecutionTime() {
+    return time;
   }
 }

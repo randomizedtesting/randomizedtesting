@@ -22,6 +22,7 @@ public class AggregatedTestResultEvent {
   private List<FailureMirror> failures = Lists.newArrayList();
 
   private List<IEvent> eventStream;
+  private int executionTime;
 
   private boolean hasFailures;
   private boolean hasErrors;
@@ -56,6 +57,13 @@ public class AggregatedTestResultEvent {
   }
 
   /**
+   * Execution time in millis.
+   */
+  public int getExecutionTime() {
+    return executionTime;
+  }
+
+  /**
    * Raw {@link IEvent} stream received during the duration of this test. 
    */
   public List<IEvent> getEventStream() {
@@ -82,8 +90,9 @@ public class AggregatedTestResultEvent {
     hasErrors             |= failure.isErrorViolation();
   }
 
-  void complete(List<IEvent> eventStream) {
+  void complete(int time, List<IEvent> eventStream) {
     this.eventStream = eventStream;
+    this.executionTime = time;
 
     if (hasErrors) {
       status = TestStatus.ERROR;

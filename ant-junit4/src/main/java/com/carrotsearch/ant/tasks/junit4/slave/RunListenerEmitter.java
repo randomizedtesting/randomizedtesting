@@ -15,6 +15,7 @@ import com.carrotsearch.ant.tasks.junit4.events.*;
 public class RunListenerEmitter extends RunListener {
   private final Serializer serializer;
   private Description suiteDescription;
+  private long start;
 
   public RunListenerEmitter(Serializer serializer) {
     this.serializer = serializer;
@@ -29,6 +30,7 @@ public class RunListenerEmitter extends RunListener {
   @Override
   public void testStarted(Description description) throws Exception {
     serializer.serialize(new TestStartedEvent(description));
+    start = System.currentTimeMillis();
   }
 
   @Override
@@ -52,7 +54,8 @@ public class RunListenerEmitter extends RunListener {
 
   @Override
   public void testFinished(Description description) throws Exception {
-    serializer.serialize(new TestFinishedEvent(description));
+    long executionTime = System.currentTimeMillis() - start;
+    serializer.serialize(new TestFinishedEvent(description, (int) executionTime));
   }
 
   @Override

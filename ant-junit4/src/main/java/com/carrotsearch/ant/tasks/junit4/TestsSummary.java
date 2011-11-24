@@ -35,7 +35,7 @@ public class TestsSummary {
     if (ignores + assumptions > 0) {
       s.append(", ").append(ignores + assumptions).append(" ignored");
       if (assumptions > 0) {
-        s.append(" (").append(assumptions).append(pluralize(assumptions, " assumptions)"));
+        s.append(" (").append(assumptions).append(pluralize(assumptions, " assumption)"));
       }
     }
     return s.toString();
