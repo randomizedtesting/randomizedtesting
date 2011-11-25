@@ -143,7 +143,7 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
       PrefixedWriter pos = new PrefixedWriter(indent, sw);
       for (FailureMirror fm : failures) {
         try {
-          if (showStackTraces) {
+          if (showStackTraces && !fm.isAssumptionViolation()) {
             pos.write("Caused by: " + fm.getTrace());
           } else {
             pos.write("Caused by: " + fm.getThrowableString());
