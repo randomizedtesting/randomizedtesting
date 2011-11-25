@@ -42,7 +42,7 @@ public class TestsSummary {
   }
 
   private String pluralize(int count, String word) {
-    if (count > 1) {
+    if (count != 1) {
       word += "s";
     }
     return word;

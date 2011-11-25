@@ -15,20 +15,22 @@ import com.google.common.eventbus.EventBus;
  * Establish event passing with a subprocess and pump events to the bus.
  */
 public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
-  private EventBus eventBus;
+  private final ClassLoader classLoader;
+  private final EventBus eventBus;
   private BootstrapEvent bootstrapPacket;
 
   private InputStream stdout;
   private InputStream stderr;
-  private PrintStream warnStream;
+  private final PrintStream warnStream;
   
   private ByteArrayOutputStream stderrBuffered = new ByteArrayOutputStream();
   
   private List<Thread> pumpers = Lists.newArrayList();
-  
-  public LocalSlaveStreamHandler(EventBus eventBus, PrintStream warnStream) {
+
+  public LocalSlaveStreamHandler(EventBus eventBus, ClassLoader classLoader, PrintStream warnStream) {
     this.eventBus = eventBus;
     this.warnStream = warnStream;
+    this.classLoader = classLoader;
   }
 
   @Override
@@ -53,7 +55,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
 
     // Receive bootstrap event on stdout.
     try {
-      deserializer = new Deserializer(stdout);
+      deserializer = new Deserializer(stdout, classLoader);
       BootstrapEvent bootstrap = (BootstrapEvent) deserializer.deserialize();
       this.bootstrapPacket = bootstrap;
 
@@ -119,7 +121,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
    */
   void pumpEvents() {
     try {
-      Deserializer deserializer = new Deserializer(stdout);
+      Deserializer deserializer = new Deserializer(stdout, classLoader);
       while (true) {
         IEvent event = deserializer.deserialize();
         eventBus.post(event);

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
@@ -21,6 +22,7 @@ import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
+import org.junit.runner.Description;
 import org.objectweb.asm.ClassReader;
 
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
@@ -86,6 +88,12 @@ public class JUnit4 extends Task {
    * Listeners listening on the event bus.
    */
   private List<Object> listeners = Lists.newArrayList();
+
+  /**
+   * Class loader used to resolve annotations and classes referenced from annotations
+   * when {@link Description}s containing them are passed from slaves.
+   */
+  private AntClassLoader testsClassLoader;
 
   /**
    * 
@@ -244,6 +252,15 @@ public class JUnit4 extends Task {
   public void execute() throws BuildException {
     getProject().log("<JUnit4> says hello.", Project.MSG_DEBUG);
 
+    // Setup a class loader over test classes. This will be used for loading annotations
+    // and referenced classes. This is kind of ugly, but mirroring annotation content will
+    // be even worse and Description carries these.
+    testsClassLoader = new AntClassLoader(
+        this.getClass().getClassLoader(),
+        getProject(),
+        getCommandline().getClasspath(),
+        true);
+
     // Process test classes and resources.
     final List<String> testClassNames = processTestResources();
 
@@ -326,7 +343,7 @@ public class JUnit4 extends Task {
   private void executeProcess(EventBus eventBus, CommandlineJava commandline) {
     try {
       final LocalSlaveStreamHandler streamHandler = 
-          new LocalSlaveStreamHandler(eventBus, System.err);
+          new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err);
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
       execute.setVMLauncher(true);

@@ -48,7 +48,6 @@ public class TestsSummaryEventListener {
 
         case IGNORED_ASSUMPTION:
           assumptions++;
-          ignores++;
           break;
       }
     }

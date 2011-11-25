@@ -26,7 +26,7 @@ public class ConsoleReport implements AggregatedEventListener {
     for (TestStatus s : TestStatus.values()) {
       statusNames.put(s,
           s == TestStatus.IGNORED_ASSUMPTION
-          ? "IGNORED" : s.toString());
+          ? "IGNOR/A" : s.toString());
     }
   }
 
@@ -53,15 +53,19 @@ public class ConsoleReport implements AggregatedEventListener {
     line.append(Strings.padEnd(statusNames.get(status), 7, ' '));
     line.append(" | ");
 
-    if (description.isSuite()) {
-      line.append(description.getDisplayName());
-    } else {
-      String className = description.getClassName();
-      if (className != null) {
-        String [] components = className.split("[\\.]");
-        className = components[components.length - 1];
-        line.append(className).append(".");
+    String className = description.getClassName();
+    if (className != null) {
+      String [] components = className.split("[\\.]");
+      className = components[components.length - 1];
+      line.append(className);
+      if (description.getMethodName() != null) { 
+        line.append(".");
+      } else {
+        line.append(" (suite)");
       }
+    }
+
+    if (description.getMethodName() != null) {
       line.append(description.getMethodName());
     }
 

@@ -78,9 +78,15 @@ public class AggregatingListener {
 
   @Subscribe
   public void receiveTestIgnored(TestIgnoredEvent e) {
+    Description description = e.getDescription();
+    if (description.getMethodName() == null) {
+      // This is how JUnit signals ignored suites: by passing a Description that is a 
+      // suite but has no children (so isSuite() returns false...).
+      return;
+    }
+
     // Test ignored is not emitted within start...end space with default JUnit runners.
     // Try to correct it here.
-    Description description = e.getDescription();
     if (!tests.isEmpty() && description.equals(tests.peek().getDescription())) {
       tests.peek().setIgnored();
     } else {
@@ -122,6 +128,12 @@ public class AggregatingListener {
 
   @Subscribe
   public void receiveSuiteFailure(SuiteFailureEvent e) {
-    suiteFailures.add(e.getFailure());
+    if (suiteFailures != null) {
+      suiteFailures.add(e.getFailure());
+    } else {
+      receiveSuiteStart(new SuiteStartedEvent(e.getDescription()));
+      suiteFailures.add(e.getFailure());
+      receiveSuiteEnd(new SuiteCompletedEvent(e.getDescription()));
+    }
   }
 }
