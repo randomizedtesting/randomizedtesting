@@ -3,13 +3,14 @@ package com.carrotsearch.ant.tasks.junit4;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.output.WriterOutputStream;
 
 import com.carrotsearch.ant.tasks.junit4.events.AppendStdErrEvent;
 import com.carrotsearch.ant.tasks.junit4.events.AppendStdOutEvent;
+import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 
 /**
@@ -27,10 +28,14 @@ public final class SlaveInfo {
   public final int slaves;
 
   /**
-   * {@link Charset} as used on the client. We assume slave and master are
-   * equally equipped with {@link Charset} and encoders/ decoders.
+   * Bootstrap event.
    */
-  private Charset charset;
+  private BootstrapEvent bootstrapEvent;
+
+  /**
+   * Timestamps for diagnostics.
+   */
+  long start, end;
 
   /* */
   public SlaveInfo(int id, int slaves) {
@@ -42,14 +47,36 @@ public final class SlaveInfo {
    * Return the {@link Charset} used to encode stream bytes from the slave.
    */
   public Charset getCharset() {
-    return charset;
+    return Charset.forName(bootstrapEvent.getDefaultCharsetName());
   }
 
   /**
-   * Set the slave's charset.
+   * System properties on the slave.
    */
-  void setCharset(String charsetName) throws UnsupportedCharsetException {
-    this.charset = Charset.forName(charsetName);
+  public Map<String,String> getSystemProperties() {
+    return bootstrapEvent.getSystemProperties();
+  }
+
+  /**
+   * JVM name (slave).
+   */
+  public String getJvmName() {
+    return getSystemProperties().get("java.vm.name") + ", " +
+           getSystemProperties().get("java.vm.version");
+  }
+
+  /**
+   * Slave execution time.
+   */
+  long getExecutionTime() {
+    return end - start;
+  }
+  
+  /**
+   * Set the bootstrap event associated with this slave. 
+   */
+  void setBootstrapEvent(BootstrapEvent e) {
+    this.bootstrapEvent = e;
   }
 
   /**

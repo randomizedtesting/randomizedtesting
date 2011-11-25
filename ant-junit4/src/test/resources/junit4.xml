@@ -25,7 +25,12 @@
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-console />
+                <report-console
+                	showErrors="true"
+                	showStackTraces="true"
+                	showOutputStream="true"
+            	    showErrorStream="true"
+                />
             </listeners>
 
             <fileset dir="${basedir}">

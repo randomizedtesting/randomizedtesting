@@ -6,11 +6,6 @@ package com.carrotsearch.ant.tasks.junit4.events;
 public enum EventType {
   BOOTSTRAP(BootstrapEvent.class),
 
-  /*
-  SYSTEM_PROPERTIES,
-  MACHINE_INFO,
-  */
-
   APPEND_STDOUT(AppendStdOutEvent.class),
   APPEND_STDERR(AppendStdErrEvent.class),
 

@@ -1,5 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4;
 
+import static com.carrotsearch.ant.tasks.junit4.Pluralize.*;
+
 /**
  * Summary of tests execution.
  */
@@ -35,16 +37,9 @@ public class TestsSummary {
     if (ignores + assumptions > 0) {
       s.append(", ").append(ignores + assumptions).append(" ignored");
       if (assumptions > 0) {
-        s.append(" (").append(assumptions).append(pluralize(assumptions, " assumption)"));
+        s.append(" (").append(assumptions).append(pluralize(assumptions, " assumption")).append(")");
       }
     }
     return s.toString();
-  }
-
-  private String pluralize(int count, String word) {
-    if (count != 1) {
-      word += "s";
-    }
-    return word;
   }
 }

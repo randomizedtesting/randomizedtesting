@@ -29,14 +29,16 @@ public class DiagnosticsListener {
 
   @Subscribe
   public void receiveBootstrap(BootstrapEvent e) {
+    slave.start = System.currentTimeMillis();
     log("Communication channel: " + e.getEventChannel() + ", " +
         "Default encoding: " + e.getDefaultCharsetName());
-    slave.setCharset(e.getDefaultCharsetName());
+    slave.setBootstrapEvent(e);
   }
 
   @Subscribe
   public void receiveQuit(QuitEvent e) {
     quitReceived = true;
+    slave.end = System.currentTimeMillis();
   }
 
   boolean quitReceived() {

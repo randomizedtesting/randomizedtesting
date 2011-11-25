@@ -4,8 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
@@ -26,7 +33,10 @@ import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
 import org.objectweb.asm.ClassReader;
 
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
+import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.google.common.base.Charsets;
@@ -97,11 +107,29 @@ public class JUnit4 extends Task {
   private AntClassLoader testsClassLoader;
 
   /**
+   * @see #setParallellism(String)
+   */
+  private String parallellism = "1";
+
+  /**
+   * Set to true to leave temporary files (for diagnostics).
+   */
+  private boolean leaveTemporary;
+  
+  /**
    * 
    */
   public JUnit4() {
     resources = new Resources();
     resources.setCache(true);
+  }
+  
+  /**
+   * The number of parallel slaves. Can be set to a constant "auto" and if so,
+   * will equal {@link Runtime#availableProcessors()}. The default is a single subprocess.
+   */
+  public void setParallellism(String parallellism) {
+    this.parallellism = parallellism;
   }
   
   /**
@@ -143,6 +171,13 @@ public class JUnit4 extends Task {
    */
   public void setMaxmemory(String max) {
     getCommandline().setMaxmemory(max);
+  }
+  
+  /**
+   * Set to true to leave temporary files for diagnostics.
+   */
+  public void setLeaveTemporary(boolean leaveTemporary) {
+    this.leaveTemporary = leaveTemporary;
   }
   
   /**
@@ -189,7 +224,7 @@ public class JUnit4 extends Task {
   public void setJvm(String value) {
     getCommandline().setVm(value);
   }
-  
+
   /**
    * Adds path to classpath used for tests.
    * 
@@ -263,7 +298,9 @@ public class JUnit4 extends Task {
         true);
 
     // Process test classes and resources.
+    long start = System.currentTimeMillis();    
     final List<String> testClassNames = processTestResources();
+    logTime("Processing test classes", System.currentTimeMillis() - start);
 
     final EventBus aggregatedBus = new EventBus("aggregated");
     final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
@@ -273,22 +310,67 @@ public class JUnit4 extends Task {
       if (o instanceof ProjectComponent) {
         ((ProjectComponent) o).setProject(getProject());
       }
+      if (o instanceof AggregatedEventListener) {
+        ((AggregatedEventListener) o).setOuter(this);
+      }
       aggregatedBus.register(o);
     }
 
-    // TODO: add class split and multiple slave execution.
-    final int slaves = 1;
-    final int slave = 0;
-    final SlaveInfo slaveId = new SlaveInfo(slave, slaves);
-
     if (!testClassNames.isEmpty()) {
+      Collections.shuffle(testClassNames);
+
+      start = System.currentTimeMillis();
+      int slaveCount = determineSlaveCount(testClassNames.size());
+
+      final int total = testClassNames.size();
+      List<SlaveInfo> slaveInfos = Lists.newArrayList();
+      List<Callable<Void>> slaves = Lists.newArrayList();
+      for (int slave = 0; slave < slaveCount; slave++) {
+        final SlaveInfo slaveInfo = new SlaveInfo(slave, slaveCount);
+        final int from = slave * total / slaveCount;
+        final int to = (slave + 1) * total / slaveCount;
+        final List<String> sublist = testClassNames.subList(from, to);
+        slaveInfos.add(slaveInfo);
+        slaves.add(new Callable<Void>() {
+          @Override
+          public Void call() throws Exception {
+            executeSlave(slaveInfo, aggregatedBus, sublist);
+            return null;
+          }
+        });
+      }
+
+      ExecutorService executor = Executors.newCachedThreadPool();
+      aggregatedBus.post(new AggregatedStartEvent(slaves.size()));
+
+      boolean hadSlaveErrors = false;
       try {
-        executeSlave(slaveId, aggregatedBus, testClassNames);
-      } catch (Throwable t) {
-        if (t instanceof BuildException)
-          throw (BuildException) t;
-        else
-          throw new BuildException(t);
+        List<Future<Void>> all = executor.invokeAll(slaves);
+        executor.shutdown();
+
+        for (Future<Void> f : all) {
+          try {
+            f.get();
+          } catch (ExecutionException e) {
+            log("Slave execution exception: " + e, e, Project.MSG_ERR);
+            hadSlaveErrors = true;
+          }
+        }
+      } catch (InterruptedException e) {
+        log("Master interrupted? Weird.", Project.MSG_ERR);
+      }
+      aggregatedBus.post(new AggregatedQuitEvent());
+
+      logTime("Slave execution", System.currentTimeMillis() - start);
+      for (SlaveInfo si : slaveInfos) {
+        log(String.format(Locale.ENGLISH, "slave %d: %8.2f %8.2f %8.2f",
+            si.id,
+            (si.start - start) / 1000.0f,
+            (si.end - start) / 1000.0f,
+            (si.getExecutionTime() / 1000.0f)));
+      }
+      if (hadSlaveErrors) {
+        throw new BuildException("At least one slave process threw an exception.");
       }
     }
 
@@ -307,11 +389,36 @@ public class JUnit4 extends Task {
     }
   }
 
+  private void logTime(String message, long millis) {
+    log(String.format(Locale.ENGLISH, "%s: %.2fs", message, millis / 1000.0), 
+        Project.MSG_INFO);
+  }
+
+  /**
+   * Determine how many slaves to use.
+   */
+  private int determineSlaveCount(int testCases) {
+    int slaveCount;
+    if (this.parallellism.equals("auto")) {
+      slaveCount = Runtime.getRuntime().availableProcessors();
+    } else {
+      try {
+        slaveCount = Math.max(1, Integer.parseInt(parallellism));
+      } catch (NumberFormatException e) {
+        throw new BuildException("parallelism must be 'auto' or a valid integer: "
+            + parallellism);
+      }
+    }
+
+    slaveCount = Math.min(testCases, slaveCount);
+    return slaveCount;
+  }
+
   /**
    * Attach listeners and execute a slave process.
    */
   private void executeSlave(SlaveInfo slave, EventBus aggregatedBus, List<String> testClassNames)
-    throws IOException, BuildException
+    throws Exception
   {
     // Dump all test class names to a temporary file.
     File tempDir = getTempDir();
@@ -322,12 +429,15 @@ public class JUnit4 extends Task {
     Files.write(testClassPerLine, classNamesFile, Charsets.UTF_8);
 
     // Prepare command line for java execution.
-    final CommandlineJava commandline = getCommandline();
+    CommandlineJava commandline;
+    commandline = (CommandlineJava) getCommandline().clone();
     commandline.createClasspath(getProject()).add(addSlaveClasspath());
     commandline.setClassname(SlaveMainSafe.class.getName());
     commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
+    String [] commandLineArgs = commandline.getCommandline();
+
     log("Slave process command line:\n" + 
-        Joiner.on(" ").join(commandline.getCommandline()), Project.MSG_VERBOSE);
+        Joiner.on(" ").join(commandLineArgs), Project.MSG_VERBOSE);
 
     final EventBus eventBus = new EventBus("slave");
     final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
@@ -338,7 +448,8 @@ public class JUnit4 extends Task {
       throw new BuildException("Quit event not received from a slave process?");
     }
 
-    classNamesFile.delete();
+    if (leaveTemporary)
+      classNamesFile.delete();
   }
 
   /**

@@ -12,12 +12,18 @@ public class Serializer {
     this.os = new ObjectOutputStream(os);
   }
 
-  public void serialize(IEvent event) throws IOException {
+  public Serializer serialize(IEvent event) throws IOException {
     os.writeObject(event);
-    os.flush();
+    return this;
   }
 
   public ObjectOutputStream getOutputStream() {
     return os;
   }
+  
+  public Serializer flush() throws IOException {
+    getOutputStream().flush();
+    return this;
+  }
 }
+

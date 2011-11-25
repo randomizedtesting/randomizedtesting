@@ -125,16 +125,19 @@ public class SlaveMain {
     try {
       // Pick the communication channel.
       final BootstrapEvent.EventChannelType channel = establishCommunicationChannel(); 
-      new Serializer(System.out).serialize(new BootstrapEvent(channel));
+      new Serializer(System.out)
+        .serialize(new BootstrapEvent(channel))
+        .flush();
 
+      final int bufferSize = 32 * 1024;
       switch (channel) {
         case STDERR:
-          serializer = new Serializer(new BufferedOutputStream(System.err));
+          serializer = new Serializer(new BufferedOutputStream(System.err, bufferSize));
           warnings = System.out;
           break;
 
         case STDOUT:
-          serializer = new Serializer(new BufferedOutputStream(System.out));
+          serializer = new Serializer(new BufferedOutputStream(System.out, bufferSize));
           warnings = System.err;
           break;
 
@@ -154,6 +157,7 @@ public class SlaveMain {
       Serializer dup = serializer;
       serializer = null;
       dup.serialize(new QuitEvent());
+      dup.getOutputStream().close();
     } catch (Throwable t) {
       warn("Exception at main loop level?", t);
       exitStatus = -1;

@@ -22,11 +22,13 @@ public class LocalRun {
     JUnit4 junit4 = new JUnit4();
     junit4.setProject(p);
     junit4.createClasspath().setLocation(new File("../dependency/junit-4.10.jar"));
+    junit4.createClasspath().setLocation(new File("../dependency/asm-3.3.1.jar"));
     junit4.createClasspath().setLocation(new File("."));
-    
+    junit4.setParallellism("4");
+
     ConsoleReport report = new ConsoleReport();
     report.setShowErrors(true);
-    report.setShowStackTraces(true);
+    report.setShowStackTraces(false);
     report.setShowOutputStream(true);
     report.setShowErrorStream(true);
     junit4.createListeners().addConfigured(report);

@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectComponent;
 import org.junit.runner.Description;
 
+import com.carrotsearch.ant.tasks.junit4.JUnit4;
+import com.carrotsearch.ant.tasks.junit4.Pluralize;
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedResultEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedTestResultEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
@@ -25,8 +27,7 @@ import com.google.common.eventbus.Subscribe;
  * A listener that will subscribe to test execution and dump
  * informational info about the progress to the console.
  */
-public class ConsoleReport extends ProjectComponent implements AggregatedEventListener {
-
+public class ConsoleReport implements AggregatedEventListener {
   /*
    * Indents for outputs.
    */
@@ -57,7 +58,8 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
   private boolean showOutputStream; 
 
   /** @see #setShowErrorStream(boolean) */
-  private boolean showErrorStream; 
+  private boolean showErrorStream;
+  private JUnit4 task; 
 
   /**
    * Show error information.
@@ -91,7 +93,7 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
    * 
    */
   @Subscribe
-  public void singleTest(AggregatedTestResultEvent e) {
+  public void onTestResult(AggregatedTestResultEvent e) {
     format(e, e.getStatus(), e.getExecutionTime());
   }
 
@@ -99,12 +101,18 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
    * 
    */
   @Subscribe
-  public void suite(AggregatedSuiteResultEvent e) {
+  public void onSuiteResult(AggregatedSuiteResultEvent e) {
     if (!e.getFailures().isEmpty()) {
       format(e, TestStatus.ERROR, 0);
     }
   }
 
+  @Subscribe
+  public void onStart(AggregatedStartEvent e) {
+    task.log("Executing tests with " + 
+        e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".", Project.MSG_INFO);
+  }
+  
   /*
    * 
    */
@@ -114,11 +122,12 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
     List<FailureMirror> failures = result.getFailures();
 
     StringBuilder line = new StringBuilder();
-    if (slave.slaves > 1) {
-      line.append("S").append(slave.id).append(" ");
-    }
     line.append(Strings.padEnd(statusNames.get(status), 8, ' '));
     line.append(formatTime(timeMillis));
+    if (slave.slaves > 1) {
+      final int digits = 1 + (int) Math.floor(Math.log10(slave.slaves));
+      line.append(String.format(" S%-" + digits + "d", slave.id));
+    }    
     line.append(" | ");
 
     String className = description.getClassName();
@@ -127,7 +136,7 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
       className = components[components.length - 1];
       line.append(className);
       if (description.getMethodName() != null) { 
-        line.append(".");
+        line.append(".").append(description.getMethodName());
       } else {
         line.append(" (suite)");
       }
@@ -171,7 +180,7 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
       }
     }
 
-    getProject().log(line.toString().trim(), Project.MSG_INFO);
+    task.log(line.toString().trim(), Project.MSG_INFO);
   }
 
   /*
@@ -187,5 +196,10 @@ public class ConsoleReport extends ProjectComponent implements AggregatedEventLi
       precision = 2;
     }
     return String.format(Locale.ENGLISH, "%4." + precision + "fs", timeMillis / 1000.0);
+  }
+
+  @Override
+  public void setOuter(JUnit4 junit) {
+    this.task = junit;
   }
 }
