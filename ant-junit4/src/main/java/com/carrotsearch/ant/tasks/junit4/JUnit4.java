@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.types.Commandline;
@@ -269,13 +270,16 @@ public class JUnit4 extends Task {
     aggregatedBus.register(summaryListener);
     
     for (Object o : listeners) {
+      if (o instanceof ProjectComponent) {
+        ((ProjectComponent) o).setProject(getProject());
+      }
       aggregatedBus.register(o);
     }
 
     // TODO: add class split and multiple slave execution.
     final int slaves = 1;
     final int slave = 0;
-    final SlaveID slaveId = new SlaveID(slave, slaves);
+    final SlaveInfo slaveId = new SlaveInfo(slave, slaves);
 
     if (!testClassNames.isEmpty()) {
       try {
@@ -306,7 +310,7 @@ public class JUnit4 extends Task {
   /**
    * Attach listeners and execute a slave process.
    */
-  private void executeSlave(SlaveID slave, EventBus aggregatedBus, List<String> testClassNames)
+  private void executeSlave(SlaveInfo slave, EventBus aggregatedBus, List<String> testClassNames)
     throws IOException, BuildException
   {
     // Dump all test class names to a temporary file.

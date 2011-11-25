@@ -5,22 +5,37 @@ import java.util.List;
 
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveID;
+import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
+import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 
-public class AggregatedSuiteResultEvent {
-  private final SlaveID slave;
+public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
+  private final SlaveInfo slave;
   private final Description description;
-  private List<AggregatedTestResultEvent> tests;
-  private List<FailureMirror> suiteFailures;
+  private final List<AggregatedTestResultEvent> tests;
+  private final List<FailureMirror> suiteFailures;
+  private final List<IEvent> eventStream;
 
-  public AggregatedSuiteResultEvent(SlaveID id, Description description, List<FailureMirror> suiteFailures, List<AggregatedTestResultEvent> tests) {
+  public AggregatedSuiteResultEvent(SlaveInfo id, Description description, 
+      List<FailureMirror> suiteFailures, List<AggregatedTestResultEvent> tests,
+      List<IEvent> eventStream) {
     this.slave = id;
     this.tests = tests;
     this.suiteFailures = suiteFailures;
     this.description = description;
+    this.eventStream = eventStream;
   }
 
+  public List<AggregatedTestResultEvent> getTests() {
+    return tests;
+  }
+
+  @Override
+  public List<FailureMirror> getFailures() {
+    return Collections.unmodifiableList(suiteFailures);
+  }
+
+  @Override
   public boolean isSuccessful() {
     if (!suiteFailures.isEmpty())
       return false;
@@ -34,19 +49,18 @@ public class AggregatedSuiteResultEvent {
     return true;
   }
 
-  public List<AggregatedTestResultEvent> getTests() {
-    return tests;
+  @Override
+  public List<IEvent> getEventStream() {
+    return eventStream;
   }
-
-  public SlaveID getSlave() {
+  
+  @Override
+  public SlaveInfo getSlave() {
     return slave;
   }
 
+  @Override
   public Description getDescription() {
     return description;
-  }
-
-  public List<FailureMirror> getSuiteFailures() {
-    return Collections.unmodifiableList(suiteFailures);
   }
 }

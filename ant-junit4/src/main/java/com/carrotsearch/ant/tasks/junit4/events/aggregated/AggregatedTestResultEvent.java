@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveID;
+import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.google.common.collect.Lists;
@@ -13,10 +13,10 @@ import com.google.common.collect.Lists;
 /**
  * A single test's execution information.
  */
-public class AggregatedTestResultEvent {
+public class AggregatedTestResultEvent implements AggregatedResultEvent {
   private final Description suite;
   private final Description description;
-  private final SlaveID slave;
+  private final SlaveInfo slave;
 
   private TestStatus status = TestStatus.OK;
   private List<FailureMirror> failures = Lists.newArrayList();
@@ -28,16 +28,18 @@ public class AggregatedTestResultEvent {
   private boolean hasErrors;
   private boolean hasIgnoredAssumptions;
 
-  public AggregatedTestResultEvent(SlaveID slave, Description suiteDescription, Description description) {
+  public AggregatedTestResultEvent(SlaveInfo slave, Description suiteDescription, Description description) {
     this.description = description;
     this.suite = suiteDescription;
     this.slave = slave;
   }
 
+  @Override
   public Description getDescription() {
     return description;
   }
   
+  @Override
   public boolean isSuccessful() {
     return status == TestStatus.OK || 
            status == TestStatus.IGNORED ||
@@ -48,10 +50,12 @@ public class AggregatedTestResultEvent {
     return suite;
   }
 
-  public SlaveID getSlave() {
+  @Override
+  public SlaveInfo getSlave() {
     return slave;
   }
 
+  @Override
   public List<FailureMirror> getFailures() {
     return Collections.unmodifiableList(failures);
   }
@@ -66,6 +70,7 @@ public class AggregatedTestResultEvent {
   /**
    * Raw {@link IEvent} stream received during the duration of this test. 
    */
+  @Override
   public List<IEvent> getEventStream() {
     return Collections.unmodifiableList(eventStream);
   }

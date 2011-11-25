@@ -9,11 +9,11 @@ import com.google.common.eventbus.Subscribe;
 
 public class DiagnosticsListener {
   private final Project project;
-  private final SlaveID slave;
+  private final SlaveInfo slave;
 
   private boolean quitReceived;
 
-  public DiagnosticsListener(SlaveID slave, Project project) {
+  public DiagnosticsListener(SlaveInfo slave, Project project) {
     this.project = project;
     this.slave = slave;
   }
@@ -31,6 +31,7 @@ public class DiagnosticsListener {
   public void receiveBootstrap(BootstrapEvent e) {
     log("Communication channel: " + e.getEventChannel() + ", " +
         "Default encoding: " + e.getDefaultCharsetName());
+    slave.setCharset(e.getDefaultCharsetName());
   }
 
   @Subscribe

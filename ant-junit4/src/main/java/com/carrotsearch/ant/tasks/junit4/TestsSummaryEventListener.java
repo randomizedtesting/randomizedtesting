@@ -26,7 +26,7 @@ public class TestsSummaryEventListener {
   @Subscribe
   public void suiteSummary(AggregatedSuiteResultEvent e) {
     suites++;
-    if (!e.getSuiteFailures().isEmpty()) {
+    if (!e.getFailures().isEmpty()) {
       suiteErrors++;
     }
 

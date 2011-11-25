@@ -1,14 +1,28 @@
 package com.carrotsearch.ant.tasks.junit4.slave;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.notification.Failure;
 
-import com.carrotsearch.ant.tasks.junit4.events.*;
+import com.carrotsearch.ant.tasks.junit4.events.AppendStdErrEvent;
+import com.carrotsearch.ant.tasks.junit4.events.AppendStdOutEvent;
+import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent.EventChannelType;
+import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
+import com.carrotsearch.ant.tasks.junit4.events.Serializer;
+import com.carrotsearch.ant.tasks.junit4.events.SuiteFailureEvent;
 
 /**
  * A slave process running the actual tests on the target JVM.
@@ -225,19 +239,25 @@ public class SlaveMain {
    * Redirect standard streams so that the output can be passed to listeners.
    */
   private static void redirectStreams(final Serializer serializer) {
+    final Object lock = new Object();
+
     stdout = System.out;
     stderr = System.err;
     System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
       @Override
-      public synchronized void write(byte[] b, int off, int len) throws IOException {
-        serializer.serialize(new AppendStdOutEvent(b, off, len));
+      public void write(byte[] b, int off, int len) throws IOException {
+        synchronized (lock) {
+          serializer.serialize(new AppendStdOutEvent(b, off, len));
+        }
       }
     })));
 
-    System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
+    System.setErr(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
       @Override
-      public synchronized void write(byte[] b, int off, int len) throws IOException {
-        serializer.serialize(new AppendStdErrEvent(b, off, len));
+      public void write(byte[] b, int off, int len) throws IOException {
+        synchronized (lock) {
+          serializer.serialize(new AppendStdErrEvent(b, off, len));
+        }
       }
     })));
   }

@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveID;
+import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.SuiteCompletedEvent;
 import com.carrotsearch.ant.tasks.junit4.events.SuiteFailureEvent;
@@ -28,7 +28,7 @@ import com.google.common.eventbus.Subscribe;
  */
 public class AggregatingListener {
   private EventBus target;
-  private SlaveID slave;
+  private SlaveInfo slave;
 
   private Description lastSuite;
   private List<FailureMirror> suiteFailures;
@@ -40,7 +40,7 @@ public class AggregatingListener {
   /**
    * @param target Which event bus to repost aggregated events to?
    */
-  public AggregatingListener(EventBus target, SlaveID slave) {
+  public AggregatingListener(EventBus target, SlaveInfo slave) {
     this.target = target;
     this.slave = slave;
   }
@@ -119,7 +119,7 @@ public class AggregatingListener {
   @Subscribe
   public void receiveSuiteEnd(SuiteCompletedEvent e) {
     target.post(new AggregatedSuiteResultEvent(
-        slave, e.getDescription(), suiteFailures, Lists.newArrayList(tests)));
+        slave, e.getDescription(), suiteFailures, Lists.newArrayList(tests), eventStream));
     this.suiteFailures = null;
     this.lastSuite = null;
     this.tests = null;

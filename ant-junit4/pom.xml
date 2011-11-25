@@ -22,6 +22,12 @@
       <artifactId>guava</artifactId>
       <version>10.0.1</version>
       <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>jsr305</artifactId>
+          <groupId>com.google.code.findbugs</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -32,12 +38,24 @@
     </dependency>
 
     <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.1</version>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
       <type>jar</type>
       <scope>compile</scope>
       <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -52,6 +70,12 @@
       <artifactId>ant-testutil</artifactId>
       <version>1.8.2</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.0</version>
     </dependency>
   </dependencies>
 
@@ -153,6 +177,10 @@
               <inclusion>
                 <groupId>asm</groupId>
                 <artifactId>asm</artifactId>
+              </inclusion>
+              <inclusion>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
               </inclusion>
             </inclusions>
           </assembly>
