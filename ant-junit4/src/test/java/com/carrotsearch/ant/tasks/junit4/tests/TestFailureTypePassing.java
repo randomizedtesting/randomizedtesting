@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4.tests.obs;
+package com.carrotsearch.ant.tasks.junit4.tests;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;
@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 
-public class TestFailingWithNonStandardException {
+public class TestFailureTypePassing {
   @Test
   public void nonStandardError() throws Exception {
     // Prepare a new unique exception class with asm. Throw it.

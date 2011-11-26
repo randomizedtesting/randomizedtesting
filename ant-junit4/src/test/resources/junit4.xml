@@ -92,64 +92,34 @@
             </fileset>
         </junit4.preconf>
     </target>
-
 	
-	
-
-    <target name="all">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
-            <listeners>
-                <report-console
-                	showErrors="true"
-                	showStackTraces="true"
-                	showOutputStream="true"
-            	    showErrorStream="true"
-                />
-            </listeners>
-
-            <fileset dir="${basedir}">
-                <include name="**/tests/Test*.class" />
-            	<exclude name="**/tests/TestJvmCrash*.class" />
-            	<exclude name="**/*$*.class" />
-            </fileset>
-        </junit4>
-    </target>
-
     <target name="dir">
-    	<delete dir="empty" failonerror="false" />
-    	<mkdir dir="empty" />
+        <delete dir="empty" failonerror="false" />
+        <mkdir dir="empty" />
 
-        <junit4 dir="empty" haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
+        <junit4.preconf dir="empty">
             <fileset dir="${basedir}">
                 <include name="**/tests/TestDir.class" />
             </fileset>
-        </junit4>
+        </junit4.preconf>
 
-    	<fail message="Expected marker file to appear.">
-    		<condition>
-    			  <not><available file="empty/touch.me" type="file" /></not>
-		    </condition>
-		</fail>
+        <fail message="Expected marker file to appear.">
+            <condition>
+                  <not><available file="empty/touch.me" type="file" /></not>
+            </condition>
+        </fail>
     </target>
 
     <target name="maxmem">
-        <junit4 maxmemory="100m" haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
+        <junit4.preconf maxmemory="100m" >
             <fileset dir="${basedir}">
                 <include name="**/tests/TestMaxMem.class" />
             </fileset>
-        </junit4>
+        </junit4.preconf>
     </target>
 
     <target name="jvmarg">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
+        <junit4.preconf>
         	<jvmarg value="-Xmx100m"/>
         	<jvmarg value="-Dtest.param=foobar"/>
 
@@ -157,88 +127,66 @@
                 <include name="**/tests/TestMaxMem.class" />
             	<include name="**/tests/TestJvmArg.class" />
             </fileset>
-        </junit4>
+        </junit4.preconf>
     </target>
-	
+
     <target name="sysproperty">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
+        <junit4.preconf>
         	<sysproperty key="test.param" value="foobar" />
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestJvmArg.class" />
             </fileset>
-        </junit4>
+        </junit4.preconf>
     </target>
 
     <target name="env">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
+        <junit4.preconf>
         	<env key="env.variable" value="foobar" />
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestEnvVar.class" />
             </fileset>
-        </junit4>
+        </junit4.preconf>
     </target>
 
-    <target name="failing">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
-            <listeners>
-                <report-console
-                    showErrors="true"
-                    showStackTraces="true"
-                    showOutputStream="true"
-                    showErrorStream="true"
-                />
-            </listeners>
-
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestFailing.class" />
-            </fileset>
-        </junit4>
-    </target>
-
-    <target name="failingWithNonStandardException">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
-        	<classpath>
-        	  <fileset dir=".." includes="dependency/asm*.jar" />
-        	</classpath>
-
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestFailingWithNonStandardException.class" />
-            </fileset>
-        </junit4>
-    </target>
-	
     <target name="failureProperty">
-        <junit4 haltonfailure="false" failureProperty="tests.failed">
-            <classpath refid="tests.classpath" />
-
+        <junit4.preconf haltonfailure="false">
             <fileset dir="${basedir}">
-                <include name="**/tests/TestFailing.class" />
+                <include name="**/tests/TestStatuses.class" />
             </fileset>
-        </junit4>
+        </junit4.preconf>
+
+        <junit4.preconf haltonfailure="false" failureProperty="tests.failed">
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+            </fileset>
+        </junit4.preconf>
 
         <fail message="Expected failure property to be set.">
             <condition>
                   <not><isset property="tests.failed" /></not>
             </condition>
-        </fail>    	
+        </fail>
+    </target>
+
+    <target name="failureTypePassing">
+        <junit4.preconf>
+        	<classpath>
+        	  <fileset dir=".." includes="dependency/asm*.jar" />
+        	</classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestFailureTypePassing.class" />
+            </fileset>
+        </junit4.preconf>
     </target>
 
     <target name="jvmcrash">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
+        <junit4.preconf>
             <fileset dir="${basedir}">
                 <include name="**/tests/TestJvmCrash.class" />
             </fileset>
-        </junit4>
+        </junit4.preconf>
     </target>
-
 </project>

@@ -512,11 +512,12 @@ public class JUnit4 extends Task {
         log("-- EOF --", Project.MSG_ERR);
 
         // Anything on the altErr will cause a build failure.
-        log("An output appeared on the forked JVM's error stream. This is unexpected and" +
-        		" most likely indicates JVM crash. Inspect the output above and possibly crash" +
-            " dumps in the slave's current working directory.", Project.MSG_ERR);
-        throw new BuildException("An output appeared on alternate error stream from slave process." +
-        		" Check the logs. Subprocess exit code: " + exitStatus);
+        String msg = "Unexpected output from forked JVM. This" +
+            " most likely indicates JVM crash. Inspect the logs above and look for crash" +
+            " dumps in: " + getProject().getBaseDir().getAbsolutePath();
+        log(msg, Project.MSG_ERR);
+        throw new BuildException("Unexpected output from forked JVM. This" +
+            " most likely indicates JVM crash.");
       }
 
       if (execute.isFailure()) {

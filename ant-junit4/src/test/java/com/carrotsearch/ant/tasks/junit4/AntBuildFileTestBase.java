@@ -80,4 +80,8 @@ public class AntBuildFileTestBase {
           Assert.assertThat(e.getMessage(), containsString(message));
         }
       }
+
+  protected final void executeTarget(String target) {
+    getProject().executeTarget(target);
+  }
 }

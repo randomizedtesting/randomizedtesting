@@ -2,8 +2,10 @@ package com.carrotsearch.ant.tasks.junit4;
 
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.net.URL;
 
+import org.apache.tools.ant.taskdefs.Delete;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,7 +23,7 @@ public class TestJUnit4 extends AntBuildFileTestBase {
 
   @Test
   public void sysstreams() {
-    getProject().executeTarget("sysstreams");
+    executeTarget("sysstreams");
     assertLogContains("Tests summary: 1 suite, 2 tests");
     assertLogContains("1> sysout-sysout-contd.");
     assertLogContains("2> syserr-syserr-contd.");
@@ -40,7 +42,7 @@ public class TestJUnit4 extends AntBuildFileTestBase {
 
   @Test
   public void ignoredSuite() throws Throwable {
-    getProject().executeTarget("ignoredSuite");
+    executeTarget("ignoredSuite");
     assertLogContains("Tests summary: 1 suite, 0 tests");
   }
 
@@ -64,60 +66,48 @@ public class TestJUnit4 extends AntBuildFileTestBase {
         "1 suite, 2 tests, 3 suite-level errors, 1 error");
   }
 
-  
-  
-  
-  
-  /*
-  @Test
-  public void testFailing() throws Throwable {
-    try {
-      super.expectBuildExceptionContaining("failing", "tests failures", "1 suite-level error, 1 error, 1 failure");
-    } finally {
-      System.out.println(builder.toString());
-      System.out.println(super.getOutput());
-      System.out.println(super.getError());
-    }
-  }
-
   @Test 
-  public void testDir() {
-    super.executeTarget("dir");
+  public void dir() {
+    executeTarget("dir");
   }
-
+  
   @Test 
-  public void testMaxMem() {
-    super.executeTarget("maxmem");
+  public void maxmem() {
+    executeTarget("maxmem");
   }  
 
   @Test 
-  public void testJvmArg() {
-    super.executeTarget("jvmarg");
+  public void jvmarg() {
+    executeTarget("jvmarg");
   }
   
   @Test 
-  public void testSysProperty() {
-    super.executeTarget("sysproperty");
+  public void sysproperty() {
+    executeTarget("sysproperty");
   }
 
   @Test 
-  public void testEnv() {
-    super.executeTarget("env");
+  public void env() {
+    executeTarget("env");
   }
-  
+
   @Test 
-  public void testJvmCrash() {
-    super.expectBuildExceptionContaining("jvmcrash", "crash log", "alternate error stream");
-  }
-  
-  @Test 
-  public void testFailureProperty() {
+  public void failureProperty() {
     super.executeTarget("failureProperty");
   }
 
-  @Test 
-  public void testNoJUnitOnClasspath() {
-    super.expectBuildExceptionContaining("nojunit", "junit4 message", "must include a junit4");
+  public void failureTypePassing() {
+    executeTarget("failureTypePassing");
   }
-  */  
+
+  @Test
+  public void jvmcrash() {
+    expectBuildExceptionContaining("jvmcrash", "Unexpected output from forked JVM.");
+    File cwd = getProject().getBaseDir();
+    for (File crashDump : cwd.listFiles()) {
+      if (crashDump.isFile() && crashDump.getName().matches("^hs_err_pid.+\\.log")) {
+        crashDump.delete();
+      }
+    }
+  }
 }

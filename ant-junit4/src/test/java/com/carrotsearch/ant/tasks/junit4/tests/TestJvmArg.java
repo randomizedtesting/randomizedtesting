@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4.tests.obs;
+package com.carrotsearch.ant.tasks.junit4.tests;
 
 import org.junit.Assert;
 import org.junit.Test;
