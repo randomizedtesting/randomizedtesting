@@ -150,13 +150,18 @@ public class ConsoleReport implements AggregatedEventListener {
     if (showErrors && !failures.isEmpty()) {
       StringWriter sw = new StringWriter();
       PrefixedWriter pos = new PrefixedWriter(indent, sw);
+      int count = 0;
       for (FailureMirror fm : failures) {
+        count++;
         try {
-          if (showStackTraces && !fm.isAssumptionViolation()) {
-            pos.write("Caused by: " + fm.getTrace());
-          } else {
-            pos.write("Caused by: " + fm.getThrowableString());
-          }
+          final String details = 
+              (showStackTraces && !fm.isAssumptionViolation())
+              ? fm.getTrace()
+              : fm.getThrowableString();
+
+          pos.write(String.format(Locale.ENGLISH, 
+              "Throwable #%d: %s",
+              count, details));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

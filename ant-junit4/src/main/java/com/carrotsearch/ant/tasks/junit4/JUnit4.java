@@ -107,9 +107,9 @@ public class JUnit4 extends Task {
   private AntClassLoader testsClassLoader;
 
   /**
-   * @see #setParallellism(String)
+   * @see #setParallelism(String)
    */
-  private String parallellism = "1";
+  private String parallelism = "1";
 
   /**
    * Set to true to leave temporary files (for diagnostics).
@@ -135,8 +135,8 @@ public class JUnit4 extends Task {
    * The number of parallel slaves. Can be set to a constant "auto" and if so,
    * will equal {@link Runtime#availableProcessors()}. The default is a single subprocess.
    */
-  public void setParallellism(String parallellism) {
-    this.parallellism = parallellism;
+  public void setParallelism(String parallelism) {
+    this.parallelism = parallelism;
   }
   
   /**
@@ -428,14 +428,14 @@ public class JUnit4 extends Task {
    */
   private int determineSlaveCount(int testCases) {
     int slaveCount;
-    if (this.parallellism.equals("auto")) {
+    if (this.parallelism.equals("auto")) {
       slaveCount = Runtime.getRuntime().availableProcessors();
     } else {
       try {
-        slaveCount = Math.max(1, Integer.parseInt(parallellism));
+        slaveCount = Math.max(1, Integer.parseInt(parallelism));
       } catch (NumberFormatException e) {
         throw new BuildException("parallelism must be 'auto' or a valid integer: "
-            + parallellism);
+            + parallelism);
       }
     }
 

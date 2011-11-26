@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4.tests;
+package com.carrotsearch.ant.tasks.junit4.tests.obs;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SUPER;

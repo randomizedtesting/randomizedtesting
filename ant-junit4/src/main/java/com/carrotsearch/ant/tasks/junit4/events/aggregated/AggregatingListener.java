@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.runner.Description;
+import org.junit.runner.JUnitCore;
 
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
@@ -22,8 +23,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 /**
- * Aggregates atomic events to higher-level events that contain a
- * full summary of a given test's execution. Simplifies reporting
+ * Aggregates atomic events from {@link JUnitCore} to higher-level events that
+ * contain a full summary of a given test's execution. Simplifies reporting
  * logic.
  */
 public class AggregatingListener {
@@ -104,7 +105,12 @@ public class AggregatingListener {
 
   @Subscribe
   public void receiveTestFailure(TestFailureEvent e) {
-    assert e.getDescription().equals(tests.peek().getDescription());
+    Description description = e.getDescription();
+    if (description.getMethodName() == null) {
+      suiteFailures.add(e.getFailure());
+      return;
+    }
+
     tests.peek().addFailure(e.getFailure());
   }
 

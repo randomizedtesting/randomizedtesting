@@ -1,5 +1,5 @@
 
-<project name="junit4" default="normal">
+<project name="junit4" default="all">
     <path id="junit.classpath">
         <fileset dir="..">
             <include name="dependency/junit-*.jar" />
@@ -11,7 +11,7 @@
         <path refid="junit.classpath" />
     </path>
 
-    <taskdef resource="junit4.antlib.xml" loaderref="junit4.loader">
+    <taskdef resource="junit4.antlib.xml">
         <classpath refid="junit.classpath" />
         <classpath>
             <fileset dir="..">
@@ -19,6 +19,82 @@
             </fileset>
         </classpath>
     </taskdef>
+
+	<presetdef name="junit4.preconf">
+		<junit4 haltonfailure="true" parallelism="1" >
+            <classpath refid="tests.classpath" />
+
+            <listeners>
+                <report-console
+                    showErrors="true"
+                    showStackTraces="true"
+                    showOutputStream="true"
+                    showErrorStream="true"
+                />
+            </listeners>
+		</junit4>
+	</presetdef>
+
+	<!-- Targets below are connected with test cases. -->
+
+    <target name="sysstreams">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestSysstreams.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="nojunit">
+        <junit4>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestSysstreams.class" />
+            </fileset>
+        </junit4>
+    </target>       
+
+    <target name="statuses">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="ignoredSuite">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestIgnoredSuite.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="beforeClassError">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestBeforeClassError.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="afterClassError">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestAfterClassError.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="hierarchicalSuiteDescription">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestHierarchicalSuiteDescription.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+	
+	
 
     <target name="all">
         <junit4 haltonfailure="true">
@@ -37,16 +113,6 @@
                 <include name="**/tests/Test*.class" />
             	<exclude name="**/tests/TestJvmCrash*.class" />
             	<exclude name="**/*$*.class" />
-            </fileset>
-        </junit4>
-    </target>
-
-    <target name="normal">
-        <junit4 haltonfailure="true">
-            <classpath refid="tests.classpath" />
-
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestSub*.class" />
             </fileset>
         </junit4>
     </target>
@@ -121,6 +187,15 @@
         <junit4 haltonfailure="true">
             <classpath refid="tests.classpath" />
 
+            <listeners>
+                <report-console
+                    showErrors="true"
+                    showStackTraces="true"
+                    showOutputStream="true"
+                    showErrorStream="true"
+                />
+            </listeners>
+
             <fileset dir="${basedir}">
                 <include name="**/tests/TestFailing.class" />
             </fileset>
@@ -166,11 +241,4 @@
         </junit4>
     </target>
 
-    <target name="nojunit">
-        <junit4 haltonfailure="true">
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestJvmCrash.class" />
-            </fileset>
-        </junit4>
-    </target>   	
 </project>

@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -105,8 +106,12 @@ public class SlaveMain {
       });
     }
 
+    /*
+     * Important. Run each class separately so that we get separate 
+     * {@link RunListener} callbacks for the top extracted description.
+     */
     for (Class<?> suite : instantiate(classes)) {
-      core.run(suite);
+      core.run(Request.aClass(suite));
     }
   }
 

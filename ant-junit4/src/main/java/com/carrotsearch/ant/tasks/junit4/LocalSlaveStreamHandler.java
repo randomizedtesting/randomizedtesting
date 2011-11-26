@@ -1,6 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.*;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.List;
 
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
@@ -22,9 +23,8 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private InputStream stdout;
   private InputStream stderr;
   private final PrintStream warnStream;
-  
+
   private ByteArrayOutputStream stderrBuffered = new ByteArrayOutputStream();
-  
   private List<Thread> pumpers = Lists.newArrayList();
 
   public LocalSlaveStreamHandler(EventBus eventBus, ClassLoader classLoader, PrintStream warnStream) {
@@ -89,7 +89,14 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
     }
     
     // Start all pumper threads.
+    UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
+      public void uncaughtException(Thread t, Throwable e) {
+        warnStream.println("Unhandled exception in thread: " + t);
+        e.printStackTrace(warnStream);
+      }
+    };
     for (Thread t : pumpers) {
+      t.setUncaughtExceptionHandler(handler);
       t.setDaemon(true);
       t.start();
     }
@@ -117,14 +124,19 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   }
 
   /**
-   * Pump events from logical stdout.
+   * Pump events from event stream.
    */
   void pumpEvents() {
     try {
       Deserializer deserializer = new Deserializer(stdout, classLoader);
       while (true) {
         IEvent event = deserializer.deserialize();
-        eventBus.post(event);
+        try {
+          eventBus.post(event);
+        } catch (Throwable t) {
+          warnStream.println("Event bus dispatch error: " + t.toString());
+          t.printStackTrace(warnStream);
+        }
       }
     } catch (EOFException e) {
       // EOF.

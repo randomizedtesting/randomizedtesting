@@ -13,7 +13,7 @@ public class TestIgnoredSuite {
   
   @Test
   public void method3() {}
-  
+
   @Test
   public void method4() {}
 

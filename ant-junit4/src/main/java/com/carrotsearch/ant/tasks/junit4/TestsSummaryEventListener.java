@@ -27,7 +27,7 @@ public class TestsSummaryEventListener {
   public void suiteSummary(AggregatedSuiteResultEvent e) {
     suites++;
     if (!e.getFailures().isEmpty()) {
-      suiteErrors++;
+      suiteErrors += e.getFailures().size();
     }
 
     for (AggregatedTestResultEvent testResult : e.getTests()) {

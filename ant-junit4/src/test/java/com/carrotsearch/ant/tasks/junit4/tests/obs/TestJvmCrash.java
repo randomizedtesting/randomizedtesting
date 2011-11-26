@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4.tests;
+package com.carrotsearch.ant.tasks.junit4.tests.obs;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
