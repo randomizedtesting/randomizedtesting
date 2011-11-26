@@ -1,5 +1,5 @@
 
-<project name="junit4" default="all">
+<project name="junit4" default="statuses">
     <path id="junit.classpath">
         <fileset dir="..">
             <include name="dependency/junit-*.jar" />
