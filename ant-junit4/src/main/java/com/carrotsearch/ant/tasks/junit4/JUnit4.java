@@ -117,6 +117,13 @@ public class JUnit4 extends Task {
   private boolean leaveTemporary;
   
   /**
+   * Multiple path resolution in {@link CommandlineJava#getCommandline()} is very slow
+   * so we construct and canonicalize paths.
+   */
+  private Path classpath;
+  private Path bootclasspath;
+
+  /**
    * 
    */
   public JUnit4() {
@@ -146,6 +153,8 @@ public class JUnit4 extends Task {
   public void setProject(Project project) {
     super.setProject(project);
     this.resources.setProject(project);
+    this.classpath = new Path(getProject());
+    this.bootclasspath = new Path(getProject());    
   }
   
   /**
@@ -231,7 +240,7 @@ public class JUnit4 extends Task {
    * @return reference to the classpath in the embedded java command line
    */
   public Path createClasspath() {
-    return getCommandline().createClasspath(getProject()).createPath();
+    return classpath.createPath();
   }
 
   /**
@@ -240,9 +249,9 @@ public class JUnit4 extends Task {
    * @return reference to the bootclasspath in the embedded java command line
    */
   public Path createBootclasspath() {
-    return getCommandline().createBootclasspath(getProject()).createPath();
+    return bootclasspath.createPath();
   }
-  
+
   /**
    * Adds an environment variable; used when forking.
    */
@@ -288,6 +297,12 @@ public class JUnit4 extends Task {
   public void execute() throws BuildException {
     getProject().log("<JUnit4> says hello.", Project.MSG_DEBUG);
 
+    // Resolve paths first.
+    this.classpath = resolveFiles(classpath);
+    this.bootclasspath = resolveFiles(bootclasspath);
+    getCommandline().createClasspath(getProject()).add(classpath);
+    getCommandline().createBootclasspath(getProject()).add(bootclasspath);
+
     // Setup a class loader over test classes. This will be used for loading annotations
     // and referenced classes. This is kind of ugly, but mirroring annotation content will
     // be even worse and Description carries these.
@@ -300,7 +315,6 @@ public class JUnit4 extends Task {
     // Process test classes and resources.
     long start = System.currentTimeMillis();    
     final List<String> testClassNames = processTestResources();
-    logTime("Processing test classes", System.currentTimeMillis() - start);
 
     final EventBus aggregatedBus = new EventBus("aggregated");
     final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
@@ -343,7 +357,7 @@ public class JUnit4 extends Task {
       ExecutorService executor = Executors.newCachedThreadPool();
       aggregatedBus.post(new AggregatedStartEvent(slaves.size()));
 
-      boolean hadSlaveErrors = false;
+      List<Throwable> slaveErrors = Lists.newArrayList();
       try {
         List<Future<Void>> all = executor.invokeAll(slaves);
         executor.shutdown();
@@ -352,8 +366,8 @@ public class JUnit4 extends Task {
           try {
             f.get();
           } catch (ExecutionException e) {
-            log("Slave execution exception: " + e, e, Project.MSG_ERR);
-            hadSlaveErrors = true;
+            Throwable cause = e.getCause();
+            slaveErrors.add(cause);
           }
         }
       } catch (InterruptedException e) {
@@ -361,16 +375,25 @@ public class JUnit4 extends Task {
       }
       aggregatedBus.post(new AggregatedQuitEvent());
 
-      logTime("Slave execution", System.currentTimeMillis() - start);
       for (SlaveInfo si : slaveInfos) {
-        log(String.format(Locale.ENGLISH, "slave %d: %8.2f %8.2f %8.2f",
-            si.id,
-            (si.start - start) / 1000.0f,
-            (si.end - start) / 1000.0f,
-            (si.getExecutionTime() / 1000.0f)));
+        if (si.start > 0 && si.end > 0) {
+          log(String.format(Locale.ENGLISH, "Slave %d: %8.2f .. %8.2f = %8.2fs",
+              si.id,
+              (si.start - start) / 1000.0f,
+              (si.end - start) / 1000.0f,
+              (si.getExecutionTime() / 1000.0f)), 
+              Project.MSG_INFO);
+        }
       }
-      if (hadSlaveErrors) {
-        throw new BuildException("At least one slave process threw an exception.");
+      log(String.format(Locale.ENGLISH, "Execution time total: %.2fs", 
+          (System.currentTimeMillis() - start) / 1000.0));
+
+      if (!slaveErrors.isEmpty()) {
+        for (Throwable t : slaveErrors) {
+          log("ERROR: Slave execution exception: " + t, t, Project.MSG_ERR);
+        }
+        throw new BuildException("At least one slave process threw an exception, first: "
+            + slaveErrors.get(0).toString(), slaveErrors.get(0));
       }
     }
 
@@ -389,9 +412,15 @@ public class JUnit4 extends Task {
     }
   }
 
-  private void logTime(String message, long millis) {
-    log(String.format(Locale.ENGLISH, "%s: %.2fs", message, millis / 1000.0), 
-        Project.MSG_INFO);
+  /**
+   * Resolve all files from a given path and simplify its definition.
+   */
+  private Path resolveFiles(Path path) {
+    Path cloned = new Path(getProject());
+    for (String location : path.list()) {
+      cloned.createPathElement().setLocation(new File(location));
+    }
+    return cloned;
   }
 
   /**
@@ -420,36 +449,42 @@ public class JUnit4 extends Task {
   private void executeSlave(SlaveInfo slave, EventBus aggregatedBus, List<String> testClassNames)
     throws Exception
   {
-    // Dump all test class names to a temporary file.
-    File tempDir = getTempDir();
-    String testClassPerLine = Joiner.on("\n").join(testClassNames);
-    log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
-
-    final File classNamesFile = File.createTempFile("junit4-", ".testmethods", tempDir);
-    Files.write(testClassPerLine, classNamesFile, Charsets.UTF_8);
-
-    // Prepare command line for java execution.
-    CommandlineJava commandline;
-    commandline = (CommandlineJava) getCommandline().clone();
-    commandline.createClasspath(getProject()).add(addSlaveClasspath());
-    commandline.setClassname(SlaveMainSafe.class.getName());
-    commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
-    String [] commandLineArgs = commandline.getCommandline();
-
-    log("Slave process command line:\n" + 
-        Joiner.on(" ").join(commandLineArgs), Project.MSG_VERBOSE);
-
-    final EventBus eventBus = new EventBus("slave");
-    final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
-    eventBus.register(diagnosticsListener);
-    eventBus.register(new AggregatingListener(aggregatedBus, slave));
-    executeProcess(eventBus, commandline);
-    if (!diagnosticsListener.quitReceived()) {
-      throw new BuildException("Quit event not received from a slave process?");
+    final File classNamesFile = File.createTempFile("junit4-", ".testmethods", getTempDir());
+    try {
+      // Dump all test class names to a temporary file.
+      String testClassPerLine = Joiner.on("\n").join(testClassNames);
+      log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
+  
+      Files.write(testClassPerLine, classNamesFile, Charsets.UTF_8);
+  
+      // Prepare command line for java execution.
+      CommandlineJava commandline;
+      commandline = (CommandlineJava) getCommandline().clone();
+      commandline.createClasspath(getProject()).add(addSlaveClasspath());
+      commandline.setClassname(SlaveMainSafe.class.getName());
+      commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
+      if (slave.slaves == 1) {
+        commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
+      }
+  
+      String [] commandLineArgs = commandline.getCommandline();
+  
+      log("Slave process command line:\n" + 
+          Joiner.on(" ").join(commandLineArgs), Project.MSG_VERBOSE);
+  
+      final EventBus eventBus = new EventBus("slave");
+      final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
+      eventBus.register(diagnosticsListener);
+      eventBus.register(new AggregatingListener(aggregatedBus, slave));
+      executeProcess(eventBus, commandline);
+      if (!diagnosticsListener.quitReceived()) {
+        throw new BuildException("Quit event not received from a slave process?");
+      }
+    } finally {
+      if (!leaveTemporary) {
+        classNamesFile.delete();
+      }
     }
-
-    if (leaveTemporary)
-      classNamesFile.delete();
   }
 
   /**

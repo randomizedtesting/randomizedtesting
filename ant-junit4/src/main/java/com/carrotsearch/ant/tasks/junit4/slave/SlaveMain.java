@@ -14,7 +14,9 @@ import java.util.List;
 
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
 
 import com.carrotsearch.ant.tasks.junit4.events.AppendStdErrEvent;
 import com.carrotsearch.ant.tasks.junit4.events.AppendStdOutEvent;
@@ -35,6 +37,11 @@ public class SlaveMain {
   public static final int ERR_NO_JUNIT = 254;
 
   /**
+   * Frequent event strean flushing.
+   */
+  public static final String OPTION_FREQUENT_FLUSH = "-flush";
+
+  /**
    * All class names to be executed as tests.
    */
   private final List<String> classes = new ArrayList<String>();
@@ -52,6 +59,9 @@ public class SlaveMain {
 
   /** A sink for warnings (non-event stream). */
   private static PrintStream warnings;
+
+  /** Flush serialization stream frequently. */
+  private boolean flushFrequently = false;
 
   /**
    * Base for redirected streams. 
@@ -82,7 +92,19 @@ public class SlaveMain {
                 warn("Event serializer exception.", t);
               }
             }));
-    
+
+    if (flushFrequently) {
+      core.addListener(new RunListener() {
+        public void testRunFinished(Result result) throws Exception {
+          serializer.flush();
+        }
+        
+        public void testFinished(Description description) throws Exception {
+          serializer.flush();
+        }
+      });
+    }
+
     for (Class<?> suite : instantiate(classes)) {
       core.run(suite);
     }
@@ -101,6 +123,8 @@ public class SlaveMain {
           serializer.serialize(
               new SuiteFailureEvent(
                   new Failure(Description.createSuiteDescription(className), t)));
+          if (flushFrequently)
+            serializer.flush();
         } catch (Exception e) {
           warn("Could not report failure: ", t);
         }
@@ -129,7 +153,7 @@ public class SlaveMain {
         .serialize(new BootstrapEvent(channel))
         .flush();
 
-      final int bufferSize = 32 * 1024;
+      final int bufferSize = 16 * 1024;
       switch (channel) {
         case STDERR:
           serializer = new Serializer(new BufferedOutputStream(System.err, bufferSize));
@@ -148,38 +172,25 @@ public class SlaveMain {
 
       // Redirect original streams and start running tests.
       redirectStreams(serializer);
-
       final SlaveMain main = new SlaveMain(serializer);
       parseArguments(main, args);
       main.execute();
-
-      // Emit QUIT and clean local serializer reference to avoid duplicate.
-      Serializer dup = serializer;
-      serializer = null;
-      dup.serialize(new QuitEvent());
-      dup.getOutputStream().close();
     } catch (Throwable t) {
       warn("Exception at main loop level?", t);
       exitStatus = -1;
     } finally {
-      // Try hard to clean up the event stream.
-      if (serializer != null) {
-        try {
-          serializer.serialize(new QuitEvent());
-        } catch (IOException e) {
-          // Ignore.
-        }
-      }
       restoreStreams();
     }
 
     if (serializer != null) {
       try {
+        serializer.serialize(new QuitEvent());
         serializer.getOutputStream().close();
       } catch (IOException e) {
         // Ignore.
       }
     }
+
     System.exit(exitStatus);
   }
 
@@ -188,7 +199,9 @@ public class SlaveMain {
    */
   private static void parseArguments(SlaveMain main, String[] args) throws IOException {
     for (int i = 0; i < args.length; i++) {
-      if (args[i].startsWith("@")) {
+      if (args[i].equals(OPTION_FREQUENT_FLUSH)) {
+        main.flushFrequently = true;
+      } else if (args[i].startsWith("@")) {
         // Arguments file, one line per option.
         parseArguments(main, readArgsFile(args[i].substring(1)));
       } else {

@@ -20,18 +20,14 @@ public class DiagnosticsListener {
 
   @Subscribe
   public void receiveAll(IEvent e) {
-    log("Packet received: " + e.getType());
-  }
-
-  private void log(String message) {
-    project.log("slave#" + slave.id + ">" + message, Project.MSG_VERBOSE);
+    project.log("Packet received, slave#" + slave.id + ">" + e.getType(), Project.MSG_DEBUG);
   }
 
   @Subscribe
   public void receiveBootstrap(BootstrapEvent e) {
     slave.start = System.currentTimeMillis();
-    log("Communication channel: " + e.getEventChannel() + ", " +
-        "Default encoding: " + e.getDefaultCharsetName());
+    project.log("Communication channel: " + e.getEventChannel() + ", " +
+        "Default encoding: " + e.getDefaultCharsetName(), Project.MSG_VERBOSE);
     slave.setBootstrapEvent(e);
   }
 
