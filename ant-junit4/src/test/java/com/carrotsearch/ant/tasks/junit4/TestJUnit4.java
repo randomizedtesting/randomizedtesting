@@ -2,10 +2,8 @@ package com.carrotsearch.ant.tasks.junit4;
 
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.net.URL;
 
-import org.apache.tools.ant.taskdefs.Delete;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -96,8 +94,11 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     super.executeTarget("failureProperty");
   }
 
+  @Test
   public void failureTypePassing() {
     executeTarget("failureTypePassing");
+    assertLogContains("Throwable #1: com.carrotsearch.ant.tasks.junit4.tests.SyntheticException");
+    assertLogContains("Tests summary: 1 suite, 1 test, 1 error");
   }
 
   @Test

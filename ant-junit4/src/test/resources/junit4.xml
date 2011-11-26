@@ -171,7 +171,7 @@
     </target>
 
     <target name="failureTypePassing">
-        <junit4.preconf>
+        <junit4.preconf haltonfailure="false">
         	<classpath>
         	  <fileset dir=".." includes="dependency/asm*.jar" />
         	</classpath>
@@ -189,4 +189,27 @@
             </fileset>
         </junit4.preconf>
     </target>
+	
+    <target name="antxml">
+        <delete dir="ant-xmls" failonerror="false" />
+        <mkdir dir="ant-xmls" />
+
+        <junit4 haltonfailure="false">
+            <classpath refid="tests.classpath" />
+
+            <listeners>
+                <report-ant-xml
+                    dir="ant-xmls"
+                />
+            </listeners>
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+            	<include name="**/tests/TestSysstreams.class" />
+            	<include name="**/tests/TestIgnoredSuite.class" />
+            	<include name="**/tests/TestBeforeClassError.class" />
+                <include name="**/tests/TestHierarchicalSuiteDescription.class" />
+            </fileset>          
+        </junit4>
+    </target>	
 </project>

@@ -12,7 +12,8 @@ public class FailureMirror extends SerializableMirror<Throwable> implements Seri
   private Description description;
   private String trace;
   private String throwableString;
-  
+  private String throwableClass;
+
   /** Was [@link Failure} an instance of {@link AssertionError}? */
   private boolean assertionViolation;
   private boolean assumptionViolation;
@@ -25,6 +26,7 @@ public class FailureMirror extends SerializableMirror<Throwable> implements Seri
     this.assertionViolation = failure.getException() instanceof AssertionError;
     this.assumptionViolation = failure.getException() instanceof AssumptionViolatedException;
     this.throwableString = failure.getException().toString();
+    this.throwableClass = failure.getException().getClass().getName();
   }
 
   public String getMessage() {
@@ -69,5 +71,9 @@ public class FailureMirror extends SerializableMirror<Throwable> implements Seri
   public boolean isErrorViolation() {
     return isAssertionViolation() == false &&
            isAssumptionViolation() == false;
+  }
+
+  public String getThrowableClass() {
+    return throwableClass;
   }
 }

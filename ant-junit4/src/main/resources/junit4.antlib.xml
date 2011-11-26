@@ -6,4 +6,8 @@
     <typedef
         name="report-console" 
         classname="com.carrotsearch.ant.tasks.junit4.listeners.ConsoleReport" />
+
+    <typedef
+        name="report-ant-xml" 
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.AntXmlReport" />        
 </antlib> 

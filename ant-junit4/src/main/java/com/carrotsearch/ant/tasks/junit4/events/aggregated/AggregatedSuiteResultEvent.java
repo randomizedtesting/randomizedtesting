@@ -15,15 +15,20 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   private final List<AggregatedTestResultEvent> tests;
   private final List<FailureMirror> suiteFailures;
   private final List<IEvent> eventStream;
+  private final long executionTime;
+  private final long startTimestamp;
 
   public AggregatedSuiteResultEvent(SlaveInfo id, Description description, 
       List<FailureMirror> suiteFailures, List<AggregatedTestResultEvent> tests,
-      List<IEvent> eventStream) {
+      List<IEvent> eventStream,
+      long startTimestamp, long executionTime) {
     this.slave = id;
     this.tests = tests;
     this.suiteFailures = suiteFailures;
     this.description = description;
     this.eventStream = eventStream;
+    this.executionTime = executionTime;
+    this.startTimestamp = startTimestamp;
   }
 
   public List<AggregatedTestResultEvent> getTests() {
@@ -62,5 +67,19 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   @Override
   public Description getDescription() {
     return description;
+  }
+
+  /**
+   * Execution time in milliseconds.
+   */
+  public long getExecutionTime() {
+    return executionTime;
+  }
+
+  /**
+   * Execution start timestamp (on the slave).
+   */
+  public long getStartTimestamp() {
+    return startTimestamp;
   }
 }

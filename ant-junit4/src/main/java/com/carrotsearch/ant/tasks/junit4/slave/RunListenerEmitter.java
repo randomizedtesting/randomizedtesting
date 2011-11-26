@@ -16,6 +16,7 @@ public class RunListenerEmitter extends RunListener {
   private final Serializer serializer;
   private Description suiteDescription;
   private long start;
+  private long suiteStart;
 
   public RunListenerEmitter(Serializer serializer) {
     this.serializer = serializer;
@@ -24,6 +25,7 @@ public class RunListenerEmitter extends RunListener {
   @Override
   public void testRunStarted(Description description) throws Exception {
     this.suiteDescription = description;
+    this.suiteStart = System.currentTimeMillis();
     serializer.serialize(new SuiteStartedEvent(description));
   }
 
@@ -60,7 +62,8 @@ public class RunListenerEmitter extends RunListener {
 
   @Override
   public void testRunFinished(Result result) throws Exception {
+    final long duration = System.currentTimeMillis() - suiteStart;
     serializer.serialize(
-        new SuiteCompletedEvent(suiteDescription));
+        new SuiteCompletedEvent(suiteDescription, suiteStart, duration));
   }  
 }
