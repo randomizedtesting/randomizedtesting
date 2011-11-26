@@ -36,10 +36,10 @@ public class TestSuiteModel
     @Attribute
     public String timestamp;
 
-    @ElementList
+    @ElementList(type = PropertyModel.class)
     public List<PropertyModel> properties = Lists.newArrayList();
 
-    @ElementList(inline = true)
+    @ElementList(inline = true, type = TestCaseModel.class)
     public List<TestCaseModel> testcases = Lists.newArrayList();
 
     @Element(name = "system-out", data = true, required = true)

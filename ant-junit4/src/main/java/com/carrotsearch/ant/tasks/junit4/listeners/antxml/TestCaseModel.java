@@ -20,9 +20,9 @@ public class TestCaseModel
     @Attribute(required = true)
     public double time;
 
-    @ElementList(inline = true, entry = "failure", required = false)
+    @ElementList(inline = true, entry = "failure", required = false, type = FailureModel.class)
     public List<FailureModel> failures = Lists.newArrayList();
 
-    @ElementList(inline = true, entry = "error", required = false)
+    @ElementList(inline = true, entry = "error", required = false, type = FailureModel.class)
     public List<FailureModel> errors = Lists.newArrayList();
 }
