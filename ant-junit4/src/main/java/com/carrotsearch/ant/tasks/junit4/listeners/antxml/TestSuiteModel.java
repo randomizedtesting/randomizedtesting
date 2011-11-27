@@ -21,8 +21,14 @@ public class TestSuiteModel
     @Attribute
     public int failures;
 
+    /** */
     @Attribute
     public int tests;
+
+    /** The number of skipped tests (maven surefire). */
+    @NotAnt(extensionSource = "maven")
+    @Attribute(required = false)
+    public Integer skipped;
 
     @Attribute
     public String name;

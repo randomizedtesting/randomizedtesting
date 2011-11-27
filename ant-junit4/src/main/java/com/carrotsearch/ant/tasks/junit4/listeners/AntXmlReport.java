@@ -33,6 +33,7 @@ import com.google.common.eventbus.Subscribe;
 public class AntXmlReport implements AggregatedEventListener {
   private JUnit4 junit4;
   private File dir;
+  private boolean mavenExtensions = true;
 
   /**
    * Output directory to write reports to.
@@ -41,6 +42,13 @@ public class AntXmlReport implements AggregatedEventListener {
     this.dir = dir;
   }
   
+  /**
+   * Emit maven elements in the XML (extensions compared to ANT).
+   */
+  public void setMavenExtensions(boolean mavenExtensions) {
+    this.mavenExtensions = mavenExtensions;
+  }
+
   /*
    * 
    */
@@ -93,6 +101,10 @@ public class AntXmlReport implements AggregatedEventListener {
     suite.testcases = buildModel(e.getTests());
     suite.tests = suite.testcases.size();
 
+    if (mavenExtensions) {
+      suite.skipped = 0;
+    }
+
     // Suite-level failures and errors are simulated as test cases.
     for (FailureMirror m : e.getFailures()) {
       TestCaseModel model = new TestCaseModel();
@@ -112,6 +124,9 @@ public class AntXmlReport implements AggregatedEventListener {
     for (TestCaseModel tc : suite.testcases) {
       suite.errors += tc.errors.size();
       suite.failures += tc.failures.size();
+      if (mavenExtensions && tc.skipped != null) {
+        suite.skipped += 1;
+      }
     }
 
     StringWriter sysout = new StringWriter();
@@ -127,19 +142,28 @@ public class AntXmlReport implements AggregatedEventListener {
   private List<TestCaseModel> buildModel(List<AggregatedTestResultEvent> testEvents) {
     List<TestCaseModel> tests = Lists.newArrayList();
     for (AggregatedTestResultEvent e : testEvents) {
+      TestCaseModel model = new TestCaseModel();
+
       if (e.getStatus() == TestStatus.IGNORED ||
           e.getStatus() == TestStatus.IGNORED_ASSUMPTION) {
-        // No way to report these in ANT XML.
-        continue;
+        if (mavenExtensions) {
+          // This emits an empty <skipped /> element.
+          model.skipped = "";
+        } else {
+          // No way to report these in pure ANT XML.
+          continue;
+        }
       }
 
-      TestCaseModel model = new TestCaseModel();
       model.name = e.getDescription().getMethodName();
       model.classname = e.getDescription().getClassName();
       model.time = e.getExecutionTime() / 1000.0;
 
       for (FailureMirror m : e.getFailures()) {
-        if (m.isAssertionViolation()) {
+        if (m.isAssumptionViolation()) {
+          // Assumptions are not represented in ANT or Maven XMLs.
+          continue;
+        } else if (m.isAssertionViolation()) {
           model.failures.add(buildModel(m));
         } else {
           model.errors.add(buildModel(m));

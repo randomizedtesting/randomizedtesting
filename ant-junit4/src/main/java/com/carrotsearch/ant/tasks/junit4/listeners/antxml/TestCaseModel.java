@@ -3,6 +3,7 @@ package com.carrotsearch.ant.tasks.junit4.listeners.antxml;
 import java.util.List;
 
 import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
 
@@ -25,4 +26,8 @@ public class TestCaseModel
 
     @ElementList(inline = true, entry = "error", required = false, type = FailureModel.class)
     public List<FailureModel> errors = Lists.newArrayList();
+
+    @NotAnt(extensionSource = "maven")
+    @Element(name = "skipped", required = false)
+    public String skipped;
 }
