@@ -185,12 +185,13 @@ public class JUnit4 extends Task {
     super.setProject(project);
 
     this.random = new Random().nextLong();
-    if (System.getProperty(PROPERTY_RANDOM) != null) {
+    String randomProperty = getProject().getUserProperty(PROPERTY_RANDOM);
+    if (randomProperty != null) {
       try {
-        this.random = Long.parseLong(System.getProperty(PROPERTY_RANDOM));
+        this.random = Long.parseLong(randomProperty);
       } catch (NumberFormatException e) {
         log("Wrong number format for " + PROPERTY_RANDOM + ": " +
-            System.getProperty(PROPERTY_RANDOM), Project.MSG_ERR);
+            randomProperty, Project.MSG_ERR);
       }
     }
 
