@@ -1,8 +1,11 @@
 
-RandomizedTesting: a JUnit runner and scaffolding for tests with repeatable pseudo-randomness.
+RandomizedTesting
 =================
 
-Project status: internals still in development, but working quite nicely :)
+In short:
+- A JUnit runner and base classes for testing with repeatable pseudo-randomness.
+- A <junit4> task for ANT for running tests in multiple JVMs, better listener support, etc.
+
 
 What does it do?
 ----------------

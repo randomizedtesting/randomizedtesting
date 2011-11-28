@@ -32,8 +32,11 @@
 
   <modules>
     <module>runner</module>
-    <module>presentations/2011-barcelona</module>
     <module>examples</module>
+    <module>ant-junit4</module>
+
+    <module>presentations/2011-barcelona</module>
+    <module>presentations/2011-poznan</module>
   </modules>
 
   <build>
