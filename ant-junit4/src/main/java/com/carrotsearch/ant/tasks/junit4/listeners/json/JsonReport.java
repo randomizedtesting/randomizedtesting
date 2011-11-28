@@ -19,6 +19,7 @@ import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Closeables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
 /**
  * A report listener that produces a single JSON file for all suites and tests.
@@ -66,6 +67,12 @@ public class JsonReport implements AggregatedEventListener {
       this.output = new OutputStreamWriter(
           new BufferedOutputStream(new FileOutputStream(targetFile)), 
           Charsets.UTF_8);
+
+      output.write("junit4 = ");
+      JsonObject ob = new JsonObject();
+      ob.addProperty("random", junit4.getSeed());
+      gson.toJson(ob, output);
+      output.write(";\n\n");
 
       output.write("suites = [\n\n");
     } catch (IOException e) {

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -56,6 +57,12 @@ public class JUnit4 extends Task {
   /** @see #setParallelism(String) */
   public static final String PARALLELISM_MAX = "max";
 
+  /**
+   * Random seed for shuffling the order of suites. Override
+   * using {@link #setRandom(long)} or by setting this property globally.
+   */
+  public static final String PROPERTY_RANDOM = "junit4.random";
+  
   /**
    * Slave VM command line.
    */
@@ -123,6 +130,11 @@ public class JUnit4 extends Task {
   private boolean leaveTemporary;
   
   /**
+   * @see #setRandom(long)
+   */
+  private long random;
+
+  /**
    * Multiple path resolution in {@link CommandlineJava#getCommandline()} is very slow
    * so we construct and canonicalize paths.
    */
@@ -157,12 +169,31 @@ public class JUnit4 extends Task {
     this.failureProperty = failureProperty;
   }
   
+  /**
+   * Initial random seed used for shuffling test suites and other sources
+   * of pseudo-randomness. If not set, any random value is set. 
+   */
+  public void setRandom(long randomSeed) {
+    this.random = randomSeed;
+  }
+  
   /*
    * 
    */
   @Override
   public void setProject(Project project) {
     super.setProject(project);
+
+    this.random = new Random().nextLong();
+    if (System.getProperty(PROPERTY_RANDOM) != null) {
+      try {
+        this.random = Long.parseLong(System.getProperty(PROPERTY_RANDOM));
+      } catch (NumberFormatException e) {
+        log("Wrong number format for " + PROPERTY_RANDOM + ": " +
+            System.getProperty(PROPERTY_RANDOM), Project.MSG_ERR);
+      }
+    }
+
     this.resources.setProject(project);
     this.classpath = new Path(getProject());
     this.bootclasspath = new Path(getProject());    
@@ -306,7 +337,7 @@ public class JUnit4 extends Task {
 
   @Override
   public void execute() throws BuildException {
-    getProject().log("<JUnit4> says hello.", Project.MSG_DEBUG);
+    log("<JUnit4> says hello. Random seed: " + getSeed(), Project.MSG_INFO);
 
     // Resolve paths first.
     this.classpath = resolveFiles(classpath);
@@ -342,7 +373,7 @@ public class JUnit4 extends Task {
     }
 
     if (!testClassNames.isEmpty()) {
-      Collections.shuffle(testClassNames);
+      Collections.shuffle(testClassNames, new Random(getSeed()));
 
       start = System.currentTimeMillis();
       int slaveCount = determineSlaveCount(testClassNames.size());
@@ -421,6 +452,13 @@ public class JUnit4 extends Task {
         throw new BuildException("There were test failures: " + testsSummary);
       }
     }
+  }
+
+  /**
+   * Return the initial random seed. Always non-negative for simplicity.
+   */
+  public long getSeed() {
+    return this.random & 0x7fffffffffffL;
   }
 
   /**
