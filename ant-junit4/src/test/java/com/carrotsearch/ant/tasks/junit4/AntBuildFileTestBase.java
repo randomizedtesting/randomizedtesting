@@ -2,16 +2,9 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import static org.junit.matchers.JUnitMatchers.containsString;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.BuildFileTest;
-import org.apache.tools.ant.DefaultLogger;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.*;
 import org.junit.Assert;
 
 import com.google.common.base.Charsets;

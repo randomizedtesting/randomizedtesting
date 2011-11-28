@@ -192,6 +192,10 @@
               <inclusion>
                 <groupId>org.simpleframework</groupId>
                 <artifactId>simple-xml</artifactId>
+              </inclusion>
+              <inclusion>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
               </inclusion>              
             </inclusions>
           </assembly>
