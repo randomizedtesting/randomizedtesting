@@ -7,8 +7,6 @@ import java.io.*;
 import org.apache.tools.ant.*;
 import org.junit.Assert;
 
-import com.google.common.base.Charsets;
-
 /**
  * An equivalent of {@link BuildFileTest} for JUnit4.
  */
@@ -26,7 +24,7 @@ public class AntBuildFileTestBase {
 
     output = new ByteArrayOutputStream();
     try {
-      PrintStream ps = new PrintStream(output, true, Charsets.UTF_8.displayName());
+      PrintStream ps = new PrintStream(output, true, "UTF-8");
       listener = new DefaultLogger();
       listener.setMessageOutputLevel(Project.MSG_DEBUG);
       listener.setErrorPrintStream(ps);

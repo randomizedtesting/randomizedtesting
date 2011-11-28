@@ -76,6 +76,7 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.0</version>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>
@@ -111,7 +112,14 @@
                 <goal>test</goal>
               </goals>
               <configuration>
+                <classesDirectory>${project.build.directory}/dontinclude</classesDirectory>
                 <skip>false</skip>
+                <classpathDependencyExcludes>
+                    <classpathDependencyExcludes>com.google.code.gson:gson</classpathDependencyExcludes>
+                    <classpathDependencyExcludes>org.simpleframework:simple-xml</classpathDependencyExcludes>
+                    <classpathDependencyExcludes>com.google.guava:guava</classpathDependencyExcludes>
+                    <classpathDependencyExcludes>commons-io:commons-io</classpathDependencyExcludes>
+                </classpathDependencyExcludes>
               </configuration>
             </execution>
           </executions>
