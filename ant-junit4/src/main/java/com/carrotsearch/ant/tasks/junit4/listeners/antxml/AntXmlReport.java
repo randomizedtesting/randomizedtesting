@@ -1,7 +1,6 @@
-package com.carrotsearch.ant.tasks.junit4.listeners;
+package com.carrotsearch.ant.tasks.junit4.listeners.antxml;
 
-import java.io.File;
-import java.io.StringWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.Map;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.filters.TokenFilter;
 import org.junit.runner.Description;
 import org.simpleframework.xml.core.Persister;
 
@@ -17,13 +17,11 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResult
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedTestResultEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
-import com.carrotsearch.ant.tasks.junit4.listeners.antxml.FailureModel;
-import com.carrotsearch.ant.tasks.junit4.listeners.antxml.PropertyModel;
-import com.carrotsearch.ant.tasks.junit4.listeners.antxml.TestCaseModel;
-import com.carrotsearch.ant.tasks.junit4.listeners.antxml.TestSuiteModel;
+import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.CharStreams;
 
 /**
  * A report listener that produces XML files compatible with those produced by
@@ -34,6 +32,7 @@ public class AntXmlReport implements AggregatedEventListener {
   private JUnit4 junit4;
   private File dir;
   private boolean mavenExtensions = true;
+  private List<TokenFilter> filters = Lists.newArrayList();
 
   /**
    * Output directory to write reports to.
@@ -47,6 +46,13 @@ public class AntXmlReport implements AggregatedEventListener {
    */
   public void setMavenExtensions(boolean mavenExtensions) {
     this.mavenExtensions = mavenExtensions;
+  }
+
+  /**
+   * Adds method name filter.
+   */
+  public void addConfiguredTokenFilter(TokenFilter filter) {
+    this.filters.add(filter);
   }
 
   /*
@@ -109,7 +115,7 @@ public class AntXmlReport implements AggregatedEventListener {
     for (FailureMirror m : e.getFailures()) {
       TestCaseModel model = new TestCaseModel();
       model.classname = "junit.framework.TestSuite"; // empirical ANT output.
-      model.name = m.getDescription().getClassName();
+      model.name = applyFilters(m.getDescription().getClassName());
       model.time = 0;
       if (m.isAssertionViolation()) {
         model.failures.add(buildModel(m));
@@ -155,7 +161,7 @@ public class AntXmlReport implements AggregatedEventListener {
         }
       }
 
-      model.name = e.getDescription().getMethodName();
+      model.name = applyFilters(e.getDescription().getMethodName());
       model.classname = e.getDescription().getClassName();
       model.time = e.getExecutionTime() / 1000.0;
 
@@ -173,6 +179,28 @@ public class AntXmlReport implements AggregatedEventListener {
       tests.add(model);
     }
     return tests;
+  }
+
+  /**
+   * Apply filters to a method name.
+   * @param methodName
+   */
+  private String applyFilters(String methodName) {
+    if (filters.isEmpty()) {
+      return methodName;
+    }
+
+    Reader in = new StringReader(methodName);
+    for (TokenFilter tf : filters) {
+      in = tf.chain(in);
+    }
+
+    try {
+      return CharStreams.toString(in);
+    } catch (IOException e) {
+      junit4.log("Could not apply filters to " + methodName + ": " + e, e, Project.MSG_WARN);
+      return methodName;
+    }
   }
 
   /* */

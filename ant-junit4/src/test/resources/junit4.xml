@@ -20,22 +20,17 @@
         </classpath>
     </taskdef>
 
-	<presetdef name="junit4.preconf">
-		<junit4 haltonfailure="true" parallelism="1" >
+    <presetdef name="junit4.preconf">
+        <junit4 haltonfailure="true" parallelism="1">
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-console
-                    showErrors="true"
-                    showStackTraces="true"
-                    showOutputStream="true"
-                    showErrorStream="true"
-                />
+                <report-console showErrors="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" />
             </listeners>
-		</junit4>
-	</presetdef>
+        </junit4>
+    </presetdef>
 
-	<!-- Targets below are connected with test cases. -->
+    <!-- Targets below are connected with test cases. -->
 
     <target name="sysstreams">
         <junit4.preconf>
@@ -51,7 +46,7 @@
                 <include name="**/tests/TestSysstreams.class" />
             </fileset>
         </junit4>
-    </target>       
+    </target>
 
     <target name="statuses">
         <junit4.preconf>
@@ -92,7 +87,7 @@
             </fileset>
         </junit4.preconf>
     </target>
-	
+
     <target name="dir">
         <delete dir="empty" failonerror="false" />
         <mkdir dir="empty" />
@@ -105,13 +100,15 @@
 
         <fail message="Expected marker file to appear.">
             <condition>
-                  <not><available file="empty/touch.me" type="file" /></not>
+                <not>
+                    <available file="empty/touch.me" type="file" />
+                </not>
             </condition>
         </fail>
     </target>
 
     <target name="maxmem">
-        <junit4.preconf maxmemory="100m" >
+        <junit4.preconf maxmemory="100m">
             <fileset dir="${basedir}">
                 <include name="**/tests/TestMaxMem.class" />
             </fileset>
@@ -120,19 +117,19 @@
 
     <target name="jvmarg">
         <junit4.preconf>
-        	<jvmarg value="-Xmx100m"/>
-        	<jvmarg value="-Dtest.param=foobar"/>
+            <jvmarg value="-Xmx100m" />
+            <jvmarg value="-Dtest.param=foobar" />
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestMaxMem.class" />
-            	<include name="**/tests/TestJvmArg.class" />
+                <include name="**/tests/TestJvmArg.class" />
             </fileset>
         </junit4.preconf>
     </target>
 
     <target name="sysproperty">
         <junit4.preconf>
-        	<sysproperty key="test.param" value="foobar" />
+            <sysproperty key="test.param" value="foobar" />
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestJvmArg.class" />
@@ -142,7 +139,7 @@
 
     <target name="env">
         <junit4.preconf>
-        	<env key="env.variable" value="foobar" />
+            <env key="env.variable" value="foobar" />
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestEnvVar.class" />
@@ -165,16 +162,18 @@
 
         <fail message="Expected failure property to be set.">
             <condition>
-                  <not><isset property="tests.failed" /></not>
+                <not>
+                    <isset property="tests.failed" />
+                </not>
             </condition>
         </fail>
     </target>
 
     <target name="failureTypePassing">
         <junit4.preconf haltonfailure="false">
-        	<classpath>
-        	  <fileset dir=".." includes="dependency/asm*.jar" />
-        	</classpath>
+            <classpath>
+                <fileset dir=".." includes="dependency/asm*.jar" />
+            </classpath>
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestFailureTypePassing.class" />
@@ -189,7 +188,7 @@
             </fileset>
         </junit4.preconf>
     </target>
-	
+
     <target name="antxml">
         <delete dir="ant-xmls" failonerror="false" />
         <mkdir dir="ant-xmls" />
@@ -198,18 +197,44 @@
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-ant-xml
-                    dir="ant-xmls"
-                />
+                <report-ant-xml dir="ant-xmls">
+                    <!--
+                    <tokenfilter>
+                      <replaceregex pattern="" replace="" flags="gi" />
+                    </tokenfilter>
+                    -->
+                </report-ant-xml>
             </listeners>
 
             <fileset dir="${basedir}">
                 <include name="**/tests/TestStatuses.class" />
-            	<include name="**/tests/TestSysstreams.class" />
-            	<include name="**/tests/TestIgnoredSuite.class" />
-            	<include name="**/tests/TestBeforeClassError.class" />
+                <include name="**/tests/TestSysstreams.class" />
+                <include name="**/tests/TestIgnoredSuite.class" />
+                <include name="**/tests/TestBeforeClassError.class" />
                 <include name="**/tests/TestHierarchicalSuiteDescription.class" />
-            </fileset>          
+            </fileset>
         </junit4>
-    </target>	
+    </target>
+
+    <target name="json">
+        <delete dir="json" failonerror="false" />
+        <mkdir dir="json" />
+
+        <junit4 haltonfailure="false">
+            <classpath refid="tests.classpath" />
+
+            <listeners>
+                <report-json file="json/report.json">
+                </report-json>
+            </listeners>
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+                <include name="**/tests/TestSysstreams.class" />
+                <include name="**/tests/TestIgnoredSuite.class" />
+                <include name="**/tests/TestBeforeClassError.class" />
+                <include name="**/tests/TestHierarchicalSuiteDescription.class" />
+            </fileset>
+        </junit4>
+    </target>
 </project>

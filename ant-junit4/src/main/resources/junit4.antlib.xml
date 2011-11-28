@@ -9,5 +9,9 @@
 
     <typedef
         name="report-ant-xml" 
-        classname="com.carrotsearch.ant.tasks.junit4.listeners.AntXmlReport" />        
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.antxml.AntXmlReport" />
+
+    <typedef
+        name="report-json" 
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.json.JsonReport" />        
 </antlib> 

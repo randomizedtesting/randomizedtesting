@@ -50,6 +50,12 @@ import com.google.common.io.Files;
  * A simple ANT task to run JUnit4 tests.
  */
 public class JUnit4 extends Task {
+  /** @see #setParallelism(String) */
+  public static final Object PARALLELISM_AUTO = "auto";
+
+  /** @see #setParallelism(String) */
+  public static final String PARALLELISM_MAX = "max";
+
   /**
    * Slave VM command line.
    */
@@ -132,13 +138,18 @@ public class JUnit4 extends Task {
   }
   
   /**
-   * The number of parallel slaves. Can be set to a constant "auto" and if so,
-   * will equal {@link Runtime#availableProcessors()}. The default is a single subprocess.
+   * The number of parallel slaves. Can be set to a constant "max" for the
+   * number of cores returned from {@link Runtime#availableProcessors()} or 
+   * "auto" for sensible defaults depending on the number of cores.
+   * The default is a single subprocess.
+   * 
+   * <p>Note that this setting forks physical JVM processes so it multiplies the 
+   * requirements for heap memory, IO, etc. 
    */
   public void setParallelism(String parallelism) {
     this.parallelism = parallelism;
   }
-  
+
   /**
    * Property to set to "true" if there is a failure in a test.
    */
@@ -427,14 +438,27 @@ public class JUnit4 extends Task {
    * Determine how many slaves to use.
    */
   private int determineSlaveCount(int testCases) {
+    int cores = Runtime.getRuntime().availableProcessors();
     int slaveCount;
-    if (this.parallelism.equals("auto")) {
+    if (this.parallelism.equals(PARALLELISM_AUTO)) {
+      if (cores >= 8) {
+        // Maximum parallel jvms is 4, conserve some memory and memory bandwidth.
+        slaveCount = 4;
+      } else if (cores >= 4) {
+        // Make some space for the aggregator.
+        slaveCount = 3;
+      } else {
+        // even for dual cores it usually makes no sense to fork more than one
+        // JVM.
+        slaveCount = 1;
+      }
+    } else if (this.parallelism.equals(PARALLELISM_MAX)) {
       slaveCount = Runtime.getRuntime().availableProcessors();
     } else {
       try {
         slaveCount = Math.max(1, Integer.parseInt(parallelism));
       } catch (NumberFormatException e) {
-        throw new BuildException("parallelism must be 'auto' or a valid integer: "
+        throw new BuildException("parallelism must be 'auto', 'max' or a valid integer: "
             + parallelism);
       }
     }
