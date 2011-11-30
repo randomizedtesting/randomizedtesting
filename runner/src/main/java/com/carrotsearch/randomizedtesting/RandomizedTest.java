@@ -113,10 +113,66 @@ public class RandomizedTest extends Assert {
   }
 
   /** 
-   * A random integer from <code>min</code> to <code>max</code> (inclusive). 
+   * A random integer from <code>min</code> to <code>max</code> (inclusive).
+   * 
+   * @see #scaledRandomIntBetween(int, int)
    */
   protected static int randomIntBetween(int min, int max) {
     return RandomInts.randomIntBetween(getRandom(), min, max);
+  }
+
+  /** 
+   * An alias for {@link #randomIntBetween(int, int)}. 
+   * 
+   * @see #scaledRandomIntBetween(int, int)
+   */
+  protected static int between(int min, int max) {
+    return randomIntBetween(min, max);
+  }
+
+  /** 
+   * Returns a random value greater or equal to <code>min</code>. The value
+   * picked is affected by {@link #isNightly()} and {@link #multiplier()}.
+   * 
+   * @see #scaledRandomIntBetween(int, int)
+   */
+  protected static int atLeast(int min) {
+    if (min < 0) throw new IllegalArgumentException("atLeast requires non-negative argument: " + min);
+
+    min = (int) Math.min(min, (isNightly() ? 3 * min : min) * multiplier());
+    int max = (int) Math.min(Integer.MAX_VALUE, (long) min + (min / 2));
+    return randomIntBetween(min, max);
+  }
+
+  /** 
+   * Returns a non-negative random value smaller or equal <code>max</code>. The value
+   * picked is affected by {@link #isNightly()} and {@link #multiplier()}.
+   * 
+   * <p>This method is effectively an alias to:
+   * <pre>
+   * scaledRandomIntBetween(0, max)
+   * </pre>
+   * 
+   * @see #scaledRandomIntBetween(int, int)
+   */
+  protected static int atMost(int max) {
+    if (max < 0) throw new IllegalArgumentException("atMost requires non-negative argument: " + max);
+    return scaledRandomIntBetween(0, max);
+  }
+
+  /**
+   * Rarely returns <code>true</code> in about 10% of all calls (regardless of the
+   * {@link #isNightly()} mode).
+   */
+  protected static boolean rarely() {
+    return randomInt(100) >= 90;
+  }
+
+  /**
+   * The exact opposite of {@link #rarely()}.
+   */
+  protected static boolean frequently() {
+    return !rarely();
   }
 
   //

@@ -33,6 +33,22 @@ public class TestRandomizedTest extends RandomizedTest {
   }
 
   @Test
+  public void testAtLeast() {
+    assertEquals(atLeast(Integer.MAX_VALUE), Integer.MAX_VALUE);
+    int v = randomIntBetween(0, Integer.MAX_VALUE);
+    for (int i = 0; i < 10000; i++) 
+      assertTrue(atLeast(v) >= v);
+  }
+
+  @Test
+  public void testAtMost() {
+    assertEquals(atMost(0), 0);
+    int v = randomIntBetween(0, Integer.MAX_VALUE);
+    for (int i = 0; i < 10000; i++) 
+      assertTrue(atMost(v) <= v);
+  }
+
+  @Test
   public void testRandomIntBetweenBoundaryCases() {
     for (int i = 0; i < 10000; i++) {
       int j = randomIntBetween(0, Integer.MAX_VALUE);
@@ -226,5 +242,17 @@ public class TestRandomizedTest extends RandomizedTest {
   public void testNewServerSocket() throws IOException {
     ServerSocket socket = newServerSocket(LifecycleScope.TEST);
     socket.close();
+  }
+
+  @Test
+  public void testRarely() throws IOException {
+    int rarely = 0;
+    int calls = 100000;
+    for (int i = 0; i < calls; i++) {
+      if (rarely()) rarely++;
+    }
+
+    double rf = rarely / (double) calls * 100;
+    assertTrue("rarely should be > 5% & < 15%: " + rf, rf > 5 && rf < 15);
   }  
 }
