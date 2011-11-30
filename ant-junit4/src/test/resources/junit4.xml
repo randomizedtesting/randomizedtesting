@@ -25,7 +25,19 @@
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-console showErrors="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" />
+                <report-console 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutputStream="true" 
+                    showErrorStream="true"
+
+                    showStatusOk="true"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="false"
+                />
             </listeners>
         </junit4>
     </presetdef>

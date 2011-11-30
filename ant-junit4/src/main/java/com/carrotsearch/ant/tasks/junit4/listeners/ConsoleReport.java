@@ -48,24 +48,56 @@ public class ConsoleReport implements AggregatedEventListener {
     }
   }
 
-  /** @see #setShowErrors(boolean) */
-  private boolean showErrors; 
+  private boolean showStatusIgnored = true; 
+  private boolean showStatusError = true;
+  private boolean showStatusFailure = true;
+  private boolean showStatusOk = true;
+
+  /**
+   * @see #setShowThrowable(boolean)
+   */
+  private boolean showThrowable = true;
 
   /** @see #setShowStackTraces(boolean) */
-  private boolean showStackTraces; 
+  private boolean showStackTraces = true; 
 
   /** @see #setShowOutputStream(boolean) */
-  private boolean showOutputStream; 
+  private boolean showOutputStream;
 
   /** @see #setShowErrorStream(boolean) */
   private boolean showErrorStream;
-  private JUnit4 task; 
+
+  /** @see #setShowSuiteSummary(boolean) */
+  private boolean showSuiteSummary;
+  
+  /**
+   * @see #showStatusError
+   * @see #showStatusOk
+   * @see #showStatusFailure
+   * @see #showStatusIgnored
+   */
+  private EnumMap<TestStatus,Boolean> displayStatus = Maps.newEnumMap(TestStatus.class);
 
   /**
-   * Show error information.
+   * The owner task.
    */
-  public void setShowErrors(boolean showErrors) {
-    this.showErrors = showErrors;
+  private JUnit4 task; 
+
+  public void setShowStatusError(boolean showStatusError)     { this.showStatusError = showStatusError;   }
+  public void setShowStatusFailure(boolean showStatusFailure) { this.showStatusFailure = showStatusFailure; }
+  public void setShowStatusIgnored(boolean showStatusIgnored) { this.showStatusIgnored = showStatusIgnored; }
+  public void setShowStatusOk(boolean showStatusOk)           { this.showStatusOk = showStatusOk;  }
+  
+  /**
+   * If enabled, displays extended error information for tests that failed
+   * (exception class, message, stack trace, standard streams).
+   * 
+   * @see #setShowStackTraces(boolean)
+   * @see #setShowOutputStream(boolean)
+   * @see #setShowErrorStream(boolean)
+   */
+  public void setShowThrowable(boolean showThrowable) {
+    this.showThrowable = showThrowable;
   }
 
   /**
@@ -89,12 +121,26 @@ public class ConsoleReport implements AggregatedEventListener {
     this.showOutputStream = showOutputStream;
   }
 
+  /**
+   * If enabled, shows suite summaries in "maven-like" format of:
+   * <pre>
+   * Running SuiteName
+   * Tests: xx, Failures: xx, Errors: xx, Skipped: xx, Time: xx sec [<<< FAILURES!]
+   * </pre>
+   */
+  public void setShowSuiteSummary(boolean showSuiteSummary) {
+    this.showSuiteSummary = showSuiteSummary;
+  }
+
   /*
    * 
    */
   @Subscribe
   public void onTestResult(AggregatedTestResultEvent e) {
-    format(e, e.getStatus(), e.getExecutionTime());
+    // If we're aggregating over suites, wait.
+    if (!showSuiteSummary) {
+      format(e, e.getStatus(), e.getExecutionTime());
+    }
   }
 
   /*
@@ -102,8 +148,27 @@ public class ConsoleReport implements AggregatedEventListener {
    */
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) {
+    if (showSuiteSummary) {
+      task.log("Running " + e.getDescription().getDisplayName());
+
+      for (AggregatedTestResultEvent test : e.getTests()) {
+        format(test, test.getStatus(), test.getExecutionTime());
+      }
+    }
+
     if (!e.getFailures().isEmpty()) {
       format(e, TestStatus.ERROR, 0);
+    }
+
+    if (showSuiteSummary) {
+      task.log(
+          String.format("Tests run: %3d, Failures: %3d, Errors: %3d, Skipped %3d, Time: %.2fs%s",
+              e.getTests().size(),
+              e.getFailureCount(),
+              e.getErrorCount(),
+              e.getIgnoredCount(),
+              e.getExecutionTime() / 1000.0d,
+              e.isSuccessful() ? "" : " <<< FAILURES!"));
     }
   }
 
@@ -118,6 +183,11 @@ public class ConsoleReport implements AggregatedEventListener {
    * 
    */
   private void format(AggregatedResultEvent result, TestStatus status, int timeMillis) {
+    isStatusShown(TestStatus.ERROR);
+    if (!isStatusShown(status)) {
+      return;
+    }
+
     SlaveInfo slave = result.getSlave();
     Description description = result.getDescription();
     List<FailureMirror> failures = result.getFailures();
@@ -148,7 +218,7 @@ public class ConsoleReport implements AggregatedEventListener {
     }
     line.append("\n");
 
-    if (showErrors && !failures.isEmpty()) {
+    if (showThrowable && !failures.isEmpty()) {
       StringWriter sw = new StringWriter();
       PrefixedWriter pos = new PrefixedWriter(indent, sw);
       int count = 0;
@@ -192,6 +262,13 @@ public class ConsoleReport implements AggregatedEventListener {
   /*
    * 
    */
+  private boolean isStatusShown(TestStatus status) {
+    return displayStatus.get(status);
+  }
+
+  /*
+   * 
+   */
   private Object formatTime(int timeMillis) {
     final int precision;
     if (timeMillis >= 100 * 1000) {
@@ -207,5 +284,11 @@ public class ConsoleReport implements AggregatedEventListener {
   @Override
   public void setOuter(JUnit4 junit) {
     this.task = junit;
+
+    this.displayStatus.put(TestStatus.ERROR, showStatusError);
+    this.displayStatus.put(TestStatus.FAILURE, showStatusFailure);
+    this.displayStatus.put(TestStatus.IGNORED, showStatusIgnored);
+    this.displayStatus.put(TestStatus.IGNORED_ASSUMPTION, showStatusIgnored);
+    this.displayStatus.put(TestStatus.OK, showStatusOk);
   }
 }

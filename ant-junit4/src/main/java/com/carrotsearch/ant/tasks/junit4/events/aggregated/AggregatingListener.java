@@ -118,7 +118,7 @@ public class AggregatingListener {
   public void receiveTestEnd(TestFinishedEvent e) {
     assert e.getDescription().equals(tests.peek().getDescription());
     tests.peek().complete(e.getExecutionTime(),
-                          eventStream.subList(testStartStreamMarker, eventStream.size()));
+        Lists.newArrayList(eventStream.subList(testStartStreamMarker, eventStream.size())));
     target.post(tests.peek());
   }
 

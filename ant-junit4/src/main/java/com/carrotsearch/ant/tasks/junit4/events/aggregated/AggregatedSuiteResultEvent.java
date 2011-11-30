@@ -82,4 +82,53 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   public long getStartTimestamp() {
     return startTimestamp;
   }
+
+  /**
+   * The number of tests that have {@link TestStatus#FAILURE} and
+   * include assertion violations at suite level.
+   */
+  public int getFailureCount() {
+    int count = 0;
+    for (AggregatedTestResultEvent t : getTests()) {
+      if (t.getStatus() == TestStatus.FAILURE)
+        count++;
+    }
+    for (FailureMirror m : getFailures()) {
+      if (m.isAssertionViolation())
+        count++;
+    }
+    return count;
+  }
+  
+  /**
+   * The number of tests that have {@link TestStatus#ERROR} and
+   * include the suite-level errors.
+   */
+  public int getErrorCount() {
+    int count = 0;
+    for (AggregatedTestResultEvent t : getTests()) {
+      if (t.getStatus() == TestStatus.ERROR)
+        count++;
+    }
+    
+    for (FailureMirror m : getFailures()) {
+      if (m.isErrorViolation())
+        count++;
+    }
+    return count;
+  }
+
+  /**
+   * Return the number of ignored or assumption-ignored tests.
+   */
+  public int getIgnoredCount() {
+    int count = 0;
+    for (AggregatedTestResultEvent t : getTests()) {
+      if (t.getStatus() == TestStatus.IGNORED ||
+          t.getStatus() == TestStatus.IGNORED_ASSUMPTION) {
+        count++;
+      }
+    }
+    return count;
+  }
 }

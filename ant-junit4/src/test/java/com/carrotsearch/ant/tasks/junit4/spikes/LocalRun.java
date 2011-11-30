@@ -62,7 +62,7 @@ public class LocalRun {
     junit4.setParallelism("2");
 
     ConsoleReport report = new ConsoleReport();
-    report.setShowErrors(true);
+    report.setShowThrowable(true);
     report.setShowStackTraces(false);
     report.setShowOutputStream(true);
     report.setShowErrorStream(true);
