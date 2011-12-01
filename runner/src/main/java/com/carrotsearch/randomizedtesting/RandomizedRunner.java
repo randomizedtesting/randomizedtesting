@@ -151,7 +151,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /**
    * Global override for picking out a single test class to execute. All other
-   * classes are ignored. 
+   * classes are ignored. The property can contain "globbing patterns" similar
+   * to shell expansion patterns. For example:
+   * <pre>
+   * *MyTest
+   * </pre>
+   * will pick all classes ending in MyTest (in any package, including nested static
+   * classes if they appear on input).
    */
   public static final String SYSPROP_TESTCLASS = "tests.class";
 
