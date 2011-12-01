@@ -18,10 +18,35 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.8.2</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Required at runtime. -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <type>jar</type>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Embedded into standalone JAR. -->
+
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>10.0.1</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
       <exclusions>
         <exclusion>
           <artifactId>jsr305</artifactId>
@@ -34,56 +59,35 @@
       <groupId>asm</groupId>
       <artifactId>asm</artifactId>
       <version>3.3.1</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>2.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <optional>true</optional>
-      <exclusions>
-        <exclusion>
-          <artifactId>hamcrest-core</artifactId>
-          <groupId>org.hamcrest</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-      <version>1.8.2</version>
       <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant-testutil</artifactId>
-      <version>1.8.2</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>2.0</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.simpleframework</groupId>
       <artifactId>simple-xml</artifactId>
       <version>2.6.2</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.carrotsearch.randomizedtesting</groupId>
+      <artifactId>randomizedtesting-runner</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -115,9 +119,14 @@
                 <classesDirectory>${project.build.directory}/dontinclude</classesDirectory>
                 <skip>false</skip>
                 <classpathDependencyExcludes>
+                    <!--
+                    Leave in for tests.
+                    <classpathDependencyExcludes>asm:asm</classpathDependencyExcludes>
+                    -->
+                    <classpathDependencyExcludes>com.carrotsearch.randomizedtesting:randomizedtesting-runner</classpathDependencyExcludes>
                     <classpathDependencyExcludes>com.google.code.gson:gson</classpathDependencyExcludes>
-                    <classpathDependencyExcludes>org.simpleframework:simple-xml</classpathDependencyExcludes>
                     <classpathDependencyExcludes>com.google.guava:guava</classpathDependencyExcludes>
+                    <classpathDependencyExcludes>org.simpleframework:simple-xml</classpathDependencyExcludes>
                     <classpathDependencyExcludes>commons-io:commons-io</classpathDependencyExcludes>
                 </classpathDependencyExcludes>
               </configuration>
@@ -166,7 +175,7 @@
           </execution>
         </executions>
         <configuration>
-          <includeScope>runtime</includeScope>
+          <includeGroupIds>junit,asm</includeGroupIds>
         </configuration>
       </plugin>
 
@@ -204,7 +213,11 @@
               <inclusion>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
-              </inclusion>              
+              </inclusion>
+              <inclusion>
+                <groupId>com.carrotsearch.randomizedtesting</groupId>
+                <artifactId>randomizedtesting-runner</artifactId>              
+              </inclusion>
             </inclusions>
           </assembly>
 
@@ -216,6 +229,7 @@
           <proguardInclude>${basedir}/src/proguard/rules.pro</proguardInclude>
           <options>
             <option>-libraryjar ${java.rt.classes}(java/**)</option>
+            <option>-printusage ${project.build.directory}/proguard_dead.txt</option>
           </options>
         </configuration>
         <dependencies>

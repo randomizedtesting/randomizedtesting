@@ -16,9 +16,13 @@ import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
+import org.junit.runner.Runner;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
+import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.events.AppendStdErrEvent;
 import com.carrotsearch.ant.tasks.junit4.events.AppendStdOutEvent;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
@@ -26,6 +30,9 @@ import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent.EventChannelType;
 import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
 import com.carrotsearch.ant.tasks.junit4.events.Serializer;
 import com.carrotsearch.ant.tasks.junit4.events.SuiteFailureEvent;
+import com.carrotsearch.randomizedtesting.MethodGlobFilter;
+
+import com.google.common.base.Strings;
 
 /**
  * A slave process running the actual tests on the target JVM.
@@ -107,11 +114,29 @@ public class SlaveMain {
     }
 
     /*
+     * Instantiate method filter if any.
+     */
+    String methodFilterGlob = Strings.emptyToNull(System.getProperty(JUnit4.PROP_TESTMETHOD));
+    Filter methodFilter = Filter.ALL;
+    if (methodFilterGlob != null) {
+      methodFilter = new MethodGlobFilter(methodFilterGlob);
+    }
+
+    /*
      * Important. Run each class separately so that we get separate 
      * {@link RunListener} callbacks for the top extracted description.
      */
     for (Class<?> suite : instantiate(classes)) {
-      core.run(Request.aClass(suite));
+      Request request = Request.aClass(suite);
+      try {
+        Runner runner= request.getRunner();
+        methodFilter.apply(runner);
+        core.run(runner);        
+      } catch (NoTestsRemainException e) {
+        // Don't complain if all methods have been filtered out. 
+        // I don't understand the reason why this exception has been
+        // built in to filters at all.
+      }
     }
   }
 

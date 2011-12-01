@@ -40,6 +40,9 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
+import com.carrotsearch.randomizedtesting.ClassGlobFilter;
+import com.carrotsearch.randomizedtesting.MethodGlobFilter;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -62,7 +65,30 @@ public class JUnit4 extends Task {
    * using {@link #setRandom(long)} or by setting this property globally.
    */
   public static final String PROPERTY_RANDOM = "junit4.random";
-  
+
+  /**
+   * Project property for picking out a single test class to execute. All other
+   * classes are ignored. The property can contain "globbing patterns" similar
+   * to shell expansion patterns. For example:
+   * <pre>
+   * *MyTest
+   * </pre>
+   * will pick all classes ending in MyTest (in any package, including nested static
+   * classes if they appear on input).
+   */
+  public static final String PROP_TESTCLASS = RandomizedRunner.SYSPROP_TESTCLASS;
+
+  /**
+   * Project property for picking out a single test method to execute. All other
+   * methods are ignored. The property can contain "globbing patterns" similar
+   * to shell expansion patterns. For example:
+   * <pre>
+   * test*
+   * </pre>
+   * will pick all methods starting with <code>test</code>.
+   */
+  public static final String PROP_TESTMETHOD = RandomizedRunner.SYSPROP_TESTMETHOD;
+
   /**
    * Slave VM command line.
    */
@@ -107,7 +133,7 @@ public class JUnit4 extends Task {
    * A folder to store temporary files in. Defaults to the project's basedir.
    */
   private File tempDir;
-  
+
   /**
    * Listeners listening on the event bus.
    */
@@ -176,7 +202,7 @@ public class JUnit4 extends Task {
   public void setRandom(long randomSeed) {
     this.random = randomSeed;
   }
-  
+
   /*
    * 
    */
@@ -185,7 +211,7 @@ public class JUnit4 extends Task {
     super.setProject(project);
 
     this.random = new Random().nextLong();
-    String randomProperty = getProject().getUserProperty(PROPERTY_RANDOM);
+    String randomProperty = getProject().getProperty(PROPERTY_RANDOM);
     if (randomProperty != null) {
       try {
         this.random = Long.parseLong(randomProperty);
@@ -197,7 +223,7 @@ public class JUnit4 extends Task {
 
     this.resources.setProject(project);
     this.classpath = new Path(getProject());
-    this.bootclasspath = new Path(getProject());    
+    this.bootclasspath = new Path(getProject());
   }
   
   /**
@@ -354,6 +380,15 @@ public class JUnit4 extends Task {
         getProject(),
         getCommandline().getClasspath(),
         true);
+
+    // Pass method filter if any.
+    String testMethodFilter = Strings.emptyToNull(getProject().getProperty(PROP_TESTMETHOD));
+    if (testMethodFilter != null) {
+      Environment.Variable v = new Environment.Variable();
+      v.setKey(PROP_TESTMETHOD);
+      v.setValue(testMethodFilter);
+      getCommandline().addSysproperty(v);
+    }
 
     // Process test classes and resources.
     long start = System.currentTimeMillis();    
@@ -612,7 +647,7 @@ public class JUnit4 extends Task {
   private List<String> processTestResources() {
     List<String> testClassNames = Lists.newArrayList();
     resources.setProject(getProject());
-
+    
     @SuppressWarnings("unchecked")
     Iterator<Resource> iter = (Iterator<Resource>) resources.iterator();
     while (iter.hasNext()) {
@@ -637,6 +672,16 @@ public class JUnit4 extends Task {
       }
     }
 
+    String testClassFilter = Strings.emptyToNull(getProject().getProperty(PROP_TESTCLASS));
+    if (testClassFilter != null) {
+      ClassGlobFilter filter = new ClassGlobFilter(testClassFilter);
+      for (Iterator<String> i = testClassNames.iterator(); i.hasNext();) {
+        if (!filter.shouldRun(Description.createSuiteDescription(i.next()))) {
+          i.remove();
+        }
+      }
+    }
+
     return testClassNames;
   }
 
@@ -655,6 +700,8 @@ public class JUnit4 extends Task {
 
     String [] REQUIRED_SLAVE_CLASSES = {
         SlaveMain.class.getName(),
+        Strings.class.getName(),
+        MethodGlobFilter.class.getName(),
     };
 
     for (String clazz : Arrays.asList(REQUIRED_SLAVE_CLASSES)) {

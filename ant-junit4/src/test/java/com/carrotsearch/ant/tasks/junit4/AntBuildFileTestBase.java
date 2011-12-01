@@ -8,7 +8,7 @@ import org.apache.tools.ant.*;
 import org.junit.Assert;
 
 /**
- * An equivalent of {@link BuildFileTest} for JUnit4.
+ * An equivalent of <code>BuildFileTest</code> for JUnit4.
  */
 public class AntBuildFileTestBase {
   private Project project;

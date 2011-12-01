@@ -249,4 +249,26 @@
             </fileset>
         </junit4>
     </target>
+
+    <target name="classfilter">
+    	<local name="tests.class" />
+    	<property name="tests.class" value="*Statuses" />
+        <junit4.preconf haltonfailure="false">
+            <fileset dir="${basedir}">
+                <include name="**/tests/Test*.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+	
+    <target name="methodfilter">
+        <local name="tests.class" />
+    	<local name="tests.method" />
+        <property name="tests.class" value="*Statuses" />
+    	<property name="tests.method" value="ignored*" />
+        <junit4.preconf haltonfailure="false">
+            <fileset dir="${basedir}">
+                <include name="**/tests/Test*.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>   	
 </project>
