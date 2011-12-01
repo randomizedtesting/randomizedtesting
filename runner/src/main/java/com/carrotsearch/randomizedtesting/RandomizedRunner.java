@@ -295,8 +295,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** Class suite description. */
   private Description suiteDescription;
 
-  /** Applies a user-level test filter if not null. */
-  private Filter filter;
+  /** Applies filters to suite classes. */
+  private List<Filter> suiteFilters = new ArrayList<Filter>();
+
+  /** Applies filters to test cases. */
+  private List<Filter> testFilters = new ArrayList<Filter>();
 
   /** 
    * How many attempts to interrupt and then kill a runaway thread before giving up?
@@ -449,7 +452,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public void filter(Filter filter) throws NoTestsRemainException {
-    this.filter = filter;
+    this.testFilters.add(filter);
   }
 
   /**
@@ -457,6 +460,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public void run(RunNotifier notifier) {
+    if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS)) != null) {
+      suiteFilters.add(new ClassGlobFilter(System.getProperty(SYSPROP_TESTCLASS)));
+    }
+    
+    if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD)) != null) {
+      testFilters.add(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD)));
+    }
+
     runSuite(notifier);
   }
 
@@ -1086,24 +1097,29 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Apply filtering to candidates.
    */
   private List<TestCandidate> getFilteredTestCandidates() {
-    // Check for class filter (most restrictive, immediate answer).
-    if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS)) != null) {
-      if (!suiteClass.getName().equals(System.getProperty(SYSPROP_TESTCLASS))) {
-        return Collections.emptyList();
+    // Apply suite filters.
+    if (!suiteFilters.isEmpty()) {
+      for (Filter f : suiteFilters) {
+        if (!f.shouldRun(suiteDescription)) {
+          return Collections.emptyList();
+        }
       }
     }
 
-    // Check for method filter, if defined.
-    String methodFilter = emptyToNull(System.getProperty(SYSPROP_TESTMETHOD));
+    // Apply method filters.
+    if (testFilters.isEmpty()) {
+      return testCandidates;
+    }
 
-    // Apply filters.
-    List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
+    final List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
     for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext(); ) {
       final TestCandidate candidate = i.next();
-      if (methodFilter != null && !methodFilter.equals(candidate.method.getName())) {
-        i.remove();
-      } else if (filter != null && !filter.shouldRun(candidate.description)) {
-        i.remove();
+      for (Filter f : testFilters) {
+        if (!f.shouldRun(Description.createTestDescription(
+            candidate.instance.getClass(), candidate.method.getName()))) {
+          i.remove();
+          break;
+        }
       }
     }
     return filtered;
@@ -1317,6 +1333,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     return b.toString();
   }
 
+  /**
+   * Convert value to a stringified form for naming parameterized methods.
+   */
   private String toString(Object value) {
     if (value == null) return "null";
     // TODO: handle arrays in a nicer way.

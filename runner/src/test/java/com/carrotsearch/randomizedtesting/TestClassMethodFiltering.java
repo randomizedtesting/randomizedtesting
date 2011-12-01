@@ -86,6 +86,28 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
     assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
   }
 
+  /**
+   * Glob class name filter·
+   */
+  @Test
+  public void testGlobClassName() {
+    System.setProperty(RandomizedRunner.SYSPROP_TESTCLASS, "*Nested1");
+    JUnitCore.runClasses(Nested1.class, Nested2.class);
+    assertTrue(
+        Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
+        Arrays.asList("beforeClass1", "method2", "method1").equals(methods));
+  }
+
+  /**
+   * Glob method name filter·
+   */
+  @Test
+  public void testGlobMethodName() {
+    System.setProperty(RandomizedRunner.SYSPROP_TESTMETHOD, "*hod1");
+    JUnitCore.runClasses(Nested1.class, Nested2.class);
+    assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
+  }
+
   @Before
   public void cleanupBefore() {
     cleanupAfter();
