@@ -30,7 +30,7 @@ public class AntBuildFileTestBase {
       listener.setErrorPrintStream(ps);
       listener.setOutputPrintStream(ps);
       getProject().addBuildListener(listener);
-      
+
       DefaultLogger console = new DefaultLogger();
       console.setMessageOutputLevel(Project.MSG_INFO);
       console.setErrorPrintStream(System.err);
@@ -65,7 +65,7 @@ public class AntBuildFileTestBase {
   protected final void expectBuildExceptionContaining(String target,
       String message) {
         try {
-          getProject().executeTarget(target);
+          executeTarget(target);
           Assert.fail("Expected a build failure with message: " + message);
         } catch (BuildException e) {
           Assert.assertThat(e.getMessage(), containsString(message));

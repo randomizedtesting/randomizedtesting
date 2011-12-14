@@ -32,6 +32,16 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     expectBuildExceptionContaining("nojunit", "Forked JVM's classpath must include a junit4 JAR");
   }
 
+  @Test 
+  public void nojunit_task() {
+    expectBuildExceptionContaining("nojunit-task", "JUnit JAR must be added to junit4 taskdef's classpath");
+  }
+
+  @Test 
+  public void oldjunit_task() {
+    expectBuildExceptionContaining("oldjunit-task", "At least JUnit version 4.10 is required on junit4's taskdef classpath");
+  }
+
   @Test
   public void statuses() throws Throwable {
     expectBuildExceptionContaining("statuses", 
@@ -91,7 +101,7 @@ public class TestJUnit4 extends AntBuildFileTestBase {
 
   @Test 
   public void failureProperty() {
-    super.executeTarget("failureProperty");
+    executeTarget("failureProperty");
   }
 
   @Test

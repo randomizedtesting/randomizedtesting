@@ -259,7 +259,7 @@
             </fileset>
         </junit4.preconf>
     </target>
-	
+
     <target name="methodfilter">
         <local name="tests.class" />
     	<local name="tests.method" />
@@ -270,5 +270,42 @@
                 <include name="**/tests/Test*.class" />
             </fileset>
         </junit4.preconf>
-    </target>   	
+    </target>
+
+    <target name="nojunit-task">
+        <taskdef name="junit4-nojunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
+            <classpath>
+                <fileset dir="..">
+                    <include name="ant-junit4-*-standalone.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+
+        <junit4-nojunit>
+            <classpath refid="tests.classpath" />
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+            </fileset>
+        </junit4-nojunit>
+    </target>
+    
+    <target name="oldjunit-task">
+        <taskdef name="junit4-oldjunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
+            <classpath>
+                <fileset dir="../..">
+                    <include name="lib/junit-4.9.jar" />
+                </fileset>
+                <fileset dir="..">
+                    <include name="ant-junit4-*-standalone.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>
+
+        <junit4-oldjunit>
+            <classpath refid="tests.classpath" />
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+            </fileset>
+        </junit4-oldjunit>
+    </target>
 </project>

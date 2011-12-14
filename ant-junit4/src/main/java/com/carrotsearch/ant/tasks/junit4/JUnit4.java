@@ -1,8 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -366,6 +364,9 @@ public class JUnit4 extends Task {
   public void execute() throws BuildException {
     log("<JUnit4> says hello. Random seed: " + getSeed(), Project.MSG_INFO);
 
+    // Verify we have access to JUnit.
+    verifyJUnit4Present();
+    
     // Resolve paths first.
     this.classpath = resolveFiles(classpath);
     this.bootclasspath = resolveFiles(bootclasspath);
@@ -487,6 +488,20 @@ public class JUnit4 extends Task {
       if (haltOnFailure) {
         throw new BuildException("There were test failures: " + testsSummary);
       }
+    }
+  }
+
+  /**
+   * Verify JUnit presence and version.
+   */
+  private void verifyJUnit4Present() {
+    try {
+      Class<?> clazz = Class.forName("org.junit.runner.Description");
+      if (!Serializable.class.isAssignableFrom(clazz)) {
+        throw new BuildException("At least JUnit version 4.10 is required on junit4's taskdef classpath.");
+      }
+    } catch (ClassNotFoundException e) {
+      throw new BuildException("JUnit JAR must be added to junit4 taskdef's classpath.");
     }
   }
 
