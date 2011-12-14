@@ -2,9 +2,20 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import static org.junit.matchers.JUnitMatchers.containsString;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 
-import org.apache.tools.ant.*;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DefaultLogger;
+import org.apache.tools.ant.MagicNames;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectHelper;
+import org.apache.tools.ant.launch.Launcher;
+import org.apache.tools.ant.taskdefs.Java;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.Assert;
 
 /**
@@ -19,7 +30,7 @@ public class AntBuildFileTestBase {
     project = new Project();
     project.init();
 
-    project.setUserProperty("ant.file", projectFile.getAbsolutePath());
+    project.setUserProperty(MagicNames.ANT_FILE, projectFile.getAbsolutePath());
     ProjectHelper.configureProject(project, projectFile);
 
     output = new ByteArrayOutputStream();
@@ -75,4 +86,38 @@ public class AntBuildFileTestBase {
   protected final void executeTarget(String target) {
     getProject().executeTarget(target);
   }
+  
+  protected final void executeForkedTarget(String target) {
+    Path antPath = new Path(getProject());
+    antPath.createPathElement().setLocation(sourceOf(Project.class));
+    antPath.createPathElement().setLocation(sourceOf(Launcher.class));
+
+    Java java = new Java();
+    java.setTaskName("forked");
+    java.setProject(getProject());
+    java.setClassname("org.apache.tools.ant.launch.Launcher");
+    java.createClasspath().add(antPath);
+    java.setFork(true);
+    java.setSpawn(false);
+    java.setTimeout(10 * 1000L);
+    java.setFailonerror(false);
+    java.setOutputproperty("stdout");
+    java.setErrorProperty("stderr");
+
+    java.createArg().setValue("-f");
+    java.createArg().setValue(getProject().getUserProperty(MagicNames.ANT_FILE));
+    java.createArg().setValue(target);
+    java.execute();    
+
+    getProject().log("Forked stdout:\n" + getProject().getProperty("stdout"));
+    getProject().log("Forked stderr:\n" + getProject().getProperty("stderr"));
+  }
+  
+  /** 
+   * Get the source location of a given class.
+   */
+  private static File sourceOf(Class<?> clazz) {
+    return LoaderUtils.getResourceSource(
+        clazz.getClassLoader(), clazz.getName().replace('.', '/') + ".class");
+  }  
 }
