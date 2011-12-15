@@ -10,12 +10,12 @@ import org.junit.Test;
 import com.carrotsearch.randomizedtesting.ClassValidator;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Validators;
-import com.carrotsearch.randomizedtesting.examples.TestValidatorsAnnotation.NoCursingInMethodNamesValidator;
+import com.carrotsearch.randomizedtesting.examples.TestValidatorsAnnotation;
 
 /**
  * Test validators on a suite.
  */
-@Validators({NoCursingInMethodNamesValidator.class})
+@Validators({TestValidatorsAnnotation.NoCursingInMethodNamesValidator.class})
 public class TestValidatorsAnnotation extends RandomizedTest {
   public static class NoCursingInMethodNamesValidator implements ClassValidator {
     public void validate(Class<?> clazz) throws Throwable {

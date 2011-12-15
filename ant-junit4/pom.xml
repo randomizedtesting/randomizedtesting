@@ -175,7 +175,7 @@
           </execution>
         </executions>
         <configuration>
-          <includeGroupIds>junit,asm</includeGroupIds>
+          <includeGroupIds>com.carrotsearch.randomizedtesting,junit,asm</includeGroupIds>
         </configuration>
       </plugin>
 

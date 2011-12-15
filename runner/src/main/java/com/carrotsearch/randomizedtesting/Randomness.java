@@ -32,64 +32,6 @@ public final class Randomness {
 
   @Override
   public String toString() {
-    return "[Randomness, seed=" + formatSeedChain(this) + "]";
-  }
-
-  /**
-   * Formats randomness seed or seeds into something the user can type in to get predictably repeatable
-   * execution.
-   */
-  static String formatSeedChain(Randomness... randomnesses) {
-    StringBuilder b = new StringBuilder();
-    b.append("[");
-    for (int i = 0; i < randomnesses.length; i++) {
-      if (i > 0) b.append(":");
-      b.append(formatSeed(randomnesses[i].seed));
-    }
-    b.append("]");
-    return b.toString();
-  }
-
-  /**
-   * Parse a seed chain formatted with {@link #formatSeedChain(Randomness...)}. 
-   */
-  static long [] parseSeedChain(String chain) {
-    chain = chain.replaceAll("[\\[\\]]", "");
-    if (!chain.matches("[\\-0-9A-Za-z\\:]+")) {
-      throw new IllegalArgumentException("Not a valid seed chain: " + chain);
-    }
-    String [] splits = chain.split("[\\:]");
-    long [] longs = new long [splits.length];
-    for (int i = 0; i < splits.length; i++)
-      longs[i] = parseSeed(splits[i]);
-    return longs;
-  }
-
-  private final static char [] HEX = "0123456789ABCDEF".toCharArray(); 
-
-  /** Parse a single seed. */
-  static long parseSeed(String seed) {
-    long result = 0;
-    for (char chr : seed.toCharArray()) {
-      chr = Character.toLowerCase(chr);
-      result = result << 4;
-      if (chr >= '0' && chr <= '9')
-        result |= (chr - '0');
-      else if (chr >= 'a' && chr <= 'f')
-        result |= (chr - 'a' + 10);
-      else
-        throw new IllegalArgumentException("Expected hexadecimal seed: " + seed);
-    }
-    return result;
-  }
-
-  /** Format a single seed. */
-  static String formatSeed(long seed) {
-    StringBuilder b = new StringBuilder();
-    do {
-      b.append(HEX[(int) (seed & 0xF)]);
-      seed = seed >>> 4;
-    } while (seed != 0);
-    return b.reverse().toString();
+    return "[Randomness, seed=" + SeedUtils.formatSeedChain(this) + "]";
   }
 }

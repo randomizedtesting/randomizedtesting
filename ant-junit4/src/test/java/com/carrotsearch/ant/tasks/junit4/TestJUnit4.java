@@ -134,4 +134,14 @@ public class TestJUnit4 extends AntBuildFileTestBase {
       }
     }
   }
+
+  @Test
+  public void seedpassing() {
+    executeTarget("seedpassing");
+  }
+
+  @Test
+  public void seedpassingInvalid() {
+    expectBuildExceptionContaining("seedpassing.invalid", "Expected hexadecimal seed");
+  }    
 }

@@ -335,5 +335,27 @@
                 <include name="**/tests/TestEscaping.class" />
             </fileset>
         </junit4.preconf>
-    </target>    
+    </target>
+
+    <target name="seedpassing">
+        <junit4.preconf seed="[DEADBEEF:CAFEBABE]">
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestSeedPassing.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="seedpassing.invalid">
+        <junit4.preconf seed="invalid">
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestSeedPassing.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>        
 </project>

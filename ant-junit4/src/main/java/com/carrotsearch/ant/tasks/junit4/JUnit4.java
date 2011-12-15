@@ -1,55 +1,44 @@
 package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 
-import org.apache.tools.ant.AntClassLoader;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectComponent;
-import org.apache.tools.ant.Task;
+import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.Execute;
-import org.apache.tools.ant.types.Commandline;
-import org.apache.tools.ant.types.CommandlineJava;
-import org.apache.tools.ant.types.Environment;
-import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.types.PropertySet;
-import org.apache.tools.ant.types.Resource;
-import org.apache.tools.ant.types.ResourceCollection;
+import org.apache.tools.ant.types.*;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
 import org.objectweb.asm.ClassReader;
 
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
-import com.carrotsearch.randomizedtesting.ClassGlobFilter;
-import com.carrotsearch.randomizedtesting.MethodGlobFilter;
-import com.carrotsearch.randomizedtesting.RandomizedRunner;
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
+import com.carrotsearch.randomizedtesting.*;
+import com.google.common.base.*;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.Files;
 
 /**
- * A simple ANT task to run JUnit4 tests.
+ * An ANT task to run JUnit4 tests. Differences (benefits?) compared to ANT's default JUnit task:
+ * <ul>
+ *  <li>Built-in parallel test execution support (spawns multiple JVMs to avoid 
+ *  test interactions).</li>
+ *  <li>Randomization of the order of test suites within a single JVM.</li>
+ *  <li>Aggregates and synchronizes test events from executors. All reports run on
+ *  the task's JVM (not on the test JVM).</li>
+ *  <li>Fully configurable reporting via listeners (console, ANT-compliant XML, JSON).
+ *  Report listeners use Google Guava's {@link EventBus} and receive full information
+ *  about tests' execution (including skipped, assumption-skipped tests, streamlined
+ *  output and error stream chunks, etc.).</li>
+ *  <li>JUnit 4.10+ is required both for the task and for the tests classpath. 
+ *  Older versions will cause build failure.</li>
+ *  <li>Integration with {@link RandomizedRunner} (randomization seed is passed to
+ *  children JVMs).</li>
+ * </ul>
  */
 public class JUnit4 extends Task {
   /** @see #setParallelism(String) */
@@ -60,9 +49,12 @@ public class JUnit4 extends Task {
 
   /**
    * Random seed for shuffling the order of suites. Override
-   * using {@link #setRandom(long)} or by setting this property globally.
+   * using {@link #setSeed(String)} or by setting this property globally.
+   * 
+   * <p>Setting this property fixes {@link RandomizedRunner}'s initial 
+   * seed (the same property).
    */
-  public static final String PROPERTY_RANDOM = "junit4.random";
+  public static final String SYSPROP_RANDOM_SEED = RandomizedRunner.SYSPROP_RANDOM_SEED;
 
   /**
    * Project property for picking out a single test class to execute. All other
@@ -74,7 +66,7 @@ public class JUnit4 extends Task {
    * will pick all classes ending in MyTest (in any package, including nested static
    * classes if they appear on input).
    */
-  public static final String PROP_TESTCLASS = RandomizedRunner.SYSPROP_TESTCLASS;
+  public static final String SYSPROP_TESTCLASS = RandomizedRunner.SYSPROP_TESTCLASS;
 
   /**
    * Project property for picking out a single test method to execute. All other
@@ -85,7 +77,7 @@ public class JUnit4 extends Task {
    * </pre>
    * will pick all methods starting with <code>test</code>.
    */
-  public static final String PROP_TESTMETHOD = RandomizedRunner.SYSPROP_TESTMETHOD;
+  public static final String SYSPROP_TESTMETHOD = RandomizedRunner.SYSPROP_TESTMETHOD;
 
   /**
    * Slave VM command line.
@@ -154,9 +146,9 @@ public class JUnit4 extends Task {
   private boolean leaveTemporary;
   
   /**
-   * @see #setRandom(long)
+   * @see #setSeed(String)
    */
-  private long random;
+  private String random;
 
   /**
    * Multiple path resolution in {@link CommandlineJava#getCommandline()} is very slow
@@ -196,10 +188,20 @@ public class JUnit4 extends Task {
   /**
    * Initial random seed used for shuffling test suites and other sources
    * of pseudo-randomness. If not set, any random value is set. 
+   * 
+   * <p>The seed's format is compatible with {@link RandomizedRunner} so that
+   * seed can be fixed for suites and methods alike.
    */
-  public void setRandom(long randomSeed) {
+  public void setSeed(String randomSeed) {
     this.random = randomSeed;
   }
+
+  /**
+   * @see #setSeed(String) 
+   */
+  public String getSeed() {
+    return random;
+  }  
 
   /*
    * 
@@ -208,16 +210,9 @@ public class JUnit4 extends Task {
   public void setProject(Project project) {
     super.setProject(project);
 
-    this.random = new Random().nextLong();
-    String randomProperty = getProject().getProperty(PROPERTY_RANDOM);
-    if (randomProperty != null) {
-      try {
-        this.random = Long.parseLong(randomProperty);
-      } catch (NumberFormatException e) {
-        log("Wrong number format for " + PROPERTY_RANDOM + ": " +
-            randomProperty, Project.MSG_ERR);
-      }
-    }
+    this.random = Objects.firstNonNull( 
+        getProject().getProperty(SYSPROP_RANDOM_SEED),
+        SeedUtils.formatSeed(new Random().nextLong()));
 
     this.resources.setProject(project);
     this.classpath = new Path(getProject());
@@ -362,11 +357,16 @@ public class JUnit4 extends Task {
 
   @Override
   public void execute() throws BuildException {
+    // Validate arguments and settings.
+    masterSeed();
+    verifyJUnit4Present();
+
+    // Say hello and continue.
     log("<JUnit4> says hello. Random seed: " + getSeed(), Project.MSG_INFO);
 
-    // Verify we have access to JUnit.
-    verifyJUnit4Present();
-    
+    // Pass the random seed property.
+    createJvmarg().setValue("-D" + SYSPROP_RANDOM_SEED + "=" + random);
+
     // Resolve paths first.
     this.classpath = resolveFiles(classpath);
     this.bootclasspath = resolveFiles(bootclasspath);
@@ -383,10 +383,10 @@ public class JUnit4 extends Task {
         true);
 
     // Pass method filter if any.
-    String testMethodFilter = Strings.emptyToNull(getProject().getProperty(PROP_TESTMETHOD));
+    String testMethodFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTMETHOD));
     if (testMethodFilter != null) {
       Environment.Variable v = new Environment.Variable();
-      v.setKey(PROP_TESTMETHOD);
+      v.setKey(SYSPROP_TESTMETHOD);
       v.setValue(testMethodFilter);
       getCommandline().addSysproperty(v);
     }
@@ -410,7 +410,7 @@ public class JUnit4 extends Task {
     }
 
     if (!testClassNames.isEmpty()) {
-      Collections.shuffle(testClassNames, new Random(getSeed()));
+      Collections.shuffle(testClassNames, new Random(masterSeed()));
 
       start = System.currentTimeMillis();
       int slaveCount = determineSlaveCount(testClassNames.size());
@@ -492,6 +492,17 @@ public class JUnit4 extends Task {
   }
 
   /**
+   * Return the master seed of {@link #getSeed()}.
+   */
+  private long masterSeed() {
+    long[] seeds = SeedUtils.parseSeedChain(getSeed());
+    if (seeds.length < 1) {
+      throw new BuildException("Random seed is required.");
+    }
+    return seeds[0];
+  }
+
+  /**
    * Verify JUnit presence and version.
    */
   private void verifyJUnit4Present() {
@@ -503,13 +514,6 @@ public class JUnit4 extends Task {
     } catch (ClassNotFoundException e) {
       throw new BuildException("JUnit JAR must be added to junit4 taskdef's classpath.");
     }
-  }
-
-  /**
-   * Return the initial random seed. Always non-negative for simplicity.
-   */
-  public long getSeed() {
-    return this.random & 0x7fffffffffffL;
   }
 
   /**
@@ -690,7 +694,7 @@ public class JUnit4 extends Task {
       }
     }
 
-    String testClassFilter = Strings.emptyToNull(getProject().getProperty(PROP_TESTCLASS));
+    String testClassFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTCLASS));
     if (testClassFilter != null) {
       ClassGlobFilter filter = new ClassGlobFilter(testClassFilter);
       for (Iterator<String> i = testClassNames.iterator(); i.hasNext();) {
@@ -733,5 +737,5 @@ public class JUnit4 extends Task {
       }
     }
     return path;
-  }  
+  }
 }

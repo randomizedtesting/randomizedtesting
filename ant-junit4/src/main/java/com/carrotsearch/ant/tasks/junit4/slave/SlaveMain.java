@@ -120,7 +120,7 @@ public class SlaveMain {
     /*
      * Instantiate method filter if any.
      */
-    String methodFilterGlob = Strings.emptyToNull(System.getProperty(JUnit4.PROP_TESTMETHOD));
+    String methodFilterGlob = Strings.emptyToNull(System.getProperty(JUnit4.SYSPROP_TESTMETHOD));
     Filter methodFilter = Filter.ALL;
     if (methodFilterGlob != null) {
       methodFilter = new MethodGlobFilter(methodFilterGlob);

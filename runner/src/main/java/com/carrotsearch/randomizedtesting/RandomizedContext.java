@@ -80,7 +80,7 @@ public final class RandomizedContext {
    */
   public String getRunnerSeed() {
     checkDisposed();
-    return Randomness.formatSeed(getRunnerRandomness().seed);
+    return SeedUtils.formatSeed(getRunnerRandomness().seed);
   }
 
   /** Source of randomness for the context's thread. */

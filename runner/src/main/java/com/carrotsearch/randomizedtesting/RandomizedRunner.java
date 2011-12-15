@@ -9,8 +9,6 @@ import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy;
 import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
 import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
 import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
-import static com.carrotsearch.randomizedtesting.Randomness.formatSeedChain;
-import static com.carrotsearch.randomizedtesting.Randomness.parseSeedChain;
 
 import java.lang.Thread.State;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -405,7 +403,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final long randomSeed = MurmurHash3.hash(sequencer.getAndIncrement() + System.nanoTime());
     final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED);
     if (globalSeed != null) {
-      final long[] seedChain = parseSeedChain(globalSeed);
+      final long[] seedChain = SeedUtils.parseSeedChain(globalSeed);
       if (seedChain.length == 0 || seedChain.length > 2) {
         throw new IllegalArgumentException("Invalid system property " 
             + SYSPROP_RANDOM_SEED + " specification: " + globalSeed);
@@ -486,9 +484,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     this.runnerThreadGroup = new RunnerThreadGroup(
-        "RandomizedRunner " + Randomness.formatSeedChain(runnerRandomness));
+        "RandomizedRunner " + SeedUtils.formatSeedChain(runnerRandomness));
 
-    final Thread runner = new Thread(runnerThreadGroup, "main-" + Randomness.formatSeedChain(runnerRandomness)) {
+    final Thread runner = new Thread(runnerThreadGroup, "main-" + SeedUtils.formatSeedChain(runnerRandomness)) {
       public void run() {
         try {
           RandomizedContext context = createContext(runnerThreadGroup);
@@ -1302,7 +1300,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           args.put("#", i);
         }
         args.putAll(parameterizedArgs);
-        args.put("seed=", formatSeedChain(runnerRandomness, thisRandomness));
+        args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, thisRandomness));
         Description description = Description.createSuiteDescription(
             String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()));
    
@@ -1492,7 +1490,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (s.value().equals("random"))
           seeds.add(randomSeed);
         else {
-          for (long s2 : parseSeedChain(s.value())) {
+          for (long s2 : SeedUtils.parseSeedChain(s.value())) {
             seeds.add(s2);
           }
         }
@@ -1503,7 +1501,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if (seeds.isEmpty()) {
       if ((seed = suiteClass.getAnnotation(Seed.class)) != null) {
         if (!seed.value().equals("random")) {
-          long [] seedChain = parseSeedChain(suiteClass.getAnnotation(Seed.class).value());
+          long [] seedChain = SeedUtils.parseSeedChain(suiteClass.getAnnotation(Seed.class).value());
           if (seedChain.length > 1)
             seeds.add(seedChain[1]);
         }
@@ -1665,7 +1663,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         try {
           String seedChain = method.getAnnotation(Seed.class).value();
           if (!seedChain.equals("random")) {
-            long[] chain = Randomness.parseSeedChain(seedChain);
+            long[] chain = SeedUtils.parseSeedChain(seedChain);
             if (chain.length > 1) {
               throw new IllegalArgumentException("@Seed on methods must contain one seed only (no runner seed).");
             }
@@ -1689,7 +1687,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         Arrays.asList(e.getStackTrace()));
   
     stack.add(0,  new StackTraceElement(AUGMENTED_SEED_PACKAGE + ".SeedInfo", 
-        "seed", Randomness.formatSeedChain(seeds), 0));
+        "seed", SeedUtils.formatSeedChain(seeds), 0));
   
     e.setStackTrace(stack.toArray(new StackTraceElement [stack.size()]));
   
@@ -1775,7 +1773,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       return new long [] { randomSeed };
     }
   
-    return parseSeedChain(seedChain);
+    return SeedUtils.parseSeedChain(seedChain);
   }
 
   /**
