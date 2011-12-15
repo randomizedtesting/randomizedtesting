@@ -320,4 +320,20 @@
             </fileset>
         </junit4-oldjunit>
     </target>
+
+    <target name="escaping">
+        <delete dir="empty" failonerror="false" />
+        <mkdir dir="empty" />
+
+        <junit4.preconf dir="empty">
+            <sysproperty key="sysprop.key" value="${nonexistent-1}" />
+            <sysproperty key="sysprop.key2" value="abc def" />
+            <jvmarg value="-Dsysprop.key3=${nonexistent-2}" />
+            <env key="env.variable" value="${nonexistent-3}" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestEscaping.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>    
 </project>

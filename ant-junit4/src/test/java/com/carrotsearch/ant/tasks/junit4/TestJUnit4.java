@@ -27,6 +27,11 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     assertLogContains("2> syserr-syserr-contd.");
   }
 
+  @Test
+  public void escaping() {
+    executeTarget("escaping");
+  }
+
   @Test 
   public void nojunit() {
     expectBuildExceptionContaining("nojunit", "Forked JVM's classpath must include a junit4 JAR");
