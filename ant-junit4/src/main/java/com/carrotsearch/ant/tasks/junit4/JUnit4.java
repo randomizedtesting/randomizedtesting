@@ -193,7 +193,11 @@ public class JUnit4 extends Task {
    * seed can be fixed for suites and methods alike.
    */
   public void setSeed(String randomSeed) {
-    this.random = randomSeed;
+    if (!Strings.isNullOrEmpty(getProject().getUserProperty(SYSPROP_RANDOM_SEED))) {
+      log("Ignoring seed attribute because it is overriden by user properties.", Project.MSG_WARN);
+    } else if (!Strings.isNullOrEmpty(randomSeed)) {
+      this.random = randomSeed;
+    }
   }
 
   /**
