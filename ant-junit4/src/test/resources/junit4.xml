@@ -357,5 +357,16 @@
                 <include name="**/tests/TestSeedPassing.class" />
             </fileset>
         </junit4.preconf>
+    </target>
+    
+    <target name="reproducestring">
+        <junit4.preconf haltonfailure="false">
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestReproduceString.class" />
+            </fileset>
+        </junit4.preconf>
     </target>        
 </project>

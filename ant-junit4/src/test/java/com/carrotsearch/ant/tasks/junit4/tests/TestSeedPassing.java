@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.*;
 
-public class TestSeedPassing {
+public class TestSeedPassing extends RandomizedTest {
   @Test
   public void checkSeedSet() throws IOException {
     Assert.assertEquals(System.getProperty(RandomizedRunner.SYSPROP_RANDOM_SEED),
@@ -15,5 +15,15 @@ public class TestSeedPassing {
             new Randomness(0xdeadbeefL),
             new Randomness(0xcafebabeL)), 
             System.getProperty(RandomizedRunner.SYSPROP_RANDOM_SEED));
+
+    Assert.assertEquals(
+        "[CAFEBABE]",
+        SeedUtils.formatSeedChain(getContext().getRandomness()));
+
+    Assert.assertEquals(
+        "[DEADBEEF]",
+        SeedUtils.formatSeedChain(
+            new Randomness(
+                SeedUtils.parseSeed(getContext().getRunnerSeed()))));
   }
 }
