@@ -44,10 +44,14 @@ public class SlaveMain {
   /** No JUnit on classpath. */
   public static final int ERR_NO_JUNIT = 254;
 
+  /** Old JUnit on classpath. */
+  public static final int ERR_OLD_JUNIT = 253;
+
   /**
    * Frequent event strean flushing.
    */
   public static final String OPTION_FREQUENT_FLUSH = "-flush";
+
 
   /**
    * All class names to be executed as tests.

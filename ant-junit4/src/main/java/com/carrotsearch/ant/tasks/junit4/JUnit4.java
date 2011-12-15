@@ -637,6 +637,9 @@ public class JUnit4 extends Task {
         if (exitStatus == SlaveMain.ERR_NO_JUNIT) {
           throw new BuildException("Forked JVM's classpath must include a junit4 JAR.");
         }
+        if (exitStatus == SlaveMain.ERR_OLD_JUNIT) {
+          throw new BuildException("Forked JVM's classpath must use JUnit 4.10 or newer.");
+        }
         throw new BuildException("Forked process exited with an error code: " + exitStatus);
       }
     } catch (IOException e) {

@@ -59,6 +59,18 @@
             </fileset>
         </junit4>
     </target>
+    
+    <target name="oldjunit">
+        <junit4>
+            <classpath>
+                <path location="." />
+                <fileset dir="${basedir}/../.." includes="lib/junit*.jar" />
+            </classpath>
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+            </fileset>
+        </junit4>
+    </target>    
 
     <target name="statuses">
         <junit4.preconf>
