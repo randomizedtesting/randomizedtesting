@@ -144,57 +144,39 @@ public class TestRandomizedTest extends RandomizedTest {
   }
 
   @Test
-  public void testRandomCharString() {
-    randomCharString('a', 'z', 0);
-    
+  public void testRandomAsciiOfLength() {
+    assertTrue(randomAsciiOfLength(0).isEmpty());
+
     for (int i = 0; i < 1000; i++) { 
       int maxLength = randomInt(20);
-      String str = randomCharString('a', 'z', maxLength);
-      assertTrue(str.matches("[a-z]*"));
+      String str = randomAsciiOfLength(maxLength);
+      assertTrue(str.matches("[a-zA-Z0-9]*"));
       assertTrue(str.length() <= maxLength);
     }
   }
 
   @Test
-  public void testRandomUnicodeString() {
+  public void testRandomUnicodeOfLength() {
     for (int i = 0; i < 1000; i++) { 
       int maxLength = randomInt(20);
-      String str = randomUnicodeString(maxLength);
+      String str = randomUnicodeOfLength(maxLength);
       assertTrue(str.length() + " " + maxLength, str.length() <= maxLength);
     }
   }
 
   @Test
-  public void testRandomUnicodeStringOfUtf16Length() {
-    for (int i = 0; i < 1000; i++) { 
-      int maxLength = randomInt(20);
-      String str = randomUnicodeStringOfUTF16Length(maxLength);
-      assertEquals(maxLength, str.length());
-    }
-  }
-
-  @Test
-  public void testRandomUnicodeStringOfUTF8Length() {
-    for (int i = 0; i < 1000; i++) { 
-      int maxLength = randomInt(20);
-      String str = randomUnicodeStringOfUTF8Length(maxLength);
-      byte[] utf8 = str.getBytes(UTF8);
-      assertTrue(utf8.length <= maxLength);
-    }
-  }
-
-  @Test
-  public void testRandomRealisticUnicodeString() {
-    assertTrue(randomRealisticUnicodeString(0).isEmpty());
+  public void testRandomRealisticUnicodeOfLength() {
+    assertTrue(randomRealisticUnicodeOfLength(0).isEmpty());
+    assertTrue(randomRealisticUnicodeOfCodepointLength(0).isEmpty());
 
     for (int i = 0; i < 1000; i++) { 
       int minLength = randomInt(20);
       int maxLength = minLength + randomInt(20);
-      String str = randomRealisticUnicodeString(maxLength);
+      String str = randomRealisticUnicodeOfCodepointLength(maxLength);
       int codepoints = countCodepoints(str);
       assertTrue(codepoints <= maxLength);
 
-      str = randomRealisticUnicodeString(minLength, maxLength);
+      str = randomRealisticUnicodeOfCodepointLengthBetween(minLength, maxLength);
       codepoints = countCodepoints(str);
       assertTrue(codepoints >= minLength);
       assertTrue(codepoints <= maxLength);
@@ -202,12 +184,12 @@ public class TestRandomizedTest extends RandomizedTest {
   }
 
   private static int countCodepoints(String str) {
-    return str.getBytes(UTF32).length / 4;
+    return str.codePointCount(0, str.length());
   }
-  
+
   @Test
   public void testAssumeTrue() {
-    String message = randomUnicodeStringOfUTF16Length(10);
+    String message = randomUnicodeOfLength(10);
     try {
       assumeTrue(message, false);
     } catch (AssumptionViolatedException e) {
@@ -217,7 +199,7 @@ public class TestRandomizedTest extends RandomizedTest {
   
   @Test
   public void testAssumeNoException() {
-    String message = randomUnicodeStringOfUTF16Length(10);
+    String message = randomUnicodeOfLength(10);
     Throwable t = new Throwable();
     try {
       assumeNoException(message, t);

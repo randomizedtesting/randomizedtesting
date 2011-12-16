@@ -23,7 +23,7 @@ public class TestRunawayThreadStackProbes extends WithNestedTestClass {
       Thread t = new Thread(new Runnable() {
         public void run() {
           List<String> input = Lists.newArrayList();
-          for (int i = 0; i < 500; i++) input.add(randomAsciiString());
+          for (int i = 0; i < 500; i++) input.add(randomAsciiOfLengthBetween(1, 10));
 
           while (!Thread.currentThread().isInterrupted()) {
             Collections.sort(input);
@@ -40,7 +40,7 @@ public class TestRunawayThreadStackProbes extends WithNestedTestClass {
     public void timeout() throws Exception{
       assumeRunningNested();
       List<String> input = Lists.newArrayList();
-      for (int i = 0; i < 500; i++) input.add(randomAsciiString());
+      for (int i = 0; i < 500; i++) input.add(randomAsciiOfLengthBetween(1, 10));
 
       while (!Thread.currentThread().isInterrupted()) {
         Collections.sort(input);

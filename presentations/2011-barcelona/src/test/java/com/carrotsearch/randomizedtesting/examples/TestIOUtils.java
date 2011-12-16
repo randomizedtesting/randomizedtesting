@@ -16,7 +16,7 @@ public class TestIOUtils extends RandomizedTest {
   public void testReadFile() throws IOException {
     File tempFile = newTempFile();
     FileOutputStream fos = new FileOutputStream(tempFile);
-    String contents = randomUnicodeString();
+    String contents = randomUnicodeOfLengthBetween(0, 20);
     fos.write(contents.getBytes(UTF8));
     fos.close();
     
