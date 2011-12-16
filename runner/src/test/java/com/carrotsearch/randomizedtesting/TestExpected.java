@@ -24,6 +24,13 @@ public class TestExpected extends WithNestedTestClass {
     }
   }
 
+  public static class Nested2 extends RandomizedTest {
+    @Test(expected = RuntimeException.class)
+    public void testMethod1() {
+      // Don't do anything.
+    }
+  }
+
   @Test
   public void testSameMethodRandomnessWithFixedRunner() {
     Result result = JUnitCore.runClasses(Nested.class);
@@ -33,5 +40,12 @@ public class TestExpected extends WithNestedTestClass {
     
     Assert.assertSame(Error.class, result.getFailures().get(0).getException()
         .getClass());
+  }
+  
+  @Test
+  public void testSuccessfulExceptedFailure() {
+    Result result = JUnitCore.runClasses(Nested2.class);
+    Assert.assertEquals(1, result.getRunCount());
+    Assert.assertEquals(1, result.getFailureCount());
   }
 }

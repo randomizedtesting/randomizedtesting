@@ -35,6 +35,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import junit.framework.Assert;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -753,8 +755,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
           if (!expectedClass.isInstance(t)) {
             throw t;
           }
-          // We caught something that was expected. No worries then.          
+          // We caught something that was expected. No worries then.
+          return;
         }
+        
+        // If we're here this means we passed the test that expected a failure.
+        Assert.fail("Expected an exception but the test passed: "
+            + expectedClass.getName());
       }
     };
   }
