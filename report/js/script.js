@@ -1,17 +1,23 @@
 (function($) {
   $(document).ready(function() {
-    $("#results").junit4results(suites);
+    $("#container").junit4results(suites);
   });
 
   $.fn.junit4results = function(data) {
-    var $this = this;
-
+    // Constants
+    var OK = "OK";
+    var FAILURE = "FAILURE";
+    var ERROR = "ERROR";
+    var IGNORED = "IGNORED";
+    var IGNORED_ASSUMPTION = "IGNORED_ASSUMPTION";
+    
     // Create aggregations
-    var counts = aggregate(data, count, { "global": global, "byStatus": byStatus })
-    console.log(counts);
+    var counts = aggregate(data, testCount, { "global": global, "byStatus": byStatus });
+    var times = aggregate(data, totalTime, { "global": global, "bySlave": bySlave });
 
     // Generate markup
-    var $results = $("#results");
+    var $summary = this.find("#summary");
+    var $results = this.find("#results");
 
     var statuses = {
       OK: "OK",
@@ -20,20 +26,46 @@
       IGNORED: "IGNORED",
       IGNORED_ASSUMPTION: "IGNORED"
     };
-    var statusesOrder = [ "OK", "IGNORED_ASSUMPTION", "IGNORED", "ERROR", "FAILURE" ];
+    var statusesOrder = [ OK, IGNORED_ASSUMPTION, IGNORED, ERROR, FAILURE ];
+
+    // Executive summary
+    var html = "";
+    if ((counts.byStatus[FAILURE] || 0) == 0 && (counts.byStatus[ERROR] || 0) == 0) {
+      if (counts.byStatus[OK] == counts.global) {
+        html = "All tests passed.";
+      } else if ((counts.byStatus[OK] || 0) > 0) {
+        html = tmpl("<strong>No failures</strong>, #{passed} passed, #{ignored} ignored.", {
+          passed: countText(counts.byStatus[OK], "test"),
+          ignored: countText((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
+        });
+      }
+    }
+    $("<p />").html(html).appendTo($summary);
+
+    $("<p />").html(tmpl("\
+        #{tests} executed in\
+        #{time} ms on\
+        <a href='#'>#{slaves}</a>.", {
+        tests: countText(counts.global || 0, "test"),
+        time: times.global,
+        slaves: countText(keys(times.bySlave).length, "slave")
+      })).appendTo($summary);
 
     // Summary statistics
-    var $statusSummary = $("<ul id='summary' />");
+    var $statusBar = $("<ul id='statusbar' />");
     for (var i = 0; i < statusesOrder.length; i++) {
       var status = statusesOrder[i];
-      $statusSummary.append(tmpl("<li class='#{status}' style='width: #{pct}%' title='#{count} #{label}'>&nbsp;</li>", {
-        status: status,
-        label: statuses[status],
-        pct: (100 * counts.byStatus[status]) / counts.global,
-        count: counts.byStatus[status]
-      }));
+      var count = counts.byStatus[status];
+        if (count > 0) {
+        $statusBar.append(tmpl("<li class='#{status}' style='width: #{pct}%' title='#{count} #{label}'></li>", {
+          status: status,
+          label: statuses[status],
+          pct: (100 * count) / counts.global,
+          count: count
+        }));
+      }
     }
-    $statusSummary.appendTo($results);
+    $statusBar.appendTo($summary);
 
 
     // Results table
@@ -97,6 +129,10 @@
     return test.status;
   }
 
+  function bySlave(test) {
+    return test.slave;
+  }
+
   function global() {
     return undefined;
   }
@@ -105,8 +141,12 @@
     return addOne(current || { }, test.status);
   }
 
-  function count(test, current) {
+  function testCount(test, current) {
     return (current || 0) + 1;
+  }
+
+  function totalTime(test, current) {
+    return (current || 0) + test.executionTime;
   }
 
   function getOrCreate(set, key, created) {
@@ -123,6 +163,20 @@
       set[key]++;
     }
     return set;
+  }
+
+  function keys(o) {
+    var a = [ ];
+    for (k in o) {
+      if (o.hasOwnProperty(k)) {
+        a.push(k);
+      }
+    }
+    return a;
+  }
+
+  function countText(count, noun) {
+    return count + " " + noun + (count == 1 ? "" : "s");
   }
 
   function eachTest(data, callback) {

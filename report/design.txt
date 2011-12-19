@@ -36,13 +36,20 @@ Nifty things:
 
 * abbreviation of package names?
 * sortable tables
+* minification of assets
+* clean-up of data JSON (smaller size)
+* a "bulb" indication of general ok / failure (green/red, like in Bamboo)
+* general indication of ok / failure in document title
 
 
 Questions:
 
-* RR-specific annotations?
+* Generation of markup in JS makes things easy, but is terrible for indexing in search engines.
+  Maybe there should be some pre-rendered version as well?
 
-* What benefit is there from a suite?
+* RR-specific annotations? Yes, hardcoded handling.
+
+* What benefit is there from a suite? None, ignore.
 
 * Aggregation: package, class, method (suite?)
 
@@ -52,3 +59,11 @@ order? Or maybe two lists: failed at the top and then successful and ignored (on
 lexicographical order).
 
 
+Testing:
+
+* Empty report
+* All failures
+* All errors
+* All ignored
+* All passed
+* One vs many (string formatting)
