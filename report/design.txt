@@ -1,0 +1,54 @@
+General:
+
+* mobile version?
+
+
+Items:
+
+* methods
+* slaves
+* global overrides
+
+
+For each method:
+
+* class name
+* method name
+* annotations:
+  * seeds
+  * repetitions
+  * timeout
+  * expected exceptions
+* slave
+* staus: ok, ignored by assumption, ignored by annotation, failed, error
+* execution time
+* stack trace
+* console output
+
+
+Views:
+
+* packages, classes, methods
+* log (events + console)
+
+
+Nifty things:
+
+* abbreviation of package names?
+* sortable tables
+
+
+Questions:
+
+* RR-specific annotations?
+
+* What benefit is there from a suite?
+
+* Aggregation: package, class, method (suite?)
+
+* Tests are executed in the random order, we'd probably need two orders in the
+report: execution order and lexicographic order. How about failing-first
+order? Or maybe two lists: failed at the top and then successful and ignored (only in
+lexicographical order).
+
+
