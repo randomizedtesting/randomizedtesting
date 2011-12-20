@@ -25,6 +25,8 @@ TODO, must have:
   * execution time
   * stack trace
   * console output
+* navigation: package -> class -> method and back
+* navigation using HTML5 history API (bookmarkable urls)
 
 
 Nice to have:
