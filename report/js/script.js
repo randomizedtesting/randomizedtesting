@@ -63,7 +63,7 @@
         }
       }
     };
-  console.log(tables);
+  
     return tables;
 
     function column(id, type, label) {
@@ -102,7 +102,7 @@
 
   var $table, aggregates;
   var data = suites;
-  var currentView = "packages", currentOrder = { column: "signature", direction: "asc" };
+  var currentView = "packages", currentOrder = { column: "signature", ascending: true };
   
   // Initialize the table
   $(document).ready(function() {
@@ -201,7 +201,7 @@
       html.push(tmpl("<th class='#{type} #{id} #{sort}'><span>#{label}</span></th>", {
         type: column.type,
         id: column.id,
-        sort: column.id == orderColumn.id ? order.direction : "",
+        sort: column.id == orderColumn.id ? (order.ascending ? "asc" : "desc") : "",
         label: column.label
       }));
     });
