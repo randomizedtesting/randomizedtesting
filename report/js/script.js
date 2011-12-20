@@ -38,7 +38,7 @@
         renderer: function(value, html) {
           html.push(statusbar(value.statuses, value.total));
         },
-        type: "status"
+        type: "result"
       },
 
       numericColumn("pass", "Pass"),
@@ -63,7 +63,7 @@
         }
       }
     };
-
+  console.log(tables);
     return tables;
 
     function column(id, type, label) {
@@ -102,6 +102,7 @@
 
   var $table, aggregates;
   var data = suites;
+  var currentView = "packages", currentOrder = { column: "signature", direction: "asc" };
   
   // Initialize the table
   $(document).ready(function() {
@@ -162,39 +163,47 @@
 
     // Bind listeners through delegation
     $table.on("click", ".tools > a", function() {
-      view($(this).attr("href").substring(1));
+      currentView = $(this).attr("href").substring(1);
+      refresh();
       return false;
     });
 
     // Set the default view
-    view("packages");
+    refresh();
     return this;
   });
   // Shows the requested view
 
-  function view(view) {
-    switch (view) {
+  function refresh() {
+    switch (currentView) {
       case "packages":
-        $table.html(table(tables.byPackage, data, aggregates));
+        $table.html(table(tables.byPackage, data, aggregates, currentOrder));
         break;
 
       case "classes":
-        $table.html(table(tables.byClass, data, aggregates));
+        $table.html(table(tables.byClass, data, aggregates, currentOrder));
         break;
     }
-    $table.find(".tools a").removeClass("active").filter("[href^=#" + view + "]").addClass("active");
+    $table.find(".tools a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
   }
 
   // Renders contents of a table according to the provided spec
-  function table(spec, data, aggregates) {
+  function table(spec, data, aggregates, order) {
     var html = [ ];
+
+    var orderColumn = map(spec.columns, function(c) { return c.id; })[order.column] || spec.columns[0];
 
     // Render column headers
     html.push("<thead>")
     html.push("<tr><th class='tools' colspan='", spec.columns.length, "'>view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a></th></tr>");
     html.push("<tr>")
     $.each(spec.columns, function(i, column) {
-      html.push(tmpl("<th class='#{type} #{id}'>#{label}</th>", column));
+      html.push(tmpl("<th class='#{type} #{id} #{sort}'><span>#{label}</span></th>", {
+        type: column.type,
+        id: column.id,
+        sort: column.id == orderColumn.id ? order.direction : "",
+        label: column.label
+      }));
     });
     html.push("</tr>")
     html.push("</thead>")
@@ -203,10 +212,9 @@
     var rows = spec.rows(data, aggregates);
 
     // Sort the data
-    var order = spec.columns[0].id;
-    var ordering = spec.columns[0].ordering || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; };
+    var ordering = orderColumn.ordering || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; };
     rows.sort(function(a, b) {
-      return ordering(a[order], b[order]);
+      return ordering(a[orderColumn.id], b[orderColumn.id]);
     });
 
     // Render table rows
@@ -322,6 +330,14 @@
       }
     }
     return a;
+  }
+
+  function map(collection, key) {
+    var result = { };
+    $.each(collection, function(i, value) {
+      result[key(value)] = value;
+    });
+    return result;
   }
 
   function countText(count, noun) {
