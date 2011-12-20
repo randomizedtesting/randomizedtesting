@@ -168,6 +168,18 @@
       return false;
     });
 
+    $table.on("click", "th.sortable", function() {
+      var newSort = $(this).data("column");
+      if (currentOrder.column == newSort) {
+        currentOrder.ascending = !currentOrder.ascending;
+      } else {
+        currentOrder.column = newSort;
+        currentOrder.ascending = true;
+      }
+      refresh();
+      return false;
+    });
+
     // Set the default view
     refresh();
     return this;
@@ -198,11 +210,12 @@
     html.push("<tr><th class='tools' colspan='", spec.columns.length, "'>view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a></th></tr>");
     html.push("<tr>")
     $.each(spec.columns, function(i, column) {
-      html.push(tmpl("<th class='#{type} #{id} #{sort}'><span>#{label}</span></th>", {
+      html.push(tmpl("<th class='#{type} #{id} #{sort} #{sortable}' data-column='#{id}'><span>#{label}</span></th>", {
         type: column.type,
         id: column.id,
         sort: column.id == orderColumn.id ? (order.ascending ? "asc" : "desc") : "",
-        label: column.label
+        label: column.label,
+        sortable: column.sortable ? "sortable" : ""
       }));
     });
     html.push("</tr>")
@@ -214,7 +227,7 @@
     // Sort the data
     var ordering = orderColumn.ordering || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; };
     rows.sort(function(a, b) {
-      return ordering(a[orderColumn.id], b[orderColumn.id]);
+      return ordering(a[orderColumn.id], b[orderColumn.id]) * (order.ascending ? 1 : -1);
     });
 
     // Render table rows

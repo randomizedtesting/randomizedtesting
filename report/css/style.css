@@ -297,6 +297,10 @@ td > .statusbar {
   padding: 7px;
   border: 1px solid #f0f0f0;
 }
+th.sortable {
+  cursor: pointer;
+}
+
 th.count {
   width: 4em;
 }
@@ -307,7 +311,7 @@ th.time {
   width: 6em;
 }
 th.pass, th.ignored, th.error, th.failed {
-  width: 3em;
+  width: 3.5em;
 }
 td.numeric {
   text-align: right;
