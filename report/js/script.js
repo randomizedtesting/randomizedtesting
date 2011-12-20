@@ -48,7 +48,7 @@
       numericColumn("time", "Time [ms]")
     ];
 
-    var tables = {
+    return {
       byPackage: {
         columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
         rows: function(data, aggregates) {
@@ -63,8 +63,6 @@
         }
       }
     };
-  
-    return tables;
 
     function column(id, type, label) {
       return {
@@ -100,8 +98,8 @@
     }
   })();
 
-  var $table, aggregates;
-  var data = suites;
+  var $table, $tools;
+  var data = suites, aggregates;
   var currentView = "packages", currentOrder = { column: "signature", ascending: true };
   
   // Initialize the table
@@ -158,11 +156,17 @@
     // Status bar
     $summary.append($(statusbar(counts.byStatus, counts.global)));
 
+    // Results table tools
+    $tools = $("<div id='tools'>\
+      view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a>\
+    </div>").appendTo($results);
+
+
     // Results table
     $table = $("<table />").appendTo($results);
 
     // Bind listeners through delegation
-    $table.on("click", ".tools > a", function() {
+    $tools.on("click", "a", function() {
       currentView = $(this).attr("href").substring(1);
       refresh();
       return false;
@@ -196,7 +200,7 @@
         $table.html(table(tables.byClass, data, aggregates, currentOrder));
         break;
     }
-    $table.find(".tools a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
+    $tools.find("a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
   }
 
   // Renders contents of a table according to the provided spec
@@ -206,9 +210,8 @@
     var orderColumn = map(spec.columns, function(c) { return c.id; })[order.column] || spec.columns[0];
 
     // Render column headers
-    html.push("<thead>")
-    html.push("<tr><th class='tools' colspan='", spec.columns.length, "'>view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a></th></tr>");
-    html.push("<tr>")
+    html.push("<thead>");
+    html.push("<tr>");
     $.each(spec.columns, function(i, column) {
       html.push(tmpl("<th class='#{type} #{id} #{sort} #{sortable}' data-column='#{id}'><span>#{label}</span></th>", {
         type: column.type,
@@ -218,8 +221,8 @@
         sortable: column.sortable ? "sortable" : ""
       }));
     });
-    html.push("</tr>")
-    html.push("</thead>")
+    html.push("</tr>");
+    html.push("</thead>");
 
     // Get the data
     var rows = spec.rows(data, aggregates);
@@ -231,18 +234,18 @@
     });
 
     // Render table rows
-    html.push("<tbody>")
+    html.push("<tbody>");
     $.each(rows, function(i, row) {
       html.push("<tr>");
       $.each(spec.columns, function(i, column) {
-        html.push("<td class='", column.type, "'>");
+        html.push("<td class='", column.type, " ", column.id, "'>");
         column.renderer(row[column.id], html);
         html.push("</td>");
       });
       html.push("</tr>");
     });
 
-    html.push("</tbody>")
+    html.push("</tbody>");
     return html.join("");
   }
   
@@ -300,7 +303,7 @@
   }
 
   function byClass(test) {
-    return test.description.className;
+    return test.description.packageName + "." + test.description.className;
   }
 
   function global() {

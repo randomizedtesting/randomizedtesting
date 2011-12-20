@@ -283,6 +283,7 @@ td > .statusbar {
 /* Results table */
 #results > table {
   width: 100%;
+  table-layout: fixed;
 }
 
 #results > table > thead > tr > th {
@@ -297,10 +298,21 @@ td > .statusbar {
   padding: 7px;
   border: 1px solid #f0f0f0;
 }
+#results > table > thead > tr > th {
+  border-top: none;
+}
+th {
+  white-space: nowrap;
+}
 th.sortable {
   cursor: pointer;
 }
 
+th.signature,
+td.signature {
+  overflow: hidden;
+  white-space: nowrap;
+}
 th.count {
   width: 4em;
 }
@@ -308,10 +320,10 @@ th.result {
   width: 7em;
 }
 th.time {
-  width: 6em;
+  width: 6.5em;
 }
 th.pass, th.ignored, th.error, th.failed {
-  width: 3.5em;
+  width: 3.8em;
 }
 td.numeric {
   text-align: right;
@@ -323,11 +335,20 @@ td.numeric {
 #results > table > tbody > tr:hover > td {
   background-color: #fffeda;
 }
+#results > table > thead > tr > th.desc,
+#results > table > thead > tr > th.asc {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+#results > table > thead > tr > th.asc.signature,
+#results > table > thead > tr > th.desc.signature {
+  padding: 7px;
+}
 #results > table > thead > tr > th.desc > span,
 #results > table > thead > tr > th.asc > span {
   background-position: right center;
   background-repeat: no-repeat;
-  padding-right: 15px;
+  padding-right: 13px;
   padding-top: 1px;
   font-weight: bold;
 }
@@ -339,20 +360,18 @@ td.numeric {
 }
 
 
-#results > table > thead > tr > th.tools {
+#tools {
   text-align: right;
-  border: none;
   border-bottom: 2px solid #bbb;
-  padding-right: 0;
+  padding-bottom: 4px;
 }
-#results > table > thead > tr > th.tools > a {
+#tools > a {
   border: 0;
-  padding-bottom: 7px;
-  background-position: center bottom;
-  background-repeat: no-repeat;
+  padding-bottom: 4px;
+  background: no-repeat center bottom;
   margin-left: 5px;
 }
-#results > table > thead > tr > th.tools > a.active {
+#tools > a.active {
   background-image: url(../img/indicator.png);
 }
 
