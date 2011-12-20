@@ -1,5 +1,8 @@
 General:
 
+* general objective: inspect failing tests
+  * visible indication that some tests failed (color bulb)
+  * start in method view, failing first if some tests failed? (in package view otherwise)
 * mobile version?
 
 

@@ -251,41 +251,64 @@ h1 {
   background-color: #ef0000;
 }
 
-#statusbar {
+.statusbar {
   list-style: none;
-  width: 30%;
-  min-width: 300px;
   overflow: hidden;
   margin: 0;
   padding: 0;
   margin-top: 10px;
 }
+#summary > .statusbar {
+  width: 30%;
+  min-width: 300px;
+}
+td > .statusbar {
+  width: 100%;
+  margin: 0;
+}
 
-#statusbar > li {
+.statusbar > li {
   float: left;
   height: 10px;
 }
-#statusbar > li:first-child {
+.statusbar > li:first-child {
   border-radius: 2px 0 0 2px;
 }
-#statusbar > li:last-child {
+.statusbar > li:last-child {
   border-radius: 0 2px 2px 0;
 }
 
 /* Results table */
 #results > table {
-  
+  width: 100%;
 }
 
 #results > table > thead > tr > th {
   font-weight: normal;
 }
+#results > table > thead > tr > th:first-child {
+  text-align: left;
+}
 
 #results > table > thead > tr > th,
 #results > table > tbody > tr > td {
-  text-align: left;
   padding: 7px;
   border: 1px solid #f0f0f0;
+}
+th.count {
+  width: 4em;
+}
+th.result {
+  width: 7em;
+}
+th.time {
+  width: 6em;
+}
+th.pass, th.ignored, th.error, th.failed {
+  width: 3em;
+}
+td.num {
+  text-align: right;
 }
 
 #results > table > tbody > tr:nth-child(odd) > td {
