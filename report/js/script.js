@@ -91,10 +91,8 @@
   
   // Initialize the table
   $(document).ready(function() {
-    $("#container").junit4results(suites);
-  });
+    var data = suites;
 
-  $.fn.junit4results = function(data) {
     // Split method names into semantic parts
     eachTest(data, function(test) {
       var methodSplit = test.description.methodName.split(" ");
@@ -112,8 +110,8 @@
     var statuses = aggregate(data, testCountByStatus, { "byPackage": byPackage });
 
     // Generate markup
-    var $summary = this.find("#summary");
-    var $results = this.find("#results");
+    var $summary = $("#summary");
+    var $results = $("#results");
 
     // Executive summary
     var html = "";
@@ -144,7 +142,7 @@
     // Results table
     $("<table />").html(table(tables.byPackage, data, { counts: counts, times: times, statuses: statuses })).appendTo($results);
     return this;
-  };
+  });
 
   // Renders contents of a table according to the provided spec
   function table(spec, data, aggregates) {
