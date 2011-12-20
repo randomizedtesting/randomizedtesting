@@ -29,8 +29,8 @@
         sorting: function(a, b) {
           for (var i = 0; i < statusOrder.length; i++) {
             var s = statusOrder[i];
-            if ((a[s] || 0) != (b[s] || 0)) {
-              return (b[s] || 0) - (a[s] || 0);
+            if ((a.statuses[s] || 0) != (b.statuses[s] || 0)) {
+              return (b.statuses[s] || 0) - (a.statuses[s] || 0);
             }
           }
           return 0;
@@ -225,7 +225,7 @@
     var rows = spec.rows(data, aggregates);
 
     // Sort the data
-    var ordering = orderColumn.ordering || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; };
+    var ordering = orderColumn.sorting || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; };
     rows.sort(function(a, b) {
       return ordering(a[orderColumn.id], b[orderColumn.id]) * (order.ascending ? 1 : -1);
     });
