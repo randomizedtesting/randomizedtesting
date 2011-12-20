@@ -40,6 +40,7 @@ Nifty things:
 * clean-up of data JSON (smaller size)
 * a "bulb" indication of general ok / failure (green/red, like in Bamboo)
 * general indication of ok / failure in document title
+* table filters: by status, free text (regex?)
 
 
 Questions:

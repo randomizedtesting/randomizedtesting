@@ -10,6 +10,16 @@
     var ERROR = "ERROR";
     var IGNORED = "IGNORED";
     var IGNORED_ASSUMPTION = "IGNORED_ASSUMPTION";
+
+    // Split method names into semantic parts
+    eachTest(data, function(test) {
+      var methodSplit = test.description.methodName.split(" ");
+      test.description.methodName = methodSplit[0];
+      test.description.methodExtras = methodSplit[1];
+      var classSplit = test.description.className.split("\.");
+      test.description.className = classSplit.pop();
+      test.description.packageName = classSplit.join(".");
+    });
     
     // Create aggregations
     var counts = aggregate(data, testCount, { "global": global, "byStatus": byStatus });
@@ -73,7 +83,10 @@
 <table>\
   <thead>\
     <tr>\
-      <th>Test</th>\
+      <th class='tools' colspan='3'>view: <a href='#' class='active'>packages</a> <a href='#'>classes</a> <a href='#'>methods</a></th>\
+    </tr>\
+    <tr>\
+      <th class='asc'><span>Test</span></th>\
       <th>Result</th>\
       <th>Time</th>\
     </tr>\

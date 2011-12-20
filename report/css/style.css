@@ -224,12 +224,6 @@ h1 {
   margin: 0;
 }
 
-#results th,
-#results td {
-  text-align: left;
-  padding: 2px 5px;
-}
-
 .status > span {
   border-radius: 2px;
   color: #fff;
@@ -278,7 +272,60 @@ h1 {
   border-radius: 0 2px 2px 0;
 }
 
+/* Results table */
+#results > table {
+  
+}
 
+#results > table > thead > tr > th {
+  font-weight: normal;
+}
+
+#results > table > thead > tr > th,
+#results > table > tbody > tr > td {
+  text-align: left;
+  padding: 7px;
+  border: 1px solid #f0f0f0;
+}
+
+#results > table > tbody > tr:nth-child(odd) > td {
+  background-color: #f8f8f8;
+}
+#results > table > tbody > tr:hover > td {
+  background-color: #fffeda;
+}
+#results > table > thead > tr > th.desc > span,
+#results > table > thead > tr > th.asc > span {
+  background-position: right center;
+  background-repeat: no-repeat;
+  padding-right: 15px;
+  padding-top: 1px;
+  font-weight: bold;
+}
+#results > table > thead > tr > th.asc > span {
+  background-image: url(../img/arrow-up.png);
+}
+#results > table > thead > tr > th.desc > span {
+  background-image: url(../img/arrow-down.png);
+}
+
+
+#results > table > thead > tr > th.tools {
+  text-align: right;
+  border: none;
+  border-bottom: 2px solid #bbb;
+  padding-right: 0;
+}
+#results > table > thead > tr > th.tools > a {
+  border: 0;
+  padding-bottom: 7px;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  margin-left: 5px;
+}
+#results > table > thead > tr > th.tools > a.active {
+  background-image: url(../img/indicator.png);
+}
 
 /* =============================================================================
    Non-semantic helper classes
