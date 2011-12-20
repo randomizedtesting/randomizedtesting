@@ -48,6 +48,24 @@
       numericColumn("time", "Time [ms]")
     ];
 
+    var tables = {
+      byPackage: {
+        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
+        rows: function(data, aggregates) {
+          return aggregatedRows(aggregates, "byPackage");
+        }
+      },
+
+      byClass: {
+        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Class" } ]),
+        rows: function(data, aggregates) {
+          return aggregatedRows(aggregates, "byClass");
+        }
+      }
+    };
+
+    return tables;
+
     function column(id, type, label) {
       return {
         id: id,
@@ -64,34 +82,29 @@
       return column(id, "numeric", label);
     }
 
-    var tables = {
-      byPackage: {
-        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
-        rows: function(data, aggregates) {
-          var rows = [];
-          $.each(aggregates.statuses.byPackage, function(packageName, packageStatuses) {
-            rows.push({
-              signature: packageName,
-              count: aggregates.counts.byPackage[packageName],
-              result: { statuses: packageStatuses, total: aggregates.counts.byPackage[packageName] },
-              pass: packageStatuses[OK] || 0,
-              ignored: (packageStatuses[IGNORED] || 0) + (packageStatuses[IGNORED_ASSUMPTION] || 0),
-              error: packageStatuses[ERROR] || 0,
-              failed: packageStatuses[FAILURE] || 0,
-              time: aggregates.times.byPackage[packageName]
-            });
-          });
-          return rows;
-        }
-      }
-    };
-    
-    return tables;
+    function aggregatedRows(aggregates, aggregate) {
+      var rows = [];
+      $.each(aggregates.statuses[aggregate], function(signature, statuses) {
+        rows.push({
+          signature: signature,
+          count: aggregates.counts[aggregate][signature],
+          result: { statuses: statuses, total: aggregates.counts[aggregate][signature] },
+          pass: statuses[OK] || 0,
+          ignored: (statuses[IGNORED] || 0) + (statuses[IGNORED_ASSUMPTION] || 0),
+          error: statuses[ERROR] || 0,
+          failed: statuses[FAILURE] || 0,
+          time: aggregates.times[aggregate][signature]
+        });
+      });
+      return rows;
+    }
   })();
+
+  var $table, aggregates;
+  var data = suites;
   
   // Initialize the table
   $(document).ready(function() {
-    var data = suites;
 
     // Split method names into semantic parts
     eachTest(data, function(test) {
@@ -105,9 +118,14 @@
     });
     
     // Create aggregations
-    var counts = aggregate(data, testCount, { "global": global, "byStatus": byStatus, "byPackage": byPackage });
-    var times = aggregate(data, totalTime, { "global": global, "bySlave": bySlave, "byPackage": byPackage });
-    var statuses = aggregate(data, testCountByStatus, { "byPackage": byPackage });
+    var counts = aggregate(data, testCount, { "global": global, "byStatus": byStatus, "byPackage": byPackage, "byClass": byClass });
+    var times = aggregate(data, totalTime, { "global": global, "bySlave": bySlave, "byPackage": byPackage, "byClass": byClass });
+    var statuses = aggregate(data, testCountByStatus, { "byPackage": byPackage, "byClass": byClass });
+    aggregates = {
+      counts: counts,
+      times: times,
+      statuses: statuses
+    };
 
     // Generate markup
     var $summary = $("#summary");
@@ -140,9 +158,32 @@
     $summary.append($(statusbar(counts.byStatus, counts.global)));
 
     // Results table
-    $("<table />").html(table(tables.byPackage, data, { counts: counts, times: times, statuses: statuses })).appendTo($results);
+    $table = $("<table />").appendTo($results);
+
+    // Bind listeners through delegation
+    $table.on("click", ".tools > a", function() {
+      view($(this).attr("href").substring(1));
+      return false;
+    });
+
+    // Set the default view
+    view("packages");
     return this;
   });
+  // Shows the requested view
+
+  function view(view) {
+    switch (view) {
+      case "packages":
+        $table.html(table(tables.byPackage, data, aggregates));
+        break;
+
+      case "classes":
+        $table.html(table(tables.byClass, data, aggregates));
+        break;
+    }
+    $table.find(".tools a").removeClass("active").filter("[href^=#" + view + "]").addClass("active");
+  }
 
   // Renders contents of a table according to the provided spec
   function table(spec, data, aggregates) {
@@ -150,7 +191,7 @@
 
     // Render column headers
     html.push("<thead>")
-    html.push("<tr><th class='tools' colspan='", spec.columns.length, "'>view: <a href='#' class='active'>packages</a> <a href='#'>classes</a> <a href='#'>methods</a></th></tr>");
+    html.push("<tr><th class='tools' colspan='", spec.columns.length, "'>view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a></th></tr>");
     html.push("<tr>")
     $.each(spec.columns, function(i, column) {
       html.push(tmpl("<th class='#{type} #{id}'>#{label}</th>", column));
@@ -235,6 +276,10 @@
   
   function byPackage(test) {
     return test.description.packageName;
+  }
+
+  function byClass(test) {
+    return test.description.className;
   }
 
   function global() {
