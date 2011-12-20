@@ -15,6 +15,80 @@
     IGNORED_ASSUMPTION: "IGNORED"
   };
 
+  // Table definitions
+  var tables = (function() {
+    // Common columns of the aggregated view tables 
+    var aggregatedViewColumns = [
+      column("signature", "string", ""),
+      numericColumn("count", "Tests"),
+     
+      {
+        id: "result",
+        label: "Result",
+        sortable: true,
+        sorting: function(a, b) {
+          for (var i = 0; i < statusOrder.length; i++) {
+            var s = statusOrder[i];
+            if ((a[s] || 0) != (b[s] || 0)) {
+              return (b[s] || 0) - (a[s] || 0);
+            }
+          }
+          return 0;
+        },
+        renderer: function(value, html) {
+          html.push(statusbar(value.statuses, value.total));
+        },
+        type: "status"
+      },
+
+      numericColumn("pass", "Pass"),
+      numericColumn("ignored", "Ign"),
+      numericColumn("error", "Err"),
+      numericColumn("failed", "Fail"),
+      numericColumn("time", "Time [ms]")
+    ];
+
+    function column(id, type, label) {
+      return {
+        id: id,
+        sortable: true,
+        type: type,
+        label: label,
+        renderer: function(value, html) {
+          html.push(escape(value));
+        }
+      };
+    }
+
+    function numericColumn(id, label) {
+      return column(id, "numeric", label);
+    }
+
+    var tables = {
+      byPackage: {
+        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
+        rows: function(data, aggregates) {
+          var rows = [];
+          $.each(aggregates.statuses.byPackage, function(packageName, packageStatuses) {
+            rows.push({
+              signature: packageName,
+              count: aggregates.counts.byPackage[packageName],
+              result: { statuses: packageStatuses, total: aggregates.counts.byPackage[packageName] },
+              pass: packageStatuses[OK] || 0,
+              ignored: (packageStatuses[IGNORED] || 0) + (packageStatuses[IGNORED_ASSUMPTION] || 0),
+              error: packageStatuses[ERROR] || 0,
+              failed: packageStatuses[FAILURE] || 0,
+              time: aggregates.times.byPackage[packageName]
+            });
+          });
+          return rows;
+        }
+      }
+    };
+    
+    return tables;
+  })();
+  
   // Initialize the table
   $(document).ready(function() {
     $("#container").junit4results(suites);
@@ -36,7 +110,7 @@
     var counts = aggregate(data, testCount, { "global": global, "byStatus": byStatus, "byPackage": byPackage });
     var times = aggregate(data, totalTime, { "global": global, "bySlave": bySlave, "byPackage": byPackage });
     var statuses = aggregate(data, testCountByStatus, { "byPackage": byPackage });
-    
+
     // Generate markup
     var $summary = this.find("#summary");
     var $results = this.find("#results");
@@ -67,75 +141,51 @@
     // Status bar
     $summary.append($(statusbar(counts.byStatus, counts.global)));
 
-
     // Results table
-    var $table = $("\
-<table>\
-  <thead>\
-    <tr>\
-      <th class='tools' colspan='8'>view: <a href='#' class='active'>packages</a> <a href='#'>classes</a> <a href='#'>methods</a></th>\
-    </tr>\
-    <tr>\
-      <th class='signature asc'><span>Test</span></th>\
-      <th class='count num'><span>Tests</span></th>\
-      <th class='result'><span>Result</span></th>\
-      <th class='pass num'><span>Pass</span></th>\
-      <th class='ignored num'><span>Ign</span></th>\
-      <th class='error num'><span>Err</span></th>\
-      <th class='failed num'><span>Fail</span></th>\
-      <th class='time num'><span>Time [ms]</span></th>\
-    </tr>\
-  </thead>\
-  <tbody></tbody>\
-</table>");
-    
-    var rows = [ ];
-    
-    $.each(statuses.byPackage, function(packageName, packageStatuses) {
-      rows.push(tmpl("\
-          <tr>\
-            <td>#{signature}</td>\
-            <td class='num'>#{count}</td>\
-            <td class='status'>#{status:raw}</td>\
-            <td class='num'>#{pass}</td>\
-            <td class='num'>#{ignored}</td>\
-            <td class='num'>#{error}</td>\
-            <td class='num'>#{failed}</td>\
-            <td class='num'>#{time}</td>\
-          </tr>", 
-      {
-        signature: packageName,
-        status: statusbar(packageStatuses, counts.byPackage[packageName]),
-        time: times.byPackage[packageName],
-        count: counts.byPackage[packageName],
-        pass: packageStatuses[OK] || 0,
-        ignored: (packageStatuses[IGNORED] || 0) + (packageStatuses[IGNORED_ASSUMPTION] || 0),
-        error: packageStatuses[ERROR] || 0,
-        failed: packageStatuses[FAILURE] || 0
-      }));
-    });
-    
-    $table.find("tbody").append(rows.join("")).end().appendTo($results);
+    $("<table />").html(table(tables.byPackage, data, { counts: counts, times: times, statuses: statuses })).appendTo($results);
     return this;
-    
-    
-    // All methods table rendering, not used for now 
-    eachTest(data, function(test) {
-      rows.push(tmpl("\
-<tr>\
-  <td>#{signature}</td>\
-  <td class='status'><span class='#{status}'>#{statusText}</span></td>\
-  <td class='time'>#{time}</td>\
-</tr>", 
-      {
-        signature: test.description.className + "." + test.description.methodName + "()",
-        status: test.status,
-        statusText: statusLabels[test.status],
-        time: test.executionTime
-      }));
-    });
   };
 
+  // Renders contents of a table according to the provided spec
+  function table(spec, data, aggregates) {
+    var html = [ ];
+
+    // Render column headers
+    html.push("<thead>")
+    html.push("<tr><th class='tools' colspan='", spec.columns.length, "'>view: <a href='#' class='active'>packages</a> <a href='#'>classes</a> <a href='#'>methods</a></th></tr>");
+    html.push("<tr>")
+    $.each(spec.columns, function(i, column) {
+      html.push(tmpl("<th class='#{type} #{id}'>#{label}</th>", column));
+    });
+    html.push("</tr>")
+    html.push("</thead>")
+
+    // Get the data
+    var rows = spec.rows(data, aggregates);
+
+    // Sort the data
+    var order = spec.columns[0].id;
+    var ordering = spec.columns[0].ordering || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; };
+    rows.sort(function(a, b) {
+      return ordering(a[order], b[order]);
+    });
+
+    // Render table rows
+    html.push("<tbody>")
+    $.each(rows, function(i, row) {
+      html.push("<tr>");
+      $.each(spec.columns, function(i, column) {
+        html.push("<td class='", column.type, "'>");
+        column.renderer(row[column.id], html);
+        html.push("</td>");
+      });
+      html.push("</tr>");
+    });
+
+    html.push("</tbody>")
+    return html.join("");
+  }
+  
   function statusbar(counts, total) {
     var html = [];
     html.push("<ul class='statusbar'>");
@@ -273,6 +323,6 @@
   }
   
   function escape(string) {
-    return string.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&/g, "&amp;");
+    return typeof string === 'string' ? string.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&/g, "&amp;") : string;
   } 
 })(jQuery);
