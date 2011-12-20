@@ -309,7 +309,7 @@ th.time {
 th.pass, th.ignored, th.error, th.failed {
   width: 3em;
 }
-td.num {
+td.numeric {
   text-align: right;
 }
 
