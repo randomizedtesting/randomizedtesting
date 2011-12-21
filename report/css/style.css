@@ -224,7 +224,7 @@ h1 {
   margin: 0;
 }
 
-.status > span {
+.result > span {
   border-radius: 2px;
   color: #fff;
   padding: 0 2px;
@@ -319,6 +319,12 @@ th.count {
 th.result {
   width: 7em;
 }
+th.status {
+  width: 5em;
+}
+th.slave {
+  width: 3.8em;
+}
 th.time {
   width: 6.5em;
 }
@@ -328,6 +334,11 @@ th.pass, th.ignored, th.error, th.failed {
 td.numeric {
   text-align: right;
 }
+th.result > span {
+  font-size: 13px;
+  color: #000;
+}
+
 
 #results > table > tbody > tr:nth-child(odd) > td {
   background-color: #f8f8f8;

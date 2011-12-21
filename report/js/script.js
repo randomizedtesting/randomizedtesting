@@ -21,7 +21,6 @@
     var aggregatedViewColumns = [
       column("signature", "string", ""),
       numericColumn("count", "Tests"),
-     
       {
         id: "result",
         label: "Result",
@@ -40,7 +39,6 @@
         },
         type: "result"
       },
-
       numericColumn("pass", "Pass"),
       numericColumn("ignored", "Ign"),
       numericColumn("error", "Err"),
@@ -60,6 +58,50 @@
         columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Class" } ]),
         rows: function(data, aggregates) {
           return aggregatedRows(aggregates, "byClass");
+        }
+      },
+
+      byMethod: {
+        columns: [
+          column("signature", "string", "Method"),
+          {
+            id: "status",
+            label: "Result",
+            sortable: true,
+            sorting: function(a, b) {
+              if (a == b) {
+                return 0;
+              } else {
+                for (var i = 0; i < statusOrder.length; i++) {
+                  var status = statusOrder[i];
+                  if (a == status) {
+                    return -1;
+                  }
+                  if (b == status) {
+                    return 1;
+                  }
+                }
+              }
+            },
+            renderer: function(value, html) {
+              html.push("<span class='", value, "'>", statusLabels[value] ,"</span>")
+            },
+            type: "result"
+          },
+          numericColumn("time", "Time [ms]"),
+          numericColumn("slave", "JVM")
+        ],
+        rows: function(data, aggregates) {
+          var rows  = [];
+          eachTest(data, function(test) {
+            rows.push({
+              signature: test.description.packageName + "." + test.description.className + "." + test.description.methodName,
+              status: test.status,
+              time: test.executionTime,
+              slave: test.slave
+            })
+          });
+          return rows;
         }
       }
     };
@@ -198,6 +240,10 @@
 
       case "classes":
         $table.html(table(tables.byClass, data, aggregates, currentOrder));
+        break;
+
+      case "methods":
+        $table.html(table(tables.byMethod, data, aggregates, currentOrder));
         break;
     }
     $tools.find("a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
