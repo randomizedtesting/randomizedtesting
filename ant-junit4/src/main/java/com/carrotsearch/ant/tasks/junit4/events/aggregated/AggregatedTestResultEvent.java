@@ -23,6 +23,7 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
 
   private List<IEvent> eventStream;
   private int executionTime;
+  private long startTimestamp;
 
   private boolean hasFailures;
   private boolean hasErrors;
@@ -68,6 +69,13 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   }
 
   /**
+   * Execution start timestamp (on the slave).
+   */
+  public long getStartTimestamp() {
+    return startTimestamp;
+  }
+
+  /**
    * Raw {@link IEvent} stream received during the duration of this test. 
    */
   @Override
@@ -95,9 +103,10 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
     hasErrors             |= failure.isErrorViolation();
   }
 
-  void complete(int time, List<IEvent> eventStream) {
+  void complete(long startTimestamp, int time, List<IEvent> eventStream) {
     this.eventStream = eventStream;
     this.executionTime = time;
+    this.startTimestamp = startTimestamp;
 
     if (hasErrors) {
       status = TestStatus.ERROR;

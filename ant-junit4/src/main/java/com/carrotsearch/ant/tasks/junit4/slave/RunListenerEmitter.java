@@ -57,7 +57,7 @@ public class RunListenerEmitter extends RunListener {
   @Override
   public void testFinished(Description description) throws Exception {
     long executionTime = System.currentTimeMillis() - start;
-    serializer.serialize(new TestFinishedEvent(description, (int) executionTime));
+    serializer.serialize(new TestFinishedEvent(description, (int) executionTime, start));
   }
 
   @Override

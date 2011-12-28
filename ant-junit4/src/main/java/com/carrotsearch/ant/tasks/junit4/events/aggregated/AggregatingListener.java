@@ -93,7 +93,7 @@ public class AggregatingListener {
     } else {
       receiveTestStart(new TestStartedEvent(description));
       tests.peek().setIgnored();
-      receiveTestEnd(new TestFinishedEvent(description, 0));
+      receiveTestEnd(new TestFinishedEvent(description, 0, e.getStartTimestamp()));
     }
   }
 
@@ -117,7 +117,9 @@ public class AggregatingListener {
   @Subscribe
   public void receiveTestEnd(TestFinishedEvent e) {
     assert e.getDescription().equals(tests.peek().getDescription());
-    tests.peek().complete(e.getExecutionTime(),
+    tests.peek().complete(
+        e.getStartTimestamp(),
+        e.getExecutionTime(),
         Lists.newArrayList(eventStream.subList(testStartStreamMarker, eventStream.size())));
     target.post(tests.peek());
   }

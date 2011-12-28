@@ -16,6 +16,7 @@ public class JsonTestResultEventAdapter implements JsonSerializer<AggregatedTest
     JsonObject suite = new JsonObject();
     suite.add("description", context.serialize(e.getDescription()));
 
+    suite.addProperty("startTimestamp", e.getStartTimestamp());
     suite.addProperty("executionTime", e.getExecutionTime());
     suite.addProperty("slave", e.getSlave().id);
     suite.addProperty("status", e.getStatus().name());
