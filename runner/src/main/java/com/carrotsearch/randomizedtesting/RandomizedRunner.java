@@ -145,6 +145,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public static final String SYSPROP_TIMEOUT = "tests.timeout";
 
   /**
+   * If <code>true</code>, append seed parameter to all methods. Methods that are for some
+   * reason repeated (due to {@link Repeat} annotation or multiple {@link Seeds}, for example)
+   * are always postfixed with the seed to discriminate tests from each other. Otherwise many
+   * GUI clients have a problem in telling which test result was which.
+   */
+  public static final String SYSPROP_APPEND_SEED = "append.seed";
+  
+  /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
    * test methods. These stack entries contain additional information about
    * seeds used during execution. 
@@ -290,6 +298,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private final List<RunListener> autoListeners = new ArrayList<RunListener>();
 
   /**
+   * @see #SYSPROP_APPEND_SEED
+   */
+  private boolean appendSeedParameter;
+
+  /**
    * We simply report to syserr. There should be no threads out of runner's control.
    * This can also be validated with aspects.
    */
@@ -346,6 +359,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
+    appendSeedParameter = RandomizedTest.systemPropertyAsBoolean(SYSPROP_APPEND_SEED, false);
+
     if (RandomizedTest.systemPropertyAsBoolean(SYSPROP_STACKFILTERING, true)) {
       this.traces = new TraceFormatting(DEFAULT_STACK_FILTERS);
     } else {
@@ -1203,7 +1218,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // TODO: The loops and conditions below are truly horrible...
     List<TestCandidate> allTests = new ArrayList<TestCandidate>();
     Map<Method, Description> subNodes = new HashMap<Method, Description>();
-    
+
     if (parameters.size() > 1) {
       for (Method method : testMethods) {
         Description tmp = Description.createSuiteDescription(method.getName());
@@ -1271,18 +1286,23 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final List<TestCandidate> candidates = new ArrayList<TestCandidate>();
     final boolean fixedSeed = isConstantSeedForAllIterations(method);
     final int methodIterations = determineMethodIterationCount(method);
+    final long[] seeds = determineMethodSeeds(method);
+    final boolean hasRepetitions = (methodIterations > 1 || seeds.length > 1);
 
-    for (final long testSeed : determineMethodSeeds(method)) {
-      for (int i = 0; i < methodIterations; i++) {
+    int repetition = 0;
+    for (final long testSeed : seeds) {
+      for (int i = 0; i < methodIterations; i++, repetition++) {
         final long thisSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
         final Randomness thisRandomness = new Randomness(thisSeed);
 
         final LinkedHashMap<String, Object> args = new LinkedHashMap<String, Object>();
-        if (methodIterations > 1) { 
-          args.put("#", i);
+        if (hasRepetitions) { 
+          args.put("#", repetition);
         }
         args.putAll(parameterizedArgs);
-        args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, thisRandomness));
+        if (hasRepetitions || appendSeedParameter) {
+          args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, thisRandomness));
+        }
         Description description = Description.createSuiteDescription(
             String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()));
    
