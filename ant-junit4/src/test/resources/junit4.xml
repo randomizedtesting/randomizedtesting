@@ -368,5 +368,17 @@
                 <include name="**/tests/TestReproduceString.class" />
             </fileset>
         </junit4.preconf>
-    </target>        
+    </target>
+    
+    <target name="assertions">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/sub1/TestAssertions.class" />
+            </fileset>
+
+            <assertions>
+              <enable package="com.carrotsearch.ant.tasks.junit4.tests.sub1"/>
+            </assertions>            
+        </junit4.preconf>
+    </target>
 </project>

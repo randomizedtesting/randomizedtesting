@@ -359,6 +359,16 @@ public class JUnit4 extends Task {
     this.tempDir = tempDir;
   }
 
+  /**
+   * Add assertions to tests execution.
+   */
+  public void addAssertions(Assertions asserts) {
+    if (getCommandline().getAssertions() != null) {
+        throw new BuildException("Only one assertion declaration is allowed");
+    }
+    getCommandline().setAssertions(asserts);
+  }
+  
   @Override
   public void execute() throws BuildException {
     // Validate arguments and settings.

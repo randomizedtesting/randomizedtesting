@@ -150,4 +150,10 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     executeTarget("reproducestring");
     assertLogContains("2> Reproduce: ");
   }
+  
+  @Test
+  public void assertions() {
+    expectBuildExceptionContaining("assertions", "There were test failures");
+    assertLogContains("> Throwable #1: java.lang.AssertionError: foobar");
+  }  
 }
