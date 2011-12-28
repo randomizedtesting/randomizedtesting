@@ -128,6 +128,7 @@ public class TestRandomizedTest extends RandomizedTest {
       assertTrue(file.isFile());
       assertTrue(file.canWrite());
       assertTrue(file.canRead());
+      assertTrue(file.getName().indexOf(' ') >= 0);
 
       new FileOutputStream(file).close();
     }

@@ -406,7 +406,7 @@ public class RandomizedTest extends Assert {
 
   /** Next temporary filename. */
   private static String nextTempName() {
-    return String.format("%04d", tempSubFileNameCount++);
+    return String.format("%04d has-space", tempSubFileNameCount++);
   }
 
   /**
