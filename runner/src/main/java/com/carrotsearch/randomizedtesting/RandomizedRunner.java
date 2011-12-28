@@ -25,7 +25,6 @@ import org.junit.runners.model.*;
 
 import com.carrotsearch.randomizedtesting.annotations.*;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
-import com.google.common.collect.Lists;
 
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
@@ -731,8 +730,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Shuffle rules declared in fields, there is no predictable order for them (and there
     // shouldn't be any assumptions about it).
-    
-    List<Object> rules = Lists.newArrayList();
+
+    List<Object> rules = new ArrayList<Object>();
     // Old-style MethodRule instances.
     rules.addAll(info.getAnnotatedFieldValues(instance, Rule.class, org.junit.rules.MethodRule.class));
     // New-style TestRule instances.
