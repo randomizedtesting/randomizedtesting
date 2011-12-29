@@ -3,6 +3,14 @@
         name="junit4" 
         classname="com.carrotsearch.ant.tasks.junit4.JUnit4" />
 
+    <!-- TestBalancers -->
+
+    <typedef
+        name="execution-times" 
+        classname="com.carrotsearch.ant.tasks.junit4.balancers.ExecutionTimeBalancer" />
+
+    <!-- Listeners and reports -->
+
     <typedef
         name="report-console" 
         classname="com.carrotsearch.ant.tasks.junit4.listeners.ConsoleReport" />
@@ -13,5 +21,9 @@
 
     <typedef
         name="report-json" 
-        classname="com.carrotsearch.ant.tasks.junit4.listeners.json.JsonReport" />        
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.json.JsonReport" />
+
+    <typedef
+        name="report-execution-times" 
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport" />
 </antlib> 

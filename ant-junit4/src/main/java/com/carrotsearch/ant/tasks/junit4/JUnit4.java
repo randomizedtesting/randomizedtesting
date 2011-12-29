@@ -1,24 +1,60 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-import org.apache.tools.ant.*;
+import org.apache.tools.ant.AntClassLoader;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
-import org.apache.tools.ant.types.*;
+import org.apache.tools.ant.types.Assertions;
+import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.types.CommandlineJava;
+import org.apache.tools.ant.types.Environment;
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.PropertySet;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
 import org.objectweb.asm.ClassReader;
 
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
+import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
-import com.carrotsearch.randomizedtesting.*;
-import com.google.common.base.*;
+import com.carrotsearch.randomizedtesting.ClassGlobFilter;
+import com.carrotsearch.randomizedtesting.MethodGlobFilter;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.SeedUtils;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.Files;
 
@@ -130,6 +166,11 @@ public class JUnit4 extends Task {
   private List<Object> listeners = Lists.newArrayList();
 
   /**
+   * Balancers scheduling tests for individual JVMs in parallel mode.
+   */
+  private List<TestBalancer> balancers = Lists.newArrayList();
+
+  /**
    * Class loader used to resolve annotations and classes referenced from annotations
    * when {@link Description}s containing them are passed from slaves.
    */
@@ -156,6 +197,11 @@ public class JUnit4 extends Task {
    */
   private Path classpath;
   private Path bootclasspath;
+
+  /**
+   * @see #setShuffleOnSlave(boolean)
+   */
+  private boolean shuffleOnSlave = true;
 
   /**
    * 
@@ -206,6 +252,15 @@ public class JUnit4 extends Task {
   public String getSeed() {
     return random;
   }  
+
+  /**
+   * Predictably shuffle tests order after balancing. This will help in spreading
+   * lighter and heavier tests over a single slave's execution timeline while
+   * still keeping the same tests order depending on the seed. 
+   */ 
+  public void setShuffleOnSlave(boolean shuffle) {
+    this.shuffleOnSlave = shuffle;
+  }
 
   /*
    * 
@@ -271,7 +326,14 @@ public class JUnit4 extends Task {
   public ListenersList createListeners() {
     return new ListenersList(listeners);
   }
-  
+
+  /**
+   * Creates a new list of balancers.
+   */
+  public BalancersList createBalancers() {
+    return new BalancersList(balancers);
+  }
+
   /**
    * Adds a system property to the forked JVM.
    */
@@ -424,24 +486,27 @@ public class JUnit4 extends Task {
     }
 
     if (!testClassNames.isEmpty()) {
-      Collections.shuffle(testClassNames, new Random(masterSeed()));
-
       start = System.currentTimeMillis();
-      int slaveCount = determineSlaveCount(testClassNames.size());
-
-      final int total = testClassNames.size();
-      List<SlaveInfo> slaveInfos = Lists.newArrayList();
-      List<Callable<Void>> slaves = Lists.newArrayList();
+      
+      final int slaveCount = determineSlaveCount(testClassNames.size());
+      final List<SlaveInfo> slaveInfos = Lists.newArrayList();
       for (int slave = 0; slave < slaveCount; slave++) {
         final SlaveInfo slaveInfo = new SlaveInfo(slave, slaveCount);
-        final int from = slave * total / slaveCount;
-        final int to = (slave + 1) * total / slaveCount;
-        final List<String> sublist = testClassNames.subList(from, to);
         slaveInfos.add(slaveInfo);
+      }
+
+      // Order test class names identically for balancers.
+      Collections.sort(testClassNames);
+      loadBalanceSuites(slaveInfos, testClassNames, balancers);
+
+      // Create callables for the executor.
+      final List<Callable<Void>> slaves = Lists.newArrayList();
+      for (int slave = 0; slave < slaveCount; slave++) {
+        final SlaveInfo slaveInfo = slaveInfos.get(slave);
         slaves.add(new Callable<Void>() {
           @Override
           public Void call() throws Exception {
-            executeSlave(slaveInfo, aggregatedBus, sublist);
+            executeSlave(slaveInfo, aggregatedBus);
             return null;
           }
         });
@@ -503,6 +568,49 @@ public class JUnit4 extends Task {
         throw new BuildException("There were test failures: " + testsSummary);
       }
     }
+  }
+
+  /**
+   * Perform load balancing of the set of suites. 
+   */
+  private void loadBalanceSuites(List<SlaveInfo> slaveInfos,
+      List<String> testClassNames, List<TestBalancer> balancers) {
+    final List<TestBalancer> balancersWithFallback = Lists.newArrayList(balancers);
+    balancersWithFallback.add(new RoundRobinBalancer());
+
+    // Initialize per-slave lists.
+    for (SlaveInfo si : slaveInfos) {
+      si.testSuites = Lists.newArrayList();
+    }
+
+    // Go through all the balancers, the first one to assign a suite wins.
+    final LinkedHashSet<String> remaining = Sets.newLinkedHashSet(testClassNames);
+    for (TestBalancer balancer : balancersWithFallback) {
+      Map<String, Integer> assignments = balancer.assign(
+          Collections.unmodifiableCollection(remaining), slaveInfos.size(), masterSeed());
+      for (Map.Entry<String, Integer> e : assignments.entrySet()) {
+        if (e.getValue() == null) {
+          throw new RuntimeException("Balancer must return non-null slave ID.");
+        }
+        if (!remaining.remove(e.getKey())) {
+          throw new RuntimeException("Balancer must return suite name: " + e.getKey());
+        }
+        log("Suite " + e.getKey() + " assigned to slave " + e.getValue() + "  by "
+            + "balancer " + balancer.getClass().getSimpleName(), Project.MSG_VERBOSE);
+        slaveInfos.get(e.getValue()).testSuites.add(e.getKey());
+      }
+    }
+    
+    if (shuffleOnSlave) {
+      for (SlaveInfo si : slaveInfos) {
+        Collections.sort(si.testSuites);
+        Collections.shuffle(si.testSuites, new Random(this.masterSeed()));
+      }
+    }
+
+    if (remaining.size() != 0) {
+      throw new RuntimeException("Not all suites assigned?: " + remaining);
+    }    
   }
 
   /**
@@ -577,12 +685,13 @@ public class JUnit4 extends Task {
   /**
    * Attach listeners and execute a slave process.
    */
-  private void executeSlave(SlaveInfo slave, EventBus aggregatedBus, List<String> testClassNames)
+  private void executeSlave(SlaveInfo slave, EventBus aggregatedBus)
     throws Exception
   {
     final File classNamesFile = File.createTempFile("junit4-", ".testmethods", getTempDir());
     try {
       // Dump all test class names to a temporary file.
+      List<String> testClassNames = slave.testSuites;
       String testClassPerLine = Joiner.on("\n").join(testClassNames);
       log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
   
@@ -597,7 +706,7 @@ public class JUnit4 extends Task {
       if (slave.slaves == 1) {
         commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
       }
-  
+
       String [] commandLineArgs = commandline.getCommandline();
   
       log("Slave process command line:\n" + 

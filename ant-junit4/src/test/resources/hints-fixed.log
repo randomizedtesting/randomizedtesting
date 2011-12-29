@@ -1,0 +1,4 @@
+com.carrotsearch.ant.tasks.junit4.tests.sub2.TestHalfSecond=500,501,501,501,521
+com.carrotsearch.ant.tasks.junit4.tests.sub2.TestOneSecond=1002,1018,1022,1002,1002
+com.carrotsearch.ant.tasks.junit4.tests.sub2.TestTwoSeconds=2016,2019,2028,2024,2019
+com.carrotsearch.ant.tasks.junit4.tests.sub2.TestZeroSeconds=15,2,1,22,2

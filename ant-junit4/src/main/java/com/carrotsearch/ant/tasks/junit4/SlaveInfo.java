@@ -3,6 +3,7 @@ package com.carrotsearch.ant.tasks.junit4;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +37,11 @@ public final class SlaveInfo {
    * Timestamps for diagnostics.
    */
   long start, end;
+
+  /**
+   * Execute these test suites on this slave.
+   */
+  ArrayList<String> testSuites;
 
   /* */
   public SlaveInfo(int id, int slaves) {

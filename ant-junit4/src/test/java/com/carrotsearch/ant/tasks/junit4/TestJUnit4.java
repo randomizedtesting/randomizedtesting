@@ -155,5 +155,14 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   public void assertions() {
     expectBuildExceptionContaining("assertions", "There were test failures");
     assertLogContains("> Throwable #1: java.lang.AssertionError: foobar");
-  }  
+  }
+
+  @Test
+  public void balancing() {
+    executeTarget("balancing");
+    assertLogContains("TestTwoSeconds assigned to slave 0");
+    assertLogContains("TestOneSecond assigned to slave 1");
+    assertLogContains("TestHalfSecond assigned to slave 1");
+    assertLogContains("TestZeroSeconds assigned to slave 1");
+  }
 }

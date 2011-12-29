@@ -21,7 +21,7 @@
     </taskdef>
 
     <presetdef name="junit4.preconf">
-        <junit4 haltonfailure="true" parallelism="1">
+        <junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true">
             <classpath refid="tests.classpath" />
 
             <listeners>
@@ -248,8 +248,7 @@
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-json file="json/report.json">
-                </report-json>
+                <report-json file="json/report.json" />
             </listeners>
 
             <fileset dir="${basedir}">
@@ -381,4 +380,31 @@
             </assertions>            
         </junit4.preconf>
     </target>
+
+    <target name="balancing">
+    	<delete file="${basedir}/hints.log" />
+        <junit4.preconf parallelism="2">
+            <fileset dir="${basedir}">
+                <include name="**/tests/sub2/Test*.class" />
+            </fileset>
+
+            <listeners>
+            	<report-execution-times file="${basedir}/hints.log" historyLength="5" />
+        	</listeners>
+
+        	<balancers>
+        		<execution-times>
+        			<fileset dir="${basedir}" includes="hints*.log" />
+    			</execution-times>
+    		</balancers>
+        </junit4.preconf>
+
+        <fail message="Expected hints file to appear.">
+            <condition>
+                <not>
+                    <available file="${basedir}/hints.log" type="file" />
+                </not>
+            </condition>
+        </fail>    	
+    </target>	
 </project>
