@@ -208,7 +208,7 @@ public class JUnit4 extends Task {
    */
   public JUnit4() {
     resources = new Resources();
-    resources.setCache(true);
+    // resources.setCache(true);  // ANT 1.8.x+
   }
   
   /**
