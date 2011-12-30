@@ -270,7 +270,7 @@ public class JUnit4 extends Task {
     super.setProject(project);
 
     this.random = Objects.firstNonNull( 
-        getProject().getProperty(SYSPROP_RANDOM_SEED),
+        Strings.emptyToNull(getProject().getProperty(SYSPROP_RANDOM_SEED)),
         SeedUtils.formatSeed(new Random().nextLong()));
 
     this.resources.setProject(project);
@@ -586,6 +586,8 @@ public class JUnit4 extends Task {
     // Go through all the balancers, the first one to assign a suite wins.
     final LinkedHashSet<String> remaining = Sets.newLinkedHashSet(testClassNames);
     for (TestBalancer balancer : balancersWithFallback) {
+      balancer.setOwner(this);
+
       Map<String, Integer> assignments = balancer.assign(
           Collections.unmodifiableCollection(remaining), slaveInfos.size(), masterSeed());
       for (Map.Entry<String, Integer> e : assignments.entrySet()) {

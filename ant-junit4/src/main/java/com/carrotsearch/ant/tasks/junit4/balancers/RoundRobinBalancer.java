@@ -3,6 +3,7 @@ package com.carrotsearch.ant.tasks.junit4.balancers;
 import java.util.Collection;
 import java.util.Map;
 
+import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.TestBalancer;
 import com.google.common.collect.Maps;
 
@@ -20,4 +21,7 @@ public class RoundRobinBalancer implements TestBalancer {
     }
     return result;
   }
+
+  @Override
+  public void setOwner(JUnit4 owner) {}
 }

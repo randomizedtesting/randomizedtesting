@@ -176,7 +176,6 @@ public class ConsoleReport implements AggregatedEventListener {
   public void onStart(AggregatedStartEvent e) {
     task.log("Executing tests with " + 
         e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".", Project.MSG_INFO);
-    task.log("Random seed (shuffling order): " + task.getSeed());
   }
   
   /*

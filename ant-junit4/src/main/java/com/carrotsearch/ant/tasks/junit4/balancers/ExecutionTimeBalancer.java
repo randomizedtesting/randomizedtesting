@@ -7,15 +7,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectComponent;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 
+import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.TestBalancer;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
 import com.google.common.collect.Lists;
@@ -77,6 +80,9 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
    * All included execution time dumps.
    */
   private List<ResourceCollection> resources = Lists.newArrayList();
+  
+  /** Owning task (logging). */
+  private JUnit4 owner;
 
   /**
    * Adds a set of tests based on pattern matching.
@@ -147,8 +153,28 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
       slave.estimatedFinish += hint.cost;
       pq.add(slave);
 
+      owner.log("Expected execution time for " + hint.suiteName + ": " + 
+          String.format(Locale.ENGLISH, "%.2f", hint.cost / 1000.0) + "s.",
+          Project.MSG_DEBUG);
+
       assignments.put(hint.suiteName, slave.id);
     }
+    
+    // Dump estimated execution times in verbose mode.
+    while (!pq.isEmpty()) {
+      SlaveLoad slave = pq.remove();
+      owner.log(String.format(Locale.ENGLISH, 
+          "Expected execution time on slave %d: %8.2fs",
+          slave.id,
+          slave.estimatedFinish / 1000.0f), Project.MSG_INFO);
+    }
+
     return assignments;
+  }
+
+
+  @Override
+  public void setOwner(JUnit4 owner) {
+    this.owner = owner;
   }
 }
