@@ -212,6 +212,9 @@
     }
     $("header > h1").append(" <strong>" + heading.text + "</strong>").parent().addClass(heading.class);
 
+    // Update window title
+    document.title = $.trim($("header > h1").text());
+
     // Executive summary
     var html = "";
     if ((counts.byStatus[FAILURE] || 0) == 0 && (counts.byStatus[ERROR] || 0) == 0) {
