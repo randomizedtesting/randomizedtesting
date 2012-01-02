@@ -320,15 +320,16 @@ th.count {
 th.result {
   width: 7em;
 }
-td.result {
-  padding-top: 0 !important;
+#results > table.method > tbody > tr > td.result {
+  width: 5em;
+  padding-top: 6px;
+}
+#results > table > tbody > tr > td.result {
+  padding-top: 0;
 }
 th.result > span {
   font-size: 13px;
   color: #000;
-}
-th.status {
-  width: 5em;
 }
 th.slave {
   width: 3.8em;

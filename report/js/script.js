@@ -65,7 +65,7 @@
         columns: [
           column("signature", "string", "Method"),
           {
-            id: "status",
+            id: "result",
             label: "Result",
             sortable: true,
             sorting: function(a, b) {
@@ -121,7 +121,7 @@
           eachTest(data, function(test) {
             rows.push({
               signature: test.description.packageName + "." + test.description.className + "." + test.description.methodName,
-              status: test.status,
+              result: test.status,
               time: test.executionTime,
               slave: test.slave,
               timestamp: test.startTimestamp
@@ -284,15 +284,15 @@
   function refresh() {
     switch (currentView) {
       case "packages":
-        $table.html(table(tables.byPackage, data, aggregates, currentOrder));
+        $table.html(table(tables.byPackage, data, aggregates, currentOrder)).attr("class", "package");
         break;
 
       case "classes":
-        $table.html(table(tables.byClass, data, aggregates, currentOrder));
+        $table.html(table(tables.byClass, data, aggregates, currentOrder)).attr("class", "class");
         break;
 
       case "methods":
-        $table.html(table(tables.byMethod, data, aggregates, currentOrder));
+        $table.html(table(tables.byMethod, data, aggregates, currentOrder)).attr("class", "method");
         break;
     }
     $tools.find("a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
