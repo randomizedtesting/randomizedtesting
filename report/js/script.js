@@ -27,7 +27,7 @@
         sortable: true,
         sorting: function(a, b) {
           for (var i = 0; i < statusOrder.length; i++) {
-            var s = statusOrder[i];
+            var s = statusOrder[statusOrder.length - i];
             if ((a.statuses[s] || 0) != (b.statuses[s] || 0)) {
               return (b.statuses[s] || 0) - (a.statuses[s] || 0);
             }
@@ -368,16 +368,20 @@
   function statusbar(counts, total) {
     var html = [];
     html.push("<ul class='statusbar'>");
+    var left = 0;
     for (var i = 0; i < statusOrder.length; i++) {
       var status = statusOrder[i];
       var count = counts[status];
       if (count > 0) {
-        html.push(tmpl("<li class='#{status}' style='width: #{pct}%' title='#{count} #{label}'></li>", {
+        var width = (100 * count) / total;
+        html.push(tmpl("<li class='#{status}' style='width: #{pct}%; left: #{left}%' title='#{count} #{label}'></li>", {
           status: status,
           label: statusLabels[status],
-          pct: (100 * count) / total,
-          count: count
+          pct: width,
+          count: count,
+          left: left
         }));
+        left += width;
       }
     }
     html.push("</ul>");

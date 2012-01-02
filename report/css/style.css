@@ -253,10 +253,9 @@ h1 {
 
 .statusbar {
   list-style: none;
-  overflow: hidden;
-  margin: 0;
+  margin: 10px 0 0;
   padding: 0;
-  margin-top: 10px;
+  position: relative;
 }
 #summary > .statusbar {
   width: 30%;
@@ -268,8 +267,9 @@ td > .statusbar {
 }
 
 .statusbar > li {
-  float: left;
+  position: absolute;
   height: 10px;
+  min-width: 1px;
 }
 .statusbar > li:first-child {
   border-top-left-radius: 2px;
@@ -320,6 +320,13 @@ th.count {
 th.result {
   width: 7em;
 }
+td.result {
+  padding-top: 0 !important;
+}
+th.result > span {
+  font-size: 13px;
+  color: #000;
+}
 th.status {
   width: 5em;
 }
@@ -337,10 +344,6 @@ th.pass, th.ignored, th.error, th.failed {
 }
 td.numeric {
   text-align: right;
-}
-th.result > span {
-  font-size: 13px;
-  color: #000;
 }
 
 
