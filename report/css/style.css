@@ -310,8 +310,9 @@ th.sortable {
 
 th.signature,
 td.signature {
-  overflow: hidden;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 th.count {
   width: 4em;
@@ -324,6 +325,9 @@ th.status {
 }
 th.slave {
   width: 3.8em;
+}
+th.timestamp {
+  width: 7em;
 }
 th.time {
   width: 6.5em;

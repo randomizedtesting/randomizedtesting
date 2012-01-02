@@ -89,7 +89,32 @@
             type: "result"
           },
           numericColumn("time", "Time [ms]"),
-          numericColumn("slave", "JVM")
+          numericColumn("slave", "JVM"),
+          {
+            id: "timestamp",
+            label: "Start",
+            type: "numeric",
+            renderer: function(value, html) {
+              var d = new Date(value);
+              html.push(zero(d.getHours()), ":", zero(d.getMinutes()), ":", zero(d.getSeconds()), ".", zerozero(d.getMilliseconds()));
+
+              function zero(x) {
+                if (x < 10) {
+                  return "0" + x;
+                } else {
+                  return x;
+                }
+              }
+              function zerozero(x) {
+                if (x < 100) {
+                  return "0" + zero(x);
+                } else {
+                  return x;
+                }
+              }
+            },
+            sortable: true
+          }
         ],
         rows: function(data, aggregates) {
           var rows  = [];
@@ -98,7 +123,8 @@
               signature: test.description.packageName + "." + test.description.className + "." + test.description.methodName,
               status: test.status,
               time: test.executionTime,
-              slave: test.slave
+              slave: test.slave,
+              timestamp: test.startTimestamp
             })
           });
           return rows;
@@ -280,6 +306,7 @@
     });
 
     // Render table rows
+    time("render", function() {
     html.push("<tbody>");
     $.each(rows, function(i, row) {
       html.push("<tr>");
@@ -290,11 +317,17 @@
       });
       html.push("</tr>");
     });
-
     html.push("</tbody>");
+    });
     return html.join("");
   }
-  
+
+  function time(id, code) {
+    var start = Date.now();
+    code();
+    console.log(id, Date.now() - start);
+  }
+
   function statusbar(counts, total) {
     var html = [];
     html.push("<ul class='statusbar'>");
