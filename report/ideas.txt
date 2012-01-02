@@ -27,6 +27,7 @@ TODO, must have:
 * navigation using HTML5 history API (bookmarkable urls)
 * ignored by assumption vs by annotation in descriptions
 * global start date in header (because individual tests report just time)
+* multiple column sorting tip
 
 
 Nice to have:

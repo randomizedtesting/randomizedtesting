@@ -168,7 +168,7 @@
 
   var $table, $tools;
   var data = suites, aggregates;
-  var currentView = "packages", currentOrder = { column: "signature", ascending: true };
+  var currentView = "packages", currentOrder = { columns: [ "signature" ], ascendings: [ true ] };
   
   // Initialize the table
   $(document).ready(function() {
@@ -240,13 +240,36 @@
       return false;
     });
 
-    $table.on("click", "th.sortable", function() {
+    $table.on("click", "th.sortable", function(e) {
       var newSort = $(this).data("column");
-      if (currentOrder.column == newSort) {
-        currentOrder.ascending = !currentOrder.ascending;
+      if (e.ctrlKey) {
+        // If the ordering already contains the selected column, invert
+        // the order. If the ordering does not contain the selected column,
+        // add it at the end of the ordering array.
+        var matched = false;
+        for (var i = 0; i < currentOrder.columns.length; i++) {
+          if (currentOrder.columns[i] == newSort) {
+            currentOrder.ascendings[i] = !currentOrder.ascendings[i];
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          currentOrder.columns.push(newSort);
+          currentOrder.ascendings.push(true);
+        }
+        console.log(currentOrder);
       } else {
-        currentOrder.column = newSort;
-        currentOrder.ascending = true;
+        // Sort by just by the requested column or change sorting order
+        var currentAscending = false;
+        for (var i = 0; i < currentOrder.columns.length; i++) {
+          if (currentOrder.columns[i] == newSort) {
+            currentAscending = currentOrder.ascendings[i];
+            break;
+          }
+        }
+        currentOrder.columns = [ newSort ];
+        currentOrder.ascendings = [ !currentAscending ];
       }
       refresh();
       return false;
@@ -279,7 +302,15 @@
   function table(spec, data, aggregates, order) {
     var html = [ ];
 
-    var orderColumn = map(spec.columns, function(c) { return c.id; })[order.column] || spec.columns[0];
+    var allColumnsById = map(spec.columns, function(c) { return c.id; });
+    var orderColumns = [ ];
+    for (var i = 0; i < order.columns.length; i++) {
+      orderColumns[i] = {
+        column: allColumnsById[order.columns[i]] || spec.columns[0],
+        ascending: order.ascendings[i]
+      };
+    }
+    var orderColumnsById = map (orderColumns, function(o) { return o.column.id; });
 
     // Render column headers
     html.push("<thead>");
@@ -288,7 +319,7 @@
       html.push(tmpl("<th class='#{type} #{id} #{sort} #{sortable}' data-column='#{id}'><span>#{label}</span></th>", {
         type: column.type,
         id: column.id,
-        sort: column.id == orderColumn.id ? (order.ascending ? "asc" : "desc") : "",
+        sort: typeof orderColumnsById[column.id] != 'undefined' ? (orderColumnsById[column.id].ascending ? "asc" : "desc") : "",
         label: column.label,
         sortable: column.sortable ? "sortable" : ""
       }));
@@ -300,13 +331,19 @@
     var rows = spec.rows(data, aggregates);
 
     // Sort the data
-    var ordering = orderColumn.sorting || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; };
     rows.sort(function(a, b) {
-      return ordering(a[orderColumn.id], b[orderColumn.id]) * (order.ascending ? 1 : -1);
+      for (var i = 0; i < orderColumns.length; i++) {
+        var column = orderColumns[i].column;
+        var ordering = column.sorting || function(a, b) { return a > b ? 1 : b > a ? -1 : 0; }
+        var o = ordering(a[column.id], b[column.id]) * (orderColumns[i].ascending ? 1 : -1);
+        if (o != 0) {
+          return o;
+        }
+      }
+      return 0;
     });
 
     // Render table rows
-    time("render", function() {
     html.push("<tbody>");
     $.each(rows, function(i, row) {
       html.push("<tr>");
@@ -318,7 +355,7 @@
       html.push("</tr>");
     });
     html.push("</tbody>");
-    });
+
     return html.join("");
   }
 
