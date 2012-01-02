@@ -47,20 +47,6 @@
     ];
 
     return {
-      byPackage: {
-        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
-        rows: function(data, aggregates) {
-          return aggregatedRows(aggregates, "byPackage");
-        }
-      },
-
-      byClass: {
-        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Class" } ]),
-        rows: function(data, aggregates) {
-          return aggregatedRows(aggregates, "byClass");
-        }
-      },
-
       byMethod: {
         columns: [
           column("signature", "string", "Method"),
@@ -88,7 +74,6 @@
             },
             type: "result"
           },
-          numericColumn("time", "Time [ms]"),
           numericColumn("slave", "JVM"),
           {
             id: "timestamp",
@@ -114,7 +99,8 @@
               }
             },
             sortable: true
-          }
+          },
+          numericColumn("time", "Time [ms]")
         ],
         rows: function(data, aggregates) {
           var rows  = [];
@@ -128,6 +114,20 @@
             })
           });
           return rows;
+        }
+      },
+
+      byPackage: {
+        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
+        rows: function(data, aggregates) {
+          return aggregatedRows(aggregates, "byPackage");
+        }
+      },
+
+      byClass: {
+        columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Class" } ]),
+        rows: function(data, aggregates) {
+          return aggregatedRows(aggregates, "byClass");
         }
       }
     };

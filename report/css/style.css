@@ -320,8 +320,10 @@ th.count {
 th.result {
   width: 7em;
 }
-#results > table.method > tbody > tr > td.result {
+table.method th.result {
   width: 5em;
+}
+#results > table.method > tbody > tr > td.result {
   padding-top: 6px;
 }
 #results > table > tbody > tr > td.result {
