@@ -407,4 +407,14 @@
             </condition>
         </fail>    	
     </target>	
+
+    <target name="alt-vendor">
+        <fail unless="jvm.exec">jvm.exec property must be set.</fail>
+        <junit4.preconf parallelism="1" leaveTemporary="true" 
+            jvm="${jvm.exec}">
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestStatuses.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
 </project>
