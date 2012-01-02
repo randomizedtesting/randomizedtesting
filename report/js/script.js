@@ -201,10 +201,10 @@
     // Results heading
     var heading = { };
     if (counts.byStatus[FAILURE] > 0) {
-      heading.text = "tests failed";
+      heading.text = countText(counts.byStatus[FAILURE], "test") + " failed";
       heading.class = FAILURE;
     } else if (counts.byStatus[ERROR] > 0) {
-      heading.text = "tests had errors";
+      heading.text = countText(counts.byStatus[ERROR], "test") + " had errors";
       heading.class = ERROR;
     } else {
       heading.text = "tests successful";
@@ -215,20 +215,7 @@
     // Update window title
     document.title = $.trim($("header > h1").text());
 
-    // Executive summary
-    var html = "";
-    if ((counts.byStatus[FAILURE] || 0) == 0 && (counts.byStatus[ERROR] || 0) == 0) {
-      if (counts.byStatus[OK] == counts.global) {
-        html = "All tests passed.";
-      } else if ((counts.byStatus[OK] || 0) > 0) {
-        html = tmpl("<strong>No failures</strong>, #{passed} passed, #{ignored} ignored.", {
-          passed: countText(counts.byStatus[OK], "test"),
-          ignored: countText((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
-        });
-      }
-    }
-    $("<p />").html(html).appendTo($summary);
-
+    // Global summary
     $("<p />").html(tmpl("\
         #{tests} executed in\
         #{time} ms on\
@@ -237,6 +224,34 @@
         time: times.global,
         slaves: countText(keys(times.bySlave).length, "slave")
       })).appendTo($summary);
+
+    var html = "";
+    if ((counts.byStatus[FAILURE] || 0) == 0 && (counts.byStatus[ERROR] || 0) == 0) {
+      if (counts.byStatus[OK] == counts.global) {
+        html = "All tests passed.";
+      } else if ((counts.byStatus[OK] || 0) > 0) {
+        html = tmpl("No failures, #{passed} passed, #{ignored} ignored.", {
+          passed: countText(counts.byStatus[OK], "test"),
+          ignored: countText((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
+        });
+      }
+    } else {
+      var h = [];
+      if (counts.byStatus[FAILURE] > 0) {
+        h.push(counts.byStatus[FAILURE] + " failed");
+      }
+      if (counts.byStatus[ERROR] > 0) {
+        h.push(countText(counts.byStatus[ERROR], "error"));
+      }
+      if (counts.byStatus[IGNORED] > 0 || counts.byStatus[IGNORED_ASSUMPTION] > 0) {
+        h.push((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0) + " ignored");
+      }
+      if (counts.byStatus[OK] > 0) {
+        h.push(counts.byStatus[OK] + " passed");
+      }
+      html = h.join(", ");
+    }
+    $("<p />").html(html).appendTo($summary);
 
     // Status bar
     $summary.append($(statusbar(counts.byStatus, counts.global)));
