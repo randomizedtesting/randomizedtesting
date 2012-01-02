@@ -200,8 +200,70 @@ table { border-collapse: collapse; border-spacing: 0; }
    Primary styles
    ========================================================================== */
 body {
-  margin: 20px;
   line-height: 1.3;
+}
+
+#container {
+  margin: 20px;
+}
+
+header {
+  padding: 10px 0;
+  margin-top: 20px;
+}
+
+header > h1 {
+  font-size: 18px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  line-height: 1.0;
+  margin: 0;
+  color: white;
+  padding: 8px 0 8px 20px;
+  border-left: none !important;
+  border-right: none !important;
+}
+header > h1 > span {
+  vertical-align: -15%;
+  width: 28px;
+  height: 20px;
+  display: inline-block;
+  background-repeat: no-repeat;
+}
+
+header.FAILURE {
+  background-color: #ce4747;
+}
+header.FAILURE > h1 {
+  border: 1px solid #b51414;
+  background-color: #be1414;
+}
+header.FAILURE > h1 > span {
+  background-image: url(../img/failure.png);
+}
+
+header.ERROR {
+  background-color: #f4a337;
+}
+header.ERROR > h1 {
+  border: 1px solid #d37700;
+  background-color: #e07f00;
+}
+header.ERROR > h1 > span {
+  background-image: url(../img/error.png);
+  width: 20px;
+}
+
+header.OK {
+  background-color: #3ac939;
+}
+header.OK > h1 {
+  border: 1px solid #07a000;
+  background-color: #08ad00;
+}
+header.OK > h1 > span {
+  background-image: url(../img/pass.png);
+  background-position: 0 2px;
+  width: 25px;
 }
 
 a, a:visited {

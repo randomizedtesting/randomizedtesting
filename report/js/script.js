@@ -198,6 +198,20 @@
     var $summary = $("#summary");
     var $results = $("#results");
 
+    // Results heading
+    var heading = { };
+    if (counts.byStatus[FAILURE] > 0) {
+      heading.text = "tests failed";
+      heading.class = FAILURE;
+    } else if (counts.byStatus[ERROR] > 0) {
+      heading.text = "tests had errors";
+      heading.class = ERROR;
+    } else {
+      heading.text = "tests successful";
+      heading.class = OK;
+    }
+    $("header > h1").append(" <strong>" + heading.text + "</strong>").parent().addClass(heading.class);
+
     // Executive summary
     var html = "";
     if ((counts.byStatus[FAILURE] || 0) == 0 && (counts.byStatus[ERROR] || 0) == 0) {
