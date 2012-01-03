@@ -15,6 +15,10 @@
     IGNORED_ASSUMPTION: "IGNORED"
   };
 
+  var $table, $tools;
+  var data = suites, aggregates;
+  var currentView, currentOrder, currentSearch;
+
   // Table definitions
   var tables = (function() {
     // Common columns of the aggregated view tables 
@@ -119,15 +123,15 @@
 
       byPackage: {
         columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
-        rows: function(data, aggregates) {
-          return aggregatedRows(aggregates, "byPackage");
+        rows: function(data) {
+          return aggregatedRows(data, byPackage);
         }
       },
 
       byClass: {
         columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Class" } ]),
-        rows: function(data, aggregates) {
-          return aggregatedRows(aggregates, "byClass");
+        rows: function(data) {
+          return aggregatedRows(data, byClass);
         }
       }
     };
@@ -148,31 +152,33 @@
       return column(id, "numeric", label);
     }
 
-    function aggregatedRows(aggregates, aggregate) {
+    function aggregatedRows(data, aggregateFunction) {
       var rows = [];
-      $.each(aggregates.statuses[aggregate], function(signature, statuses) {
+
+      var counts = aggregate(data, testCount, { aggregate: aggregateFunction });
+      var times = aggregate(data, totalTime, { aggregate: aggregateFunction });
+      var statuses = aggregate(data, testCountByStatus, { aggregate: aggregateFunction });
+
+      $.each(statuses.aggregate, function(signature, statuses) {
         rows.push({
           signature: signature,
-          count: aggregates.counts[aggregate][signature],
-          result: { statuses: statuses, total: aggregates.counts[aggregate][signature] },
+          count: counts.aggregate[signature],
+          result: { statuses: statuses, total: counts.aggregate[signature] },
           pass: statuses[OK] || 0,
           ignored: (statuses[IGNORED] || 0) + (statuses[IGNORED_ASSUMPTION] || 0),
           error: statuses[ERROR] || 0,
           failed: statuses[FAILURE] || 0,
-          time: aggregates.times[aggregate][signature]
+          time: times.aggregate[signature]
         });
       });
       return rows;
     }
   })();
 
-  var $table, $tools;
-  var data = suites, aggregates;
-  var currentView, currentOrder;
-  
   // Initialize the table
   $(document).ready(function() {
 
+    // Global preprocessing of the data:
     // Split method names into semantic parts
     eachTest(data, function (test) {
       var methodSplit = test.description.methodName.split(" ");
@@ -184,15 +190,9 @@
       test.description.packageName = classSplit.join(".");
     });
 
-    // Create aggregations
-    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus, "byPackage":byPackage, "byClass":byClass });
-    var times = aggregate(data, totalTime, { "global":global, "bySlave":bySlave, "byPackage":byPackage, "byClass":byClass });
-    var statuses = aggregate(data, testCountByStatus, { "byPackage":byPackage, "byClass":byClass });
-    aggregates = {
-      counts:counts,
-      times:times,
-      statuses:statuses
-    };
+    // Create global aggregations
+    var globalCounts = aggregate(data, testCount, { "global":global, "byStatus":byStatus });
+    var globalTimes = aggregate(data, totalTime, { "global":global, "bySlave":bySlave });
 
     // Generate markup
     var $summary = $("#summary");
@@ -200,11 +200,11 @@
 
     // Results heading
     var heading = { };
-    if (counts.byStatus[FAILURE] > 0) {
-      heading.text = countText(counts.byStatus[FAILURE], "test") + " failed";
+    if (globalCounts.byStatus[FAILURE] > 0) {
+      heading.text = countText(globalCounts.byStatus[FAILURE], "test") + " failed";
       heading.class = FAILURE;
-    } else if (counts.byStatus[ERROR] > 0) {
-      heading.text = countText(counts.byStatus[ERROR], "test") + " had errors";
+    } else if (globalCounts.byStatus[ERROR] > 0) {
+      heading.text = countText(globalCounts.byStatus[ERROR], "test") + " had errors";
       heading.class = ERROR;
     } else {
       heading.text = "tests successful";
@@ -220,42 +220,42 @@
         #{tests} executed in\
         #{time} ms on\
         <a href='#'>#{slaves}</a>.", {
-      tests:countText(counts.global || 0, "test"),
-      time:times.global,
-      slaves:countText(keys(times.bySlave).length, "slave")
+      tests:countText(globalCounts.global || 0, "test"),
+      time:globalTimes.global,
+      slaves:countText(keys(globalTimes.bySlave).length, "slave")
     })).appendTo($summary);
 
-    var successful = !(counts.byStatus[FAILURE] > 0 || counts.byStatus[ERROR] > 0);
+    var successful = !(globalCounts.byStatus[FAILURE] > 0 || globalCounts.byStatus[ERROR] > 0);
     var html = "";
     if (successful) {
-      if (counts.byStatus[OK] == counts.global) {
+      if (globalCounts.byStatus[OK] == globalCounts.global) {
         html = "All tests passed.";
-      } else if ((counts.byStatus[OK] || 0) > 0) {
+      } else if ((globalCounts.byStatus[OK] || 0) > 0) {
         html = tmpl("No failures, #{passed} passed, #{ignored} ignored.", {
-          passed:countText(counts.byStatus[OK], "test"),
-          ignored:countText((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
+          passed:countText(globalCounts.byStatus[OK], "test"),
+          ignored:countText((globalCounts.byStatus[IGNORED] || 0) + (globalCounts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
         });
       }
     } else {
       var h = [];
-      if (counts.byStatus[FAILURE] > 0) {
-        h.push(counts.byStatus[FAILURE] + " failed");
+      if (globalCounts.byStatus[FAILURE] > 0) {
+        h.push(globalCounts.byStatus[FAILURE] + " failed");
       }
-      if (counts.byStatus[ERROR] > 0) {
-        h.push(countText(counts.byStatus[ERROR], "error"));
+      if (globalCounts.byStatus[ERROR] > 0) {
+        h.push(countText(globalCounts.byStatus[ERROR], "error"));
       }
-      if (counts.byStatus[IGNORED] > 0 || counts.byStatus[IGNORED_ASSUMPTION] > 0) {
-        h.push((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0) + " ignored");
+      if (globalCounts.byStatus[IGNORED] > 0 || globalCounts.byStatus[IGNORED_ASSUMPTION] > 0) {
+        h.push((globalCounts.byStatus[IGNORED] || 0) + (globalCounts.byStatus[IGNORED_ASSUMPTION] || 0) + " ignored");
       }
-      if (counts.byStatus[OK] > 0) {
-        h.push(counts.byStatus[OK] + " passed");
+      if (globalCounts.byStatus[OK] > 0) {
+        h.push(globalCounts.byStatus[OK] + " passed");
       }
       html = h.join(", ");
     }
     $("<p />").html(html).appendTo($summary);
 
     // Status bar
-    $summary.append($(statusbar(counts.byStatus, counts.global)));
+    $summary.append($(statusbar(globalCounts.byStatus, globalCounts.global)));
 
     // Results table tools
     $tools = $("<div id='tools'>\
@@ -327,22 +327,22 @@
   function refresh() {
     switch (currentView) {
       case "packages":
-        $table.html(table(tables.byPackage, data, aggregates, currentOrder)).attr("class", "package");
+        $table.html(table(tables.byPackage, data, currentOrder)).attr("class", "package");
         break;
 
       case "classes":
-        $table.html(table(tables.byClass, data, aggregates, currentOrder)).attr("class", "class");
+        $table.html(table(tables.byClass, data, currentOrder)).attr("class", "class");
         break;
 
       case "methods":
-        $table.html(table(tables.byMethod, data, aggregates, currentOrder)).attr("class", "method");
+        $table.html(table(tables.byMethod, data, currentOrder)).attr("class", "method");
         break;
     }
     $tools.find("a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
   }
 
   // Renders contents of a table according to the provided spec
-  function table(spec, data, aggregates, order) {
+  function table(spec, data, order) {
     var html = [ ];
 
     var allColumnsById = map(spec.columns, function(c) { return c.id; });
@@ -371,7 +371,7 @@
     html.push("</thead>");
 
     // Get the data
-    var rows = spec.rows(data, aggregates);
+    var rows = spec.rows(data);
 
     // Sort the data
     rows.sort(function(a, b) {
