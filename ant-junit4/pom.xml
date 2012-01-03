@@ -12,10 +12,6 @@
   <artifactId>ant-junit4</artifactId>
   <name>JUnit4 task for ANT</name>
 
-  <properties>
-    <java.rt.classes>${java.home}/lib/rt.jar</java.rt.classes>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.ant</groupId>
@@ -178,6 +174,27 @@
           <includeGroupIds>com.carrotsearch.randomizedtesting,junit,asm</includeGroupIds>
         </configuration>
       </plugin>
+      
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>proguard.DetectRtJar</mainClass>
+          <classpathScope>test</classpathScope>
+          <arguments>
+            <argument>${project.build.directory}/rt.jar.pro</argument>
+          </arguments>
+        </configuration>
+      </plugin>
 
       <plugin>
         <groupId>com.pyx4me</groupId>
@@ -228,7 +245,7 @@
           <outputDirectory>${project.build.directory}</outputDirectory>
           <proguardInclude>${basedir}/src/proguard/rules.pro</proguardInclude>
           <options>
-            <option>-libraryjar ${java.rt.classes}(java/**)</option>
+            <option>-include ${project.build.directory}/rt.jar.pro</option>
             <option>-printusage ${project.build.directory}/proguard_dead.txt</option>
           </options>
         </configuration>
@@ -244,16 +261,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>properties-macosx</id>
-      <activation>
-        <os><family>mac</family></os>
-      </activation>
-      <properties>
-        <java.rt.classes>${java.home}/../Classes/classes.jar</java.rt.classes>
-      </properties>
-    </profile>
-  </profiles>
 </project>
