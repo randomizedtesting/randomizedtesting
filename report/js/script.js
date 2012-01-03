@@ -191,20 +191,18 @@
     });
 
     // Create global aggregations
-    var globalCounts = aggregate(data, testCount, { "global":global, "byStatus":byStatus });
-    var globalTimes = aggregate(data, totalTime, { "global":global, "bySlave":bySlave });
+    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus });
 
     // Generate markup
-    var $summary = $("#summary");
     var $results = $("#results");
 
     // Results heading
     var heading = { };
-    if (globalCounts.byStatus[FAILURE] > 0) {
-      heading.text = countText(globalCounts.byStatus[FAILURE], "test") + " failed";
+    if (counts.byStatus[FAILURE] > 0) {
+      heading.text = countText(counts.byStatus[FAILURE], "test") + " failed";
       heading.class = FAILURE;
-    } else if (globalCounts.byStatus[ERROR] > 0) {
-      heading.text = countText(globalCounts.byStatus[ERROR], "test") + " had errors";
+    } else if (counts.byStatus[ERROR] > 0) {
+      heading.text = countText(counts.byStatus[ERROR], "test") + " had errors";
       heading.class = ERROR;
     } else {
       heading.text = "tests successful";
@@ -214,48 +212,6 @@
 
     // Update window title
     document.title = $.trim($("header > h1").text());
-
-    // Global summary
-    $("<p />").html(tmpl("\
-        #{tests} executed in\
-        #{time} ms on\
-        <a href='#'>#{slaves}</a>.", {
-      tests:countText(globalCounts.global || 0, "test"),
-      time:globalTimes.global,
-      slaves:countText(keys(globalTimes.bySlave).length, "slave")
-    })).appendTo($summary);
-
-    var successful = !(globalCounts.byStatus[FAILURE] > 0 || globalCounts.byStatus[ERROR] > 0);
-    var html = "";
-    if (successful) {
-      if (globalCounts.byStatus[OK] == globalCounts.global) {
-        html = "All tests passed.";
-      } else if ((globalCounts.byStatus[OK] || 0) > 0) {
-        html = tmpl("No failures, #{passed} passed, #{ignored} ignored.", {
-          passed:countText(globalCounts.byStatus[OK], "test"),
-          ignored:countText((globalCounts.byStatus[IGNORED] || 0) + (globalCounts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
-        });
-      }
-    } else {
-      var h = [];
-      if (globalCounts.byStatus[FAILURE] > 0) {
-        h.push(globalCounts.byStatus[FAILURE] + " failed");
-      }
-      if (globalCounts.byStatus[ERROR] > 0) {
-        h.push(countText(globalCounts.byStatus[ERROR], "error"));
-      }
-      if (globalCounts.byStatus[IGNORED] > 0 || globalCounts.byStatus[IGNORED_ASSUMPTION] > 0) {
-        h.push((globalCounts.byStatus[IGNORED] || 0) + (globalCounts.byStatus[IGNORED_ASSUMPTION] || 0) + " ignored");
-      }
-      if (globalCounts.byStatus[OK] > 0) {
-        h.push(globalCounts.byStatus[OK] + " passed");
-      }
-      html = h.join(", ");
-    }
-    $("<p />").html(html).appendTo($summary);
-
-    // Status bar
-    $summary.append($(statusbar(globalCounts.byStatus, globalCounts.global)));
 
     // Results table tools
     $tools = $("<div id='tools'>\
@@ -270,7 +226,7 @@
     // Bind listeners through delegation
     $tools.on("click", "a", function () {
       currentView = $(this).attr("href").substring(1);
-      refresh();
+      refreshTable();
       return false;
     });
 
@@ -305,13 +261,13 @@
         currentOrder.columns = [ newSort ];
         currentOrder.ascendings = [ !currentAscending ];
       }
-      refresh();
+      refreshTable();
       return false;
     });
 
     // If no failures or errors, show package view ordered by package name.
     // In case of errors or failures, show method view ordered by status.
-    if (successful) {
+    if (!(counts.byStatus[FAILURE] > 0 || counts.byStatus[ERROR] > 0)) {
       currentView = "packages";
       currentOrder = { columns:[ "signature" ], ascendings:[ true ] };
     } else {
@@ -319,12 +275,13 @@
       currentOrder = { columns:[ "result" ], ascendings:[ false ] };
     }
 
-    refresh();
+    refreshTable();
+    refreshSummary();
     return this;
   });
-  // Shows the requested view
 
-  function refresh() {
+  // Refreshes the results table based on the current parameters
+  function refreshTable() {
     switch (currentView) {
       case "packages":
         $table.html(table(tables.byPackage, data, currentOrder)).attr("class", "package");
@@ -339,6 +296,54 @@
         break;
     }
     $tools.find("a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
+  }
+
+  // Refreshes the summary box based on the current parameters
+  function refreshSummary() {
+    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus });
+    var times = aggregate(data, totalTime, { "global":global, "bySlave":bySlave });
+
+    // Global summary
+    var $summary = $("#summary");
+    $("<p />").html(tmpl("\
+        #{tests} executed in\
+        #{time} ms on\
+        <a href='#'>#{slaves}</a>.", {
+      tests: countText(counts.global || 0, "test"),
+      time: times.global,
+      slaves: countText(keys(times.bySlave).length, "slave")
+    })).appendTo($summary);
+
+    var html = "";
+    if (!(counts.byStatus[FAILURE] > 0 || counts.byStatus[ERROR] > 0)) {
+      if (counts.byStatus[OK] == counts.global) {
+        html = "All tests passed.";
+      } else if ((counts.byStatus[OK] || 0) > 0) {
+        html = tmpl("No failures, #{passed} passed, #{ignored} ignored.", {
+          passed:countText(counts.byStatus[OK], "test"),
+          ignored:countText((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
+        });
+      }
+    } else {
+      var h = [];
+      if (counts.byStatus[FAILURE] > 0) {
+        h.push(counts.byStatus[FAILURE] + " failed");
+      }
+      if (counts.byStatus[ERROR] > 0) {
+        h.push(countText(counts.byStatus[ERROR], "error"));
+      }
+      if (counts.byStatus[IGNORED] > 0 || counts.byStatus[IGNORED_ASSUMPTION] > 0) {
+        h.push((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0) + " ignored");
+      }
+      if (counts.byStatus[OK] > 0) {
+        h.push(counts.byStatus[OK] + " passed");
+      }
+      html = h.join(", ");
+    }
+    $("<p />").html(html).appendTo($summary);
+
+    // Status bar
+    $summary.append($(statusbar(counts.byStatus, counts.global)));
   }
 
   // Renders contents of a table according to the provided spec
