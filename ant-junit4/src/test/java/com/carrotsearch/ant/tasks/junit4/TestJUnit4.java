@@ -129,7 +129,9 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     expectBuildExceptionContaining("jvmcrash", "Unexpected output from forked JVM.");
     File cwd = getProject().getBaseDir();
     for (File crashDump : cwd.listFiles()) {
-      if (crashDump.isFile() && crashDump.getName().matches("^hs_err_pid.+\\.log")) {
+      if (crashDump.isFile() && 
+          (crashDump.getName().matches("^hs_err_pid.+\\.log") ||
+           crashDump.getName().endsWith(".mdmp"))) {
         crashDump.delete();
       }
     }
