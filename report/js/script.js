@@ -259,6 +259,7 @@
 
     // Results table tools
     $tools = $("<div id='tools'>\
+      <input type='search' placeholder='package, class, method name' />\
       view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a>\
     </div>").appendTo($results);
 
