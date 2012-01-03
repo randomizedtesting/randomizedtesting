@@ -168,30 +168,30 @@
 
   var $table, $tools;
   var data = suites, aggregates;
-  var currentView = "packages", currentOrder = { columns: [ "signature" ], ascendings: [ true ] };
+  var currentView, currentOrder;
   
   // Initialize the table
   $(document).ready(function() {
 
     // Split method names into semantic parts
-    eachTest(data, function(test) {
+    eachTest(data, function (test) {
       var methodSplit = test.description.methodName.split(" ");
       test.description.methodName = methodSplit[0];
       test.description.methodExtras = methodSplit[1];
-      
+
       var classSplit = test.description.className.split("\.");
       test.description.className = classSplit.pop();
       test.description.packageName = classSplit.join(".");
     });
-    
+
     // Create aggregations
-    var counts = aggregate(data, testCount, { "global": global, "byStatus": byStatus, "byPackage": byPackage, "byClass": byClass });
-    var times = aggregate(data, totalTime, { "global": global, "bySlave": bySlave, "byPackage": byPackage, "byClass": byClass });
-    var statuses = aggregate(data, testCountByStatus, { "byPackage": byPackage, "byClass": byClass });
+    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus, "byPackage":byPackage, "byClass":byClass });
+    var times = aggregate(data, totalTime, { "global":global, "bySlave":bySlave, "byPackage":byPackage, "byClass":byClass });
+    var statuses = aggregate(data, testCountByStatus, { "byPackage":byPackage, "byClass":byClass });
     aggregates = {
-      counts: counts,
-      times: times,
-      statuses: statuses
+      counts:counts,
+      times:times,
+      statuses:statuses
     };
 
     // Generate markup
@@ -220,19 +220,20 @@
         #{tests} executed in\
         #{time} ms on\
         <a href='#'>#{slaves}</a>.", {
-        tests: countText(counts.global || 0, "test"),
-        time: times.global,
-        slaves: countText(keys(times.bySlave).length, "slave")
-      })).appendTo($summary);
+      tests:countText(counts.global || 0, "test"),
+      time:times.global,
+      slaves:countText(keys(times.bySlave).length, "slave")
+    })).appendTo($summary);
 
+    var successful = !(counts.byStatus[FAILURE] > 0 || counts.byStatus[ERROR] > 0);
     var html = "";
-    if ((counts.byStatus[FAILURE] || 0) == 0 && (counts.byStatus[ERROR] || 0) == 0) {
+    if (successful) {
       if (counts.byStatus[OK] == counts.global) {
         html = "All tests passed.";
       } else if ((counts.byStatus[OK] || 0) > 0) {
         html = tmpl("No failures, #{passed} passed, #{ignored} ignored.", {
-          passed: countText(counts.byStatus[OK], "test"),
-          ignored: countText((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
+          passed:countText(counts.byStatus[OK], "test"),
+          ignored:countText((counts.byStatus[IGNORED] || 0) + (counts.byStatus[IGNORED_ASSUMPTION] || 0), "test")
         });
       }
     } else {
@@ -266,13 +267,13 @@
     $table = $("<table />").appendTo($results);
 
     // Bind listeners through delegation
-    $tools.on("click", "a", function() {
+    $tools.on("click", "a", function () {
       currentView = $(this).attr("href").substring(1);
       refresh();
       return false;
     });
 
-    $table.on("click", "th.sortable", function(e) {
+    $table.on("click", "th.sortable", function (e) {
       var newSort = $(this).data("column");
       if (e.ctrlKey) {
         // If the ordering already contains the selected column, invert
@@ -307,7 +308,16 @@
       return false;
     });
 
-    // Set the default view
+    // If no failures or errors, show package view ordered by package name.
+    // In case of errors or failures, show method view ordered by status.
+    if (successful) {
+      currentView = "packages";
+      currentOrder = { columns:[ "signature" ], ascendings:[ true ] };
+    } else {
+      currentView = "methods";
+      currentOrder = { columns:[ "result" ], ascendings:[ false ] };
+    }
+
     refresh();
     return this;
   });
