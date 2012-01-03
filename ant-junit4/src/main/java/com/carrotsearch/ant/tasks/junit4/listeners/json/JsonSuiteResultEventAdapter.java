@@ -12,7 +12,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResult
 import com.google.gson.*;
 
 /**
- * Serialization of 
+ * Serialization of {@link AggregatedSuiteResultEvent}.
  */
 public class JsonSuiteResultEventAdapter implements JsonSerializer<AggregatedSuiteResultEvent> {
   @Override
