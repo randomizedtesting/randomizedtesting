@@ -16,8 +16,8 @@ import com.google.common.eventbus.EventBus;
  * Establish event passing with a subprocess and pump events to the bus.
  */
 public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
-  private final ClassLoader classLoader;
   private final EventBus eventBus;
+  private final ClassLoader refLoader;
   private BootstrapEvent bootstrapPacket;
 
   private InputStream stdout;
@@ -30,7 +30,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   public LocalSlaveStreamHandler(EventBus eventBus, ClassLoader classLoader, PrintStream warnStream) {
     this.eventBus = eventBus;
     this.warnStream = warnStream;
-    this.classLoader = classLoader;
+    this.refLoader = classLoader;
   }
 
   @Override
@@ -55,13 +55,11 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
 
     // Receive bootstrap event on stdout.
     try {
-      deserializer = new Deserializer(stdout, classLoader);
+      deserializer = new Deserializer(stdout, refLoader);
       BootstrapEvent bootstrap = (BootstrapEvent) deserializer.deserialize();
       this.bootstrapPacket = bootstrap;
 
       switch (bootstrap.getEventChannel()) {
-        case SOCKET:
-          throw new IOException("Slave requested socket communication?");
         case STDERR:
           // Swap stderr/stdout.
           InputStream tmp = stdout;
@@ -128,9 +126,9 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
    */
   void pumpEvents() {
     try {
-      Deserializer deserializer = new Deserializer(stdout, classLoader);
-      while (true) {
-        IEvent event = deserializer.deserialize();
+      Deserializer deserializer = new Deserializer(stdout, refLoader);
+      IEvent event = null;
+      while ((event = deserializer.deserialize()) != null) {
         try {
           eventBus.post(event);
         } catch (Throwable t) {
@@ -138,8 +136,6 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
           t.printStackTrace(warnStream);
         }
       }
-    } catch (EOFException e) {
-      // EOF.
     } catch (IOException e) {
       warnStream.println("Event stream error: " + e.toString());
       e.printStackTrace(warnStream);

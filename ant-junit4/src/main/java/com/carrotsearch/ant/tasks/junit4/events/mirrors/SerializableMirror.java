@@ -1,17 +1,18 @@
 package com.carrotsearch.ant.tasks.junit4.events.mirrors;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 
-@SuppressWarnings("serial")
-class SerializableMirror<T extends Serializable> implements Serializable {
+/**
+ * Serialization utilities.
+ */
+class SerializableMirror<T extends Serializable> {
   private byte[] bytes;
 
-  public SerializableMirror(T t) {
+  private SerializableMirror() {
+    // No-args for json.
+  }
+
+  private SerializableMirror(T t) {
     bytes = tryToSerialize(t);
   }
 
@@ -45,5 +46,9 @@ class SerializableMirror<T extends Serializable> implements Serializable {
       }
     }
     return null;
+  }
+
+  public static <T extends Serializable> SerializableMirror<T> of(T t) {
+    return new SerializableMirror<T>(t);
   }  
 }

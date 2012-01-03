@@ -11,6 +11,9 @@ import org.junit.runner.Description;
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
+import com.carrotsearch.ant.tasks.junit4.events.json.JsonAnnotationAdapter;
+import com.carrotsearch.ant.tasks.junit4.events.json.JsonClassAdapter;
+import com.carrotsearch.ant.tasks.junit4.events.json.JsonDescriptionAdapter;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Charsets;
@@ -52,13 +55,14 @@ public class JsonReport implements AggregatedEventListener {
       throw new BuildException("'file' attribute is required (target file for JSON).");
     }
 
+    final ClassLoader refLoader = Thread.currentThread().getContextClassLoader(); 
     this.gson = new GsonBuilder()
       .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonSuiteResultEventAdapter())
       .registerTypeAdapter(AggregatedTestResultEvent.class, new JsonTestResultEventAdapter())
       .registerTypeAdapter(FailureMirror.class, new JsonFailureMirrorAdapter())
       .registerTypeAdapter(SlaveInfo.class, new JsonSlaveInfoAdapter())
-      .registerTypeHierarchyAdapter(Annotation.class, new JsonAnnotationAdapter())
-      .registerTypeHierarchyAdapter(Class.class, new JsonClassAdapter())      
+      .registerTypeHierarchyAdapter(Annotation.class, new JsonAnnotationAdapter(refLoader))
+      .registerTypeHierarchyAdapter(Class.class, new JsonClassAdapter(refLoader))
       .registerTypeAdapter(Description.class, new JsonDescriptionAdapter())
       .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
       .setPrettyPrinting().create();

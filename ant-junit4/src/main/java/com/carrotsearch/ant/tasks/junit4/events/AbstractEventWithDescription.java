@@ -2,16 +2,20 @@ package com.carrotsearch.ant.tasks.junit4.events;
 
 import org.junit.runner.Description;
 
-@SuppressWarnings("serial")
 public abstract class AbstractEventWithDescription extends AbstractEvent {
-  private final Description description;
+  private Description description;
 
-  public AbstractEventWithDescription(EventType type, Description description) {
+  public AbstractEventWithDescription(EventType type) {
     super(type);
-    this.description = description;
   }
 
   public Description getDescription() {
     return description;
   }
+  
+  protected void setDescription(Description description) {
+    if (this.description != null)
+      throw new IllegalStateException("Initialize once.");
+    this.description = description;
+  }  
 }

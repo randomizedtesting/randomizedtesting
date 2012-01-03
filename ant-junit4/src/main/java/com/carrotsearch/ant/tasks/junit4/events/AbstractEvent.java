@@ -1,12 +1,15 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-@SuppressWarnings("serial")
+/**
+ * An abstract {@link IEvent}.
+ */
 abstract class AbstractEvent implements IEvent {
-  private final EventType type;
+  /** Type is recreated in constructors anyway. */
+  private transient final EventType type;
 
   public AbstractEvent(EventType type) {
     if (this.getClass() != type.eventClass) {
-      throw new RuntimeException("Unmatched event type: "
+      throw new RuntimeException("Event type mismatch: "
           + type + ", class: " + this.getClass());
     }
 

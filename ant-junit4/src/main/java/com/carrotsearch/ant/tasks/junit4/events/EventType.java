@@ -6,12 +6,12 @@ package com.carrotsearch.ant.tasks.junit4.events;
 public enum EventType {
   BOOTSTRAP(BootstrapEvent.class),
 
-  APPEND_STDOUT(AppendStdOutEvent.class),
-  APPEND_STDERR(AppendStdErrEvent.class),
-
   SUITE_STARTED(SuiteStartedEvent.class),
   SUITE_FAILURE(SuiteFailureEvent.class),
   SUITE_COMPLETED(SuiteCompletedEvent.class),
+
+  APPEND_STDOUT(AppendStdOutEvent.class),
+  APPEND_STDERR(AppendStdErrEvent.class),
 
   TEST_STARTED(TestStartedEvent.class),
   TEST_FAILURE(TestFailureEvent.class),

@@ -2,10 +2,13 @@ package com.carrotsearch.ant.tasks.junit4.events;
 
 import org.junit.runner.Description;
 
-
-@SuppressWarnings("serial")
 public class TestStartedEvent extends AbstractEventWithDescription {
+  protected TestStartedEvent() {
+    super(EventType.TEST_STARTED);
+  }
+
   public TestStartedEvent(Description description) {
-    super(EventType.TEST_STARTED, description);
+    this();
+    setDescription(description);
   }
 }

@@ -1,12 +1,14 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-
-@SuppressWarnings("serial")
 public class AppendStdErrEvent extends AbstractEvent {
-  private final byte[] chunk;
+  private byte[] chunk;
 
-  public AppendStdErrEvent(byte[] b, int off, int len) {
+  public AppendStdErrEvent() {
     super(EventType.APPEND_STDERR);
+  }
+  
+  public AppendStdErrEvent(byte[] b, int off, int len) {
+    this();
     chunk = new byte [len];
     System.arraycopy(b, off, chunk, 0, len);
   }

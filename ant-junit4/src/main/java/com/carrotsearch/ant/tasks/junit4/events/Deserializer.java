@@ -1,28 +1,35 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
+import java.io.*;
+
+import com.google.common.base.Charsets;
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 
 /**
  * Event deserializer.
  */
 public class Deserializer {
-  private final ObjectInputStream is;
+  private JsonReader input;
+  private Gson gson;
+  
+  public Deserializer(InputStream is, ClassLoader refLoader) throws IOException {
+    input = new JsonReader(new InputStreamReader(is, Charsets.UTF_8));
+    gson = Serializer.createGSon(refLoader);
 
-  public Deserializer(InputStream is, final ClassLoader classLoader) throws IOException {
-    this.is = new CustomObjectInputStream(is, classLoader);
+    input.beginArray();
   }
 
   public IEvent deserialize() throws IOException {
-    try {
-      return (IEvent) is.readObject();
-    } catch (ClassNotFoundException e) {
-      throw new IOException("Event stream panic (class not found): " + e.toString());
-    }
-  }
+    JsonToken peek = input.peek();
+    if (peek == JsonToken.END_ARRAY)
+      return null;
 
-  public ObjectInputStream getInputStream() {
-    return is;
+    input.beginArray();
+    EventType type = EventType.valueOf(input.nextString());
+    IEvent event = gson.fromJson(input, type.eventClass);
+    input.endArray();
+    return event;
   }
 }

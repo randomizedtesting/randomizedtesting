@@ -6,16 +6,13 @@ import org.junit.runner.Description;
 /**
  * Serialized failure.
  */
-@SuppressWarnings("serial")
-public class SuiteStartedEvent extends AbstractEvent {
-  private Description description;
-
-  public SuiteStartedEvent(Description description) {
+public class SuiteStartedEvent extends AbstractEventWithDescription {
+  protected SuiteStartedEvent() {
     super(EventType.SUITE_STARTED);
-    this.description = description;
   }
 
-  public Description getDescription() {
-    return description;
+  public SuiteStartedEvent(Description description) {
+    this();
+    setDescription(description);
   }
 }

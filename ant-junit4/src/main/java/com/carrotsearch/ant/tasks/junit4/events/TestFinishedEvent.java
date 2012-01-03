@@ -3,19 +3,23 @@ package com.carrotsearch.ant.tasks.junit4.events;
 import org.junit.runner.Description;
 
 
-@SuppressWarnings("serial")
 public class TestFinishedEvent extends AbstractEventWithDescription {
-  private final int time;
-  private final long startTimestamp;
-  
+  private int executionTime;
+  private long startTimestamp;
+
+  protected TestFinishedEvent() {
+    super(EventType.TEST_FINISHED);
+  }
+
   public TestFinishedEvent(Description description, int timeMillis, long startTimestamp) {
-    super(EventType.TEST_FINISHED, description);
-    this.time = timeMillis;
+    this();
+    this.executionTime = timeMillis;
     this.startTimestamp = startTimestamp;
+    setDescription(description);
   }
 
   public int getExecutionTime() {
-    return time;
+    return executionTime;
   }
 
   public long getStartTimestamp() {

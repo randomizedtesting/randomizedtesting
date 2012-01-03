@@ -219,7 +219,7 @@ public class SlaveMain {
     if (serializer != null) {
       try {
         serializer.serialize(new QuitEvent());
-        serializer.getOutputStream().close();
+        serializer.close();
       } catch (IOException e) {
         // Ignore.
       }

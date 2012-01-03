@@ -7,24 +7,28 @@ import java.util.TreeMap;
 /**
  * Initial message sent from the slave to the master (if forked locally).
  */
-@SuppressWarnings("serial")
 public class BootstrapEvent extends AbstractEvent {
+  /**
+   * Communication channel for events.
+   */
   public static enum EventChannelType {
     STDOUT,
-    STDERR,
-    SOCKET;
+    STDERR;
+    // SOCKET (?)
   }
 
   private EventChannelType eventChannel;
   private String defaultCharset;
   private Map<String, String> systemProperties;
 
-  public BootstrapEvent(EventChannelType channelType) {
+  /** No-args constructor for serialization. */
+  private BootstrapEvent() {
     super(EventType.BOOTSTRAP);
+  }
 
-    if (channelType == EventChannelType.SOCKET) {
-      throw new IllegalArgumentException("Not implemented, but possible.");
-    }
+  /** Preinitialization with local machine's configuration. */
+  public BootstrapEvent(EventChannelType channelType) {
+    this();
 
     this.defaultCharset = Charset.defaultCharset().name();
     this.eventChannel = channelType;

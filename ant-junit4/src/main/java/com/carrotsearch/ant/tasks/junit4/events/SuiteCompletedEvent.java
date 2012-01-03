@@ -6,21 +6,19 @@ import org.junit.runner.Description;
 /**
  * Serialized failure.
  */
-@SuppressWarnings("serial")
-public class SuiteCompletedEvent extends AbstractEvent {
-  private Description description;
+public class SuiteCompletedEvent extends AbstractEventWithDescription {
   private long startTimestamp;
   private long executionTime;
 
-  public SuiteCompletedEvent(Description description, long start, long duration) {
+  protected SuiteCompletedEvent() {
     super(EventType.SUITE_COMPLETED);
-    this.description = description;
-    this.startTimestamp = start;
-    this.executionTime = duration;
   }
 
-  public Description getDescription() {
-    return description;
+  public SuiteCompletedEvent(Description description, long start, long duration) {
+    this();
+    this.startTimestamp = start;
+    this.executionTime = duration;
+    setDescription(description);
   }
 
   public long getExecutionTime() {

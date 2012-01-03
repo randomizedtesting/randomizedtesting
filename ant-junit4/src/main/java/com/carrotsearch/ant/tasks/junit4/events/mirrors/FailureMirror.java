@@ -6,27 +6,36 @@ import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 
-@SuppressWarnings("serial")
-public class FailureMirror extends SerializableMirror<Throwable> implements Serializable {
+/**
+ * A type-safe mirror of {@link Failure}.
+ */
+public class FailureMirror {
   private String message;
-  private Description description;
   private String trace;
   private String throwableString;
   private String throwableClass;
 
-  /** Was [@link Failure} an instance of {@link AssertionError}? */
+  /** Was [@link Failure} an instance of an {@link AssertionError}? */
   private boolean assertionViolation;
   private boolean assumptionViolation;
 
+  /** Serialized byte[] form of the original failure or null if it couldn't be serialized. */
+  private SerializableMirror<Failure> serialized;
+
+  /** The test {@link Description} that caused this failure. */
+  private Description description;
+
   public FailureMirror(Failure failure) {
-    super(failure.getException());
+    this.serialized = SerializableMirror.of(failure);
     this.message = failure.getMessage();
     this.description = failure.getDescription();
     this.trace = failure.getTrace();
-    this.assertionViolation = failure.getException() instanceof AssertionError;
-    this.assumptionViolation = failure.getException() instanceof AssumptionViolatedException;
-    this.throwableString = failure.getException().toString();
-    this.throwableClass = failure.getException().getClass().getName();
+
+    final Throwable cause = failure.getException();
+    this.assertionViolation = cause instanceof AssertionError;
+    this.assumptionViolation = cause instanceof AssumptionViolatedException;
+    this.throwableString = cause.toString();
+    this.throwableClass = cause.getClass().getName();
   }
 
   public String getMessage() {
@@ -50,20 +59,13 @@ public class FailureMirror extends SerializableMirror<Throwable> implements Seri
    * for class lookup. May cause side effects (class loading, static blocks, etc.) 
    */
   public Throwable getThrowable() throws ClassNotFoundException, IOException {
-    return super.getDeserialized();
-  }
-  
-  /**
-   * Returns an {@link ObjectOutputStream} serialized form of the original exception.
-   */
-  public byte[] getThrowableBytes() {
-    return getBytes();
+    return serialized.getDeserialized().getException();
   }
 
   public boolean isAssumptionViolation() {
     return assumptionViolation;
   }
-  
+
   public boolean isAssertionViolation() {
     return assertionViolation;
   }  
