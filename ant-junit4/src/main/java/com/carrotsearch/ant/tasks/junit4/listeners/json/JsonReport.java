@@ -11,18 +11,15 @@ import org.junit.runner.Description;
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
-import com.carrotsearch.ant.tasks.junit4.events.json.JsonAnnotationAdapter;
-import com.carrotsearch.ant.tasks.junit4.events.json.JsonClassAdapter;
-import com.carrotsearch.ant.tasks.junit4.events.json.JsonDescriptionAdapter;
+import com.carrotsearch.ant.tasks.junit4.events.json.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.io.Closeables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * A report listener that produces a single JSON file for all suites and tests.
@@ -31,8 +28,7 @@ public class JsonReport implements AggregatedEventListener {
   private JUnit4 junit4;
   private File targetFile;
   
-  private OutputStreamWriter output;
-  private boolean firstSuite = true;
+  private JsonWriter jsonWriter;
   private Gson gson;
 
   private Map<Integer, SlaveInfo> slaves = Maps.newTreeMap();
@@ -57,28 +53,35 @@ public class JsonReport implements AggregatedEventListener {
 
     final ClassLoader refLoader = Thread.currentThread().getContextClassLoader(); 
     this.gson = new GsonBuilder()
-      .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonSuiteResultEventAdapter())
-      .registerTypeAdapter(AggregatedTestResultEvent.class, new JsonTestResultEventAdapter())
+      .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonAggregatedSuiteResultEventAdapter())
+      .registerTypeAdapter(AggregatedTestResultEvent.class, new JsonAggregatedTestResultEventAdapter())
       .registerTypeAdapter(FailureMirror.class, new JsonFailureMirrorAdapter())
       .registerTypeAdapter(SlaveInfo.class, new JsonSlaveInfoAdapter())
       .registerTypeHierarchyAdapter(Annotation.class, new JsonAnnotationAdapter(refLoader))
       .registerTypeHierarchyAdapter(Class.class, new JsonClassAdapter(refLoader))
       .registerTypeAdapter(Description.class, new JsonDescriptionAdapter())
-      .setDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+      .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS") // TODO: add second fractions here?
       .setPrettyPrinting().create();
 
     try {
-      this.output = new OutputStreamWriter(
-          new BufferedOutputStream(new FileOutputStream(targetFile)), 
-          Charsets.UTF_8);
+      jsonWriter = new JsonWriter(
+          new OutputStreamWriter(
+              new BufferedOutputStream(new FileOutputStream(targetFile)),Charsets.UTF_8));
+      jsonWriter.setHtmlSafe(false);
+      jsonWriter.setIndent("  ");
 
-      output.write("junit4 = ");
-      JsonObject ob = new JsonObject();
-      ob.addProperty("random", junit4.getSeed());
-      gson.toJson(ob, output);
-      output.write(";\n\n");
+      jsonWriter.beginObject(); // Main holder.
 
-      output.write("suites = [\n\n");
+      // junit4 object with properties.
+      jsonWriter.name("junit4");
+      jsonWriter.beginObject();
+      jsonWriter.name("tests.seed");
+      jsonWriter.value(junit4.getSeed());
+      jsonWriter.endObject();
+
+      // suites and an array of suites follows.
+      jsonWriter.name("suites");
+      jsonWriter.beginArray();
     } catch (IOException e) {
       throw new BuildException("Could not emit JSON report.", e);
     }
@@ -93,13 +96,8 @@ public class JsonReport implements AggregatedEventListener {
       if (gson == null)
         return;
 
-      if (!firstSuite) {
-        output.append(",\n\n");
-      }
-      firstSuite = false;
-
       slaves.put(e.getSlave().id, e.getSlave());
-      gson.toJson(e, output);
+      gson.toJson(e, e.getClass(), jsonWriter);
     } catch (Exception ex) {
       junit4.log("Error serializing to JSON file: "
           + ex.toString(), ex, Project.MSG_WARN);
@@ -113,12 +111,14 @@ public class JsonReport implements AggregatedEventListener {
   @Subscribe
   public void onQuit(AggregatedQuitEvent e) {
     try {
-      output.write("\n\n];\n\n");
+      jsonWriter.endArray();
 
-      output.write("slaves = ");
-      gson.toJson(slaves, output);
-      output.write(";");
-      Closeables.closeQuietly(output);
+      jsonWriter.name("slaves");
+      gson.toJson(slaves, slaves.getClass(), jsonWriter);
+
+      jsonWriter.endObject();
+      jsonWriter.close();
+      jsonWriter = null;
     } catch (IOException x) {
       // Ignore.
     }

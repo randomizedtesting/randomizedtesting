@@ -16,11 +16,18 @@ public class JsonFailureMirrorAdapter implements JsonSerializer<FailureMirror> {
     object.addProperty("throwableClass", e.getThrowableClass());
     object.addProperty("throwableString", e.getThrowableString());
     object.addProperty("stackTrace", e.getTrace());
-    
-    object.addProperty("assertionViolation", e.isAssertionViolation());
-    object.addProperty("assumptionViolation", e.isAssumptionViolation());
-    object.addProperty("errorViolation", e.isErrorViolation());
 
+    String throwableKind;
+    if (e.isAssertionViolation()) { 
+      throwableKind = "assertion";
+    } else if (e.isErrorViolation()) {
+      throwableKind = "error";
+    } else if (e.isAssumptionViolation()) {
+      throwableKind = "assumption";
+    } else {
+      throwableKind = "unknown";
+    }
+    object.addProperty("kind", throwableKind); 
     return object;
   }
 }

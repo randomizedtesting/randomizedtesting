@@ -127,7 +127,8 @@ public class AggregatingListener {
   @Subscribe
   public void receiveSuiteEnd(SuiteCompletedEvent e) {
     target.post(new AggregatedSuiteResultEvent(
-        slave, e.getDescription(), suiteFailures, Lists.newArrayList(tests), eventStream,
+        slave, e.getDescription(), suiteFailures, 
+        Lists.newArrayList(tests.descendingIterator()), eventStream,
         e.getStartTimestamp(), e.getExecutionTime()));
     this.suiteFailures = null;
     this.lastSuite = null;

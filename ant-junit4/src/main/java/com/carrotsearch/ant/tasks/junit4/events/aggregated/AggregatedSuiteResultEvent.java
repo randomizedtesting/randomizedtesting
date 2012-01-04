@@ -10,13 +10,15 @@ import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 
 public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
-  private final SlaveInfo slave;
+  private transient final SlaveInfo slave;
+
+  private final long executionTime;
+  private final long startTimestamp;
   private final Description description;
+
   private final List<AggregatedTestResultEvent> tests;
   private final List<FailureMirror> suiteFailures;
   private final List<IEvent> eventStream;
-  private final long executionTime;
-  private final long startTimestamp;
 
   public AggregatedSuiteResultEvent(SlaveInfo id, Description description, 
       List<FailureMirror> suiteFailures, List<AggregatedTestResultEvent> tests,

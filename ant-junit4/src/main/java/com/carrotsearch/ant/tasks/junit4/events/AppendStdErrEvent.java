@@ -1,6 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-public class AppendStdErrEvent extends AbstractEvent {
+public class AppendStdErrEvent extends AbstractEvent implements IStreamEvent {
   private byte[] chunk;
 
   public AppendStdErrEvent() {
