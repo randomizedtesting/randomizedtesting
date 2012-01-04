@@ -1,5 +1,7 @@
 
 <project name="junit4" default="statuses">
+    <property name="native.libs" location="${basedir}/../../src/native/lib" />
+
     <path id="junit.classpath">
         <fileset dir="..">
             <include name="dependency/junit-*.jar" />
@@ -206,7 +208,10 @@
     </target>
 
     <target name="jvmcrash">
+        <echo>${native.libs}</echo>
         <junit4.preconf>
+            <jvmarg value="-Djava.library.path=${native.libs}" />
+
             <fileset dir="${basedir}">
                 <include name="**/tests/TestJvmCrash.class" />
             </fileset>

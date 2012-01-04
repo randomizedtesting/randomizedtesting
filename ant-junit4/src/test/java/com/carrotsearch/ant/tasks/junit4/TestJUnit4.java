@@ -131,7 +131,10 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     for (File crashDump : cwd.listFiles()) {
       if (crashDump.isFile() && 
           (crashDump.getName().matches("^hs_err_pid.+\\.log") ||
-           crashDump.getName().endsWith(".mdmp"))) {
+           crashDump.getName().endsWith(".mdmp") ||
+           crashDump.getName().endsWith(".dmp") ||
+           crashDump.getName().endsWith(".dump") ||
+           crashDump.getName().endsWith(".trc"))) {
         crashDump.delete();
       }
     }
