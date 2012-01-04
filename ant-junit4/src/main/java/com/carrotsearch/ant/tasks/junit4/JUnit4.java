@@ -750,9 +750,9 @@ public class JUnit4 extends Task {
       getProject().log("Slave finished with exit code: " + exitStatus, Project.MSG_DEBUG);
 
       if (streamHandler.isErrorStreamNonEmpty()) {
-        log("-- error stream from forked JVM (verbatim) --", Project.MSG_ERR);
+        log(">>> error stream from forked JVM (verbatim) ----", Project.MSG_ERR);
         log(streamHandler.getErrorStreamAsString(), Project.MSG_ERR);
-        log("-- EOF --", Project.MSG_ERR);
+        log("<<< EOF ----", Project.MSG_ERR);
 
         // Anything on the altErr will cause a build failure.
         String msg = "Unexpected output from forked JVM. This" +

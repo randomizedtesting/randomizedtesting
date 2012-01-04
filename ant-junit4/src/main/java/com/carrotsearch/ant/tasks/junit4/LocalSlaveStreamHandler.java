@@ -136,6 +136,9 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
           t.printStackTrace(warnStream);
         }
       }
+    } catch (EOFException e) {
+      // This is a bit unexpected, but don't dump stack trace.
+      warnStream.println("Event stream error EOF?");
     } catch (IOException e) {
       warnStream.println("Event stream error: " + e.toString());
       e.printStackTrace(warnStream);
