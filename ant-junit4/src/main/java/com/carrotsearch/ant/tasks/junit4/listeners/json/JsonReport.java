@@ -15,6 +15,7 @@ import com.carrotsearch.ant.tasks.junit4.events.json.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
@@ -27,17 +28,29 @@ import com.google.gson.stream.JsonWriter;
 public class JsonReport implements AggregatedEventListener {
   private JUnit4 junit4;
   private File targetFile;
-  
+
+  private String jsonpMethod;
   private JsonWriter jsonWriter;
   private Gson gson;
 
   private Map<Integer, SlaveInfo> slaves = Maps.newTreeMap();
+  private OutputStreamWriter writer;
 
   /**
    * Output file for the report.
    */
   public void setFile(File file) {
     this.targetFile = file;
+  }
+
+  /**
+   * Sets wrapper method name for JSONP. If set to non-empty
+   * value, will change the output format to JSONP.
+   * 
+   * @see "http://en.wikipedia.org/wiki/JSONP"
+   */
+  public void setJsonpMethod(String method) {
+    this.jsonpMethod = Strings.emptyToNull(method);
   }
 
   /*
@@ -64,9 +77,15 @@ public class JsonReport implements AggregatedEventListener {
       .setPrettyPrinting().create();
 
     try {
-      jsonWriter = new JsonWriter(
-          new OutputStreamWriter(
-              new BufferedOutputStream(new FileOutputStream(targetFile)),Charsets.UTF_8));
+      writer = new OutputStreamWriter(
+          new BufferedOutputStream(new FileOutputStream(targetFile)),Charsets.UTF_8);
+      
+      if (!Strings.isNullOrEmpty(jsonpMethod)) {
+        writer.write(jsonpMethod);
+        writer.write("(");
+      }
+
+      jsonWriter = new JsonWriter(writer);
       jsonWriter.setHtmlSafe(false);
       jsonWriter.setIndent("  ");
 
@@ -117,8 +136,15 @@ public class JsonReport implements AggregatedEventListener {
       gson.toJson(slaves, slaves.getClass(), jsonWriter);
 
       jsonWriter.endObject();
+      jsonWriter.flush();
+
+      if (!Strings.isNullOrEmpty(jsonpMethod)) {
+        writer.write(");");
+      }
+
       jsonWriter.close();
       jsonWriter = null;
+      writer = null;
     } catch (IOException x) {
       // Ignore.
     }

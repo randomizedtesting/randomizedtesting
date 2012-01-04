@@ -20,7 +20,18 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Required at runtime. -->
+    <!-- Required for tests. -->
+
+    <!--
+    <dependency>
+        <groupId>org.mozilla</groupId>
+        <artifactId>rhino</artifactId>
+        <version>1.7R3</version>
+        <scope>test</scope>
+    </dependency>
+    -->
+
+    <!-- Required at runtime -->
 
     <dependency>
       <groupId>junit</groupId>

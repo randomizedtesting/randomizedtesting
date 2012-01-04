@@ -254,6 +254,7 @@
 
             <listeners>
                 <report-json file="json/report.json" />
+                <report-json jsonpMethod="callbackMethod" file="json/report.jsonp" />
             </listeners>
 
             <fileset dir="${basedir}">
