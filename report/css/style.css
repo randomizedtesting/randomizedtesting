@@ -207,7 +207,7 @@ body {
 header {
   padding: 10px 0;
   margin-top: 10px;
-  margin-right: 337px;
+  margin-right: 340px;
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   height: 40px;
@@ -277,6 +277,10 @@ header > h1 > strong {
 
 #summary > p {
   margin: 0 0 2px 0;
+}
+#summary.empty {
+  color: #888;
+  line-height: 52px;
 }
 
 

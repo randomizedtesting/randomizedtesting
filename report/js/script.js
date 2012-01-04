@@ -17,7 +17,7 @@
 
   var $table, $tools;
   var data = suites, aggregates;
-  var currentView, currentOrder, currentSearch;
+  var currentView, currentOrder, currentSearch = "";
 
   // Table definitions
   var tables = (function() {
@@ -109,6 +109,9 @@
         rows: function(data, aggregates) {
           var rows  = [];
           eachTest(data, function(test) {
+            if (!currentFilter(test)) {
+              return;
+            }
             rows.push({
               signature: test.description.packageName + "." + test.description.className + "." + test.description.methodName,
               result: test.status,
@@ -155,10 +158,13 @@
     function aggregatedRows(data, aggregateFunction) {
       var rows = [];
 
-      var counts = aggregate(data, testCount, { aggregate: aggregateFunction });
-      var times = aggregate(data, totalTime, { aggregate: aggregateFunction });
-      var statuses = aggregate(data, testCountByStatus, { aggregate: aggregateFunction });
+      var counts = aggregate(data, testCount, { aggregate: aggregateFunction }, currentFilter);
+      var times = aggregate(data, totalTime, { aggregate: aggregateFunction }, currentFilter);
+      var statuses = aggregate(data, testCountByStatus, { aggregate: aggregateFunction }, currentFilter);
 
+      if (!statuses.aggregate) {
+        return rows;
+      }
       $.each(statuses.aggregate, function(signature, statuses) {
         rows.push({
           signature: signature,
@@ -191,7 +197,7 @@
     });
 
     // Create global aggregations
-    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus });
+    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus }, noFilter);
 
     // Generate markup
     var $results = $("#results");
@@ -215,7 +221,7 @@
 
     // Results table tools
     $tools = $("<div id='tools'>\
-      <input type='search' placeholder='package, class, method name' />\
+      <input type='search' accesskey='s' placeholder='package, class, method name (Alt+Shift+S to focus)' />\
       view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a>\
     </div>").appendTo($results);
 
@@ -223,7 +229,7 @@
     // Results table
     $table = $("<table />").appendTo($results);
 
-    // Bind listeners through delegation
+    // Bind listeners
     $tools.on("click", "a", function () {
       currentView = $(this).attr("href").substring(1);
       refreshTable();
@@ -248,7 +254,6 @@
           currentOrder.columns.push(newSort);
           currentOrder.ascendings.push(true);
         }
-        console.log(currentOrder);
       } else {
         // Sort by just by the requested column or change sorting order
         var currentAscending = false;
@@ -265,6 +270,17 @@
       return false;
     });
 
+    $tools.find("input[type='search']").on("keyup click", function() {
+      var $this = $(this);
+      typewatch(function() {
+        var v = $.trim($this.val());
+        if (currentSearch != v) {
+          currentSearch = $this.val();
+          refresh();
+        }
+      }, 500);
+    });
+
     // If no failures or errors, show package view ordered by package name.
     // In case of errors or failures, show method view ordered by status.
     if (!(counts.byStatus[FAILURE] > 0 || counts.byStatus[ERROR] > 0)) {
@@ -275,10 +291,14 @@
       currentOrder = { columns:[ "result" ], ascendings:[ false ] };
     }
 
-    refreshTable();
-    refreshSummary();
+    refresh();
     return this;
   });
+
+  function refresh() {
+    refreshTable();
+    refreshSummary();
+  }
 
   // Refreshes the results table based on the current parameters
   function refreshTable() {
@@ -300,11 +320,15 @@
 
   // Refreshes the summary box based on the current parameters
   function refreshSummary() {
-    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus });
-    var times = aggregate(data, totalTime, { "global":global, "bySlave":bySlave });
+    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus }, currentFilter);
+    var times = aggregate(data, totalTime, { "global":global, "bySlave":bySlave }, currentFilter);
 
-    // Global summary
-    var $summary = $("#summary");
+    var $summary = $("#summary").html("").attr("class", "");
+    if ((counts.global || 0) == 0) {
+      $("#summary").append("No test results found").addClass("empty");
+      return;
+    }
+
     $("<p />").html(tmpl("\
         #{tests} executed in\
         #{time} ms on\
@@ -440,9 +464,13 @@
    * Aggregates the data using the provided aggregation function
    * and the provided set of key transformer functions.
    */
-  function aggregate(data, aggregation, keys) {
+  function aggregate(data, aggregation, keys, filter) {
     var a = { };
     eachTest(data, function(test) {
+      if (!filter(test)) {
+        return true;
+      }
+
       $.each(keys, function(id, key) {
         var k = key.call(this, test);
 
@@ -472,6 +500,23 @@
 
   function byClass(test) {
     return test.description.packageName + "." + test.description.className;
+  }
+
+  function noFilter(test) {
+    return true;
+  }
+
+  var searchTargetsByView = { packages: "packageName", classes: "className", methods: "methodName" };
+  function signatureSearchFilter(test) {
+    if ($.trim(currentSearch).length > 0) {
+      return test.description[searchTargetsByView[currentView]].indexOf(currentSearch) >= 0;
+    } else {
+      return true;
+    }
+  }
+
+  function currentFilter(test) {
+    return signatureSearchFilter(test);
   }
 
   function global() {
@@ -567,5 +612,13 @@
   
   function escape(string) {
     return typeof string === 'string' ? string.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&/g, "&amp;") : string;
-  } 
+  }
+
+  var typewatch = (function(){
+    var timer = 0;
+    return function(callback, ms){
+      clearTimeout (timer);
+      timer = setTimeout(callback, ms);
+    }
+  })();
 })(jQuery);
