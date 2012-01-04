@@ -13,11 +13,11 @@ ld -melf_i386 -shared -static -o lib/libcrash.so *.o
 # Windows, 32-bit
 rm *.o
 i686-w64-mingw32-gcc ${CFLAGS} -fPIC -c crash.c
-i686-w64-mingw32-ld -shared -static -o lib/crash.dll *.o
+i686-w64-mingw32-ld -shared -o lib/crash.dll *.o
 
 # Windows, 64-bit
 rm *.o
 x86_64-w64-mingw32-gcc ${CFLAGS} -fPIC -c crash.c
-x86_64-w64-mingw32-ld -shared -static -o lib/crash64.dll *.o
+x86_64-w64-mingw32-ld -shared -o lib/crash64.dll *.o
 
 rm *.o
