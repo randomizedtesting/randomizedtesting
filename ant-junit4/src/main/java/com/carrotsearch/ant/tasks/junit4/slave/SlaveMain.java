@@ -333,13 +333,13 @@ public class SlaveMain {
    * Warning emitter. Uses whatever alternative non-event communication channel is.
    */
   private static void warn(String string, Throwable t) {
-    if (warnings == null) return;
+    PrintStream w = (warnings == null ? System.err : warnings);
 
-    warnings.println("WARN: " + string);
+    w.println("WARN: " + string);
     if (t != null) {
-      warnings.println("      " + t.toString());
-      t.printStackTrace(stderr);
+      w.println("      " + t.toString());
+      t.printStackTrace(w);
     }
-    warnings.flush();
+    w.flush();
   }
 }
