@@ -15,7 +15,7 @@
   <version>0.0.5-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>RandomizedTesting</name>
+  <name>RandomizedTesting Parent POM</name>
   <url>http://labs.carrotsearch.com</url>
   <description>Foundation classes and rules for applying the principles of Randomized Testing.</description>
   <inceptionYear>2011</inceptionYear>
@@ -32,11 +32,7 @@
 
   <modules>
     <module>runner</module>
-    <module>examples</module>
     <module>ant-junit4</module>
-
-    <module>presentations/2011-barcelona</module>
-    <module>presentations/2011-poznan</module>
   </modules>
 
   <build>

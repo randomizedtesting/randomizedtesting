@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>ant-junit4</artifactId>
-  <name>JUnit4 task for ANT</name>
+  <name><![CDATA[RandomizedTesting ANT Task <junit4>]]></name>
 
   <dependencies>
     <dependency>
@@ -19,17 +19,6 @@
       <version>1.8.2</version>
       <scope>provided</scope>
     </dependency>
-
-    <!-- Required for tests. -->
-
-    <!--
-    <dependency>
-        <groupId>org.mozilla</groupId>
-        <artifactId>rhino</artifactId>
-        <version>1.7R3</version>
-        <scope>test</scope>
-    </dependency>
-    -->
 
     <!-- Required at runtime -->
 

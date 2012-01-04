@@ -1,7 +1,5 @@
-
 We're using Maven 3.x to reduce the size of the project. The top-level project
-is a parent aggregator for everything including examples and presentation demos,
-which you may want to skip.
+is a parent aggregator for everything else.
 
 # Compile, test and create JAR files.
 mvn clean package
