@@ -18,4 +18,4 @@ i686-w64-mingw32-gcc ${CFLAGS} -shared -o lib/crash.dll crash.c
 rm -f *.o
 x86_64-w64-mingw32-gcc ${CFLAGS} -shared -o lib/crash64.dll crash.c 
 
-rm *.o
+rm -f *.o
