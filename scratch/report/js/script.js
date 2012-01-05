@@ -16,8 +16,51 @@
   };
 
   var $table, $tools;
-  var data = suites, aggregates;
+  var data, aggregates;
   var currentView, currentOrder, currentSearch = "";
+
+  window.testData = function(d) {
+    data = d.suites;
+
+    var descriptionsById = { };
+
+    // Index descriptions by id
+    for (var i = 0; i < data.length; i++) {
+      map(data[i].description.children);
+    }
+
+    // Link object descriptions, split method names into semantic parts
+    eachTest(data, function (test) {
+      var description = descriptionsById[test.description];
+      test.description = description;
+
+      description.packageClassName = description.className;
+
+      var methodSplit = description.methodName.split(" ");
+      description.methodName = methodSplit[0];
+      description.methodExtras = methodSplit[1];
+
+      description.packageClassMethodName = description.className + "." + description.methodName;
+
+      var classSplit = description.className.split("\.");
+      description.className = classSplit.pop();
+      description.packageName = classSplit.join(".");
+    });
+
+    function map(children) {
+      for (var j = 0; j < children.length; j++) {
+        var child = children[j];
+        if (typeof child == 'object') {
+          descriptionsById[children[j].id] = child;
+          if (child.children) {
+            map(child.children);
+          }
+        } else {
+          children[j] = descriptionsById[child];
+        }
+      }
+    }
+  }
 
   // Table definitions
   var tables = (function() {
@@ -194,25 +237,6 @@
 
   // Initialize the table
   $(document).ready(function() {
-
-    // Global preprocessing of the data:
-    // Split method names into semantic parts
-    eachTest(data, function (test) {
-      var description = test.description;
-
-      description.packageClassName = description.className;
-
-      var methodSplit = description.methodName.split(" ");
-      description.methodName = methodSplit[0];
-      description.methodExtras = methodSplit[1];
-
-      description.packageClassMethodName = description.className + "." + description.methodName;
-
-      var classSplit = description.className.split("\.");
-      description.className = classSplit.pop();
-      description.packageName = classSplit.join(".");
-    });
-
     // Create global aggregations
     var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus }, noFilter);
 

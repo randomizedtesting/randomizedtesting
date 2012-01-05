@@ -26,6 +26,7 @@ TODO, must have:
 * multiple column sorting tip
 * fix white gaps in status bar
 * keyboard navigation + hints
+* fix changing column width when adding sorting
 
 
 Nice to have:
