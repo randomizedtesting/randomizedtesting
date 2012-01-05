@@ -342,7 +342,6 @@
 
     var $summary = $("#summary").html("").attr("class", "");
     if ((counts.global || 0) == 0) {
-      $("#summary").append("No test results found").addClass("empty");
       return;
     }
 
@@ -391,6 +390,13 @@
   function table(spec, data, order) {
     var html = [ ];
 
+    // Get the data
+    var rows = spec.rows(data);
+    if (rows.length == 0) {
+      html.push("<thead class='empty'><tr><th>", "No tests results found" ,"</th></tr></thead>");
+      return html.join("");
+    }
+
     var allColumnsById = map(spec.columns, function(c) { return c.id; });
     var orderColumns = [ ];
     for (var i = 0; i < order.columns.length; i++) {
@@ -415,9 +421,6 @@
     });
     html.push("</tr>");
     html.push("</thead>");
-
-    // Get the data
-    var rows = spec.rows(data);
 
     // Sort the data
     rows.sort(function(a, b) {

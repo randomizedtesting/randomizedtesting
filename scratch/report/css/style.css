@@ -457,6 +457,11 @@ td > em {
   background-color: #ffffd8;
 }
 
+#results > table > thead.empty > tr > th {
+  text-align: center;
+  padding: 20px 0;
+}
+
 #results {
   margin-top: 10px;
 }
