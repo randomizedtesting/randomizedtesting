@@ -1,4 +1,4 @@
-package com.carrotsearch.examples.randomizedtesting;
+package com.carrotsearch.examples.randomizedrunner;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
