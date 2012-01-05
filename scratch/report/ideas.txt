@@ -29,6 +29,7 @@ TODO, must have:
 * global start date in header (because individual tests report just time)
 * multiple column sorting tip
 * fix white gaps in status bar
+* keyboard navigation + hints
 
 
 Nice to have:

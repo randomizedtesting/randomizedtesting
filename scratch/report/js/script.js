@@ -113,7 +113,7 @@
               return;
             }
             rows.push({
-              signature: test.description.packageName + "." + test.description.className + "." + test.description.methodName,
+              signature: test.description.packageClassMethodName,
               result: test.status,
               time: test.executionTime,
               slave: test.slave,
@@ -187,13 +187,19 @@
     // Global preprocessing of the data:
     // Split method names into semantic parts
     eachTest(data, function (test) {
-      var methodSplit = test.description.methodName.split(" ");
-      test.description.methodName = methodSplit[0];
-      test.description.methodExtras = methodSplit[1];
+      var description = test.description;
 
-      var classSplit = test.description.className.split("\.");
-      test.description.className = classSplit.pop();
-      test.description.packageName = classSplit.join(".");
+      description.packageClassName = description.className;
+
+      var methodSplit = description.methodName.split(" ");
+      description.methodName = methodSplit[0];
+      description.methodExtras = methodSplit[1];
+
+      description.packageClassMethodName = description.className + "." + description.methodName;
+
+      var classSplit = description.className.split("\.");
+      description.className = classSplit.pop();
+      description.packageName = classSplit.join(".");
     });
 
     // Create global aggregations
@@ -499,14 +505,14 @@
   }
 
   function byClass(test) {
-    return test.description.packageName + "." + test.description.className;
+    return test.description.packageClassName;
   }
 
   function noFilter(test) {
     return true;
   }
 
-  var searchTargetsByView = { packages: "packageName", classes: "className", methods: "methodName" };
+  var searchTargetsByView = { packages: "packageName", classes: "packageClassName", methods: "packageClassMethodName" };
   function signatureSearchFilter(test) {
     if ($.trim(currentSearch).length > 0) {
       return test.description[searchTargetsByView[currentView]].indexOf(currentSearch) >= 0;
