@@ -174,7 +174,7 @@
           <includeGroupIds>com.carrotsearch.randomizedtesting,junit,asm</includeGroupIds>
         </configuration>
       </plugin>
-      
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -193,6 +193,14 @@
           <arguments>
             <argument>${project.build.directory}/rt.jar.pro</argument>
           </arguments>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <forceCreation>true</forceCreation>
         </configuration>
       </plugin>
 
@@ -240,7 +248,8 @@
 
           <addMavenDescriptor>true</addMavenDescriptor>
           <attach>true</attach>
-          <attachArtifactClassifier>standalone</attachArtifactClassifier>
+          <appendClassifier>false</appendClassifier>
+          <!-- <attachArtifactClassifier>standalone</attachArtifactClassifier> -->
           <obfuscate>true</obfuscate>
           <outputDirectory>${project.build.directory}</outputDirectory>
           <proguardInclude>${basedir}/src/proguard/rules.pro</proguardInclude>

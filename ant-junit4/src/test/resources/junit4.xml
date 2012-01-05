@@ -16,8 +16,9 @@
     <taskdef resource="junit4.antlib.xml">
         <classpath refid="junit.classpath" />
         <classpath>
-            <fileset dir="..">
-                <include name="ant-junit4-*-standalone.jar" />
+            <fileset dir=".." id="fileset.junit4">
+                <include name="ant-junit4-*.jar" />
+                <exclude name="*proguard_base.jar" />
             </fileset>
         </classpath>
     </taskdef>
@@ -292,9 +293,7 @@
     <target name="nojunit-task">
         <taskdef name="junit4-nojunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
             <classpath>
-                <fileset dir="..">
-                    <include name="ant-junit4-*-standalone.jar" />
-                </fileset>
+                <fileset refid="fileset.junit4" />
             </classpath>
         </taskdef>
 
@@ -312,9 +311,7 @@
                 <fileset dir="../..">
                     <include name="lib/junit-4.9.jar" />
                 </fileset>
-                <fileset dir="..">
-                    <include name="ant-junit4-*-standalone.jar" />
-                </fileset>
+                <fileset refid="fileset.junit4" />
             </classpath>
         </taskdef>
 
