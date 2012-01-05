@@ -33,6 +33,7 @@
   <modules>
     <module>runner</module>
     <module>ant-junit4</module>
+    <module>examples</module>
   </modules>
 
   <build>

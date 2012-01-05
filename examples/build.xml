@@ -1,0 +1,116 @@
+
+<project default="run">
+    <property name="dir.ant.tests" location="${basedir}/target/ant" />
+
+    <target name="warn">
+        <echo>
+#################################################################################
+      Ignore the information about failed tests. These are examples.
+#################################################################################
+        </echo>
+    </target>
+
+    <target name="setup">
+        <!-- We pull dependencies using maven. -->
+        <fail message="No classpath. Run 'mvn verify' on this project first (requires Maven 3.x).">
+            <condition>
+                <not>
+                    <available file="${basedir}/target/.classpath" type="file" />
+                </not>
+            </condition>
+        </fail>
+        <loadfile property="classpath.dependencies" srcfile="${dir.ant.tests}/.classpath" encoding="UTF-8" />
+    </target>
+
+    <target name="run" depends="warn, setup">
+        <!-- Make room for tests output and report. -->
+        <delete dir="${dir.ant.tests}/result-xml"  failonerror="false" quiet="true" />
+        <mkdir  dir="${dir.ant.tests}/result-xml"  />
+        <delete dir="${dir.ant.tests}/result-json" failonerror="false" quiet="true" />
+        <mkdir  dir="${dir.ant.tests}/result-json" />
+
+        <!-- 
+            Use JUnit4 to run the examples. This also shows every attribute
+            and nested element possible. Most settings are in their default 
+            values. 
+        -->
+
+        <taskdef resource="junit4.antlib.xml">
+            <classpath>
+                <fileset dir="${dir.ant.tests}/lib">
+                    <include name="ant-junit4-*.jar" />
+                    <include name="junit-*.jar" />
+                </fileset>
+            </classpath>
+        </taskdef>        
+
+        <junit4
+            jvm=""
+            dir="${dir.ant.tests}"
+            maxmemory="50m"
+            haltonfailure="false" 
+            failureProperty="tests.failed"
+            parallelism="1"
+            shuffleOnSlave="true"
+            leaveTemporary="false"
+            seed=""
+        >
+            <!-- Pulled in from Maven. -->
+            <classpath path="${classpath.dependencies}" />
+
+            <!-- Test selector. junit4 only supports *.class files but can work
+                 with any resource collections (parses class names from .class files). 
+              -->
+            <fileset dir="${basedir}/target/test-classes">
+                <include name="**/Test*.class" />
+            </fileset>
+
+            <!-- Nested elements much like in "standard" ANT 'junit' task. -->
+            <jvmarg value="-ea" />
+            <jvmarg value="-Dfoo=bar" />
+            <sysproperty key="foo" value="bar" />
+            <env key="env.foo" value="bar" />
+
+            <assertions>
+              <enable package="com.carrotsearch"/>
+            </assertions>            
+
+            <!-- Attached listeners -->
+            <listeners>
+                <!-- 
+                    Reporter emitting to console. Settings below show 'verbose'
+                    output in which each test case is individually shown along
+                    with its output. 
+                -->
+                <report-console 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutputStream="true" 
+                    showErrorStream="true"
+
+                    showStatusOk="true"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="false"
+                />
+
+                <!-- JSON reports. -->
+                <report-json file="${dir.ant.tests}/result-json/results.json"  />
+                <report-json file="${dir.ant.tests}/result-json/results.jsonp" jsonpMethod="callbackMethod" />
+
+                <!-- XML reports compatible with ant-report task. -->
+                <report-ant-xml dir="${dir.ant.tests}/result-xml" />
+            </listeners>
+        </junit4>
+
+        <!-- Run a "standard" JUnit report on the generated XML files. JSON report is recommended. -->
+        <junitreport todir="${dir.ant.tests}/result-xml">
+            <fileset dir="${dir.ant.tests}/result-xml">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${dir.ant.tests}/result-xml" />
+        </junitreport>
+    </target>
+</project>

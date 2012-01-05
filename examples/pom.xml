@@ -11,17 +11,15 @@
 
   <artifactId>randomizedtesting-examples</artifactId>
   <name>RandomizedTesting Examples</name>
-  
+
   <description>
   Simple use-case examples meant to be included in some
   end-user documentation if it's ever going to be written...
-
-  This project also runs JUnit tests in ANT and generates a report
-  to check if multiple failure reports are properly included.
   </description>
 
   <properties>
     <skip.deployment>true</skip.deployment>
+    <skipTests>true</skipTests>
   </properties>
 
   <dependencies>
@@ -29,6 +27,18 @@
       <groupId>com.carrotsearch.randomizedtesting</groupId>
       <artifactId>randomizedtesting-runner</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.carrotsearch.randomizedtesting</groupId>
+      <artifactId>ant-junit4</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -68,7 +78,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <!-- There are tests that will fail. They are examples after all. -->
           <testFailureIgnore>true</testFailureIgnore>
           <runOrder>random</runOrder>
         </configuration>
@@ -79,31 +88,27 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <id>ant-warn-tests</id>
-            <phase>test</phase>
-            <configuration>
-              <target>
-                <ant antfile="${basedir}/build.xml" inheritRefs="true"
-                  inheritAll="true" target="warn" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        
-          <execution>
             <id>ant-run-tests</id>
             <phase>integration-test</phase>
             <configuration>
               <target>
-                <!-- Save classpath to a temp. file so that local execution directly 
-                  from ant is possible. -->
+                <!-- 
+                    Save classpath to a temporary file so that local execution 
+                    directly from ant is possible. 
+                -->
                 <property name="test.classpath" refid="maven.test.classpath" />
-                <echo encoding="UTF-8" file="${project.build.directory}/.classpath">${test.classpath}</echo>
+                <echo encoding="UTF-8" file="${basedir}/target/ant/.classpath">${test.classpath}</echo>
 
-                <ant antfile="${basedir}/build.xml" inheritRefs="true"
-                  inheritAll="true" target="run" />
+                <copy toDir="${basedir}/target/ant/lib" overwrite="true" flatten="true">
+                  <resources>
+                     <file file="${com.carrotsearch.randomizedtesting:ant-junit4:jar}" />
+                     <file file="${junit:junit:jar}" />
+                  </resources>
+                </copy>
+
+                <ant antfile="${basedir}/build.xml" inheritRefs="true" inheritAll="true">
+                  <target>run</target>
+                </ant>
               </target>
             </configuration>
             <goals>
