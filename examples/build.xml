@@ -2,27 +2,19 @@
 <project default="run">
     <property name="dir.ant.tests" location="${basedir}/target/ant" />
 
-    <target name="warn">
-        <echo>
-#################################################################################
-      Ignore the information about failed tests. These are examples.
-#################################################################################
-        </echo>
-    </target>
-
     <target name="setup">
         <!-- We pull dependencies using maven. -->
         <fail message="No classpath. Run 'mvn verify' on this project first (requires Maven 3.x).">
             <condition>
                 <not>
-                    <available file="${basedir}/target/.classpath" type="file" />
+                    <available file="${dir.ant.tests}/.classpath" type="file" />
                 </not>
             </condition>
         </fail>
         <loadfile property="classpath.dependencies" srcfile="${dir.ant.tests}/.classpath" encoding="UTF-8" />
     </target>
 
-    <target name="run" depends="warn, setup">
+    <target name="run" depends="setup">
         <!-- Make room for tests output and report. -->
         <delete dir="${dir.ant.tests}/result-xml"  failonerror="false" quiet="true" />
         <mkdir  dir="${dir.ant.tests}/result-xml"  />
@@ -56,7 +48,7 @@
             shuffleOnSlave="true"
             leaveTemporary="false"
             seed=""
-            printSummary="true"
+            printSummary="false"
         >
             <!-- Pulled in from Maven. -->
             <classpath path="${classpath.dependencies}" />
