@@ -23,7 +23,7 @@
   var tables = (function() {
     // Common columns of the aggregated view tables 
     var aggregatedViewColumns = [
-      column("signature", "string", ""),
+      column("signature", "string", "", true),
       numericColumn("count", "Tests"),
       {
         id: "result",
@@ -53,7 +53,7 @@
     return {
       byMethod: {
         columns: [
-          column("signature", "string", "Method"),
+          column("signature", "string", "Method", true),
           {
             id: "result",
             label: "Result",
@@ -139,20 +139,31 @@
       }
     };
 
-    function column(id, type, label) {
+    function column(id, type, label, searchable) {
       return {
         id: id,
         sortable: true,
+        searchable: searchable,
         type: type,
         label: label,
         renderer: function(value, html) {
-          html.push(escape(value));
+          if (this.searchable && currentSearch) {
+            var s = currentSearch.toLowerCase(), sl = s.length, vlc = value.toLowerCase(), vl = value.length;
+            var start = 0, found = -1;
+            while ((found = vlc.indexOf(s, start)) >= 0) {
+              html.push(value.substring(start, found), "<em>", value.substring(found, found + sl), "</em>");
+              start = found + 1;
+            }
+            html.push(value.substring(start + sl - 1));
+          } else {
+            html.push(escape(value));
+          }
         }
       };
     }
 
     function numericColumn(id, label) {
-      return column(id, "numeric", label);
+      return column(id, "numeric", label, false);
     }
 
     function aggregatedRows(data, aggregateFunction) {
@@ -281,7 +292,7 @@
       typewatch(function() {
         var v = $.trim($this.val());
         if (currentSearch != v) {
-          currentSearch = $this.val();
+          currentSearch = v;
           refresh();
         }
       }, 500);
@@ -515,7 +526,7 @@
   var searchTargetsByView = { packages: "packageName", classes: "packageClassName", methods: "packageClassMethodName" };
   function signatureSearchFilter(test) {
     if ($.trim(currentSearch).length > 0) {
-      return test.description[searchTargetsByView[currentView]].indexOf(currentSearch) >= 0;
+      return test.description[searchTargetsByView[currentView]].toLowerCase().indexOf(currentSearch.toLowerCase()) >= 0;
     } else {
       return true;
     }

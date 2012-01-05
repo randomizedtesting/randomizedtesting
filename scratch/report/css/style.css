@@ -452,6 +452,10 @@ th.pass, th.ignored, th.error, th.failed {
 td.numeric {
   text-align: right;
 }
+td > em {
+  font-style: normal;
+  background-color: #ffffd8;
+}
 
 #results {
   margin-top: 10px;
