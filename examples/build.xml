@@ -28,6 +28,8 @@
         <mkdir  dir="${dir.ant.tests}/result-xml"  />
         <delete dir="${dir.ant.tests}/result-json" failonerror="false" quiet="true" />
         <mkdir  dir="${dir.ant.tests}/result-json" />
+        <delete dir="${dir.ant.tests}/result-txt"  failonerror="false" quiet="true" />
+        <mkdir  dir="${dir.ant.tests}/result-txt"  />
 
         <!-- 
             Use JUnit4 to run the examples. This also shows every attribute
@@ -54,6 +56,7 @@
             shuffleOnSlave="true"
             leaveTemporary="false"
             seed=""
+            printSummary="true"
         >
             <!-- Pulled in from Maven. -->
             <classpath path="${classpath.dependencies}" />
@@ -78,15 +81,70 @@
             <!-- Attached listeners -->
             <listeners>
                 <!-- 
-                    Reporter emitting to console. Settings below show 'verbose'
-                    output in which each test case is individually shown along
-                    with its output. 
+                    'verbose' config in which each suite and its test case is individually 
+                    shown along with its output, exceptions, stack traces etc. 
                 -->
-                <report-console 
+                <report-text
+                    file="${dir.ant.tests}/result-txt/results-verbose.txt"
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
                     showErrorStream="true"
+
+                    showStatusOk="true"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="true"
+                />
+
+                <!-- 
+                    'suite' maven-like output in which each test case is individually shown along
+                    with its output. No exceptions or stacks.
+                -->
+                <report-text
+                    file="${dir.ant.tests}/result-txt/results-suite.txt"
+                    showThrowable="false" 
+                    showStackTraces="false" 
+                    showOutputStream="false" 
+                    showErrorStream="false"
+
+                    showStatusOk="false"
+                    showStatusError="false"
+                    showStatusFailure="false"
+                    showStatusIgnored="false"
+
+                    showSuiteSummary="true"
+                />
+
+                <!--
+                    'quiet' output in which only errors are shown (without stacks).
+                -->
+                <report-text
+                    file="${dir.ant.tests}/result-txt/results-quiet.txt"
+                    showThrowable="true" 
+                    showStackTraces="false" 
+                    showOutputStream="false" 
+                    showErrorStream="false"
+
+                    showStatusOk="false"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="false"
+
+                    showSuiteSummary="false"
+                />
+
+                <!--
+                    All tests with status information.
+                -->
+                <report-text
+                    file="${dir.ant.tests}/result-txt/results-testlist.txt"
+                    showThrowable="false" 
+                    showStackTraces="false" 
+                    showOutputStream="false" 
+                    showErrorStream="false"
 
                     showStatusOk="true"
                     showStatusError="true"

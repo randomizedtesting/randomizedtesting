@@ -1,33 +1,26 @@
 package com.carrotsearch.ant.tasks.junit4.listeners;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Locale;
+import java.io.*;
+import java.util.*;
 
-import org.apache.tools.ant.Project;
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.JUnit4;
-import com.carrotsearch.ant.tasks.junit4.Pluralize;
-import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedResultEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedTestResultEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
+import com.carrotsearch.ant.tasks.junit4.*;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.Closeables;
+import com.google.common.io.Files;
 
 /**
  * A listener that will subscribe to test execution and dump
- * informational info about the progress to the console.
+ * informational info about the progress to the console or a text
+ * file.
  */
-public class ConsoleReport implements AggregatedEventListener {
+public class TextReport implements AggregatedEventListener {
   /*
    * Indents for outputs.
    */
@@ -81,7 +74,12 @@ public class ConsoleReport implements AggregatedEventListener {
   /**
    * The owner task.
    */
-  private JUnit4 task; 
+  private JUnit4 task;
+
+  /**
+   * A {@link Writer} if external file is used.
+   */
+  private Writer output; 
 
   public void setShowStatusError(boolean showStatusError)     { this.showStatusError = showStatusError;   }
   public void setShowStatusFailure(boolean showStatusFailure) { this.showStatusFailure = showStatusFailure; }
@@ -132,6 +130,15 @@ public class ConsoleReport implements AggregatedEventListener {
     this.showSuiteSummary = showSuiteSummary;
   }
 
+  /**
+   * Set an external file to write to.
+   */
+  public void setFile(File outputFile) throws IOException {
+    if (!outputFile.getName().isEmpty()) {
+      this.output = Files.newWriter(outputFile, Charsets.UTF_8);
+    }
+  }
+
   /*
    * 
    */
@@ -149,7 +156,7 @@ public class ConsoleReport implements AggregatedEventListener {
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) {
     if (showSuiteSummary) {
-      task.log("Running " + e.getDescription().getDisplayName());
+      log("Running " + e.getDescription().getDisplayName());
 
       for (AggregatedTestResultEvent test : e.getTests()) {
         format(test, test.getStatus(), test.getExecutionTime());
@@ -161,7 +168,7 @@ public class ConsoleReport implements AggregatedEventListener {
     }
 
     if (showSuiteSummary) {
-      task.log(
+      log(
           String.format("Tests run: %3d, Failures: %3d, Errors: %3d, Skipped %3d, Time: %.2fs%s",
               e.getTests().size(),
               e.getFailureCount(),
@@ -174,10 +181,26 @@ public class ConsoleReport implements AggregatedEventListener {
 
   @Subscribe
   public void onStart(AggregatedStartEvent e) {
-    task.log("Executing tests with " + 
-        e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".", Project.MSG_INFO);
+    log("Executing tests with " + 
+        e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".");
   }
-  
+
+  /**
+   * Log a message to the output.
+   */
+  private void log(String message) {
+    if (output == null) {
+      task.log(message);
+    } else {
+      try {
+        output.write(message);
+        output.write("\n");
+      } catch (IOException e) {
+        // Ignore, what to do.
+      }
+    }
+  }
+
   /*
    * 
    */
@@ -255,7 +278,14 @@ public class ConsoleReport implements AggregatedEventListener {
       }
     }
 
-    task.log(line.toString().trim(), Project.MSG_INFO);
+    log(line.toString().trim());
+  }
+
+  @Subscribe
+  public void onQuit(AggregatedQuitEvent e) {
+    if (output != null) {
+      Closeables.closeQuietly(output);
+    }
   }
 
   /*

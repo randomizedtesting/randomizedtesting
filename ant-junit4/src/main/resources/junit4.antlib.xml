@@ -13,7 +13,11 @@
 
     <typedef
         name="report-console" 
-        classname="com.carrotsearch.ant.tasks.junit4.listeners.ConsoleReport" />
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.TextReport" />
+
+    <typedef
+        name="report-text" 
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.TextReport" />
 
     <typedef
         name="report-ant-xml" 

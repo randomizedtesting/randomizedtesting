@@ -106,9 +106,7 @@
                   </resources>
                 </copy>
 
-                <ant antfile="${basedir}/build.xml" inheritRefs="true" inheritAll="true">
-                  <target>run</target>
-                </ant>
+                <ant antfile="${basedir}/build.xml" inheritRefs="true" inheritAll="true" target="run" />
               </target>
             </configuration>
             <goals>
