@@ -260,12 +260,23 @@
 
     // Results heading
     var heading = { };
-    if (counts.byStatus[FAILURE] > 0) {
-      heading.text = countText(counts.byStatus[FAILURE], "test") + " failed";
-      heading.class = FAILURE;
+    var numFailures = counts.byStatus[FAILURE];
+    var numErrors = counts.byStatus[ERROR];
+    if ((numFailures + numErrors) > 0) {
+      heading.text = "";
+      if (numFailures > 0) {
+        heading.text += countText(counts.byStatus[FAILURE], "test") + " failed";
+        heading.class = FAILURE;
+      }
+      if (numErrors > 0) {
+        if (numFailures > 0) {
+          heading.text += ", ";
+        }
+        heading.text += countText(counts.byStatus[ERROR], "test") + " had errors";
+        heading.class = ERROR;
+      }
+
     } else if (counts.byStatus[ERROR] > 0) {
-      heading.text = countText(counts.byStatus[ERROR], "test") + " had errors";
-      heading.class = ERROR;
     } else {
       heading.text = "tests successful";
       heading.class = OK;
