@@ -42,6 +42,15 @@ import com.carrotsearch.randomizedtesting.*;
  * {@link Integer#MIN_VALUE} as a random number and see what will happen.
  */
 public class Test003UsingRandomness extends RandomizedTest {
+  public static class Adder {
+    /**
+     * This method adds <code>a</code> and <code>b</code> and returns their sum.
+     */
+    public static int add(int a, int b) {
+      return a + b;
+    }  
+  }
+
   @Test
   public void fixedTesting() {
     // Note how we use superclass methods, RandomizedTest extends from

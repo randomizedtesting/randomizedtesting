@@ -230,6 +230,8 @@ public class RandomizedTest extends Assert {
    *   <li>on nightly runs, the number will be closer to max than to min.</li>
    * </ul>
    * 
+   * @see #multiplier()
+   * 
    * @param min Minimum (inclusive).
    * @param max Maximum (inclusive).
    * @return Returns a random number between min and max.

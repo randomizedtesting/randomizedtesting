@@ -49,6 +49,7 @@ public class TestRunawayThreads extends WithNestedTestClass {
     }.startAndJoin();
   }
 
+  @ThreadLeaks(linger = 2000)
   @Test
   public void ExecutorServiceContextPropagation() throws Throwable {
     final long seed = RandomizedContext.current().getRunnerRandomness().seed;
@@ -65,12 +66,6 @@ public class TestRunawayThreads extends WithNestedTestClass {
     } finally {
       executor.shutdown();
       executor.awaitTermination(1, TimeUnit.SECONDS);
-
-      // ExecutorService does not guarantee all threads acquired from a thread factory are actually
-      // terminated. We wait a little bit to ensure this is the case. A better approach would be to
-      // use a custom ThreadFactory but then it wouldn't be much different from just creating
-      // a thread manually.
-      Thread.sleep(500);
     }
   }
   
