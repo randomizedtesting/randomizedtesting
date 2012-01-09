@@ -22,15 +22,15 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
  * execution is shuffled.
  * 
  * <p>
- * In this example we have two classes that contain three methods (they're bound
+ * In this example we have two classes that contain three methods (they're nested
  * under a single suite class for simplicity). Every execution of class
- * {@link Test004MoreRandomness.TestsOrderRandomized} will be different, shuffling
- * methods order around (and the random numbers written to the output). 
- * We can "fix" the execution order by forcing the master random
+ * {@link Test004MoreRandomness.OrderRandomized} will be different, shuffling
+ * test methods around (and the random numbers written to the output). 
+ * We can "pin" the execution order by forcing the master random
  * seed using {@link Seed} annotation on the class (or a system property
  * {@link RandomizedRunner#SYSPROP_RANDOM_SEED}). Doing so also fixes all derivative random
- * generators in all tests so every execution of 
- * {@link Test004MoreRandomness.TestsOrderRandomizedButFixed}
+ * generators in all tests - this is shown in  
+ * {@link Test004MoreRandomness.OrderRandomizedButFixed}, every execution of this
  * class will be identical (and will emit identical pseudo-random numbers).
  * 
  * <p>
@@ -39,28 +39,29 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
  * that caused the failure and add appropriate {@link Seeds} annotation on the method
  * that failed like so:
  * <pre>
- * @Seeds({
- *   @Seed("012345"),
- *   @Seed()
+ * {@literal @}{@link Seeds}({
+ *   {@literal @}{@link Seed}("012345"),
+ *   {@literal @}{@link Seed}()
  * })
  * </pre>
  * where 012345 is the replaced by the seed that caused the failure. This makes
  * the test methods run with a fixed seed once and then with a random seed again,
  * easily creating a new regression test so that the bug does not reoccur in the 
  * future. An example of that is shown in 
- * {@link Test004MoreRandomness.TestsOrderRegression#regression()}. Also note
- * how {@link RandomizedRunner} names test cases for such "expanded" methods. This
- * is needed to avoid duplicate test {@link Description} objects (a design 
- * flaw in JUnit).
+ * {@link Test004MoreRandomness.OrderRegression#regression()}. Also note
+ * how {@link RandomizedRunner} modifies test method names for such "expanded" methods, appending
+ * the random seed as a parameter. This is needed to avoid duplicate 
+ * test {@link Description} objects (a design flaw in JUnit). We will see these parameters 
+ * again in the example concerning parameterized tests.
  */
 @RunWith(Suite.class)
 @SuiteClasses({
-  Test004MoreRandomness.TestsOrderRandomized.class,
-  Test004MoreRandomness.TestsOrderRandomizedButFixed.class,
-  Test004MoreRandomness.TestsOrderRegression.class
+  Test004MoreRandomness.OrderRandomized.class,
+  Test004MoreRandomness.OrderRandomizedButFixed.class,
+  Test004MoreRandomness.OrderRegression.class
 })
 public class Test004MoreRandomness {
-  public static class TestsOrderRandomized extends RandomizedTest {
+  public static class OrderRandomized extends RandomizedTest {
     @Test public void method1() { System.out.println("method1, " + randomInt()); }
     @Test public void method2() { System.out.println("method2, " + randomInt()); }
     @Test public void method3() { System.out.println("method3, " + randomInt()); }
@@ -72,10 +73,10 @@ public class Test004MoreRandomness {
   }
 
   @Seed("deadbeef")
-  public static class TestsOrderRandomizedButFixed extends TestsOrderRandomized {
+  public static class OrderRandomizedButFixed extends OrderRandomized {
   }
 
-  public static class TestsOrderRegression extends RandomizedTest {
+  public static class OrderRegression extends RandomizedTest {
     @Seeds({
       @Seed("deadbeef"),
       @Seed()
