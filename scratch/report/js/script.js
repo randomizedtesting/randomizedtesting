@@ -5,7 +5,7 @@
   var ERROR = "ERROR";
   var IGNORED = "IGNORED";
   var IGNORED_ASSUMPTION = "IGNORED_ASSUMPTION";
-  
+
   var statusOrder = [ OK, IGNORED_ASSUMPTION, IGNORED, ERROR, FAILURE ];
   var statusLabels = {
     OK: "OK",
@@ -15,10 +15,11 @@
     IGNORED_ASSUMPTION: "IGNORED"
   };
 
-  var $table, $tools;
+  var $table, $search, $tools;
   var data, aggregates;
-  var currentView, currentOrder, currentSearch = "";
+  var currentView, currentOrder, currentSearch = "", wasDrilldown = false;
 
+  // This function will be called by the JSONP data file
   window.testData = function(d) {
     data = d.suites;
 
@@ -94,7 +95,7 @@
     ];
 
     return {
-      byMethod: {
+      methods: {
         columns: [
           column("signature", "string", "Method", true),
           {
@@ -167,20 +168,34 @@
         }
       },
 
-      byPackage: {
+      packages: {
         columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Package" } ]),
         rows: function(data) {
           return aggregatedRows(data, byPackage);
+        },
+        drilldown: function($row) {
+          drilldown($row, "classes");
         }
       },
 
-      byClass: {
+      classes: {
         columns: $.extend(true, [], aggregatedViewColumns, [ { label: "Class" } ]),
         rows: function(data) {
           return aggregatedRows(data, byClass);
+        },
+        drilldown: function($row) {
+          drilldown($row, "methods");
         }
       }
     };
+
+    function drilldown($row, view) {
+      var search = $row.find("td:eq(0)").text();
+      $search.val(search);
+      currentSearch = search;
+      currentView = view;
+      refresh();
+    }
 
     function column(id, type, label, searchable) {
       return {
@@ -195,9 +210,9 @@
             var start = 0, found = -1;
             while ((found = vlc.indexOf(s, start)) >= 0) {
               html.push(value.substring(start, found), "<em>", value.substring(found, found + sl), "</em>");
-              start = found + 1;
+              start = found + sl;
             }
-            html.push(value.substring(start + sl - 1));
+            html.push(value.substring(start));
           } else {
             html.push(escape(value));
           }
@@ -273,8 +288,35 @@
     // Bind listeners
     $tools.on("click", "a", function () {
       currentView = $(this).attr("href").substring(1);
+
+      // If the search seems to be a fully qualified method/class name,
+      // strip the the last components to match the view type so that the
+      // "no test results found" message does not appear.
+      if (wasDrilldown) {
+        var split = currentSearch.split(/\./);
+        if (split.length > 1) {
+          if (currentView == "classes") {
+            strip(split, true);
+            $search.val(split.join(".")).trigger("drilldownUpdate");
+          } else if (currentView == "packages") {
+            $search.val("").trigger("drilldownUpdate");
+          }
+        }
+      }
+
       refreshTable();
       return false;
+
+      function strip(split, splitIfUpper) {
+        var method = split[split.length - 1];
+        var firstLetter = method.charAt(0);
+        if ((splitIfUpper && firstLetter == firstLetter.toUpperCase()) ||
+            (!splitIfUpper && firstLetter == firstLetter.toLowerCase())) {
+          split.pop();
+          return true;
+        }
+        return false;
+      }
     });
 
     $table.on("click", "th.sortable", function (e) {
@@ -311,15 +353,23 @@
       return false;
     });
 
-    $tools.find("input[type='search']").on("keyup click", function() {
+    $table.on("click", "tr.drilldown", function() {
+      $table.data("source").spec.drilldown($(this));
+      wasDrilldown = true;
+    });
+
+    $search = $tools.find("input[type='search']").on("keyup click drilldownUpdate", function(e) {
       var $this = $(this);
       typewatch(function() {
         var v = $.trim($this.val());
         if (currentSearch != v) {
+          if (e.type != "drilldownUpdate") {
+            wasDrilldown = false;
+          }
           currentSearch = v;
           refresh();
         }
-      }, 500);
+      }, e.type == "drilldownUpdate" ? 0 : 500);
     });
 
     // If no failures or errors, show package view ordered by package name.
@@ -343,19 +393,12 @@
 
   // Refreshes the results table based on the current parameters
   function refreshTable() {
-    switch (currentView) {
-      case "packages":
-        $table.html(table(tables.byPackage, data, currentOrder)).attr("class", "package");
-        break;
-
-      case "classes":
-        $table.html(table(tables.byClass, data, currentOrder)).attr("class", "class");
-        break;
-
-      case "methods":
-        $table.html(table(tables.byMethod, data, currentOrder)).attr("class", "method");
-        break;
-    }
+    table($table.data("source", {
+      data: data,
+      order: currentOrder,
+      type: currentView,
+      spec: tables[currentView]
+    }));
     $tools.find("a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
   }
 
@@ -411,14 +454,19 @@
   }
 
   // Renders contents of a table according to the provided spec
-  function table(spec, data, order) {
+  function table($table) {
+    var source = $table.data("source");
+    var spec = source.spec, data = source.data, order = source.order;
+
     var html = [ ];
+    $table.attr("class", source.type);
 
     // Get the data
     var rows = spec.rows(data);
     if (rows.length == 0) {
       html.push("<thead class='empty'><tr><th>", "No tests results found" ,"</th></tr></thead>");
-      return html.join("");
+      $table.html(html.join(""));
+      return;
     }
 
     var allColumnsById = map(spec.columns, function(c) { return c.id; });
@@ -461,8 +509,9 @@
 
     // Render table rows
     html.push("<tbody>");
+    var rowStart = spec.drilldown ? "<tr class='drilldown'>" : "<tr>";
     $.each(rows, function(i, row) {
-      html.push("<tr>");
+      html.push(rowStart);
       $.each(spec.columns, function(i, column) {
         html.push("<td class='", column.type, " ", column.id, "'>");
         column.renderer(row[column.id], html);
@@ -472,7 +521,7 @@
     });
     html.push("</tbody>");
 
-    return html.join("");
+    $table.html(html.join(""));
   }
 
   function time(id, code) {
@@ -503,7 +552,7 @@
     html.push("</ul>");
     return html.join("");
   };
-  
+
   /**
    * Aggregates the data using the provided aggregation function
    * and the provided set of key transformer functions.
@@ -537,7 +586,7 @@
   function bySlave(test) {
     return test.slave;
   }
-  
+
   function byPackage(test) {
     return test.description.packageName;
   }
@@ -632,28 +681,28 @@
   // Dual licensed under the MIT and GPL licenses
   function tmpl(tmpl, vals) {
     var rgxp, repr;
-      
+
     tmpl = tmpl  || '';
     vals = vals || {};
-      
+
     // regular expression for matching placeholders
     rgxp = /#\{([^{}]*)}/g;
-   
+
     // make replacements
     repr = function (str, match) {
       var m = match.split(":");
       var v = m[0];
       var t = m[1];
       return typeof vals[v] === 'string' && t != "raw" ? e(vals[v]) : vals[v];
-      
+
       function e(content) {
         return content ? escape(content) : content;
       }
     };
-    
+
     return tmpl.replace(rgxp, repr);
   }
-  
+
   function escape(string) {
     return typeof string === 'string' ? string.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&/g, "&amp;") : string;
   }

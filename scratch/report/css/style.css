@@ -418,16 +418,19 @@ td.signature {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+tr.drilldown {
+  cursor: pointer;
+}
 th.count {
   width: 4em;
 }
 th.result {
   width: 7em;
 }
-table.method th.result {
+table.methods th.result {
   width: 5em;
 }
-#results > table.method > tbody > tr > td.result {
+#results > table.methods > tbody > tr > td.result {
   padding-top: 6px;
 }
 #results > table > tbody > tr > td.result {
@@ -517,7 +520,8 @@ td > em {
   float: left;
   position: relative;
   top: -8px;
-  width: 30em;
+  min-width: 30em;
+  width: 50%;
   border: 1px solid #e0e0e0;
   padding: 3px;
   border-radius: 2px;

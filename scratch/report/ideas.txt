@@ -57,6 +57,7 @@ Testing:
 * All passed
 * One vs many (string formatting)
 * Performance
+* Classes in the default package
 
 
 DONE:
