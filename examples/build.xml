@@ -58,6 +58,7 @@
               -->
             <fileset dir="${basedir}/target/test-classes">
                 <include name="**/Test*.class" />
+                <exclude name="**/*$*" />
             </fileset>
 
             <!-- Nested elements much like in "standard" ANT 'junit' task. -->
