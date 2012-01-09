@@ -485,6 +485,11 @@
         ascending: order.ascendings[i]
       };
     }
+    // Last implicit order by signature, makes things more predictable
+    orderColumns.push({
+      column: allColumnsById["signature"],
+      ascending: true
+    });
     var orderColumnsById = map (orderColumns, function(o) { return o.column.id; });
 
     // Render column headers
