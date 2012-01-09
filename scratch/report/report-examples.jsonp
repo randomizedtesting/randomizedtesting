@@ -1,0 +1,2356 @@
+testData({
+  "junit4": {
+    "tests.seed": "A2B84F92B17817ED"
+  },
+  "suites": [
+    {
+      "slave": 0,
+      "startTimestamp": 1326110838811,
+      "startTimestampDate": "2012-01-09T13:07:18.811",
+      "executionTime": 110,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test014Listeners[2]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test014Listeners",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test014Listeners",
+        "annotations": [
+          {
+            "com.carrotsearch.randomizedtesting.annotations.Listeners": {
+              "value": [
+                "com.carrotsearch.randomizedtesting.listeners.ReproduceInfoPrinter"
+              ]
+            }
+          },
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#failure(com.carrotsearch.examples.randomizedrunner.Test014Listeners)[0]",
+            "displayName": "failure(com.carrotsearch.examples.randomizedrunner.Test014Listeners)",
+            "methodName": "failure",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test014Listeners",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110838829,
+          "startTimestampDate": "2012-01-09T13:07:18.829",
+          "executionTime": 81,
+          "description": "id#failure(com.carrotsearch.examples.randomizedrunner.Test014Listeners)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "junit.framework.AssertionFailedError",
+              "throwableString": "junit.framework.AssertionFailedError",
+              "stackTrace": "junit.framework.AssertionFailedError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:490CE51917D5D7DB]:0)\n\tat junit.framework.Assert.fail(Assert.java:48)\n\tat junit.framework.Assert.assertTrue(Assert.java:20)\n\tat junit.framework.Assert.assertTrue(Assert.java:27)\n\tat com.carrotsearch.examples.randomizedrunner.Test014Listeners.failure(Test014Listeners.java:28)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "failure(com.carrotsearch.examples.randomizedrunner.Test014Listeners)"
+        },
+        {
+          "event": "APPEND_STDERR",
+          "content": "FAILURE  : failure(com.carrotsearch.examples.randomizedrunner.Test014Listeners)\nMessage  : null\nReproduce:  -Dtests.seed\u003dA2B84F92B17817ED -Dtests.class\u003dcom.carrotsearch.examples.randomizedrunner.Test014Listeners -Dtests.method\u003dfailure -Dfile.encoding\u003dUTF-8\nThrowable:\njunit.framework.AssertionFailedError\n    __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:490CE51917D5D7DB]:0)\n    [...junit.framework.*]\n    com.carrotsearch.examples.randomizedrunner.Test014Listeners.failure(Test014Listeners.java:28)\n    [...sun.*, com.carrotsearch.randomizedtesting.*, java.lang.reflect.*]\n\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "failure(com.carrotsearch.examples.randomizedrunner.Test014Listeners)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839078,
+      "startTimestampDate": "2012-01-09T13:07:19.078",
+      "executionTime": 65,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness[2]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness",
+        "annotations": [
+          {
+            "org.junit.runners.Suite$SuiteClasses": {
+              "value": [
+                "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized",
+                "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed",
+                "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression"
+              ]
+            }
+          },
+          {
+            "org.junit.runner.RunWith": {
+              "value": "org.junit.runners.Suite"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized[1]",
+            "displayName": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized",
+            "annotations": [
+              {
+                "org.junit.runner.RunWith": {
+                  "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+                }
+              }
+            ],
+            "children": [
+              {
+                "id": "id#method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)[0]",
+                "displayName": "method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)",
+                "methodName": "method1",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)[0]",
+                "displayName": "method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)",
+                "methodName": "method2",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)[0]",
+                "displayName": "method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)",
+                "methodName": "method3",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized",
+                "annotations": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "id#com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed[2]",
+            "displayName": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed",
+            "annotations": [
+              {
+                "org.junit.runner.RunWith": {
+                  "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+                }
+              },
+              {
+                "com.carrotsearch.randomizedtesting.annotations.Seed": {
+                  "value": "deadbeef"
+                }
+              }
+            ],
+            "children": [
+              {
+                "id": "id#method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)[0]",
+                "displayName": "method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)",
+                "methodName": "method1",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)[0]",
+                "displayName": "method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)",
+                "methodName": "method2",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)[0]",
+                "displayName": "method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)",
+                "methodName": "method3",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed",
+                "annotations": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "id#com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression[1]",
+            "displayName": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression",
+            "annotations": [
+              {
+                "org.junit.runner.RunWith": {
+                  "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+                }
+              }
+            ],
+            "children": [
+              {
+                "id": "id#regression[0]",
+                "displayName": "regression",
+                "className": "regression",
+                "annotations": [],
+                "children": [
+                  {
+                    "id": "id#regression {#0 seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)[0]",
+                    "displayName": "regression {#0 seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)",
+                    "methodName": "regression {#0 seed\u003d[A2B84F92B17817ED:DEADBEEF]}",
+                    "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression",
+                    "annotations": [],
+                    "children": []
+                  },
+                  {
+                    "id": "id#regression {#1 seed\u003d[A2B84F92B17817ED:813210944930041D]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)[0]",
+                    "displayName": "regression {#1 seed\u003d[A2B84F92B17817ED:813210944930041D]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)",
+                    "methodName": "regression {#1 seed\u003d[A2B84F92B17817ED:813210944930041D]}",
+                    "className": "com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression",
+                    "annotations": [],
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839107,
+          "startTimestampDate": "2012-01-09T13:07:19.107",
+          "executionTime": 2,
+          "description": "id#method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839110,
+          "startTimestampDate": "2012-01-09T13:07:19.110",
+          "executionTime": 1,
+          "description": "id#method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839112,
+          "startTimestampDate": "2012-01-09T13:07:19.112",
+          "executionTime": 3,
+          "description": "id#method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839117,
+          "startTimestampDate": "2012-01-09T13:07:19.117",
+          "executionTime": 2,
+          "description": "id#method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839119,
+          "startTimestampDate": "2012-01-09T13:07:19.119",
+          "executionTime": 2,
+          "description": "id#method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839132,
+          "startTimestampDate": "2012-01-09T13:07:19.132",
+          "executionTime": 2,
+          "description": "id#method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839135,
+          "startTimestampDate": "2012-01-09T13:07:19.135",
+          "executionTime": 2,
+          "description": "id#regression {#0 seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839139,
+          "startTimestampDate": "2012-01-09T13:07:19.139",
+          "executionTime": 2,
+          "description": "id#regression {#1 seed\u003d[A2B84F92B17817ED:813210944930041D]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "method1, 2056798187\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "method2, -363228172\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "method3, 280302561\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomized)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "--\n"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "method1, 2056798187\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "method1(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "method2, -363228172\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "method2(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "method3, 280302561\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "method3(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRandomizedButFixed)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "--\n"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "regression {#0 seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "regression, 568599855\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "regression {#0 seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "regression {#1 seed\u003d[A2B84F92B17817ED:813210944930041D]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "regression, -727974979\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "regression {#1 seed\u003d[A2B84F92B17817ED:813210944930041D]}(com.carrotsearch.examples.randomizedrunner.Test004MoreRandomness$OrderRegression)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839156,
+      "startTimestampDate": "2012-01-09T13:07:19.156",
+      "executionTime": 62,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test013Validators[2]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test013Validators",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test013Validators",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          },
+          {
+            "com.carrotsearch.randomizedtesting.annotations.Validators": {
+              "value": [
+                "com.carrotsearch.randomizedtesting.validators.NoJUnit3TestMethods"
+              ]
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#testIAm(com.carrotsearch.examples.randomizedrunner.Test013Validators)[0]",
+            "displayName": "testIAm(com.carrotsearch.examples.randomizedrunner.Test013Validators)",
+            "methodName": "testIAm",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test013Validators",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [],
+      "suiteFailures": [
+        {
+          "throwableClass": "java.lang.RuntimeException",
+          "throwableString": "java.lang.RuntimeException: Class com.carrotsearch.examples.randomizedrunner.Test013Validators has a public instance method starting with \u0027test\u0027 that is not annotated with @Test, possibly a dead JUnit3 test case: public void com.carrotsearch.examples.randomizedrunner.Test013Validators.testOopsImNot()",
+          "stackTrace": "java.lang.RuntimeException: Class com.carrotsearch.examples.randomizedrunner.Test013Validators has a public instance method starting with \u0027test\u0027 that is not annotated with @Test, possibly a dead JUnit3 test case: public void com.carrotsearch.examples.randomizedrunner.Test013Validators.testOopsImNot()\n\tat com.carrotsearch.randomizedtesting.validators.NoJUnit3TestMethods.validate(NoJUnit3TestMethods.java:32)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runCustomValidators(RandomizedRunner.java:1064)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:507)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+          "kind": "error"
+        }
+      ],
+      "executionEvents": []
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839222,
+      "startTimestampDate": "2012-01-09T13:07:19.222",
+      "executionTime": 7,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#success(com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase)[0]",
+            "displayName": "success(com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase)",
+            "methodName": "success",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839228,
+          "startTimestampDate": "2012-01-09T13:07:19.228",
+          "executionTime": 0,
+          "description": "id#success(com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "success(com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "success(com.carrotsearch.examples.randomizedrunner.Test001SimpleUseCase)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839237,
+      "startTimestampDate": "2012-01-09T13:07:19.237",
+      "executionTime": 69,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#expectNoException(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)[0]",
+            "displayName": "expectNoException(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)",
+            "methodName": "expectNoException",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#fixedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)[0]",
+            "displayName": "fixedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)",
+            "methodName": "fixedTesting",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#randomizedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)[0]",
+            "displayName": "randomizedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)",
+            "methodName": "randomizedTesting",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839272,
+          "startTimestampDate": "2012-01-09T13:07:19.272",
+          "executionTime": 8,
+          "description": "id#expectNoException(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.ArrayIndexOutOfBoundsException",
+              "throwableString": "java.lang.ArrayIndexOutOfBoundsException: -3",
+              "stackTrace": "java.lang.ArrayIndexOutOfBoundsException: -3\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:D4379BBD0A916B69]:0)\n\tat com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness.expectNoException(Test003UsingRandomness.java:81)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839281,
+          "startTimestampDate": "2012-01-09T13:07:19.281",
+          "executionTime": 10,
+          "description": "id#fixedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839292,
+          "startTimestampDate": "2012-01-09T13:07:19.292",
+          "executionTime": 13,
+          "description": "id#randomizedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError: -553088376 \u003c (1853152603 or 1888726317)?",
+              "stackTrace": "java.lang.AssertionError: -553088376 \u003c (1853152603 or 1888726317)?\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:D68581CBA1034EAC]:0)\n\tat org.junit.Assert.fail(Assert.java:93)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness.randomizedTesting(Test003UsingRandomness.java:69)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "expectNoException(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "my\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "expectNoException(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "fixedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "fixedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "randomizedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "randomizedTesting(com.carrotsearch.examples.randomizedrunner.Test003UsingRandomness)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839334,
+      "startTimestampDate": "2012-01-09T13:07:19.334",
+      "executionTime": 16,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test012TestGroups[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test012TestGroups",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test012TestGroups",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#usesDisplay(com.carrotsearch.examples.randomizedrunner.Test012TestGroups)[0]",
+            "displayName": "usesDisplay(com.carrotsearch.examples.randomizedrunner.Test012TestGroups)",
+            "methodName": "usesDisplay",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test012TestGroups",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839348,
+          "startTimestampDate": "2012-01-09T13:07:19.348",
+          "executionTime": 2,
+          "description": "id#usesDisplay(com.carrotsearch.examples.randomizedrunner.Test012TestGroups)[0]",
+          "status": "IGNORED",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "usesDisplay(com.carrotsearch.examples.randomizedrunner.Test012TestGroups)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "usesDisplay(com.carrotsearch.examples.randomizedrunner.Test012TestGroups)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839417,
+      "startTimestampDate": "2012-01-09T13:07:19.417",
+      "executionTime": 136,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#paramsWithRepeatAndSeeds[0]",
+            "displayName": "paramsWithRepeatAndSeeds",
+            "className": "paramsWithRepeatAndSeeds",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#0 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#0 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#0 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#1 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#1 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#1 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#2 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#2 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#2 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#3 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#3 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#3 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#0 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#0 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#0 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#1 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#1 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#1 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#2 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#2 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#2 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#paramsWithRepeatAndSeeds {#3 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "paramsWithRepeatAndSeeds {#3 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "paramsWithRepeatAndSeeds {#3 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "id#simpleArgumentsConsumer[0]",
+            "displayName": "simpleArgumentsConsumer",
+            "className": "simpleArgumentsConsumer",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#simpleArgumentsConsumer {value\u003d1 string\u003dabc}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "simpleArgumentsConsumer {value\u003d1 string\u003dabc}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "simpleArgumentsConsumer {value\u003d1 string\u003dabc}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#simpleArgumentsConsumer {value\u003d2 string\u003ddef}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+                "displayName": "simpleArgumentsConsumer {value\u003d2 string\u003ddef}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)",
+                "methodName": "simpleArgumentsConsumer {value\u003d2 string\u003ddef}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests",
+                "annotations": [],
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839468,
+          "startTimestampDate": "2012-01-09T13:07:19.468",
+          "executionTime": 2,
+          "description": "id#paramsWithRepeatAndSeeds {#0 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839471,
+          "startTimestampDate": "2012-01-09T13:07:19.471",
+          "executionTime": 15,
+          "description": "id#paramsWithRepeatAndSeeds {#1 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839486,
+          "startTimestampDate": "2012-01-09T13:07:19.486",
+          "executionTime": 9,
+          "description": "id#paramsWithRepeatAndSeeds {#2 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839496,
+          "startTimestampDate": "2012-01-09T13:07:19.496",
+          "executionTime": 3,
+          "description": "id#paramsWithRepeatAndSeeds {#3 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839499,
+          "startTimestampDate": "2012-01-09T13:07:19.499",
+          "executionTime": 22,
+          "description": "id#simpleArgumentsConsumer {value\u003d1 string\u003dabc}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839522,
+          "startTimestampDate": "2012-01-09T13:07:19.522",
+          "executionTime": 6,
+          "description": "id#paramsWithRepeatAndSeeds {#0 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839529,
+          "startTimestampDate": "2012-01-09T13:07:19.529",
+          "executionTime": 2,
+          "description": "id#paramsWithRepeatAndSeeds {#1 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839532,
+          "startTimestampDate": "2012-01-09T13:07:19.532",
+          "executionTime": 1,
+          "description": "id#paramsWithRepeatAndSeeds {#2 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839548,
+          "startTimestampDate": "2012-01-09T13:07:19.548",
+          "executionTime": 2,
+          "description": "id#paramsWithRepeatAndSeeds {#3 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839551,
+          "startTimestampDate": "2012-01-09T13:07:19.551",
+          "executionTime": 2,
+          "description": "id#simpleArgumentsConsumer {value\u003d2 string\u003ddef}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#0 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "1 abc [Randomness, seed\u003d[DEADBEEF]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#0 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#1 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "1 abc [Randomness, seed\u003d[DEADBEEF]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#1 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#2 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "1 abc [Randomness, seed\u003d[CAFEBABE]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#2 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#3 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "1 abc [Randomness, seed\u003d[CAFEBABE]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#3 value\u003d1 string\u003dabc seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "simpleArgumentsConsumer {value\u003d1 string\u003dabc}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "1 abc [Randomness, seed\u003d[E9929DC749BDF72F]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "simpleArgumentsConsumer {value\u003d1 string\u003dabc}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#0 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "2 def [Randomness, seed\u003d[DEADBEEF]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#0 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#1 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "2 def [Randomness, seed\u003d[DEADBEEF]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#1 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:DEADBEEF]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#2 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "2 def [Randomness, seed\u003d[CAFEBABE]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#2 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "paramsWithRepeatAndSeeds {#3 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "2 def [Randomness, seed\u003d[CAFEBABE]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "paramsWithRepeatAndSeeds {#3 value\u003d2 string\u003ddef seed\u003d[A2B84F92B17817ED:CAFEBABE]}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "simpleArgumentsConsumer {value\u003d2 string\u003ddef}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "2 def [Randomness, seed\u003d[E9929DC749BDF72F]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "simpleArgumentsConsumer {value\u003d2 string\u003ddef}(com.carrotsearch.examples.randomizedrunner.Test007ParameterizedTests)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839576,
+      "startTimestampDate": "2012-01-09T13:07:19.576",
+      "executionTime": 30,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#getContextByHand(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)[0]",
+            "displayName": "getContextByHand(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)",
+            "methodName": "getContextByHand",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#getContextFromSuper(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)[0]",
+            "displayName": "getContextFromSuper(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)",
+            "methodName": "getContextFromSuper",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839596,
+          "startTimestampDate": "2012-01-09T13:07:19.596",
+          "executionTime": 2,
+          "description": "id#getContextByHand(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839599,
+          "startTimestampDate": "2012-01-09T13:07:19.599",
+          "executionTime": 1,
+          "description": "id#getContextFromSuper(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "getContextByHand(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "Random, next int: -498032562\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "getContextByHand(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "getContextFromSuper(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "Random, next int: -1401690162\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "getContextFromSuper(com.carrotsearch.examples.randomizedrunner.Test002ExtendingRandomizedTest)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839618,
+      "startTimestampDate": "2012-01-09T13:07:19.618",
+      "executionTime": 258,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed[2]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          },
+          {
+            "com.carrotsearch.randomizedtesting.annotations.Seed": {
+              "value": "AF567B2B9F8A8F1C"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#failure(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)[0]",
+            "displayName": "failure(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)",
+            "methodName": "failure",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#printContext(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)[0]",
+            "displayName": "printContext(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)",
+            "methodName": "printContext",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839627,
+          "startTimestampDate": "2012-01-09T13:07:19.627",
+          "executionTime": 5,
+          "description": "id#failure(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:490CE51917D5D7DB]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed.failure(Test005RecoveringRandomSeed.java:81)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839819,
+          "startTimestampDate": "2012-01-09T13:07:19.819",
+          "executionTime": 2,
+          "description": "id#printContext(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "APPEND_STDOUT",
+          "content": "# Static context (@BeforeClass)\nA2B84F92B17817ED\n[Randomness, seed\u003d[A2B84F92B17817ED]]\n"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "failure(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "failure(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "printContext(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "# Test context (@Test)\nA2B84F92B17817ED\n[Randomness, seed\u003d[E3B629E7E8EFF33E]]\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "printContext(com.carrotsearch.examples.randomizedrunner.Test005RecoveringRandomSeed)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110839884,
+      "startTimestampDate": "2012-01-09T13:07:19.884",
+      "executionTime": 440,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#halfAndHalf[0]",
+            "displayName": "halfAndHalf",
+            "className": "halfAndHalf",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#halfAndHalf {#0 seed\u003d[A2B84F92B17817ED:95DD3F45E326A291]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#0 seed\u003d[A2B84F92B17817ED:95DD3F45E326A291]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#0 seed\u003d[A2B84F92B17817ED:95DD3F45E326A291]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#1 seed\u003d[A2B84F92B17817ED:218B83B9D7E469BD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#1 seed\u003d[A2B84F92B17817ED:218B83B9D7E469BD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#1 seed\u003d[A2B84F92B17817ED:218B83B9D7E469BD]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#2 seed\u003d[A2B84F92B17817ED:AF62156586202176]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#2 seed\u003d[A2B84F92B17817ED:AF62156586202176]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#2 seed\u003d[A2B84F92B17817ED:AF62156586202176]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#3 seed\u003d[A2B84F92B17817ED:9E8CBE80EADE7A5F]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#3 seed\u003d[A2B84F92B17817ED:9E8CBE80EADE7A5F]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#3 seed\u003d[A2B84F92B17817ED:9E8CBE80EADE7A5F]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#4 seed\u003d[A2B84F92B17817ED:D24D3B2D4BD6BAE4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#4 seed\u003d[A2B84F92B17817ED:D24D3B2D4BD6BAE4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#4 seed\u003d[A2B84F92B17817ED:D24D3B2D4BD6BAE4]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#5 seed\u003d[A2B84F92B17817ED:43B7E872366AF7E4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#5 seed\u003d[A2B84F92B17817ED:43B7E872366AF7E4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#5 seed\u003d[A2B84F92B17817ED:43B7E872366AF7E4]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#6 seed\u003d[A2B84F92B17817ED:7D698CF4245AE7E2]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#6 seed\u003d[A2B84F92B17817ED:7D698CF4245AE7E2]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#6 seed\u003d[A2B84F92B17817ED:7D698CF4245AE7E2]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#7 seed\u003d[A2B84F92B17817ED:E1DA168E074E734C]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#7 seed\u003d[A2B84F92B17817ED:E1DA168E074E734C]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#7 seed\u003d[A2B84F92B17817ED:E1DA168E074E734C]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#8 seed\u003d[A2B84F92B17817ED:D376F3E070856416]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#8 seed\u003d[A2B84F92B17817ED:D376F3E070856416]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#8 seed\u003d[A2B84F92B17817ED:D376F3E070856416]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#halfAndHalf {#9 seed\u003d[A2B84F92B17817ED:4FDA55A14D25344]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "halfAndHalf {#9 seed\u003d[A2B84F92B17817ED:4FDA55A14D25344]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "halfAndHalf {#9 seed\u003d[A2B84F92B17817ED:4FDA55A14D25344]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "id#repeatFailure[0]",
+            "displayName": "repeatFailure",
+            "className": "repeatFailure",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#repeatFailure {#0 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "repeatFailure {#0 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "repeatFailure {#0 seed\u003d[A2B84F92B17817ED:F00DDEAD]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#repeatFailure {#1 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "repeatFailure {#1 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "repeatFailure {#1 seed\u003d[A2B84F92B17817ED:F00DDEAD]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#repeatFailure {#2 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "repeatFailure {#2 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "repeatFailure {#2 seed\u003d[A2B84F92B17817ED:F00DDEAD]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#repeatFailure {#3 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "repeatFailure {#3 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "repeatFailure {#3 seed\u003d[A2B84F92B17817ED:F00DDEAD]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#repeatFailure {#4 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+                "displayName": "repeatFailure {#4 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)",
+                "methodName": "repeatFailure {#4 seed\u003d[A2B84F92B17817ED:F00DDEAD]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests",
+                "annotations": [],
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110839932,
+          "startTimestampDate": "2012-01-09T13:07:19.932",
+          "executionTime": 6,
+          "description": "id#halfAndHalf {#0 seed\u003d[A2B84F92B17817ED:95DD3F45E326A291]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:95DD3F45E326A291]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.halfAndHalf(Test006RepeatingTests.java:48)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840111,
+          "startTimestampDate": "2012-01-09T13:07:20.111",
+          "executionTime": 3,
+          "description": "id#halfAndHalf {#1 seed\u003d[A2B84F92B17817ED:218B83B9D7E469BD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840115,
+          "startTimestampDate": "2012-01-09T13:07:20.115",
+          "executionTime": 1,
+          "description": "id#halfAndHalf {#2 seed\u003d[A2B84F92B17817ED:AF62156586202176]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840117,
+          "startTimestampDate": "2012-01-09T13:07:20.117",
+          "executionTime": 1,
+          "description": "id#halfAndHalf {#3 seed\u003d[A2B84F92B17817ED:9E8CBE80EADE7A5F]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840118,
+          "startTimestampDate": "2012-01-09T13:07:20.118",
+          "executionTime": 1,
+          "description": "id#halfAndHalf {#4 seed\u003d[A2B84F92B17817ED:D24D3B2D4BD6BAE4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840120,
+          "startTimestampDate": "2012-01-09T13:07:20.120",
+          "executionTime": 1,
+          "description": "id#halfAndHalf {#5 seed\u003d[A2B84F92B17817ED:43B7E872366AF7E4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840122,
+          "startTimestampDate": "2012-01-09T13:07:20.122",
+          "executionTime": 9,
+          "description": "id#halfAndHalf {#6 seed\u003d[A2B84F92B17817ED:7D698CF4245AE7E2]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:7D698CF4245AE7E2]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.halfAndHalf(Test006RepeatingTests.java:48)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840140,
+          "startTimestampDate": "2012-01-09T13:07:20.140",
+          "executionTime": 1,
+          "description": "id#halfAndHalf {#7 seed\u003d[A2B84F92B17817ED:E1DA168E074E734C]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840142,
+          "startTimestampDate": "2012-01-09T13:07:20.142",
+          "executionTime": 4,
+          "description": "id#halfAndHalf {#8 seed\u003d[A2B84F92B17817ED:D376F3E070856416]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:D376F3E070856416]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.halfAndHalf(Test006RepeatingTests.java:48)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840192,
+          "startTimestampDate": "2012-01-09T13:07:20.192",
+          "executionTime": 2,
+          "description": "id#halfAndHalf {#9 seed\u003d[A2B84F92B17817ED:4FDA55A14D25344]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840194,
+          "startTimestampDate": "2012-01-09T13:07:20.194",
+          "executionTime": 4,
+          "description": "id#repeatFailure {#0 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:F00DDEAD]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.repeatFailure(Test006RepeatingTests.java:42)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840206,
+          "startTimestampDate": "2012-01-09T13:07:20.206",
+          "executionTime": 4,
+          "description": "id#repeatFailure {#1 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:F00DDEAD]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.repeatFailure(Test006RepeatingTests.java:42)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840210,
+          "startTimestampDate": "2012-01-09T13:07:20.210",
+          "executionTime": 5,
+          "description": "id#repeatFailure {#2 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:F00DDEAD]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.repeatFailure(Test006RepeatingTests.java:42)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840292,
+          "startTimestampDate": "2012-01-09T13:07:20.292",
+          "executionTime": 4,
+          "description": "id#repeatFailure {#3 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:F00DDEAD]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.repeatFailure(Test006RepeatingTests.java:42)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840316,
+          "startTimestampDate": "2012-01-09T13:07:20.316",
+          "executionTime": 4,
+          "description": "id#repeatFailure {#4 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)[0]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:F00DDEAD]:0)\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests.repeatFailure(Test006RepeatingTests.java:42)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assertion"
+            }
+          ]
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#0 seed\u003d[A2B84F92B17817ED:95DD3F45E326A291]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#0 seed\u003d[A2B84F92B17817ED:95DD3F45E326A291]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#1 seed\u003d[A2B84F92B17817ED:218B83B9D7E469BD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#1 seed\u003d[A2B84F92B17817ED:218B83B9D7E469BD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#2 seed\u003d[A2B84F92B17817ED:AF62156586202176]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#2 seed\u003d[A2B84F92B17817ED:AF62156586202176]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#3 seed\u003d[A2B84F92B17817ED:9E8CBE80EADE7A5F]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#3 seed\u003d[A2B84F92B17817ED:9E8CBE80EADE7A5F]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#4 seed\u003d[A2B84F92B17817ED:D24D3B2D4BD6BAE4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#4 seed\u003d[A2B84F92B17817ED:D24D3B2D4BD6BAE4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#5 seed\u003d[A2B84F92B17817ED:43B7E872366AF7E4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#5 seed\u003d[A2B84F92B17817ED:43B7E872366AF7E4]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#6 seed\u003d[A2B84F92B17817ED:7D698CF4245AE7E2]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#6 seed\u003d[A2B84F92B17817ED:7D698CF4245AE7E2]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#7 seed\u003d[A2B84F92B17817ED:E1DA168E074E734C]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#7 seed\u003d[A2B84F92B17817ED:E1DA168E074E734C]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#8 seed\u003d[A2B84F92B17817ED:D376F3E070856416]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#8 seed\u003d[A2B84F92B17817ED:D376F3E070856416]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "halfAndHalf {#9 seed\u003d[A2B84F92B17817ED:4FDA55A14D25344]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "halfAndHalf {#9 seed\u003d[A2B84F92B17817ED:4FDA55A14D25344]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "repeatFailure {#0 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "repeatFailure {#0 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "repeatFailure {#1 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "repeatFailure {#1 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "repeatFailure {#2 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "repeatFailure {#2 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "repeatFailure {#3 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "repeatFailure {#3 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "repeatFailure {#4 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "repeatFailure {#4 seed\u003d[A2B84F92B17817ED:F00DDEAD]}(com.carrotsearch.examples.randomizedrunner.Test006RepeatingTests)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110840327,
+      "startTimestampDate": "2012-01-09T13:07:20.327",
+      "executionTime": 34,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test011NightlyTests[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test011NightlyTests",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test011NightlyTests",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#nightlyOnlyWithAssume(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)[0]",
+            "displayName": "nightlyOnlyWithAssume(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)",
+            "methodName": "nightlyOnlyWithAssume",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test011NightlyTests",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#nightlyOnly(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)[0]",
+            "displayName": "nightlyOnly(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)",
+            "methodName": "nightlyOnly",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test011NightlyTests",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#scaling(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)[0]",
+            "displayName": "scaling(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)",
+            "methodName": "scaling",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test011NightlyTests",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840340,
+          "startTimestampDate": "2012-01-09T13:07:20.340",
+          "executionTime": 12,
+          "description": "id#nightlyOnlyWithAssume(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)[0]",
+          "status": "IGNORED_ASSUMPTION",
+          "testFailures": [
+            {
+              "throwableClass": "org.junit.internal.AssumptionViolatedException",
+              "throwableString": "org.junit.internal.AssumptionViolatedException: got: \u003cfalse\u003e, expected: is \u003ctrue\u003e",
+              "stackTrace": "org.junit.internal.AssumptionViolatedException: got: \u003cfalse\u003e, expected: is \u003ctrue\u003e\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:485444E3849A909]:0)\n\tat org.junit.Assume.assumeThat(Assume.java:70)\n\tat org.junit.Assume.assumeTrue(Assume.java:39)\n\tat com.carrotsearch.examples.randomizedrunner.Test011NightlyTests.nightlyOnlyWithAssume(Test011NightlyTests.java:39)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSuite(RandomizedRunner.java:542)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$300(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$2.run(RandomizedRunner.java:464)\n",
+              "kind": "assumption"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840356,
+          "startTimestampDate": "2012-01-09T13:07:20.356",
+          "executionTime": 1,
+          "description": "id#nightlyOnly(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)[0]",
+          "status": "IGNORED",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840358,
+          "startTimestampDate": "2012-01-09T13:07:20.358",
+          "executionTime": 2,
+          "description": "id#scaling(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "nightlyOnlyWithAssume(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "nightlyOnlyWithAssume(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "nightlyOnly(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "nightlyOnly(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "scaling(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "Mode: daily\nMultiplier: 1.0\nrandom scaled int \u003d 20\nrandom scaled int \u003d 26\nrandom scaled int \u003d 21\nrandom scaled int \u003d 35\nrandom scaled int \u003d 17\nrandom scaled int \u003d 25\nrandom scaled int \u003d 1\nrandom scaled int \u003d 10\nrandom scaled int \u003d 25\nrandom scaled int \u003d 7\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "scaling(com.carrotsearch.examples.randomizedrunner.Test011NightlyTests)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110840370,
+      "startTimestampDate": "2012-01-09T13:07:20.370",
+      "executionTime": 1575,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test010Lingering[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#executorLeak[0]",
+            "displayName": "executorLeak",
+            "className": "executorLeak",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#executorLeak {#0 seed\u003d[A2B84F92B17817ED:FFAAA1606FECC804]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#0 seed\u003d[A2B84F92B17817ED:FFAAA1606FECC804]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#0 seed\u003d[A2B84F92B17817ED:FFAAA1606FECC804]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#1 seed\u003d[A2B84F92B17817ED:4BFC1D9C5B2E0328]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#1 seed\u003d[A2B84F92B17817ED:4BFC1D9C5B2E0328]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#1 seed\u003d[A2B84F92B17817ED:4BFC1D9C5B2E0328]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#2 seed\u003d[A2B84F92B17817ED:C5158B400AEA4BE3]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#2 seed\u003d[A2B84F92B17817ED:C5158B400AEA4BE3]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#2 seed\u003d[A2B84F92B17817ED:C5158B400AEA4BE3]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#3 seed\u003d[A2B84F92B17817ED:F4FB20A5661410CA]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#3 seed\u003d[A2B84F92B17817ED:F4FB20A5661410CA]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#3 seed\u003d[A2B84F92B17817ED:F4FB20A5661410CA]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#4 seed\u003d[A2B84F92B17817ED:B83AA508C71CD071]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#4 seed\u003d[A2B84F92B17817ED:B83AA508C71CD071]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#4 seed\u003d[A2B84F92B17817ED:B83AA508C71CD071]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#5 seed\u003d[A2B84F92B17817ED:29C07657BAA09D71]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#5 seed\u003d[A2B84F92B17817ED:29C07657BAA09D71]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#5 seed\u003d[A2B84F92B17817ED:29C07657BAA09D71]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#6 seed\u003d[A2B84F92B17817ED:171E12D1A8908D77]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#6 seed\u003d[A2B84F92B17817ED:171E12D1A8908D77]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#6 seed\u003d[A2B84F92B17817ED:171E12D1A8908D77]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#7 seed\u003d[A2B84F92B17817ED:8BAD88AB8B8419D9]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#7 seed\u003d[A2B84F92B17817ED:8BAD88AB8B8419D9]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#7 seed\u003d[A2B84F92B17817ED:8BAD88AB8B8419D9]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#8 seed\u003d[A2B84F92B17817ED:B9016DC5FC4F0E83]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#8 seed\u003d[A2B84F92B17817ED:B9016DC5FC4F0E83]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#8 seed\u003d[A2B84F92B17817ED:B9016DC5FC4F0E83]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              },
+              {
+                "id": "id#executorLeak {#9 seed\u003d[A2B84F92B17817ED:6E8A3B7F981839D1]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+                "displayName": "executorLeak {#9 seed\u003d[A2B84F92B17817ED:6E8A3B7F981839D1]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+                "methodName": "executorLeak {#9 seed\u003d[A2B84F92B17817ED:6E8A3B7F981839D1]}",
+                "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+                "annotations": [],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "id#lingerForLeftOverThread(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+            "displayName": "lingerForLeftOverThread(com.carrotsearch.examples.randomizedrunner.Test010Lingering)",
+            "methodName": "lingerForLeftOverThread",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test010Lingering",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840380,
+          "startTimestampDate": "2012-01-09T13:07:20.380",
+          "executionTime": 75,
+          "description": "id#executorLeak {#0 seed\u003d[A2B84F92B17817ED:FFAAA1606FECC804]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-1-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-1-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:FFAAA1606FECC804]:0)\n\tat sun.misc.Unsafe.unpark(Native Method)\n\tat java.util.concurrent.locks.LockSupport.unpark(LockSupport.java:122)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.unparkSuccessor(AbstractQueuedSynchronizer.java:640)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.release(AbstractQueuedSynchronizer.java:1242)\n\tat java.util.concurrent.locks.ReentrantLock.unlock(ReentrantLock.java:431)\n\tat java.util.concurrent.ThreadPoolExecutor.workerDone(ThreadPoolExecutor.java:1013)\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:912)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840456,
+          "startTimestampDate": "2012-01-09T13:07:20.456",
+          "executionTime": 37,
+          "description": "id#executorLeak {#1 seed\u003d[A2B84F92B17817ED:4BFC1D9C5B2E0328]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840494,
+          "startTimestampDate": "2012-01-09T13:07:20.494",
+          "executionTime": 44,
+          "description": "id#executorLeak {#2 seed\u003d[A2B84F92B17817ED:C5158B400AEA4BE3]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840540,
+          "startTimestampDate": "2012-01-09T13:07:20.540",
+          "executionTime": 66,
+          "description": "id#executorLeak {#3 seed\u003d[A2B84F92B17817ED:F4FB20A5661410CA]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-4-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-4-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:F4FB20A5661410CA]:0)\n\tat sun.misc.Unsafe.unpark(Native Method)\n\tat java.util.concurrent.locks.LockSupport.unpark(LockSupport.java:122)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.unparkSuccessor(AbstractQueuedSynchronizer.java:640)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.release(AbstractQueuedSynchronizer.java:1242)\n\tat java.util.concurrent.locks.ReentrantLock.unlock(ReentrantLock.java:431)\n\tat java.util.concurrent.ThreadPoolExecutor.workerDone(ThreadPoolExecutor.java:1013)\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:912)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840610,
+          "startTimestampDate": "2012-01-09T13:07:20.610",
+          "executionTime": 55,
+          "description": "id#executorLeak {#4 seed\u003d[A2B84F92B17817ED:B83AA508C71CD071]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-5-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-5-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:B83AA508C71CD071]:0)\n\tat sun.misc.Unsafe.unpark(Native Method)\n\tat java.util.concurrent.locks.LockSupport.unpark(LockSupport.java:122)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.unparkSuccessor(AbstractQueuedSynchronizer.java:640)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.release(AbstractQueuedSynchronizer.java:1242)\n\tat java.util.concurrent.locks.ReentrantLock.unlock(ReentrantLock.java:431)\n\tat java.util.concurrent.ThreadPoolExecutor.workerDone(ThreadPoolExecutor.java:1013)\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:912)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840669,
+          "startTimestampDate": "2012-01-09T13:07:20.669",
+          "executionTime": 57,
+          "description": "id#executorLeak {#5 seed\u003d[A2B84F92B17817ED:29C07657BAA09D71]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-6-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-6-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:29C07657BAA09D71]:0)\n\tat sun.misc.Unsafe.unpark(Native Method)\n\tat java.util.concurrent.locks.LockSupport.unpark(LockSupport.java:122)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.unparkSuccessor(AbstractQueuedSynchronizer.java:640)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.release(AbstractQueuedSynchronizer.java:1242)\n\tat java.util.concurrent.locks.ReentrantLock.unlock(ReentrantLock.java:431)\n\tat java.util.concurrent.ThreadPoolExecutor.workerDone(ThreadPoolExecutor.java:1013)\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:912)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840735,
+          "startTimestampDate": "2012-01-09T13:07:20.735",
+          "executionTime": 67,
+          "description": "id#executorLeak {#6 seed\u003d[A2B84F92B17817ED:171E12D1A8908D77]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-7-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-7-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:171E12D1A8908D77]:0)\n\tat sun.misc.Unsafe.unpark(Native Method)\n\tat java.util.concurrent.locks.LockSupport.unpark(LockSupport.java:122)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.unparkSuccessor(AbstractQueuedSynchronizer.java:640)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.release(AbstractQueuedSynchronizer.java:1242)\n\tat java.util.concurrent.locks.ReentrantLock.unlock(ReentrantLock.java:431)\n\tat java.util.concurrent.ThreadPoolExecutor.workerDone(ThreadPoolExecutor.java:1013)\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:912)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840806,
+          "startTimestampDate": "2012-01-09T13:07:20.806",
+          "executionTime": 59,
+          "description": "id#executorLeak {#7 seed\u003d[A2B84F92B17817ED:8BAD88AB8B8419D9]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-8-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[pool-8-thread-50,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:8BAD88AB8B8419D9]:0)\n\tat sun.misc.Unsafe.unpark(Native Method)\n\tat java.util.concurrent.locks.LockSupport.unpark(LockSupport.java:122)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.unparkSuccessor(AbstractQueuedSynchronizer.java:640)\n\tat java.util.concurrent.locks.AbstractQueuedSynchronizer.release(AbstractQueuedSynchronizer.java:1242)\n\tat java.util.concurrent.locks.ReentrantLock.unlock(ReentrantLock.java:431)\n\tat java.util.concurrent.ThreadPoolExecutor.workerDone(ThreadPoolExecutor.java:1013)\n\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:912)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840868,
+          "startTimestampDate": "2012-01-09T13:07:20.868",
+          "executionTime": 40,
+          "description": "id#executorLeak {#8 seed\u003d[A2B84F92B17817ED:B9016DC5FC4F0E83]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840909,
+          "startTimestampDate": "2012-01-09T13:07:20.909",
+          "executionTime": 26,
+          "description": "id#executorLeak {#9 seed\u003d[A2B84F92B17817ED:6E8A3B7F981839D1]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110840936,
+          "startTimestampDate": "2012-01-09T13:07:20.936",
+          "executionTime": 1008,
+          "description": "id#lingerForLeftOverThread(com.carrotsearch.examples.randomizedrunner.Test010Lingering)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#0 seed\u003d[A2B84F92B17817ED:FFAAA1606FECC804]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#0 seed\u003d[A2B84F92B17817ED:FFAAA1606FECC804]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#1 seed\u003d[A2B84F92B17817ED:4BFC1D9C5B2E0328]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#1 seed\u003d[A2B84F92B17817ED:4BFC1D9C5B2E0328]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#2 seed\u003d[A2B84F92B17817ED:C5158B400AEA4BE3]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#2 seed\u003d[A2B84F92B17817ED:C5158B400AEA4BE3]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#3 seed\u003d[A2B84F92B17817ED:F4FB20A5661410CA]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#3 seed\u003d[A2B84F92B17817ED:F4FB20A5661410CA]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#4 seed\u003d[A2B84F92B17817ED:B83AA508C71CD071]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#4 seed\u003d[A2B84F92B17817ED:B83AA508C71CD071]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#5 seed\u003d[A2B84F92B17817ED:29C07657BAA09D71]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#5 seed\u003d[A2B84F92B17817ED:29C07657BAA09D71]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#6 seed\u003d[A2B84F92B17817ED:171E12D1A8908D77]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#6 seed\u003d[A2B84F92B17817ED:171E12D1A8908D77]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#7 seed\u003d[A2B84F92B17817ED:8BAD88AB8B8419D9]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#7 seed\u003d[A2B84F92B17817ED:8BAD88AB8B8419D9]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#8 seed\u003d[A2B84F92B17817ED:B9016DC5FC4F0E83]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#8 seed\u003d[A2B84F92B17817ED:B9016DC5FC4F0E83]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "executorLeak {#9 seed\u003d[A2B84F92B17817ED:6E8A3B7F981839D1]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "executorLeak {#9 seed\u003d[A2B84F92B17817ED:6E8A3B7F981839D1]}(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "lingerForLeftOverThread(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "lingerForLeftOverThread(com.carrotsearch.examples.randomizedrunner.Test010Lingering)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110841951,
+      "startTimestampDate": "2012-01-09T13:07:21.951",
+      "executionTime": 1660,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#leftOverThread(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)[0]",
+            "displayName": "leftOverThread(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)",
+            "methodName": "leftOverThread",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#noLeakHere(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)[0]",
+            "displayName": "noLeakHere(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)",
+            "methodName": "noLeakHere",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110841964,
+          "startTimestampDate": "2012-01-09T13:07:21.964",
+          "executionTime": 643,
+          "description": "id#leftOverThread(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[Thread-2,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Left-over thread detected  (and terminated): Thread[Thread-2,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED:4EAF10B1BD32E319]:0)\n\tat java.lang.Thread.sleep(Native Method)\n\tat com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks$1.run(Test009ThreadLeaks.java:38)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110842608,
+          "startTimestampDate": "2012-01-09T13:07:22.608",
+          "executionTime": 1002,
+          "description": "id#noLeakHere(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)[0]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "leftOverThread(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)"
+        },
+        {
+          "event": "APPEND_STDERR",
+          "content": "Jan 9, 2012 1:07:22 PM com.carrotsearch.randomizedtesting.RandomizedRunner reportStackProbes\nWARNING: 10 stack trace probe(s) taken and the constant root was:\n    ...\n    java.lang.Thread.sleep(Native Method)\n    com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks$1.run(Test009ThreadLeaks.java:38)\n\nDiverging stack paths from individual probes (if different than the common root):\n(all stacks constant.)\n\nJan 9, 2012 1:07:22 PM com.carrotsearch.randomizedtesting.RandomizedRunner tryToTerminate\nWARNING: Attempting to terminate thread: Thread-2(#102170028), currently at:\n    java.lang.Thread.sleep(Native Method)\n    com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks$1.run(Test009ThreadLeaks.java:38)\n\nJan 9, 2012 1:07:22 PM com.carrotsearch.randomizedtesting.RandomizedRunner tryToTerminate\nWARNING: Interrupted a runaway thread: Thread-2(#102170028)\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "leftOverThread(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "noLeakHere(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "noLeakHere(com.carrotsearch.examples.randomizedrunner.Test009ThreadLeaks)"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1326110843623,
+      "startTimestampDate": "2012-01-09T13:07:23.623",
+      "executionTime": 2230,
+      "description": {
+        "id": "id#com.carrotsearch.examples.randomizedrunner.Test008Timeouts[1]",
+        "displayName": "com.carrotsearch.examples.randomizedrunner.Test008Timeouts",
+        "className": "com.carrotsearch.examples.randomizedrunner.Test008Timeouts",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "com.carrotsearch.randomizedtesting.RandomizedRunner"
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#standardAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)[0]",
+            "displayName": "standardAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)",
+            "methodName": "standardAnnotation",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test008Timeouts",
+            "annotations": [],
+            "children": []
+          },
+          {
+            "id": "id#timeoutAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)[0]",
+            "displayName": "timeoutAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)",
+            "methodName": "timeoutAnnotation",
+            "className": "com.carrotsearch.examples.randomizedrunner.Test008Timeouts",
+            "annotations": [],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1326110843635,
+          "startTimestampDate": "2012-01-09T13:07:23.635",
+          "executionTime": 1104,
+          "description": "id#standardAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Test case thread timed out  (and terminated): Thread[Thread-4,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Test case thread timed out  (and terminated): Thread[Thread-4,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED]:0)\n\tat java.lang.Thread.sleep(Native Method)\n\tat com.carrotsearch.randomizedtesting.RandomizedTest.sleep(RandomizedTest.java:560)\n\tat com.carrotsearch.examples.randomizedrunner.Test008Timeouts.standardAnnotation(Test008Timeouts.java:50)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1326110844750,
+          "startTimestampDate": "2012-01-09T13:07:24.750",
+          "executionTime": 1102,
+          "description": "id#timeoutAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)[0]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "com.carrotsearch.randomizedtesting.ThreadingError",
+              "throwableString": "com.carrotsearch.randomizedtesting.ThreadingError: Test case thread timed out  (and terminated): Thread[Thread-5,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).",
+              "stackTrace": "com.carrotsearch.randomizedtesting.ThreadingError: Test case thread timed out  (and terminated): Thread[Thread-5,5,] (stack trace is a snapshot location of the thread at the moment of killing, see the system logger for probes and more information).\n\tat __randomizedtesting.SeedInfo.seed([A2B84F92B17817ED]:0)\n\tat java.lang.Thread.sleep(Native Method)\n\tat com.carrotsearch.randomizedtesting.RandomizedTest.sleep(RandomizedTest.java:560)\n\tat com.carrotsearch.examples.randomizedrunner.Test008Timeouts.timeoutAnnotation(Test008Timeouts.java:56)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.invoke(RandomizedRunner.java:1571)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$600(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$4.evaluate(RandomizedRunner.java:698)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runWithRules(RandomizedRunner.java:703)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.runSingleTest(RandomizedRunner.java:641)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner.access$500(RandomizedRunner.java:75)\n\tat com.carrotsearch.randomizedtesting.RandomizedRunner$3.run(RandomizedRunner.java:523)\n\tat java.lang.Thread.run(Thread.java:662)\n",
+              "kind": "error"
+            }
+          ]
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "test": "standardAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)"
+        },
+        {
+          "event": "APPEND_STDERR",
+          "content": "Jan 9, 2012 1:07:24 PM com.carrotsearch.randomizedtesting.RandomizedRunner reportStackProbes\nWARNING: 10 stack trace probe(s) taken and the constant root was:\n    ...\n    java.lang.Thread.sleep(Native Method)\n    [...com.carrotsearch.randomizedtesting.*]\n    com.carrotsearch.examples.randomizedrunner.Test008Timeouts.standardAnnotation(Test008Timeouts.java:50)\n    [...sun.*, com.carrotsearch.randomizedtesting.*, java.lang.reflect.*]\n    java.lang.Thread.run(Thread.java:662)\n\nDiverging stack paths from individual probes (if different than the common root):\n(all stacks constant.)\n\nJan 9, 2012 1:07:24 PM com.carrotsearch.randomizedtesting.RandomizedRunner tryToTerminate\nWARNING: Attempting to terminate thread: Thread-4(#17227669), currently at:\n    java.lang.Thread.sleep(Native Method)\n    [...com.carrotsearch.randomizedtesting.*]\n    com.carrotsearch.examples.randomizedrunner.Test008Timeouts.standardAnnotation(Test008Timeouts.java:50)\n    [...sun.*, com.carrotsearch.randomizedtesting.*, java.lang.reflect.*]\n    java.lang.Thread.run(Thread.java:662)\n\nJan 9, 2012 1:07:24 PM com.carrotsearch.randomizedtesting.RandomizedRunner tryToTerminate\nWARNING: Interrupted a runaway thread: Thread-4(#17227669)\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "standardAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)"
+        },
+        {
+          "event": "TEST_STARTED",
+          "test": "timeoutAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)"
+        },
+        {
+          "event": "APPEND_STDERR",
+          "content": "Jan 9, 2012 1:07:25 PM com.carrotsearch.randomizedtesting.RandomizedRunner reportStackProbes\nWARNING: 10 stack trace probe(s) taken and the constant root was:\n    ...\n    java.lang.Thread.sleep(Native Method)\n    [...com.carrotsearch.randomizedtesting.*]\n    com.carrotsearch.examples.randomizedrunner.Test008Timeouts.timeoutAnnotation(Test008Timeouts.java:56)\n    [...sun.*, com.carrotsearch.randomizedtesting.*, java.lang.reflect.*]\n    java.lang.Thread.run(Thread.java:662)\n\nDiverging stack paths from individual probes (if different than the common root):\n(all stacks constant.)\n\nJan 9, 2012 1:07:25 PM com.carrotsearch.randomizedtesting.RandomizedRunner tryToTerminate\nWARNING: Attempting to terminate thread: Thread-5(#1023498910), currently at:\n    java.lang.Thread.sleep(Native Method)\n    [...com.carrotsearch.randomizedtesting.*]\n    com.carrotsearch.examples.randomizedrunner.Test008Timeouts.timeoutAnnotation(Test008Timeouts.java:56)\n    [...sun.*, com.carrotsearch.randomizedtesting.*, java.lang.reflect.*]\n    java.lang.Thread.run(Thread.java:662)\n\nJan 9, 2012 1:07:25 PM com.carrotsearch.randomizedtesting.RandomizedRunner tryToTerminate\nWARNING: Interrupted a runaway thread: Thread-5(#1023498910)\n"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "test": "timeoutAnnotation(com.carrotsearch.examples.randomizedrunner.Test008Timeouts)"
+        }
+      ]
+    }
+  ],
+  "slaves": {
+    "0": {
+      "id": 0,
+      "jvmName": "Java HotSpot(TM) 64-Bit Server VM, 20.2-b06",
+      "charset": "UTF-8",
+      "systemProperties": {
+        "file.encoding": "UTF-8",
+        "file.encoding.pkg": "sun.io",
+        "file.separator": "/",
+        "foo": "bar",
+        "java.awt.graphicsenv": "sun.awt.X11GraphicsEnvironment",
+        "java.awt.printerjob": "sun.print.PSPrinterJob",
+        "java.class.path": "/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/examples/target/test-classes:/home/dweiss/.m2/repository/com/carrotsearch/randomizedtesting/randomizedtesting-runner/0.0.5-SNAPSHOT/randomizedtesting-runner-0.0.5-SNAPSHOT.jar:/home/dweiss/.m2/repository/com/carrotsearch/randomizedtesting/ant-junit4/0.0.5-SNAPSHOT/ant-junit4-0.0.5-SNAPSHOT.jar:/home/dweiss/.m2/repository/junit/junit/4.10/junit-4.10.jar:/home/dweiss/.m2/repository/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar:/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/examples/target/ant/lib/ant-junit4-0.0.5-SNAPSHOT.jar",
+        "java.class.version": "50.0",
+        "java.endorsed.dirs": "/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/endorsed",
+        "java.ext.dirs": "/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/ext:/usr/java/packages/lib/ext",
+        "java.home": "/home/dweiss/Applications/java/jdk1.6.0_27/jre",
+        "java.io.tmpdir": "/tmp",
+        "java.library.path": "/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/amd64/server:/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/amd64:/home/dweiss/Applications/java/jdk1.6.0_27/jre/../lib/amd64:/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib",
+        "java.runtime.name": "Java(TM) SE Runtime Environment",
+        "java.runtime.version": "1.6.0_27-b07",
+        "java.specification.name": "Java Platform API Specification",
+        "java.specification.vendor": "Sun Microsystems Inc.",
+        "java.specification.version": "1.6",
+        "java.vendor": "Sun Microsystems Inc.",
+        "java.vendor.url": "http://java.sun.com/",
+        "java.vendor.url.bug": "http://java.sun.com/cgi-bin/bugreport.cgi",
+        "java.version": "1.6.0_27",
+        "java.vm.info": "mixed mode",
+        "java.vm.name": "Java HotSpot(TM) 64-Bit Server VM",
+        "java.vm.specification.name": "Java Virtual Machine Specification",
+        "java.vm.specification.vendor": "Sun Microsystems Inc.",
+        "java.vm.specification.version": "1.0",
+        "java.vm.vendor": "Sun Microsystems Inc.",
+        "java.vm.version": "20.2-b06",
+        "junit4.memory.total": "50266112",
+        "junit4.processors": "2",
+        "line.separator": "\n",
+        "os.arch": "amd64",
+        "os.name": "Linux",
+        "os.version": "3.0.0-14-generic",
+        "path.separator": ":",
+        "sun.arch.data.model": "64",
+        "sun.boot.class.path": "/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/resources.jar:/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/rt.jar:/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/sunrsasign.jar:/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/jsse.jar:/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/jce.jar:/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/charsets.jar:/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/modules/jdk.boot.jar:/home/dweiss/Applications/java/jdk1.6.0_27/jre/classes",
+        "sun.boot.library.path": "/home/dweiss/Applications/java/jdk1.6.0_27/jre/lib/amd64",
+        "sun.cpu.endian": "little",
+        "sun.cpu.isalist": "",
+        "sun.desktop": "gnome",
+        "sun.io.unicode.encoding": "UnicodeLittle",
+        "sun.java.command": "com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe @/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/examples/junit4-5785471042988860889.testmethods -flush",
+        "sun.java.launcher": "SUN_STANDARD",
+        "sun.jnu.encoding": "UTF-8",
+        "sun.management.compiler": "HotSpot 64-Bit Tiered Compilers",
+        "sun.os.patch.level": "unknown",
+        "tests.seed": "A2B84F92B17817ED",
+        "user.country": "US",
+        "user.dir": "/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/examples/target/ant",
+        "user.home": "/home/dweiss",
+        "user.language": "en",
+        "user.name": "dweiss",
+        "user.timezone": ""
+      }
+    }
+  }
+});
