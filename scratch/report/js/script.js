@@ -94,10 +94,58 @@
       numericColumn("time", "Time [ms]")
     ];
 
+    // Filtering of irrelevant stack trace lines
+    var stacktracePackagesToHide = [
+      'com.carrotsearch.randomizedtesting.RandomizedRunner',
+      'com.carrotsearch.ant.tasks.junit4',
+      'java.lang.reflect.Method.invoke',
+      'sun.reflect',
+      'junit.framework',
+      'org.junit.Assert',
+      'org.junit.Assume',
+      'org.junit.runners',
+      'org.junit.runner',
+      'org.junit.rules',
+      'org.junit.internal'
+    ];
+    var stacktraceFilters = [ ];
+    var regexpEscape = /[-[\]{}()*+?.,\\^$|#\s]/g;
+    for (var i = 0; i < stacktracePackagesToHide.length; i++) {
+      stacktraceFilters.push(stacktracePackagesToHide[i].replace(regexpEscape, "\\$&"));
+    }
+    var stacktraceFilter = new RegExp( "(" + stacktraceFilters.join(")|(")  + ")");
+
     return {
       methods: {
         columns: [
-          column("signature", "string", "Method", true),
+          $.extend(column("signature", "string", "Method", true), {
+            renderer: function(value, html, row) {
+              searchHighlighterRenderer(value, html);
+
+              $.each(row.failures, function(index, failure) {
+                var lines = failure.stackTrace.replace(/\t/g, "").split(/\n/);
+
+                html.push(" <div class='stacktrace'>");
+                var filtered = false, filteredOut = 0;
+                html.push("<div>", escape(lines[0]), "</div><div>");
+                for (var i = 1; i < lines.length; i++) {
+                  var currentFiltered = stacktraceFilter.test(lines[i]);
+                  if (currentFiltered != filtered) {
+                    html.push("</div>",
+                      filtered ? "<span title='" + countText(filteredOut + 1, "frame") + " filtered out'></span>" : "",
+                      "<div", currentFiltered ? " class='filtered'" : "", ">");
+                    filtered = currentFiltered;
+                    filteredOut = 0;
+                  } else {
+                    filteredOut++;
+                  }
+                  html.push(escape(lines[i]), "<br />");
+                }
+                html.pop(); // the last extra <br />
+                html.push("</div></div>");
+              });
+            }
+          }),
           {
             id: "result",
             label: "Result",
@@ -156,12 +204,14 @@
             if (!currentFilter(test)) {
               return;
             }
+
             rows.push({
               signature: test.description.packageClassMethodName,
               result: test.status,
               time: test.executionTime,
               slave: test.slave,
-              timestamp: test.startTimestamp
+              timestamp: test.startTimestamp,
+              failures: test.testFailures
             })
           });
           return rows;
@@ -204,20 +254,22 @@
         searchable: searchable,
         type: type,
         label: label,
-        renderer: function(value, html) {
-          if (this.searchable && currentSearch) {
-            var s = currentSearch.toLowerCase(), sl = s.length, vlc = value.toLowerCase(), vl = value.length;
-            var start = 0, found = -1;
-            while ((found = vlc.indexOf(s, start)) >= 0) {
-              html.push(value.substring(start, found), "<em>", value.substring(found, found + sl), "</em>");
-              start = found + sl;
-            }
-            html.push(value.substring(start));
-          } else {
-            html.push(escape(value));
-          }
-        }
+        renderer: searchHighlighterRenderer
       };
+    }
+
+    function searchHighlighterRenderer(value, html) {
+      if (this.searchable && currentSearch) {
+        var s = currentSearch.toLowerCase(), sl = s.length, vlc = value.toLowerCase(), vl = value.length;
+        var start = 0, found = -1;
+        while ((found = vlc.indexOf(s, start)) >= 0) {
+          html.push(value.substring(start, found), "<em>", value.substring(found, found + sl), "</em>");
+          start = found + sl;
+        }
+        html.push(value.substring(start));
+      } else {
+        html.push(escape(value));
+      }
     }
 
     function numericColumn(id, label) {
@@ -366,6 +418,10 @@
       wasDrilldown = true;
     });
 
+    $table.on("click", ".stacktrace > span", function() {
+      $(this).closest("td").toggleClass("fullStacktrace");
+    });
+
     $search = $tools.find("input[type='search']").on("keyup click drilldownUpdate", function(e) {
       var $this = $(this);
       typewatch(function() {
@@ -377,7 +433,7 @@
           currentSearch = v;
           refresh();
         }
-      }, e.type == "drilldownUpdate" ? 0 : 500);
+      }, e.type == "keyup" ? 500 : 0);
     });
 
     // If no failures or errors, show package view ordered by package name.
@@ -527,7 +583,7 @@
       html.push(rowStart);
       $.each(spec.columns, function(i, column) {
         html.push("<td class='", column.type, " ", column.id, "'>");
-        column.renderer(row[column.id], html);
+        column.renderer(row[column.id], html, row);
         html.push("</td>");
       });
       html.push("</tr>");
@@ -717,7 +773,7 @@
   }
 
   function escape(string) {
-    return typeof string === 'string' ? string.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/&/g, "&amp;") : string;
+    return typeof string === 'string' ? string.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : string;
   }
 
   var typewatch = (function(){

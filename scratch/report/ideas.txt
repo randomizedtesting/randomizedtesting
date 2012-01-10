@@ -43,6 +43,10 @@ Nice to have:
 * Minification of assets
 * Clean-up of data JSON (smaller size)
 * Table filters: by status
+* bookmarkable links
+* Links for opening in an IDE
+* Copying stack trace to clipboard?
+* Hiding irrelevant parts of the stack trace? (filtering of certain packages)
 
 
 To decide:
