@@ -1,0 +1,64 @@
+/* =============================================================================
+   outbox styles
+   ========================================================================== */
+
+#arrows {
+  position: absolute;
+  left: 0px;
+  top: 1px;
+  padding: 0;
+  margin: 0;
+}
+   
+#suitebox {
+  clear: both;
+}
+
+.suiteName {
+  margin-left: 200px;
+  font-weight: bold;  
+}
+
+#outbox {
+  background-color: #f4f4f4;
+
+  margin-top:    0px;
+  margin-bottom: 0px;
+  margin-left: 200px;
+  
+  /* Maybe we should now wrap? */
+  white-space: pre; 
+  white-space: pre-wrap; 
+  word-wrap: break-word;
+}
+
+#outbox .out {
+}
+
+#outbox .err {
+  color: red;
+}
+
+#outbox .side {
+  float: left;
+  clear: left;
+  width: 0px;
+}
+
+#outbox .side .note {
+  position: relative;
+  right: 2000px;
+  width: 1970px;
+  text-align: right;
+  font-size: 8px;
+}
+
+.start {
+  border-top: 1px solid red;
+}
+
+
+.end {
+  border-bottom: 1px solid red;
+}
+
