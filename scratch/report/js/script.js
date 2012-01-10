@@ -263,19 +263,16 @@
     var numFailures = counts.byStatus[FAILURE];
     var numErrors = counts.byStatus[ERROR];
     if ((numFailures + numErrors) > 0) {
-      heading.text = "";
-      if (numFailures > 0) {
-        heading.text += countText(counts.byStatus[FAILURE], "test") + " failed";
-        heading.class = FAILURE;
-      }
+      var h = [];
       if (numErrors > 0) {
-        if (numFailures > 0) {
-          heading.text += ", ";
-        }
-        heading.text += countText(counts.byStatus[ERROR], "test") + " had errors";
+        h.push(countText(counts.byStatus[ERROR], "test") + " had errors");
         heading.class = ERROR;
       }
-
+      if (numFailures > 0) {
+        h.push(countText(counts.byStatus[FAILURE], "test") + " failed");
+        heading.class = FAILURE;
+      }
+      heading.text = h.join(", ");
     } else if (counts.byStatus[ERROR] > 0) {
     } else {
       heading.text = "tests successful";
