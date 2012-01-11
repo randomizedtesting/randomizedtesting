@@ -20,12 +20,41 @@
     return new RegExp("^[^\\ \\(]*").exec(name);
   }
 
+  function redrawConnectors() {
+    var $content = $("#content");
+    var $canvas = $("#canvas_ovl");
+
+    var markers = $content.find(".marker");
+    var cleft = $content.offset().left;
+    var ctop  = $content.offset().top;
+
+    var canvas = $canvas.get(0);
+    canvas.width = canvas.width;
+
+    $.each(markers, function(index, marker) {
+      marker = $(marker);
+      var label = $(marker).data("refLabel");
+
+      var x0 = 0.5 + label.offset().left + label.width() - cleft;
+      var y0 = 0.5 + label.offset().top + label.height() / 2 - ctop;
+      var x1 = 1.5 + marker.position().left;
+      var y1 = 1.5 + marker.position().top;
+
+      var ctx = canvas.getContext('2d');
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = .5;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.bezierCurveTo((x1 + x0) / 2, y0, 
+                        (x1 + x0) / 2, y1, 
+                        x1, y1);
+      ctx.stroke();
+    });
+  }
+
   // Initialize the table
   $(document).ready(function() {
     var $content = $("#content");
-    var idx = 0;
-
-    var $canvas = $("<canvas id='canvas_ovl' />").appendTo($content);
 
     $.each(data, function(index, suite) {
       var $suitebox = $("<div class='suitebox' />").appendTo($content);
@@ -37,13 +66,23 @@
       $.each(suite.executionEvents, function(index, evtobj) {
         switch (evtobj.event) {
           case "TEST_STARTED":
-            var tclz = "tclz_" + (idx++);
-
             // Add a content wrapper for the test...
-            stack.push($("<span class='test' alt='" + tclz + "'>").appendTo(stack.peek()));
+            var testArea = $("<span class='test' />").appendTo(stack.peek());
+            stack.push(testArea);
+
             // ...and a test start marker.
-            $("<span class='start marker' alt='" + tclz + "' /></span>").appendTo(stack.peek());
-            $("<span class='side'><div><span class='label' alt='" + tclz + "'>" + testName(evtobj) + "</span></div></span>").appendTo(stack.peek());
+            var startMarker = $("<span class='start marker' />");
+            startMarker.appendTo(testArea);
+
+            // ...and a side label.
+            var label = $("<span class='label'>" + testName(evtobj) + "</span>");
+            testArea.append(
+              $("<span class='side' />").append(
+                $("<div />").append(
+                  label)));
+
+            startMarker.data("refLabel", label);
+            label.data("refTestArea", testArea);
             break;
 
           case "APPEND_STDOUT":
@@ -64,43 +103,28 @@
       });
     });
 
+    var $canvas = $("<canvas id='canvas_ovl' />").appendTo($content);
     $canvas.attr("width",  $content.width())
            .attr("height", $content.height());
 
-    // We could probably just create an array of marker-label pairs and get rid of all the
-    // searches here.
-    
+    // Attach on-hover highlights.
     var f = function() {
-      var tclz = $(this).attr("alt");
-      var testspan = $('span[class ~= "test"][alt = "' + tclz + '"]');
-      $(testspan).toggleClass("highlight");
+      $(this).data("refTestArea").toggleClass("highlight");
     };
     $('span[class ~= "label"]').hover(f, f);
 
-    
-    var markers = $content.find(".marker");
+    // Redraw connectors.
+    redrawConnectors();
 
-    var cleft = $content.offset().left;
-    var ctop  = $content.offset().top;
-
-    $.each(markers, function(index, marker) {
-      marker = $(marker);
-      var label = $('span[class ~= "label"][alt="' + marker.attr("alt") + '"]');
-      label = $(label);
-
-      var x0 = label.offset().left + label.width() - cleft;
-      var y0 = label.offset().top + label.height() / 2 - ctop;
-      var x1 = 1 + marker.position().left;
-      var y1 = 1 + marker.position().top;
-
-      $canvas.drawBezier({
-        strokeStyle: "#333",
-        strokeWidth: .5,
-         x1: x0,  y1: y0,
-        cx1: x1, cy1: y0,
-        cx2: x0, cy2: y1,
-         x2: x1,  y2: y1
-      });
+    // Refresh connectors on resize.
+    var timeoutId;
+    $(window).resize(function() {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(function() {
+            redrawConnectors();
+            $canvas.show();
+        }, 250);
+        $canvas.hide();
     });
   });
 })(jQuery);

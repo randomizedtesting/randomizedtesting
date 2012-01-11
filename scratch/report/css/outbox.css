@@ -7,9 +7,11 @@
   border: 1px solid #a0a0a0;
   padding: 0px;
   margin: 0px;
+  overflow: hidden;
 }
 
 #canvas_ovl {
+  pointer-events: none;
   position: absolute;
   left: 0px;
   top: 0px;
