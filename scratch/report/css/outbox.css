@@ -2,24 +2,32 @@
    outbox styles
    ========================================================================== */
 
-#arrows {
+#content {
+  position: relative;
+  border: 1px solid gray;
+  padding: 0px;
+  margin: 0px;
+}
+
+#canvas_ovl {
   position: absolute;
   left: 0px;
-  top: 1px;
+  top: 0px;
   padding: 0;
   margin: 0;
 }
-   
-#suitebox {
+
+.suitebox {
   clear: both;
+  margin-bottom: 1em;
 }
 
-.suiteName {
+.suitebox .name {
   margin-left: 200px;
   font-weight: bold;  
 }
 
-#outbox {
+.outbox {
   background-color: #f4f4f4;
 
   margin-top:    0px;
@@ -32,33 +40,38 @@
   word-wrap: break-word;
 }
 
-#outbox .out {
-}
-
-#outbox .err {
-  color: red;
-}
-
-#outbox .side {
+.outbox .test .label {
   float: left;
-  clear: left;
-  width: 0px;
+  width: 0;
+  clear: both;
 }
 
-#outbox .side .note {
+.outbox .test .label > div {
   position: relative;
-  right: 2000px;
-  width: 1970px;
+  right: 200px;
+  width: 180px;
   text-align: right;
-  font-size: 8px;
+  font-size: .75em;
+  margin-bottom: 2px;
 }
 
-.start {
-  border-top: 1px solid red;
+.outbox .test .label > div > span {
+  border: 1px solid gray;
+  background-color: yellow;
 }
 
+.outbox .test .start {
+  position: absolute;
+  background-color: blue;
+  width: 3px;
+  height: 3px;
+}
 
-.end {
-  border-bottom: 1px solid red;
+.outbox .out {
+  color: black;
+}
+
+.outbox .err {
+  color: red;
 }
 
