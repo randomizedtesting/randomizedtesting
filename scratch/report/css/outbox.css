@@ -42,13 +42,13 @@
   word-wrap: break-word;
 }
 
-.outbox .test .side {
+.side {
   float: left;
   width: 0;
   clear: both;
 }
 
-.outbox .test .side > div {
+.side > div {
   position: relative;
   right: 200px;
   width: 180px;
@@ -57,14 +57,30 @@
   margin-bottom: 2px;
 }
 
-.outbox .test .side > div > span {
+.side > div > span {
   border: 1px solid gray;
+}
+
+.side .test {
   background-color: yellow;
+  color: black;
+}
+
+.side .suitefailure {
+  background-color: red;
+  color: white;
 }
 
 .outbox .test .start {
   position: absolute;
   background-color: blue;
+  width: 3px;
+  height: 3px;
+}
+
+.outbox .failure {
+  position: absolute;
+  background-color: red;
   width: 3px;
   height: 3px;
 }
