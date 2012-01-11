@@ -8,7 +8,7 @@ import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 /**
  * Generic serialized failure event.
  */
-public abstract class FailureEvent extends AbstractEvent {
+public abstract class FailureEvent extends AbstractEvent implements IDescribable {
   private FailureMirror failure;
 
   public FailureEvent(EventType type) {

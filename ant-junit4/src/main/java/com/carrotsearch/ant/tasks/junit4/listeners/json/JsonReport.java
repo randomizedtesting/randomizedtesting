@@ -118,6 +118,7 @@ public class JsonReport implements AggregatedEventListener {
       slaves.put(e.getSlave().id, e.getSlave());
       gson.toJson(e, e.getClass(), jsonWriter);
     } catch (Exception ex) {
+      ex.printStackTrace();
       junit4.log("Error serializing to JSON file: "
           + ex.toString(), ex, Project.MSG_WARN);
       gson = null;
@@ -129,6 +130,9 @@ public class JsonReport implements AggregatedEventListener {
    */
   @Subscribe
   public void onQuit(AggregatedQuitEvent e) {
+    if (gson == null)
+      return;
+
     try {
       jsonWriter.endArray();
 

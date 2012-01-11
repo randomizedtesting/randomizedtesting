@@ -31,11 +31,11 @@ public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<Agg
 
     suite.add("tests", context.serialize(e.getTests()));
     suite.add("suiteFailures", context.serialize(e.getFailures()));
-    suite.add("executionEvents", serializeEvents(e));
+    suite.add("executionEvents", serializeEvents(e, context));
     return suite;
   }
 
-  public JsonArray serializeEvents(AggregatedSuiteResultEvent e) {
+  public JsonArray serializeEvents(AggregatedSuiteResultEvent e, JsonSerializationContext context) {
     final JsonArray output = new JsonArray();
     final SlaveInfo slave = e.getSlave();
     int lineBuffer = 160;
@@ -47,15 +47,22 @@ public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<Agg
       try {
         JsonObject marker;
         switch (evt.getType()) {
+          case SUITE_FAILURE:
+          case TEST_IGNORED_ASSUMPTION:
+          case TEST_IGNORED:
           case TEST_STARTED:
           case TEST_FINISHED:
+          case TEST_FAILURE:
             flushBoth(output, out, err, stdout, stderr);
             marker = new JsonObject();
             marker.addProperty("event", evt.getType().toString());
-            marker.addProperty("test", ((AbstractEventWithDescription) evt).getDescription().getDisplayName());
+            marker.add("description", context.serialize(((IDescribable) evt).getDescription()));
+            if (evt instanceof FailureEvent) {
+              marker.add("failure", context.serialize(((FailureEvent) evt).getFailure()));
+            }
             output.add(marker);
             break;
-            
+
           // Flush streams only if there's interwoven output between them.
 
           case APPEND_STDOUT:

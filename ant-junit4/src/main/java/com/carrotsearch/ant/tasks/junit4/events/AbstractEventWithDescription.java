@@ -2,7 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.events;
 
 import org.junit.runner.Description;
 
-public abstract class AbstractEventWithDescription extends AbstractEvent {
+abstract class AbstractEventWithDescription extends AbstractEvent implements IDescribable {
   private Description description;
 
   public AbstractEventWithDescription(EventType type) {
