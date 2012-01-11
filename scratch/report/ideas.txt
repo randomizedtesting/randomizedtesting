@@ -26,7 +26,6 @@ TODO, must have:
   * execution time
   * stack trace
   * console output
-* navigation: package -> class -> method and back
 * navigation using HTML5 history API (bookmarkable urls)
 * ignored by assumption vs by annotation in descriptions
 * global start date in header (because individual tests report just time)
@@ -78,3 +77,4 @@ DONE:
 * General indication of ok / failure in document title
 * A "bulb" indication of general ok / failure (green/red, like in Bamboo)
 * Table filters: free text
+* navigation: package -> class -> method and back

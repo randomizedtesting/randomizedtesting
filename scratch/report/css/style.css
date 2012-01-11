@@ -484,6 +484,7 @@ td > em {
 }
 .signature > .stacktrace > div:first-child {
   margin-left: 0;
+  white-space: normal;
 }
 .signature > .stacktrace > div.filtered {
   display: none;
