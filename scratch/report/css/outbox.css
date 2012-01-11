@@ -4,7 +4,7 @@
 
 #content {
   position: relative;
-  border: 1px solid gray;
+  border: 1px solid #a0a0a0;
   padding: 0px;
   margin: 0px;
 }
@@ -40,13 +40,13 @@
   word-wrap: break-word;
 }
 
-.outbox .test .label {
+.outbox .test .side {
   float: left;
   width: 0;
   clear: both;
 }
 
-.outbox .test .label > div {
+.outbox .test .side > div {
   position: relative;
   right: 200px;
   width: 180px;
@@ -55,7 +55,7 @@
   margin-bottom: 2px;
 }
 
-.outbox .test .label > div > span {
+.outbox .test .side > div > span {
   border: 1px solid gray;
   background-color: yellow;
 }
@@ -75,3 +75,6 @@
   color: red;
 }
 
+.highlight {
+  background-color: #a0e0a0;
+}

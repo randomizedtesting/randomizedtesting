@@ -1,3 +1,8 @@
+// Things known not to work:
+// - resizing the window/ elements screws up the alignment (arcs) between labels and markers. would have to poll for position changes/ win.resize.
+// - bottom floats flow beyond the container area;
+// - canvas prevents copy-paste.
+
 (function($) {
   var data;
 
@@ -32,12 +37,13 @@
       $.each(suite.executionEvents, function(index, evtobj) {
         switch (evtobj.event) {
           case "TEST_STARTED":
-            // Add a content wrapper for the test...
-            stack.push($("<span class='test'>").appendTo(stack.peek()));
-            // ...and a test start marker.
             var tclz = "tclz_" + (idx++);
+
+            // Add a content wrapper for the test...
+            stack.push($("<span class='test' alt='" + tclz + "'>").appendTo(stack.peek()));
+            // ...and a test start marker.
             $("<span class='start marker' alt='" + tclz + "' /></span>").appendTo(stack.peek());
-            $("<span class='label'><div><span alt='lbl-" + tclz + "'>" + testName(evtobj) + "</span></div></span>").appendTo(stack.peek());
+            $("<span class='side'><div><span class='label' alt='" + tclz + "'>" + testName(evtobj) + "</span></div></span>").appendTo(stack.peek());
             break;
 
           case "APPEND_STDOUT":
@@ -63,6 +69,15 @@
 
     // We could probably just create an array of marker-label pairs and get rid of all the
     // searches here.
+    
+    var f = function() {
+      var tclz = $(this).attr("alt");
+      var testspan = $('span[class ~= "test"][alt = "' + tclz + '"]');
+      $(testspan).toggleClass("highlight");
+    };
+    $('span[class ~= "label"]').hover(f, f);
+
+    
     var markers = $content.find(".marker");
 
     var cleft = $content.offset().left;
@@ -70,7 +85,7 @@
 
     $.each(markers, function(index, marker) {
       marker = $(marker);
-      var label = $('span[alt="lbl-' + marker.attr("alt") + '"]');
+      var label = $('span[class ~= "label"][alt="' + marker.attr("alt") + '"]');
       label = $(label);
 
       var x0 = label.offset().left + label.width() - cleft;
