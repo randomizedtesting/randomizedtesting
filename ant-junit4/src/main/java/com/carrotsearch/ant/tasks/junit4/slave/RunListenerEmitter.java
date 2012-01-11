@@ -37,7 +37,11 @@ public class RunListenerEmitter extends RunListener {
 
   @Override
   public void testFailure(Failure failure) throws Exception {
-    serializer.serialize(new TestFailureEvent(failure));
+    if (suiteDescription.equals(failure.getDescription())) {
+      serializer.serialize(new SuiteFailureEvent(failure));
+    } else {
+      serializer.serialize(new TestFailureEvent(failure));
+    }
   }
 
   @Override
@@ -51,7 +55,11 @@ public class RunListenerEmitter extends RunListener {
 
   @Override
   public void testIgnored(Description description) throws Exception {
-    serializer.serialize(new TestIgnoredEvent(description));
+    if (suiteDescription.equals(description)) {
+      // Should we report all ignored tests here?
+    } else {
+      serializer.serialize(new TestIgnoredEvent(description));
+    }
   }
 
   @Override
