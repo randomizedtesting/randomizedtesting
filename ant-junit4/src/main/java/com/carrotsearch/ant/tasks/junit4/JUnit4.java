@@ -1,9 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -805,7 +802,21 @@ public class JUnit4 extends Task {
 
       try {
         InputStream is = r.getInputStream();
+        if (!is.markSupported()) {
+          is = new BufferedInputStream(is);          
+        }
+
         try {
+          is.mark(4);
+          if (is.read() != 0xca ||
+              is.read() != 0xfe ||
+              is.read() != 0xba ||
+              is.read() != 0xbe) {
+            throw new BuildException("File does not start with a class magic 0xcafebabe: "
+                + r.getName() + ", " + r.getLocation());
+          }
+          is.reset();
+
           ClassReader reader = new ClassReader(is);
           String className = reader.getClassName().replace('/', '.');
           getProject().log("Test class parsed: " + r.getName() + " as " 

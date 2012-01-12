@@ -420,4 +420,20 @@
             </fileset>
         </junit4.preconf>
     </target>
+
+    <target name="notaclass">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="junit4.xml" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="notinstantiable">
+        <junit4.preconf>
+            <fileset dir="${basedir}">
+                <include name="**/tests/NotInstantiable.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>    
 </project>

@@ -1,38 +1,21 @@
 package com.carrotsearch.ant.tasks.junit4.slave;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
-import org.junit.runner.Description;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Request;
-import org.junit.runner.Result;
-import org.junit.runner.Runner;
+import org.junit.runner.*;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
-import com.carrotsearch.ant.tasks.junit4.events.AppendStdErrEvent;
-import com.carrotsearch.ant.tasks.junit4.events.AppendStdOutEvent;
-import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
+import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent.EventChannelType;
-import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
-import com.carrotsearch.ant.tasks.junit4.events.Serializer;
-import com.carrotsearch.ant.tasks.junit4.events.SuiteFailureEvent;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
-
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 
 /**
  * A slave process running the actual tests on the target JVM.
@@ -52,12 +35,11 @@ public class SlaveMain {
    */
   public static final String OPTION_FREQUENT_FLUSH = "-flush";
 
-
   /**
-   * All class names to be executed as tests.
+   * Read class names from standard input.
    */
-  private final List<String> classes = new ArrayList<String>();
-
+  public static final String OPTION_STDIN = "-stdin";
+  
   /**
    * Event sink.
    */
@@ -94,7 +76,7 @@ public class SlaveMain {
   /**
    * Execute tests.
    */
-  private void execute() {
+  private void execute(Iterator<String> classNames) {
     final JUnitCore core = new JUnitCore();
     core.addListener(
         new StreamFlusherDecorator(
@@ -105,17 +87,17 @@ public class SlaveMain {
               }
             }));
 
-    if (flushFrequently) {
-      core.addListener(new RunListener() {
-        public void testRunFinished(Result result) throws Exception {
+    core.addListener(new RunListener() {
+      public void testRunFinished(Result result) throws Exception {
+        serializer.flush();
+      }
+
+      public void testFinished(Description description) throws Exception {
+        if (flushFrequently) {
           serializer.flush();
         }
-        
-        public void testFinished(Description description) throws Exception {
-          serializer.flush();
-        }
-      });
-    }
+      }
+    });
 
     /*
      * Instantiate method filter if any.
@@ -130,8 +112,12 @@ public class SlaveMain {
      * Important. Run each class separately so that we get separate 
      * {@link RunListener} callbacks for the top extracted description.
      */
-    for (Class<?> suite : instantiate(classes)) {
-      Request request = Request.aClass(suite);
+    while (classNames.hasNext()) {
+      Class<?> clazz = instantiate(classNames.next());
+      if (clazz == null) 
+        continue;
+
+      Request request = Request.aClass(clazz);
       try {
         Runner runner= request.getRunner();
         methodFilter.apply(runner);
@@ -147,31 +133,21 @@ public class SlaveMain {
   /**
    * Instantiate test classes (or try to).
    */
-  private Class<?>[] instantiate(Collection<String> classnames) {
-    final List<Class<?>> instantiated = new ArrayList<Class<?>>();
-    for (String className : classnames) {
+  private Class<?> instantiate(String className) {
+    try {
+      return Class.forName(className);
+    } catch (Throwable t) {
       try {
-        instantiated.add(Class.forName(className));
-      } catch (Throwable t) {
-        try {
-          serializer.serialize(
-              new SuiteFailureEvent(
-                  new Failure(Description.createSuiteDescription(className), t)));
-          if (flushFrequently)
-            serializer.flush();
-        } catch (Exception e) {
-          warn("Could not report failure: ", t);
-        }
+        serializer.serialize(
+            new SuiteFailureEvent(
+                new Failure(Description.createSuiteDescription(className), t)));
+        if (flushFrequently)
+          serializer.flush();
+      } catch (Exception e) {
+        warn("Could not report failure: ", t);
       }
+      return null;
     }
-    return instantiated.toArray(new Class<?>[instantiated.size()]);
-  }
-
-  /**
-   * Add classes to be executed as tests.
-   */
-  public void addTestClasses(String... classnames) {
-    this.classes.addAll(Arrays.asList(classnames));
   }
 
   /**
@@ -207,8 +183,7 @@ public class SlaveMain {
       // Redirect original streams and start running tests.
       redirectStreams(serializer);
       final SlaveMain main = new SlaveMain(serializer);
-      parseArguments(main, args);
-      main.execute();
+      main.execute(parseArguments(main, args));
     } catch (Throwable t) {
       warn("Exception at main loop level?", t);
       exitStatus = -1;
@@ -229,20 +204,37 @@ public class SlaveMain {
   }
 
   /**
-   * Parse command line arguments.
+   * Parse command line arguments and return an iterator
+   * over test suites we should execute. The iterator may be
+   * lazy (may block awaiting input) so tests should be executed as 
+   * they are made available.
    */
-  private static void parseArguments(SlaveMain main, String[] args) throws IOException {
-    for (int i = 0; i < args.length; i++) {
-      if (args[i].equals(OPTION_FREQUENT_FLUSH)) {
+  private static Iterator<String> parseArguments(SlaveMain main, String[] initial) throws IOException {
+    ArrayDeque<String> args = new ArrayDeque<String>();
+    args.addAll(Arrays.asList(initial));
+
+    Iterator<String> stdInput = null; 
+    List<String> testClasses = Lists.newArrayList();
+    while (!args.isEmpty()) {
+      String option = args.pop();
+      if (option.equals(OPTION_FREQUENT_FLUSH)) {
         main.flushFrequently = true;
-      } else if (args[i].startsWith("@")) {
-        // Arguments file, one line per option.
-        parseArguments(main, readArgsFile(args[i].substring(1)));
+      } else if (option.equals(OPTION_STDIN)) {
+        if (stdInput == null) {
+          stdInput = new StdInLineIterator();
+        }
+      } else if (option.startsWith("@")) {
+        // Append arguments file, one line per option.
+        args.addAll(Arrays.asList(readArgsFile(option.substring(1))));
       } else {
         // The default expectation is a test class.
-        main.addTestClasses(args[i]);
+        testClasses.add(option);
       }
     }
+
+    return Iterators.concat(
+        testClasses.iterator(),
+        stdInput != null ? stdInput : Collections.<String>emptyList().iterator());
   }
 
   /**
