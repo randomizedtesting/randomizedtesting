@@ -30,10 +30,33 @@
       map(data[i].description.children);
     }
 
+    // A hack to handle suite-level errors: copy them to the tests array.
+    eachSuite(data, function(suite) {
+      if (suite.suiteFailures.length > 0) {
+        $.each(suite.suiteFailures, function(i, failure) {
+          suite.tests.push({
+            slave: suite.slave,
+            startTimestamp: suite.startTimestamp,
+            executionTime: 1,
+            description: {
+              methodName: "<suite-initializer>",
+              className: suite.description.className
+            },
+            status: ERROR,
+            testFailures: [ failure ]
+          });
+        });
+      }
+    });
+
     // Link object descriptions, split method names into semantic parts
     eachTest(data, function (test) {
       var description = descriptionsById[test.description];
-      test.description = description;
+      if (description) {
+        test.description = description;
+      } else {
+        description = test.description;
+      }
 
       description.packageClassName = description.className;
 
@@ -47,6 +70,7 @@
       description.className = classSplit.pop();
       description.packageName = classSplit.join(".");
     });
+    return;
 
     function map(children) {
       for (var j = 0; j < children.length; j++) {
@@ -736,11 +760,17 @@
   }
 
   function eachTest(data, callback) {
-    for (var i = 0; i < data.length; i++) {
-      var tests = data[i].tests;
+    eachSuite(data, function(suite) {
+      var tests = suite.tests;
       for (var j = 0; j < tests.length; j++) {
         callback.call(this, tests[j]);
       }
+    });
+  }
+
+  function eachSuite(data, callback) {
+    for (var i = 0; i < data.length; i++) {
+      callback.call(this, data[i]);
     }
   }
 
