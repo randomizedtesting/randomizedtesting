@@ -77,7 +77,7 @@
           for (var i = 0; i < statusOrder.length; i++) {
             var s = statusOrder[statusOrder.length - i];
             if ((a.statuses[s] || 0) != (b.statuses[s] || 0)) {
-              return (b.statuses[s] || 0) - (a.statuses[s] || 0);
+              return (a.statuses[s] || 0) - (b.statuses[s] || 0);
             }
           }
           return 0;
