@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.*;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.nio.charset.Charset;
 import java.util.List;
 
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
@@ -22,6 +23,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
 
   private InputStream stdout;
   private InputStream stderr;
+  private OutputStreamWriter stdin;
   private final PrintStream warnStream;
 
   private ByteArrayOutputStream stderrBuffered = new ByteArrayOutputStream();
@@ -45,7 +47,8 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
 
   @Override
   public void setProcessInputStream(OutputStream os) throws IOException {
-    // close os immediately?
+    this.stdin = new OutputStreamWriter(
+        os, Charset.defaultCharset());
   }
   
   @Override
@@ -130,7 +133,11 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
       IEvent event = null;
       while ((event = deserializer.deserialize()) != null) {
         try {
-          eventBus.post(event);
+          if (event.getType() == EventType.IDLE) {
+            eventBus.post(new SlaveIdle(stdin));
+          } else {
+            eventBus.post(event);
+          }
         } catch (Throwable t) {
           warnStream.println("Event bus dispatch error: " + t.toString());
           t.printStackTrace(warnStream);

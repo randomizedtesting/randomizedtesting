@@ -19,6 +19,7 @@ public enum EventType {
   TEST_IGNORED(TestIgnoredEvent.class),
   TEST_FINISHED(TestFinishedEvent.class),
 
+  IDLE(IdleEvent.class),
   QUIT(QuitEvent.class);
 
   /**
