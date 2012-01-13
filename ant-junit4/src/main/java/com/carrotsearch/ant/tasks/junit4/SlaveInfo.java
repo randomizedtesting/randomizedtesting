@@ -43,6 +43,11 @@ public final class SlaveInfo {
    */
   ArrayList<String> testSuites;
 
+  /**
+   * Complete slave command line invocation string. 
+   */
+  String slaveCommandLine;
+
   /* */
   public SlaveInfo(int id, int slaves) {
     this.id = id;
@@ -63,6 +68,13 @@ public final class SlaveInfo {
     return bootstrapEvent.getSystemProperties();
   }
 
+  /**
+   * Command line string used to invoke the slave.
+   */
+  public String getCommandLine() {
+    return slaveCommandLine;
+  }
+  
   /**
    * JVM name (slave).
    */

@@ -16,6 +16,7 @@ public class JsonSlaveInfoAdapter implements JsonSerializer<SlaveInfo> {
     object.addProperty("id", e.id);
     object.addProperty("jvmName", e.getJvmName());
     object.addProperty("charset", e.getCharset().displayName());
+    object.addProperty("commandLine", e.getCommandLine());
     object.add("systemProperties", context.serialize(e.getSystemProperties()));
 
     return object;

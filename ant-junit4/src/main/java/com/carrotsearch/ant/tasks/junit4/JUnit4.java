@@ -715,9 +715,9 @@ public class JUnit4 extends Task {
       commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
 
       // Emit command line before -stdin to avoid confusion.
+      slave.slaveCommandLine = Joiner.on(" ").join(commandline.getCommandline());
       log("Slave process command line:\n" + 
-          Joiner.on(" ").join(
-              commandline.getCommandline()), Project.MSG_VERBOSE);
+          slave.slaveCommandLine, Project.MSG_VERBOSE);
 
       commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
 
