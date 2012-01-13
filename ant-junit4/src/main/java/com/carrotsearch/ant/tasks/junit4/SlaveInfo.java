@@ -48,6 +48,11 @@ public final class SlaveInfo {
    */
   String slaveCommandLine;
 
+  /**
+   * Execution error if anything bad happened on the slave.
+   */
+  Throwable executionError;
+
   /* */
   public SlaveInfo(int id, int slaves) {
     this.id = id;
