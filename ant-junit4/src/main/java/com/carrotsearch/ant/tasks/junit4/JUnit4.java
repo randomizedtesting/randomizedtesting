@@ -718,8 +718,7 @@ public class JUnit4 extends Task {
         classNamesFile.getPath().replace(".suites", "-dynamic.suites"));
 
     // Dump all test class names to a temporary file.
-    List<String> testClassNames = Collections.emptyList();
-    String testClassPerLine = Joiner.on("\n").join(testClassNames);
+    String testClassPerLine = Joiner.on("\n").join(slave.testSuites);
     log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
 
     Files.write(testClassPerLine, classNamesFile, Charsets.UTF_8);
