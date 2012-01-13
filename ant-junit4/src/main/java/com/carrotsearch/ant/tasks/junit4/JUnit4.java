@@ -1,6 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -23,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 
@@ -465,21 +467,18 @@ public class JUnit4 extends Task {
 
       // Order test class names identically for balancers.
       Collections.sort(testClassNames);
-      loadBalanceSuites(slaveInfos, testClassNames, balancers);
       
-      for (SlaveInfo si : slaveInfos) {
-        si.testSuites.clear();
-      }
-
+      // Prepare a pool of suites dynamically dispatched to slaves as they become idle.
+      final Deque<String> stealingQueue = 
+          new ArrayDeque<String>(loadBalanceSuites(slaveInfos, testClassNames, balancers));
       aggregatedBus.register(new Object() {
-        ArrayList<String> suites = Lists.newArrayList(testClassNames);
         @Subscribe @SuppressWarnings("unused")
         public void onSlaveIdle(SlaveIdle slave) {
-          if (suites.isEmpty()) {
+          if (stealingQueue.isEmpty()) {
             slave.finished();
           } else {
-            slave.newSuite(suites.remove(0));
-          }          
+            slave.newSuite(stealingQueue.pop());
+          }
         }
       });
 
@@ -555,9 +554,11 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Perform load balancing of the set of suites. 
+   * Perform load balancing of the set of suites. Sets {@link SlaveInfo#testSuites}
+   * to suites preassigned to a given slave and returns a pool of suites
+   * that should be load-balanced dynamically based on job stealing.
    */
-  private void loadBalanceSuites(List<SlaveInfo> slaveInfos,
+  private List<String> loadBalanceSuites(List<SlaveInfo> slaveInfos,
       List<String> testClassNames, List<TestBalancer> balancers) {
     final List<TestBalancer> balancersWithFallback = Lists.newArrayList(balancers);
     balancersWithFallback.add(new RoundRobinBalancer());
@@ -586,7 +587,26 @@ public class JUnit4 extends Task {
         slaveInfos.get(e.getValue()).testSuites.add(e.getKey());
       }
     }
-    
+
+    if (remaining.size() != 0) {
+      throw new RuntimeException("Not all suites assigned?: " + remaining);
+    }    
+
+    // Take a fraction of suites scheduled as last on each slave and move them to a common
+    // job-stealing queue.
+    List<String> stealingQueue = Lists.newArrayList();
+    for (SlaveInfo si : slaveInfos) {
+      ArrayList<String> slaveSuites = si.testSuites;
+      int moveToCommon = slaveSuites.size() / 2; // 50%
+      if (moveToCommon > 0) {
+        List<String> sub = 
+            slaveSuites.subList(slaveSuites.size() - moveToCommon, slaveSuites.size());
+        stealingQueue.addAll(sub);
+        sub.clear();
+      }
+    }
+
+    // Shuffle the remaining jobs.
     if (shuffleOnSlave) {
       for (SlaveInfo si : slaveInfos) {
         Collections.sort(si.testSuites);
@@ -594,9 +614,7 @@ public class JUnit4 extends Task {
       }
     }
 
-    if (remaining.size() != 0) {
-      throw new RuntimeException("Not all suites assigned?: " + remaining);
-    }    
+    return stealingQueue;
   }
 
   /**
@@ -674,7 +692,10 @@ public class JUnit4 extends Task {
   private void executeSlave(final SlaveInfo slave, final EventBus aggregatedBus)
     throws Exception
   {
-    final File classNamesFile = File.createTempFile("junit4-slave-" + slave.id, ".testmethods", getTempDir());
+    final File classNamesFile = File.createTempFile(
+        "junit4-slave-" + slave.id, ".suites", getTempDir());
+    final File classNamesDynamic = new File(
+        classNamesFile.getPath().replace(".suites", "-dynamic.suites"));
     try {
       // Dump all test class names to a temporary file.
       List<String> testClassNames = Collections.emptyList();
@@ -688,29 +709,52 @@ public class JUnit4 extends Task {
       commandline = (CommandlineJava) getCommandline().clone();
       commandline.createClasspath(getProject()).add(addSlaveClasspath());
       commandline.setClassname(SlaveMainSafe.class.getName());
-      commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
       if (slave.slaves == 1) {
         commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
       }
       commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
 
-      final String [] commandLineArgs = commandline.getCommandline();
-
+      // Emit command line before -stdin to avoid confusion.
       log("Slave process command line:\n" + 
-          Joiner.on(" ").join(commandLineArgs), Project.MSG_VERBOSE);
+          Joiner.on(" ").join(
+              commandline.getCommandline()), Project.MSG_VERBOSE);
+
+      commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
 
       final EventBus eventBus = new EventBus("slave-" + slave.id);
       final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
       eventBus.register(diagnosticsListener);
       eventBus.register(new AggregatingListener(aggregatedBus, slave));
+      
+      final PrintWriter w = new PrintWriter(Files.newWriter(classNamesDynamic, Charset.defaultCharset()));
       eventBus.register(new Object() {
         @SuppressWarnings("unused")
         @Subscribe
-        public void onIdleSlave(SlaveIdle slave) {
-          aggregatedBus.post(slave);
+        public void onIdleSlave(final SlaveIdle slave) {
+          aggregatedBus.post(new SlaveIdle() {
+            @Override
+            public void finished() {
+              slave.finished();
+            }
+
+            @Override
+            public void newSuite(String suiteName) {
+              w.println(suiteName);
+              slave.newSuite(suiteName);
+            }
+          });
         }
       });
-      executeProcess(eventBus, commandline);
+
+      try {
+        executeProcess(eventBus, commandline);
+      } finally {
+        Closeables.closeQuietly(w);
+        Files.copy(classNamesDynamic,
+            Files.newOutputStreamSupplier(classNamesFile, true));
+        classNamesDynamic.delete();
+      }
+
       if (!diagnosticsListener.quitReceived()) {
         throw new BuildException("Quit event not received from a slave process?");
       }

@@ -11,6 +11,10 @@ import com.google.common.io.Closeables;
 class SlaveIdle {
   private OutputStreamWriter stdin;
 
+  /** For delegation. */
+  SlaveIdle() {
+  }
+  
   public SlaveIdle(OutputStreamWriter stdin) {
     this.stdin = stdin;
   }
