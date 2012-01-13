@@ -244,7 +244,7 @@ public class JUnit4 extends Task {
   public void setProject(Project project) {
     super.setProject(project);
 
-    this.random = Objects.firstNonNull( 
+    this.random = com.google.common.base.Objects.firstNonNull( 
         Strings.emptyToNull(getProject().getProperty(SYSPROP_RANDOM_SEED)),
         SeedUtils.formatSeed(new Random().nextLong()));
 
