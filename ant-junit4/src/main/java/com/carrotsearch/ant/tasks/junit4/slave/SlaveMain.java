@@ -221,7 +221,7 @@ public class SlaveMain {
         main.flushFrequently = true;
       } else if (option.equals(OPTION_STDIN)) {
         if (stdInput == null) {
-          stdInput = new StdInLineIterator();
+          stdInput = new StdInLineIterator(main.serializer);
         }
       } else if (option.startsWith("@")) {
         // Append arguments file, one line per option.

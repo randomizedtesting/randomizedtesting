@@ -3,6 +3,8 @@ package com.carrotsearch.ant.tasks.junit4.slave;
 import java.io.*;
 import java.nio.charset.Charset;
 
+import com.carrotsearch.ant.tasks.junit4.events.IdleEvent;
+import com.carrotsearch.ant.tasks.junit4.events.Serializer;
 import com.google.common.collect.AbstractIterator;
 
 /**
@@ -10,8 +12,10 @@ import com.google.common.collect.AbstractIterator;
  */
 class StdInLineIterator extends AbstractIterator<String> {
   private BufferedReader reader;
+  private Serializer serializer;
 
-  public StdInLineIterator() {
+  public StdInLineIterator(Serializer serializer) {
+    this.serializer = serializer;
     this.reader = new BufferedReader(
       new InputStreamReader(
           System.in,
@@ -21,6 +25,9 @@ class StdInLineIterator extends AbstractIterator<String> {
   @Override
   protected String computeNext() {
     try {
+      serializer.serialize(new IdleEvent());
+      serializer.flush();
+
       String line = reader.readLine();
       return line != null ? line : endOfData();
     } catch (IOException e) {
