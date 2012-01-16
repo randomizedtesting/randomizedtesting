@@ -19,7 +19,6 @@
 
   <properties>
     <skip.deployment>true</skip.deployment>
-    <skipTests>true</skipTests>
   </properties>
 
   <dependencies>
@@ -27,60 +26,59 @@
       <groupId>com.carrotsearch.randomizedtesting</groupId>
       <artifactId>randomizedtesting-runner</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
+      <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.carrotsearch.randomizedtesting</groupId>
-      <artifactId>ant-junit4</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
-      <scope>test</scope>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.6</version>
-          <inherited>false</inherited>
-
-          <dependencies>
-            <dependency>
-              <groupId>org.apache.ant</groupId>
-              <artifactId>ant-nodeps</artifactId>
-              <version>1.8.0</version>
-            </dependency>
-            <dependency>
-              <groupId>org.apache.ant</groupId>
-              <artifactId>ant-trax</artifactId>
-              <version>1.8.0</version>
-            </dependency>
-            <dependency>
-              <groupId>org.apache.ant</groupId>
-              <artifactId>ant-junit</artifactId>
-              <version>1.8.0</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <testFailureIgnore>true</testFailureIgnore>
-          <runOrder>random</runOrder>
+          <skipTests>true</skipTests>
         </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.carrotsearch.randomizedtesting</groupId>
+                  <artifactId>ant-junit4</artifactId>
+                  <version>${project.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${basedir}/target/ant/lib</outputDirectory>
+                  <destFileName>ant-junit4-${project.version}-SNAPSHOT.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>junit</groupId>
+                  <artifactId>junit</artifactId>
+                  <version>${junit.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${basedir}/target/ant/lib</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+              <!-- other configurations here -->
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -92,21 +90,13 @@
             <phase>integration-test</phase>
             <configuration>
               <target>
-                <!-- 
-                    Save classpath to a temporary file so that local execution 
-                    directly from ant is possible. 
-                -->
-                <property name="test.classpath" refid="maven.test.classpath" />
+                <!-- Save classpath to a temporary file so that local execution directly 
+                  from ant is possible. -->
+                <property name="test.classpath" refid="maven.compile.classpath" />
                 <echo encoding="UTF-8" file="${basedir}/target/ant/.classpath">${test.classpath}</echo>
 
-                <copy toDir="${basedir}/target/ant/lib" overwrite="true" flatten="true">
-                  <resources>
-                     <file file="${com.carrotsearch.randomizedtesting:ant-junit4:jar}" />
-                     <file file="${junit:junit:jar}" />
-                  </resources>
-                </copy>
-
-                <ant antfile="${basedir}/build.xml" inheritRefs="true" inheritAll="true" target="run" />
+                <ant antfile="${basedir}/build.xml" inheritRefs="true"
+                  inheritAll="true" target="run" />
               </target>
             </configuration>
             <goals>

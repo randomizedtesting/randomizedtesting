@@ -56,7 +56,7 @@
             <!-- Test selector. junit4 only supports *.class files but can work
                  with any resource collections (parses class names from .class files). 
               -->
-            <fileset dir="${basedir}/target/test-classes">
+            <fileset dir="${basedir}/target/classes">
                 <include name="**/Test*.class" />
                 <exclude name="**/*$*" />
             </fileset>
