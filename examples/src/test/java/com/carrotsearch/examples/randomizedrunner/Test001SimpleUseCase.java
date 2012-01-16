@@ -19,8 +19,8 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
  */
 @RunWith(RandomizedRunner.class)
 public class Test001SimpleUseCase {
-  @Before
-  public void before() {
+  @Before @SuppressWarnings("unused")
+  private void before() {
     // Ha! This won't work under the default JUnit runner.
   }
 
