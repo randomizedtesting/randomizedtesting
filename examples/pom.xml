@@ -89,7 +89,7 @@
             <id>ant-run-tests</id>
             <phase>integration-test</phase>
             <configuration>
-              <target>
+              <target unless="${skipTests}">
                 <!-- Save classpath to a temporary file so that local execution directly 
                   from ant is possible. -->
                 <property name="test.classpath" refid="maven.compile.classpath" />

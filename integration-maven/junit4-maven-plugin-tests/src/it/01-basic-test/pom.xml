@@ -1,0 +1,95 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.carrotsearch.randomizedtesting</groupId>
+    <artifactId>randomizedtesting-parent</artifactId>
+    <version>@project.version@</version>
+    <relativePath>@basedir@/../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>junit4-maven-plugin-tests</artifactId>
+  <name><![CDATA[RandomizedTesting JUnit4 Maven Plugin Tests]]></name>
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.carrotsearch.randomizedtesting</groupId>
+      <artifactId>randomizedtesting-runner</artifactId>
+      <version>@project.version@</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.simpleframework</groupId>
+      <artifactId>simple-xml</artifactId>
+      <version>2.6.2</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.carrotsearch.randomizedtesting</groupId>
+        <artifactId>junit4-maven-plugin</artifactId>
+        <version>@project.version@</version>
+        <executions>
+          <execution>
+            <id>junit4-tests</id>
+            <goals>
+              <goal>junit4</goal>
+            </goals>
+            <configuration>
+              <leaveTemporary>true</leaveTemporary>
+              <classpathDependencyExcludes>
+                <dependency>org.simpleframework:simple-xml</dependency>
+              </classpathDependencyExcludes>
+
+              <listeners>
+                <report-console 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutputStream="true" 
+                    showErrorStream="true"
+
+                    showStatusOk="true"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="false"
+                />              
+              </listeners>
+
+              <assertions>
+                <enable package="com.carrotsearch.ant.tasks.junit4.tests.sub1"/>
+              </assertions>
+
+              <balancers>
+                <execution-times>
+                  <fileset dir="${project.build.directory}" includes="hints*.log" />
+                </execution-times>
+              </balancers>
+              
+              <includes>
+                <include>**/Test0*.class</include>
+              </includes>
+              <excludes>
+                <exclude>**/Buhu*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
