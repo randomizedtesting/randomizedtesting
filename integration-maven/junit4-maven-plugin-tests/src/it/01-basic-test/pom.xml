@@ -8,6 +8,10 @@
   <name><![CDATA[RandomizedTesting JUnit4 Maven Plugin Tests]]></name>
   <packaging>jar</packaging>
 
+  <prerequisites>
+    <maven>3.0.2</maven>
+  </prerequisites>
+
   <dependencies>
     <dependency>
       <groupId>com.carrotsearch.randomizedtesting</groupId>
