@@ -2,14 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.carrotsearch.randomizedtesting</groupId>
-    <artifactId>randomizedtesting-parent</artifactId>
-    <version>@project.version@</version>
-    <relativePath>@basedir@/../../pom.xml</relativePath>
-  </parent>
-
+  <groupId>com.carrotsearch.randomizedtesting</groupId>
   <artifactId>junit4-maven-plugin-tests</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
   <name><![CDATA[RandomizedTesting JUnit4 Maven Plugin Tests]]></name>
   <packaging>jar</packaging>
 
