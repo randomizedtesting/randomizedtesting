@@ -135,6 +135,7 @@ public class TextReport implements AggregatedEventListener {
    */
   public void setFile(File outputFile) throws IOException {
     if (!outputFile.getName().isEmpty()) {
+      Files.createParentDirs(outputFile);
       this.output = Files.newWriter(outputFile, Charsets.UTF_8);
     }
   }

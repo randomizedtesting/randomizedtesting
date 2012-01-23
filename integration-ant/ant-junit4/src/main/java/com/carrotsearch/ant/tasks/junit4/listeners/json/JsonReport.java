@@ -18,6 +18,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonWriter;
@@ -63,7 +64,7 @@ public class JsonReport implements AggregatedEventListener {
     if (this.targetFile == null) {
       throw new BuildException("'file' attribute is required (target file for JSON).");
     }
-
+    
     final ClassLoader refLoader = Thread.currentThread().getContextClassLoader(); 
     this.gson = new GsonBuilder()
       .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonAggregatedSuiteResultEventAdapter())
@@ -77,6 +78,8 @@ public class JsonReport implements AggregatedEventListener {
       .setPrettyPrinting().create();
 
     try {
+      Files.createParentDirs(targetFile);
+
       writer = new OutputStreamWriter(
           new BufferedOutputStream(new FileOutputStream(targetFile)),Charsets.UTF_8);
       

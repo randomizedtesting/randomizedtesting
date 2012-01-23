@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
+import com.google.common.io.Files;
 
 /**
  * A report listener that produces XML files compatible with those produced by
@@ -64,6 +65,17 @@ public class AntXmlReport implements AggregatedEventListener {
     
     if (this.dir == null) {
       throw new BuildException("'dir' attribute is required (target folder for reports).");
+    }
+    
+    try {
+      Files.createParentDirs(dir);
+    } catch (IOException e) {
+      throw new BuildException("Could not create parent folders of: "
+          + dir, e);
+    }
+
+    if (!dir.mkdir()) {
+      throw new BuildException("Could not create folder: " + dir);
     }
   }
 
