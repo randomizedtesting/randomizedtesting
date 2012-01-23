@@ -1,4 +1,4 @@
-
+ 
 <project default="run">
     <property name="dir.ant.tests" location="${basedir}/target/ant" />
 
@@ -36,7 +36,11 @@
                     <include name="junit-*.jar" />
                 </fileset>
             </classpath>
-        </taskdef>        
+        </taskdef>
+        
+        <pathconvert property="randomizedtesting-examples.jarlocation">
+          <fileset dir="${dir.ant.tests}/lib" includes="randomizedtesting-examples*.jar" />
+        </pathconvert>
 
         <junit4
             jvm=""
@@ -54,12 +58,14 @@
             <classpath path="${classpath.dependencies}" />
 
             <!-- Test selector. junit4 only supports *.class files but can work
-                 with any resource collections (parses class names from .class files). 
+                 with any resource collections (parses class names from .class files).
+                 This shows how to use test classes in a ZIP file directly. In regular
+                 projects you'd use a fileset element.
               -->
-            <fileset dir="${basedir}/target/classes">
+            <zipfileset src="${randomizedtesting-examples.jarlocation}">
                 <include name="**/Test*.class" />
                 <exclude name="**/*$*" />
-            </fileset>
+            </zipfileset>
 
             <!-- Nested elements much like in "standard" ANT 'junit' task. -->
             <jvmarg value="-ea" />

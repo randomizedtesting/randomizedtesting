@@ -1,0 +1,99 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.carrotsearch.randomizedtesting</groupId>
+    <artifactId>randomizedtesting-parent</artifactId>
+    <version>0.0.5-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>randomizedtesting-examples</artifactId>
+  <name>RandomizedTesting Examples</name>
+
+  <description>
+  Simple use-case examples meant to be included in some
+  end-user documentation if it's ever going to be written...
+  </description>
+
+  <properties>
+    <skip.deployment>false</skip.deployment>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.carrotsearch.randomizedtesting</groupId>
+      <artifactId>randomizedtesting-runner</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- We don't want to use surefire to run our tests so we skip it. -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <skipTests>true</skipTests>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <!-- Run tests with JUnit4 instead. A simple configuration here. -->
+      <plugin>
+        <groupId>com.carrotsearch.randomizedtesting</groupId>
+        <artifactId>junit4-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>junit4-tests</id>
+            <goals>
+              <goal>junit4</goal>
+            </goals>
+            <configuration>
+              <!-- Some of these examples have intentional failures, so don't fail on errors. -->
+              <haltOnFailure>false</haltOnFailure>
+              
+              <!-- Our tests are in primary classes folder. -->
+              <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+
+              <!-- Attach a simple listener. -->
+              <listeners>
+                <report-console
+                    showThrowable="false" 
+                    showStackTraces="false" 
+                    showOutputStream="false" 
+                    showErrorStream="false"
+
+                    showStatusOk="true"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="false"
+                />              
+              </listeners>
+
+              <assertions>
+                <enable package="com.carrotsearch"/>
+              </assertions>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>      
+    </plugins>
+  </build>
+</project>
