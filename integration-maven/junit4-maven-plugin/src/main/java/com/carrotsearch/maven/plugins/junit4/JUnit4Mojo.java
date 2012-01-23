@@ -232,6 +232,15 @@ public class JUnit4Mojo extends AbstractMojo {
   private List<String> excludes;
 
   /**
+   * This parameter adds a listener emitting surefire-compatible XMLs if no other listeners
+   * are added. If there are any configured listeners, this parameter is omitted (you can
+   * add a maven-compatible listener manually).
+   * 
+   * @parameter default-value="${project.build.directory}/surefire-reports"
+   */
+  private File surefireReportsDirectory;
+
+  /**
    * Specifies the name of the JUnit artifact used for running tests. JUnit dependency
    * must be in at least version 4.10.
    *
@@ -478,9 +487,31 @@ public class JUnit4Mojo extends AbstractMojo {
 
     // Tests classpath
     setupTestClasspath(junit4);
-    
+
     // Copy over listeners configuration.
-    appendRawXml(listeners, junit4);
+    if (listeners != null) {
+        appendRawXml(listeners, junit4);
+    } else {
+        // Add a console listener and a surefire-like XML listener.
+        Element listenersElement = junit4.addElement("listeners");
+
+        Element surefireReport = listenersElement.addElement("report-ant-xml");
+        surefireReport.addAttribute("dir", surefireReportsDirectory.getAbsolutePath());
+        surefireReport.addAttribute("mavenExtensions", "true");
+
+        Element consoleReport = listenersElement.addElement("report-text");
+        consoleReport.addAttribute("showThrowable",     "true");
+        consoleReport.addAttribute("showStackTraces",   "true");
+        consoleReport.addAttribute("showOutputStream",  "false");
+        consoleReport.addAttribute("showErrorStream",   "false");
+
+        consoleReport.addAttribute("showStatusOk",      "false");
+        consoleReport.addAttribute("showStatusError",   "true");
+        consoleReport.addAttribute("showStatusFailure", "true");
+        consoleReport.addAttribute("showStatusIgnored", "false");
+        
+        consoleReport.addAttribute("showSuiteSummary",  "true");
+    }
 
     // Copy over assertions
     appendRawXml(assertions, junit4);

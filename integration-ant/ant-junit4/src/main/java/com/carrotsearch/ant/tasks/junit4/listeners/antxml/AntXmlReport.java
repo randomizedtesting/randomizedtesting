@@ -69,13 +69,10 @@ public class AntXmlReport implements AggregatedEventListener {
     
     try {
       Files.createParentDirs(dir);
+      dir.mkdir();
     } catch (IOException e) {
       throw new BuildException("Could not create parent folders of: "
           + dir, e);
-    }
-
-    if (!dir.mkdir()) {
-      throw new BuildException("Could not create folder: " + dir);
     }
   }
 

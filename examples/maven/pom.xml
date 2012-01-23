@@ -72,7 +72,7 @@
 
               <!-- Attach a simple listener. -->
               <listeners>
-                <report-console
+                <report-text
                     showThrowable="false" 
                     showStackTraces="false" 
                     showOutputStream="false" 

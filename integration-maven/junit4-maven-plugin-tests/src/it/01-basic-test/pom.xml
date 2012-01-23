@@ -54,7 +54,7 @@
               </classpathDependencyExcludes>
 
               <listeners>
-                <report-console 
+                <report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
