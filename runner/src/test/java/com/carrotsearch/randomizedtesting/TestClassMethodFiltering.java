@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.RunWith;
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 /**
  * Check if global filtering works.
@@ -58,7 +59,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testClassFilter() {
-    System.setProperty(RandomizedRunner.SYSPROP_TESTCLASS, Nested1.class.getName());
+    System.setProperty(SYSPROP_TESTCLASS, Nested1.class.getName());
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertTrue(
         Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
@@ -70,8 +71,8 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testClassMethodFilter() {
-    System.setProperty(RandomizedRunner.SYSPROP_TESTCLASS, Nested1.class.getName());
-    System.setProperty(RandomizedRunner.SYSPROP_TESTMETHOD, "method2");
+    System.setProperty(SYSPROP_TESTCLASS, Nested1.class.getName());
+    System.setProperty(SYSPROP_TESTMETHOD, "method2");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method2"), methods);
   }
@@ -81,7 +82,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testMethodFilter() {
-    System.setProperty(RandomizedRunner.SYSPROP_TESTMETHOD, "method1");
+    System.setProperty(SYSPROP_TESTMETHOD, "method1");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
   }
@@ -91,7 +92,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testGlobClassName() {
-    System.setProperty(RandomizedRunner.SYSPROP_TESTCLASS, "*Nested1");
+    System.setProperty(SYSPROP_TESTCLASS, "*Nested1");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertTrue(
         Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
@@ -103,7 +104,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testGlobMethodName() {
-    System.setProperty(RandomizedRunner.SYSPROP_TESTMETHOD, "*hod1");
+    System.setProperty(SYSPROP_TESTMETHOD, "*hod1");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
   }
@@ -115,8 +116,8 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
 
   @After
   public void cleanupAfter() {
-    System.clearProperty(RandomizedRunner.SYSPROP_TESTCLASS);
-    System.clearProperty(RandomizedRunner.SYSPROP_TESTMETHOD);
+    System.clearProperty(SYSPROP_TESTCLASS);
+    System.clearProperty(SYSPROP_TESTMETHOD);
     methods.clear();
   }
 }

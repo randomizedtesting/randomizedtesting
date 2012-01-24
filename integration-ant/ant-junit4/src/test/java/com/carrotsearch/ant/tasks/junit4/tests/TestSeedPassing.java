@@ -6,15 +6,16 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.*;
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 public class TestSeedPassing extends RandomizedTest {
   @Test
   public void checkSeedSet() throws IOException {
-    Assert.assertEquals(System.getProperty(RandomizedRunner.SYSPROP_RANDOM_SEED),
+    Assert.assertEquals(System.getProperty(SYSPROP_RANDOM_SEED),
         SeedUtils.formatSeedChain(
             new Randomness(0xdeadbeefL),
             new Randomness(0xcafebabeL)), 
-            System.getProperty(RandomizedRunner.SYSPROP_RANDOM_SEED));
+            System.getProperty(SYSPROP_RANDOM_SEED));
 
     Assert.assertEquals(
         "[CAFEBABE]",

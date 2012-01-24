@@ -9,7 +9,7 @@ public class TestJvmCrash {
    * Check jvm crash.
    */
   @Test
-  public void testEnvVar() throws IOException {
+  public void testJvmCrash() throws IOException {
     // Try going into native mode first and cause a sigsegv. 
     // This will work for any jvm (?).
     Crash.loadLibrary();

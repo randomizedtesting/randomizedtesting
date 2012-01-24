@@ -5,6 +5,8 @@ import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
+
 public class TestRunawayThreadTermination extends WithNestedTestClass {
   public static class Nested2 extends RandomizedTest {
     @Test
@@ -59,8 +61,8 @@ public class TestRunawayThreadTermination extends WithNestedTestClass {
 
   @Test
   public void leftOverThread() throws Throwable {
-    System.setProperty(RandomizedRunner.SYSPROP_KILLATTEMPTS, "3");
-    System.setProperty(RandomizedRunner.SYSPROP_KILLWAIT, "100");
+    System.setProperty(SYSPROP_KILLATTEMPTS, "3");
+    System.setProperty(SYSPROP_KILLWAIT, "100");
     Result r = JUnitCore.runClasses(Nested2.class);
     Assert.assertEquals(3, r.getFailureCount());
   }    

@@ -26,6 +26,8 @@ import org.junit.runners.model.*;
 import com.carrotsearch.randomizedtesting.annotations.*;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
+
 /**
  * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
  * running randomized test cases with predictable and repeatable randomness.
@@ -88,77 +90,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private static final Nightly defaultNightly = Dummy.class.getAnnotation(Nightly.class); 
 
   /**
-   * Enable or disable stack filtering. 
-   */
-  public static final String SYSPROP_STACKFILTERING = "tests.stackfiltering";
-  
-  /**
-   * System property with an integer defining global initialization seeds for all
-   * random generators. Should guarantee test reproducibility.
-   */
-  public static final String SYSPROP_RANDOM_SEED = "tests.seed";
-
-  /**
-   * The global override for the number of each test's repetitions.
-   */
-  public static final String SYSPROP_ITERATIONS = "tests.iters";
-
-  /**
-   * Global override for picking out a single test class to execute. All other
-   * classes are ignored. The property can contain "globbing patterns" similar
-   * to shell expansion patterns. For example:
-   * <pre>
-   * *MyTest
-   * </pre>
-   * will pick all classes ending in MyTest (in any package, including nested static
-   * classes if they appear on input).
-   */
-  public static final String SYSPROP_TESTCLASS = "tests.class";
-
-  /**
-   * Global override for picking out a single test method to execute. If a
-   * matching method exists in more than one class, it will be executed. 
-   */
-  public static final String SYSPROP_TESTMETHOD = "tests.method";
-
-  /**
-   * If there's a runaway thread, how many times do we try to interrupt and
-   * then kill it before we give up? Runaway threads may affect other tests (bad idea).
-   *  
-   * @see #SYSPROP_KILLWAIT
-   */
-  public static final String SYSPROP_KILLATTEMPTS = "tests.killattempts";
-
-  /**
-   * If there's a runaway thread, how long should we wait between iterations of 
-   * putting a silver bullet through its heart?
-   * 
-   * @see #SYSPROP_KILLATTEMPTS
-   */
-  public static final String SYSPROP_KILLWAIT = "tests.killwait";
-
-  /**
-   * Global override for a single test case's maximum execution time after which
-   * it is considered out of control and an attempt to interrupt it is executed.
-   * Timeout in millis. 
-   */
-  public static final String SYSPROP_TIMEOUT = "tests.timeout";
-
-  /**
-   * If <code>true</code>, append seed parameter to all methods. Methods that are for some
-   * reason repeated (due to {@link Repeat} annotation or multiple {@link Seeds}, for example)
-   * are always postfixed with the seed to discriminate tests from each other. Otherwise many
-   * GUI clients have a problem in telling which test result was which.
-   */
-  public static final String SYSPROP_APPEND_SEED = "append.seed";
-  
-  /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
    * test methods. These stack entries contain additional information about
    * seeds used during execution. 
    */
   public static final String AUGMENTED_SEED_PACKAGE = "__randomizedtesting";
-  
+
   /**
    * Default timeout for a single test case. By default
    * the timeout is <b>disabled</b>. Use global system property

@@ -94,6 +94,6 @@ public final class RuntimeTestGroup {
     TestGroup testGroup = annotationClass.getAnnotation(TestGroup.class);
 
     String tmp = RandomizedRunner.emptyToNull(testGroup.sysProperty());
-    return (tmp == null ? "tests." + getGroupName(annotationClass) : tmp);
-  }  
+    return (tmp != null ? tmp : SysGlobals.prefixProperty(getGroupName(annotationClass))); 
+  }
 }

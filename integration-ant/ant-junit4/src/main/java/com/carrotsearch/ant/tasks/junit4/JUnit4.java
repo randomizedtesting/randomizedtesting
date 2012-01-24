@@ -47,23 +47,14 @@ import com.google.gson.Gson;
  * </ul>
  */
 public class JUnit4 extends Task {
-  /** Name of the antlib resource inside JUnit4 JAR. */
-  public static final String ANTLIB_RESOURCE_NAME = "junit4.antlib.xml";
-  
-  /** @see #setParallelism(String) */
-  public static final Object PARALLELISM_AUTO = "auto";
-
-  /** @see #setParallelism(String) */
-  public static final String PARALLELISM_MAX = "max";
-
   /**
    * Random seed for shuffling the order of suites. Override
-   * using {@link #setSeed(String)} or by setting this property globally.
+   * using {@link JUnit4#setSeed(String)} or by setting this property globally.
    * 
    * <p>Setting this property fixes {@link RandomizedRunner}'s initial 
    * seed (the same property).
    */
-  public static final String SYSPROP_RANDOM_SEED = RandomizedRunner.SYSPROP_RANDOM_SEED;
+  public static final String SYSPROP_RANDOM_SEED = SysGlobals.SYSPROP_RANDOM_SEED;
 
   /**
    * Project property for picking out a single test class to execute. All other
@@ -75,7 +66,7 @@ public class JUnit4 extends Task {
    * will pick all classes ending in MyTest (in any package, including nested static
    * classes if they appear on input).
    */
-  public static final String SYSPROP_TESTCLASS = RandomizedRunner.SYSPROP_TESTCLASS;
+  public static final String SYSPROP_TESTCLASS = SysGlobals.SYSPROP_TESTCLASS;
 
   /**
    * Project property for picking out a single test method to execute. All other
@@ -86,7 +77,16 @@ public class JUnit4 extends Task {
    * </pre>
    * will pick all methods starting with <code>test</code>.
    */
-  public static final String SYSPROP_TESTMETHOD = RandomizedRunner.SYSPROP_TESTMETHOD;
+  public static final String SYSPROP_TESTMETHOD = SysGlobals.SYSPROP_TESTMETHOD;
+
+  /** Name of the antlib resource inside JUnit4 JAR. */
+  public static final String ANTLIB_RESOURCE_NAME = "junit4.antlib.xml";
+  
+  /** @see #setParallelism(String) */
+  public static final Object PARALLELISM_AUTO = "auto";
+
+  /** @see #setParallelism(String) */
+  public static final String PARALLELISM_MAX = "max";
 
   /** Default value of {@link #setShuffleOnSlave}. */
   public static final boolean DEFAULT_SHUFFLE_ON_SLAVE = true;
@@ -421,7 +421,7 @@ public class JUnit4 extends Task {
   public void execute() throws BuildException {
     // Validate arguments and settings.
     masterSeed();
-    verifyJUnit4Present();
+    validateJUnit4();
 
     // Say hello and continue.
     log("<JUnit4> says hello. Random seed: " + getSeed(), Project.MSG_INFO);
@@ -583,6 +583,20 @@ public class JUnit4 extends Task {
   }
 
   /**
+   * Validate JUnit4 presence in a concrete version.
+   */
+  private void validateJUnit4() throws BuildException {
+    try {
+      Class<?> clazz = Class.forName("org.junit.runner.Description");
+      if (!Serializable.class.isAssignableFrom(clazz)) {
+        throw new BuildException("At least JUnit version 4.10 is required on junit4's taskdef classpath.");
+      }
+    } catch (ClassNotFoundException e) {
+      throw new BuildException("JUnit JAR must be added to junit4 taskdef's classpath.");
+    }
+  }
+
+  /**
    * Perform load balancing of the set of suites. Sets {@link SlaveInfo#testSuites}
    * to suites preassigned to a given slave and returns a pool of suites
    * that should be load-balanced dynamically based on job stealing.
@@ -655,20 +669,6 @@ public class JUnit4 extends Task {
       throw new BuildException("Random seed is required.");
     }
     return seeds[0];
-  }
-
-  /**
-   * Verify JUnit presence and version.
-   */
-  private void verifyJUnit4Present() {
-    try {
-      Class<?> clazz = Class.forName("org.junit.runner.Description");
-      if (!Serializable.class.isAssignableFrom(clazz)) {
-        throw new BuildException("At least JUnit version 4.10 is required on junit4's taskdef classpath.");
-      }
-    } catch (ClassNotFoundException e) {
-      throw new BuildException("JUnit JAR must be added to junit4 taskdef's classpath.");
-    }
   }
 
   /**

@@ -3,6 +3,8 @@ package com.carrotsearch.randomizedtesting;
 import java.util.Arrays;
 
 import org.junit.runner.Description;
+
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 import static com.carrotsearch.randomizedtesting.RandomizedRunner.*;
 
 /**
@@ -78,6 +80,7 @@ public class ReproduceErrorMessageBuilder {
 
   public ReproduceErrorMessageBuilder appendRunnerProperties() {
     for (String sysPropName : Arrays.asList(
+        SYSPROP_PREFIX,
         SYSPROP_STACKFILTERING,
         SYSPROP_ITERATIONS,
         SYSPROP_KILLATTEMPTS,

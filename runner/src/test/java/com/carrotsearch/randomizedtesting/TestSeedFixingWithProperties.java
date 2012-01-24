@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import com.carrotsearch.randomizedtesting.RandomizedContext;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 import static org.junit.Assert.*;
 
 /**
@@ -41,8 +42,8 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
    */
   @Test
   public void testRunnerAndMethodProperty() {
-    System.setProperty(RandomizedRunner.SYSPROP_RANDOM_SEED, "deadbeef:cafebabe");
-    System.setProperty(RandomizedRunner.SYSPROP_ITERATIONS, "3");
+    System.setProperty(SYSPROP_RANDOM_SEED, "deadbeef:cafebabe");
+    System.setProperty(SYSPROP_ITERATIONS, "3");
     JUnitCore.runClasses(Nested.class);
     assertEquals(Arrays.asList(0xdeadbeefL, 0xcafebabeL, 0xcafebabeL, 0xcafebabeL), seeds);
   }
@@ -53,8 +54,8 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
    */
   @Test
   public void testFixedRunnerPropertyOnly() {
-    System.setProperty(RandomizedRunner.SYSPROP_RANDOM_SEED, "deadbeef");
-    System.setProperty(RandomizedRunner.SYSPROP_ITERATIONS, "3");
+    System.setProperty(SYSPROP_RANDOM_SEED, "deadbeef");
+    System.setProperty(SYSPROP_ITERATIONS, "3");
     Result result = JUnitCore.runClasses(Nested.class);
     assertEquals(3, result.getRunCount());
     assertEquals(0xdeadbeefL, seeds.get(0).longValue());
@@ -78,8 +79,8 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   
   @After
   public void cleanupAfter() {
-    System.clearProperty(RandomizedRunner.SYSPROP_ITERATIONS);
-    System.clearProperty(RandomizedRunner.SYSPROP_RANDOM_SEED);
+    System.clearProperty(SYSPROP_ITERATIONS);
+    System.clearProperty(SYSPROP_RANDOM_SEED);
     seeds.clear();
   }
 }

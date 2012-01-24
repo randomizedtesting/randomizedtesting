@@ -5,8 +5,8 @@ import java.util.concurrent.*;
 import org.junit.*;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
-
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 public class TestRunawayThreadBelongingToSuite extends WithNestedTestClass {
   @ThreadLeaks(linger = 1000)
@@ -65,9 +65,9 @@ public class TestRunawayThreadBelongingToSuite extends WithNestedTestClass {
   
   @Test
   public void leftOverZombie() throws Throwable {
-    System.setProperty(RandomizedRunner.SYSPROP_KILLWAIT, "100");
+    System.setProperty(SYSPROP_KILLWAIT, "100");
     Result r = JUnitCore.runClasses(Nested2.class);
-    System.clearProperty(RandomizedRunner.SYSPROP_KILLWAIT);
+    System.clearProperty(SYSPROP_KILLWAIT);
 
     Assert.assertEquals(1, r.getFailureCount());
   }

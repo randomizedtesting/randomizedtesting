@@ -9,10 +9,10 @@ import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
-import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent.EventChannelType;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
+import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -102,7 +102,7 @@ public class SlaveMain {
     /*
      * Instantiate method filter if any.
      */
-    String methodFilterGlob = Strings.emptyToNull(System.getProperty(JUnit4.SYSPROP_TESTMETHOD));
+    String methodFilterGlob = Strings.emptyToNull(System.getProperty(SysGlobals.SYSPROP_TESTMETHOD));
     Filter methodFilter = Filter.ALL;
     if (methodFilterGlob != null) {
       methodFilter = new MethodGlobFilter(methodFilterGlob);

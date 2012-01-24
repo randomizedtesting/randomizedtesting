@@ -7,6 +7,7 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 public class TestRunawayTestTermination extends WithNestedTestClass {
   @Timeout(millis = 1000)
@@ -52,8 +53,8 @@ public class TestRunawayTestTermination extends WithNestedTestClass {
 
   @BeforeClass
   public static void speedup() {
-    System.setProperty(RandomizedRunner.SYSPROP_KILLATTEMPTS, "1");
-    System.setProperty(RandomizedRunner.SYSPROP_KILLWAIT, "100");
+    System.setProperty(SYSPROP_KILLATTEMPTS, "1");
+    System.setProperty(SYSPROP_KILLWAIT, "100");
   }
   
   @Test
