@@ -53,8 +53,8 @@ public class TestRunawayTestTermination extends WithNestedTestClass {
 
   @BeforeClass
   public static void speedup() {
-    System.setProperty(SYSPROP_KILLATTEMPTS, "1");
-    System.setProperty(SYSPROP_KILLWAIT, "100");
+    System.setProperty(SYSPROP_KILLATTEMPTS(), "1");
+    System.setProperty(SYSPROP_KILLWAIT(), "100");
   }
   
   @Test

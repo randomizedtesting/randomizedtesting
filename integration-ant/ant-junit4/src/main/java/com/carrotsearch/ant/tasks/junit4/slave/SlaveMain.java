@@ -102,7 +102,7 @@ public class SlaveMain {
     /*
      * Instantiate method filter if any.
      */
-    String methodFilterGlob = Strings.emptyToNull(System.getProperty(SysGlobals.SYSPROP_TESTMETHOD));
+    String methodFilterGlob = Strings.emptyToNull(System.getProperty(SysGlobals.SYSPROP_TESTMETHOD()));
     Filter methodFilter = Filter.ALL;
     if (methodFilterGlob != null) {
       methodFilter = new MethodGlobFilter(methodFilterGlob);

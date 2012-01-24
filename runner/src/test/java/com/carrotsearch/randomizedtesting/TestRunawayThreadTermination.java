@@ -61,8 +61,8 @@ public class TestRunawayThreadTermination extends WithNestedTestClass {
 
   @Test
   public void leftOverThread() throws Throwable {
-    System.setProperty(SYSPROP_KILLATTEMPTS, "3");
-    System.setProperty(SYSPROP_KILLWAIT, "100");
+    System.setProperty(SYSPROP_KILLATTEMPTS(), "3");
+    System.setProperty(SYSPROP_KILLWAIT(), "100");
     Result r = JUnitCore.runClasses(Nested2.class);
     Assert.assertEquals(3, r.getFailureCount());
   }    

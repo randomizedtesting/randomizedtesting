@@ -99,6 +99,7 @@
       <id>quick</id>
       <properties>
         <skipTests>true</skipTests>
+        <invoker.skip>true</invoker.skip>
       </properties>
     </profile>
   </profiles>

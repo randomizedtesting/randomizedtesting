@@ -10,14 +10,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
  * and {@link RandomizedRunner}.
  */
 public final class SysGlobals {
-  // No instances.
-  private SysGlobals() {}
-  
-  /**
-   * Statically initialized global prefix for all system properties. This can be initialized
-   * only once. 
-   */
-  private static final String GLOBAL_PREFIX;
+  private final static Object lock = new Object();
 
   /**
    * Default prefix for all properties.
@@ -29,34 +22,118 @@ public final class SysGlobals {
    * packages. It is discouraged to change this property but it may be used to resolve
    * conflicts with packages that have overlapping property names.
    */
-  public static final String SYSPROP_PREFIX = DEFAULT_PREFIX + ".prefix";
+  private static final String SYSPROP_PREFIX = DEFAULT_PREFIX + ".prefix";
 
   /**
-   * Static initializer for {@link #GLOBAL_PREFIX}.
+   * Global singleton. Initialized once.
    */
-  static {
-    String globalPrefixOverride = System.getProperty(SYSPROP_PREFIX);
-    if (globalPrefixOverride == null) {
-      globalPrefixOverride = DEFAULT_PREFIX;
-    }
-    GLOBAL_PREFIX = globalPrefixOverride.trim();
+  private static SysGlobals singleton;
+
+  /**
+   * Singleton initialization stack for easier debugging.
+   */
+  private static StackTraceElement[] singletonInitStack;
+
+  /** Initialized singleton's prefix. */
+  private final String prefix;
+  
+  /* Property names, rendered. */
+  private final String SYSPROP_STACKFILTERING; 
+  private final String SYSPROP_RANDOM_SEED;
+  private final String SYSPROP_ITERATIONS;
+  private final String SYSPROP_TESTCLASS;
+  private final String SYSPROP_TESTMETHOD;
+  private final String SYSPROP_KILLATTEMPTS;
+  private final String SYSPROP_KILLWAIT;
+  private final String SYSPROP_TIMEOUT;
+  private final String SYSPROP_APPEND_SEED;
+
+  // Singleton constructor.
+  private SysGlobals(String prefix) {
+    this.prefix = prefix;
+
+    this.SYSPROP_STACKFILTERING = prefixWith(prefix, "stackfiltering");
+    this.SYSPROP_RANDOM_SEED    = prefixWith(prefix, "seed");
+    this.SYSPROP_ITERATIONS     = prefixWith(prefix, "iters");
+    this.SYSPROP_TESTCLASS      = prefixWith(prefix, "class");         
+    this.SYSPROP_TESTMETHOD     = prefixWith(prefix, "method");
+    this.SYSPROP_KILLATTEMPTS   = prefixWith(prefix, "killattempts");
+    this.SYSPROP_KILLWAIT       = prefixWith(prefix, "killwait");
+    this.SYSPROP_TIMEOUT        = prefixWith(prefix, "timeout");
+    this.SYSPROP_APPEND_SEED    = prefixWith(prefix, "appendseed");    
   }
+
+  /** */
+  private String prefixWith(String prefix, String propertyName) {
+    if (prefix.isEmpty()) {
+      return propertyName;
+    } else {
+      return prefix + (prefix.endsWith(".") ? "" : ".") + propertyName;
+    }
+  }
+
+  /** */
+  private static SysGlobals singleton() {
+    synchronized (lock) {
+      if (singleton == null) {
+        String prefix = System.getProperty(SYSPROP_PREFIX);
+        if (prefix == null) {
+          prefix = DEFAULT_PREFIX;
+        }
+        initializeWith(prefix);
+      }
+      return singleton;
+    }
+  }
+
+  /** */
+  public static SysGlobals initializeWith(String prefix) {
+    if (prefix == null) {
+      throw new IllegalArgumentException("Prefix must not be null.");
+    }
+
+    synchronized (lock) {
+      if (singleton == null) {
+        singleton = new SysGlobals(prefix);
+        singletonInitStack = Thread.currentThread().getStackTrace();
+      }
+
+      if (!singleton.prefix.equals(prefix)) {
+        Exception e = new Exception("Original singleton initialization stack.");
+        e.setStackTrace(singletonInitStack);
+        throw new RuntimeException("A singleton has been initialized already with a " +
+            "different prefix: existing=" + singleton.prefix + ", attempted=" + prefix, e);
+      }
+
+      return singleton;
+    }
+  }
+
+  /**
+   * Global system property that holds the prefix used by other properties.  
+   */
+  public static String SYSPROP_PREFIX() { return SYSPROP_PREFIX; }
+
+  /**
+   * Static singleton's property prefix. Initializes it if not already initialized. 
+   */
+  public static String CURRENT_PREFIX() { return singleton().prefix; }
 
   /**
    * Enable or disable stack filtering. 
    */
-  public static final String SYSPROP_STACKFILTERING = prefixProperty("stackfiltering");
+  public static String SYSPROP_STACKFILTERING() { return singleton().SYSPROP_STACKFILTERING; }
 
   /**
    * System property with an integer defining global initialization seeds for all
    * random generators. Should guarantee test reproducibility.
    */
-  public static final String SYSPROP_RANDOM_SEED = prefixProperty("seed");
+  public static String SYSPROP_RANDOM_SEED() { return singleton().SYSPROP_RANDOM_SEED; }
 
   /**
    * The global override for the number of each test's repetitions.
    */
-  public static final String SYSPROP_ITERATIONS = prefixProperty("iters");
+  public static String SYSPROP_ITERATIONS() { return singleton().SYSPROP_ITERATIONS; }
 
   /**
    * Global override for picking out a single test class to execute. All other
@@ -68,13 +145,13 @@ public final class SysGlobals {
    * will pick all classes ending in MyTest (in any package, including nested static
    * classes if they appear on input).
    */
-  public static final String SYSPROP_TESTCLASS = prefixProperty("class");
+  public static String SYSPROP_TESTCLASS() { return singleton().SYSPROP_TESTCLASS; }
 
   /**
    * Global override for picking out a single test method to execute. If a
    * matching method exists in more than one class, it will be executed. 
    */
-  public static final String SYSPROP_TESTMETHOD = prefixProperty("method");
+  public static String SYSPROP_TESTMETHOD() { return singleton().SYSPROP_TESTMETHOD; }
 
   /**
    * If there's a runaway thread, how many times do we try to interrupt and
@@ -82,7 +159,7 @@ public final class SysGlobals {
    *  
    * @see #SYSPROP_KILLWAIT
    */
-  public static final String SYSPROP_KILLATTEMPTS = prefixProperty("killattempts");
+  public static String SYSPROP_KILLATTEMPTS() { return singleton().SYSPROP_KILLATTEMPTS; }
 
   /**
    * If there's a runaway thread, how long should we wait between iterations of 
@@ -90,14 +167,14 @@ public final class SysGlobals {
    * 
    * @see #SYSPROP_KILLATTEMPTS
    */
-  public static final String SYSPROP_KILLWAIT = prefixProperty("killwait");
+  public static String SYSPROP_KILLWAIT() { return singleton().SYSPROP_KILLWAIT; }
 
   /**
    * Global override for a single test case's maximum execution time after which
    * it is considered out of control and an attempt to interrupt it is executed.
    * Timeout in millis. 
    */
-  public static final String SYSPROP_TIMEOUT = prefixProperty("timeout");
+  public static String SYSPROP_TIMEOUT() { return singleton().SYSPROP_TIMEOUT; }
 
   /**
    * If <code>true</code>, append seed parameter to all methods. Methods that are for some
@@ -105,17 +182,14 @@ public final class SysGlobals {
    * are always postfixed with the seed to discriminate tests from each other. Otherwise many
    * GUI clients have a problem in telling which test result was which.
    */
-  public static final String SYSPROP_APPEND_SEED = prefixProperty("appendseed");
-  
+  public static String SYSPROP_APPEND_SEED() { return singleton().SYSPROP_APPEND_SEED; } 
+
   /**
    * Prefix a given property name with a common prefix. The prefix itself can be overriden
-   * using {@link #SYSPROP_PREFIX}.
+   * using {@link #SYSPROP_PREFIX}. This method initializes static singleton property
+   * names so it shouldn't be called on class initialization anywhere.
    */
   public static String prefixProperty(String propertyName) {
-    if (GLOBAL_PREFIX.isEmpty()) {
-      return propertyName;
-    } else {
-      return GLOBAL_PREFIX + "." + propertyName;
-    }
-  }  
+    return singleton().prefixWith(singleton.prefix, propertyName);
+  }
 }

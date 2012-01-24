@@ -296,9 +296,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
-    appendSeedParameter = RandomizedTest.systemPropertyAsBoolean(SYSPROP_APPEND_SEED, false);
+    appendSeedParameter = RandomizedTest.systemPropertyAsBoolean(SYSPROP_APPEND_SEED(), false);
 
-    if (RandomizedTest.systemPropertyAsBoolean(SYSPROP_STACKFILTERING, true)) {
+    if (RandomizedTest.systemPropertyAsBoolean(SYSPROP_STACKFILTERING(), true)) {
       this.traces = new TraceFormatting(DEFAULT_STACK_FILTERS);
     } else {
       this.traces = new TraceFormatting();
@@ -309,12 +309,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Initialize the runner's master seed/ randomness source.
     final long randomSeed = MurmurHash3.hash(sequencer.getAndIncrement() + System.nanoTime());
-    final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED);
+    final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED());
     if (globalSeed != null) {
       final long[] seedChain = SeedUtils.parseSeedChain(globalSeed);
       if (seedChain.length == 0 || seedChain.length > 2) {
         throw new IllegalArgumentException("Invalid system property " 
-            + SYSPROP_RANDOM_SEED + " specification: " + globalSeed);
+            + SYSPROP_RANDOM_SEED() + " specification: " + globalSeed);
       }
 
       if (seedChain.length > 1)
@@ -327,18 +327,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Iterations property is primary wrt to annotations, so we leave an "undefined" value as null.
-    if (System.getProperty(SYSPROP_ITERATIONS) != null) {
-      this.iterationsOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_ITERATIONS, 0);
+    if (System.getProperty(SYSPROP_ITERATIONS()) != null) {
+      this.iterationsOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_ITERATIONS(), 0);
       if (iterationsOverride < 1)
         throw new IllegalArgumentException(
-            "System property " + SYSPROP_ITERATIONS + " must be >= 1: " + iterationsOverride);
+            "System property " + SYSPROP_ITERATIONS() + " must be >= 1: " + iterationsOverride);
     } else {
       this.iterationsOverride = null;
     }
 
-    this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS, DEFAULT_KILLATTEMPTS);
-    this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT, DEFAULT_KILLWAIT);
-    this.timeoutOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_TIMEOUT, DEFAULT_TIMEOUT);
+    this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS(), DEFAULT_KILLATTEMPTS);
+    this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT(), DEFAULT_KILLWAIT);
+    this.timeoutOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_TIMEOUT(), DEFAULT_TIMEOUT);
 
     // TODO: should validation and everything else be done lazily after RunNotifier is available?
 
@@ -372,12 +372,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public void run(RunNotifier notifier) {
-    if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS)) != null) {
-      suiteFilters.add(new ClassGlobFilter(System.getProperty(SYSPROP_TESTCLASS)));
+    if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS())) != null) {
+      suiteFilters.add(new ClassGlobFilter(System.getProperty(SYSPROP_TESTCLASS())));
     }
     
-    if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD)) != null) {
-      testFilters.add(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD)));
+    if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD())) != null) {
+      testFilters.add(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD())));
     }
 
     runSuite(notifier);

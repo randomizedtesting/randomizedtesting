@@ -59,7 +59,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testClassFilter() {
-    System.setProperty(SYSPROP_TESTCLASS, Nested1.class.getName());
+    System.setProperty(SYSPROP_TESTCLASS(), Nested1.class.getName());
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertTrue(
         Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
@@ -71,8 +71,8 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testClassMethodFilter() {
-    System.setProperty(SYSPROP_TESTCLASS, Nested1.class.getName());
-    System.setProperty(SYSPROP_TESTMETHOD, "method2");
+    System.setProperty(SYSPROP_TESTCLASS(), Nested1.class.getName());
+    System.setProperty(SYSPROP_TESTMETHOD(), "method2");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method2"), methods);
   }
@@ -82,7 +82,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testMethodFilter() {
-    System.setProperty(SYSPROP_TESTMETHOD, "method1");
+    System.setProperty(SYSPROP_TESTMETHOD(), "method1");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
   }
@@ -92,7 +92,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testGlobClassName() {
-    System.setProperty(SYSPROP_TESTCLASS, "*Nested1");
+    System.setProperty(SYSPROP_TESTCLASS(), "*Nested1");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertTrue(
         Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
@@ -104,7 +104,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
    */
   @Test
   public void testGlobMethodName() {
-    System.setProperty(SYSPROP_TESTMETHOD, "*hod1");
+    System.setProperty(SYSPROP_TESTMETHOD(), "*hod1");
     JUnitCore.runClasses(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
   }
@@ -116,8 +116,8 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
 
   @After
   public void cleanupAfter() {
-    System.clearProperty(SYSPROP_TESTCLASS);
-    System.clearProperty(SYSPROP_TESTMETHOD);
+    System.clearProperty(SYSPROP_TESTCLASS());
+    System.clearProperty(SYSPROP_TESTMETHOD());
     methods.clear();
   }
 }

@@ -38,6 +38,12 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   }
 
   @Test 
+  public void customprefix() {
+    executeForkedTarget("customprefix");
+    // assertLogContains("Forked JVM's classpath must use JUnit 4.10 or newer");
+  }
+
+  @Test 
   public void oldjunit() {
     executeForkedTarget("oldjunit");
     assertLogContains("Forked JVM's classpath must use JUnit 4.10 or newer");

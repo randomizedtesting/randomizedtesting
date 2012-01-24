@@ -36,17 +36,17 @@ public class ReproduceErrorMessageBuilder {
     RandomizedContext ctx = null;
     try {
       ctx = RandomizedContext.current();
-      appendOpt(SYSPROP_RANDOM_SEED, ctx.getRunnerSeed());
+      appendOpt(SYSPROP_RANDOM_SEED(), ctx.getRunnerSeed());
     } catch (IllegalStateException e) {
       logger.warning("No context available when dumping reproduce options?");
     }
 
     if (description.getClassName() != null) {
-      appendOpt(SYSPROP_TESTCLASS, description.getClassName());
+      appendOpt(SYSPROP_TESTCLASS(), description.getClassName());
     }
 
     if (description.getMethodName() != null) {
-      appendOpt(SYSPROP_TESTMETHOD, methodName(description));
+      appendOpt(SYSPROP_TESTMETHOD(), methodName(description));
     }
 
     appendRunnerProperties();
@@ -79,13 +79,13 @@ public class ReproduceErrorMessageBuilder {
   }
 
   public ReproduceErrorMessageBuilder appendRunnerProperties() {
+    appendOpt(SYSPROP_PREFIX(), CURRENT_PREFIX());
     for (String sysPropName : Arrays.asList(
-        SYSPROP_PREFIX,
-        SYSPROP_STACKFILTERING,
-        SYSPROP_ITERATIONS,
-        SYSPROP_KILLATTEMPTS,
-        SYSPROP_KILLWAIT,
-        SYSPROP_TIMEOUT)) {
+        SYSPROP_STACKFILTERING(),
+        SYSPROP_ITERATIONS(),
+        SYSPROP_KILLATTEMPTS(),
+        SYSPROP_KILLWAIT(),
+        SYSPROP_TIMEOUT())) {
       if (System.getProperty(sysPropName) != null) {
         appendOpt(sysPropName, System.getProperty(sysPropName));
       }

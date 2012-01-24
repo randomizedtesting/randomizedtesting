@@ -28,6 +28,8 @@ import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
+
 /**
  * An ANT task to run JUnit4 tests. Differences (benefits?) compared to ANT's default JUnit task:
  * <ul>
@@ -47,38 +49,6 @@ import com.google.gson.Gson;
  * </ul>
  */
 public class JUnit4 extends Task {
-  /**
-   * Random seed for shuffling the order of suites. Override
-   * using {@link JUnit4#setSeed(String)} or by setting this property globally.
-   * 
-   * <p>Setting this property fixes {@link RandomizedRunner}'s initial 
-   * seed (the same property).
-   */
-  public static final String SYSPROP_RANDOM_SEED = SysGlobals.SYSPROP_RANDOM_SEED;
-
-  /**
-   * Project property for picking out a single test class to execute. All other
-   * classes are ignored. The property can contain "globbing patterns" similar
-   * to shell expansion patterns. For example:
-   * <pre>
-   * *MyTest
-   * </pre>
-   * will pick all classes ending in MyTest (in any package, including nested static
-   * classes if they appear on input).
-   */
-  public static final String SYSPROP_TESTCLASS = SysGlobals.SYSPROP_TESTCLASS;
-
-  /**
-   * Project property for picking out a single test method to execute. All other
-   * methods are ignored. The property can contain "globbing patterns" similar
-   * to shell expansion patterns. For example:
-   * <pre>
-   * test*
-   * </pre>
-   * will pick all methods starting with <code>test</code>.
-   */
-  public static final String SYSPROP_TESTMETHOD = SysGlobals.SYSPROP_TESTMETHOD;
-
   /** Name of the antlib resource inside JUnit4 JAR. */
   public static final String ANTLIB_RESOURCE_NAME = "junit4.antlib.xml";
   
@@ -230,10 +200,22 @@ public class JUnit4 extends Task {
    * seed can be fixed for suites and methods alike.
    */
   public void setSeed(String randomSeed) {
-    if (!Strings.isNullOrEmpty(getProject().getUserProperty(SYSPROP_RANDOM_SEED))) {
+    if (!Strings.isNullOrEmpty(getProject().getUserProperty(SYSPROP_RANDOM_SEED()))) {
       log("Ignoring seed attribute because it is overriden by user properties.", Project.MSG_WARN);
     } else if (!Strings.isNullOrEmpty(randomSeed)) {
       this.random = randomSeed;
+    }
+  }
+
+  /**
+   * Initializes custom prefix for all junit4 properties. This must be consistent
+   * across all junit4 invocations if done from the same classpath. Use only when REALLY needed.
+   */
+  public void setPrefix(String prefix) {
+    if (!Strings.isNullOrEmpty(getProject().getUserProperty(SYSPROP_PREFIX()))) {
+      log("Ignoring prefix attribute because it is overriden by user properties.", Project.MSG_WARN);
+    } else {
+      SysGlobals.initializeWith(prefix);
     }
   }
 
@@ -259,10 +241,6 @@ public class JUnit4 extends Task {
   @Override
   public void setProject(Project project) {
     super.setProject(project);
-
-    this.random = com.google.common.base.Objects.firstNonNull( 
-        Strings.emptyToNull(getProject().getProperty(SYSPROP_RANDOM_SEED)),
-        SeedUtils.formatSeed(new Random().nextLong()));
 
     this.resources.setProject(project);
     this.classpath = new Path(getProject());
@@ -419,15 +397,22 @@ public class JUnit4 extends Task {
   
   @Override
   public void execute() throws BuildException {
-    // Validate arguments and settings.
-    masterSeed();
     validateJUnit4();
+
+    // Initialize random if not already provided.
+    if (random == null) {
+      this.random = com.google.common.base.Objects.firstNonNull( 
+          Strings.emptyToNull(getProject().getProperty(SYSPROP_RANDOM_SEED())),
+          SeedUtils.formatSeed(new Random().nextLong()));
+    }
+    masterSeed();
 
     // Say hello and continue.
     log("<JUnit4> says hello. Random seed: " + getSeed(), Project.MSG_INFO);
 
     // Pass the random seed property.
-    createJvmarg().setValue("-D" + SYSPROP_RANDOM_SEED + "=" + random);
+    createJvmarg().setValue("-D" + SYSPROP_PREFIX() + "=" + CURRENT_PREFIX());
+    createJvmarg().setValue("-D" + SYSPROP_RANDOM_SEED() + "=" + random);
 
     // Resolve paths first.
     this.classpath = resolveFiles(classpath);
@@ -445,10 +430,10 @@ public class JUnit4 extends Task {
         true);
 
     // Pass method filter if any.
-    String testMethodFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTMETHOD));
+    String testMethodFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTMETHOD()));
     if (testMethodFilter != null) {
       Environment.Variable v = new Environment.Variable();
-      v.setKey(SYSPROP_TESTMETHOD);
+      v.setKey(SYSPROP_TESTMETHOD());
       v.setValue(testMethodFilter);
       getCommandline().addSysproperty(v);
     }
@@ -898,7 +883,7 @@ public class JUnit4 extends Task {
       }
     }
 
-    String testClassFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTCLASS));
+    String testClassFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTCLASS()));
     if (testClassFilter != null) {
       ClassGlobFilter filter = new ClassGlobFilter(testClassFilter);
       for (Iterator<String> i = testClassNames.iterator(); i.hasNext();) {

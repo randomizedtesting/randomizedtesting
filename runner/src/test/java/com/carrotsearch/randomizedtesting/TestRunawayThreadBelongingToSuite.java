@@ -65,9 +65,9 @@ public class TestRunawayThreadBelongingToSuite extends WithNestedTestClass {
   
   @Test
   public void leftOverZombie() throws Throwable {
-    System.setProperty(SYSPROP_KILLWAIT, "100");
+    System.setProperty(SYSPROP_KILLWAIT(), "100");
     Result r = JUnitCore.runClasses(Nested2.class);
-    System.clearProperty(SYSPROP_KILLWAIT);
+    System.clearProperty(SYSPROP_KILLWAIT());
 
     Assert.assertEquals(1, r.getFailureCount());
   }
