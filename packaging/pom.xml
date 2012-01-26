@@ -48,7 +48,7 @@
 
   <profiles>
     <profile>
-      <id>sonatype-oss-release</id>
+      <id>release</id>
       <build>
         <defaultGoal>package</defaultGoal>
 

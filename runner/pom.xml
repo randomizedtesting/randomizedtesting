@@ -27,4 +27,39 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <configuration>
+            <overview>${basedir}/src/main/java/com/carrotsearch/randomizedtesting/package.html</overview>
+            <groups>
+              <group>
+                <title>RandomizedRunner and RandomizedTest</title>
+                <packages>com.carrotsearch.randomizedtesting*</packages>
+              </group>
+              <group>
+                <title>Annotations</title>
+                <packages>com.carrotsearch.randomizedtesting.annotations</packages>
+              </group>              
+              <group>
+                <title>Listeners, Generators and Validators</title>
+                <packages>com.carrotsearch.randomizedtesting.generators:com.carrotsearch.randomizedtesting.listeners:com.carrotsearch.randomizedtesting.validators</packages>
+              </group>
+            </groups>
+            <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
+            <offlineLinks>
+              <offlineLink>
+                <url>http://kentbeck.github.com/junit/javadoc/latest/</url>
+                <location>${project.parent.basedir}/etc/javadoc/junit</location>
+              </offlineLink>
+            </offlineLinks>            
+          </configuration>
+        </plugin>        
+      </plugins>
+    </pluginManagement>    
+  </build>
 </project>

@@ -20,6 +20,11 @@
   <description>Foundation classes and rules for applying the principles of Randomized Testing.</description>
   <inceptionYear>2011</inceptionYear>
 
+  <organization>
+    <name>Carrot Search s.c.</name>
+    <url>http://carrotsearch.com</url>
+  </organization>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.6</maven.compiler.source>
@@ -45,6 +50,18 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.8.1</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.1.2</version>
+        </plugin>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
@@ -103,5 +120,63 @@
         <invoker.skip>true</invoker.skip>
       </properties>
     </profile>
-  </profiles>
+
+    <!-- Release profile. -->
+    <profile>
+      <id>release</id>
+      <build>
+        <defaultGoal>package</defaultGoal>
+
+        <plugins>
+          <!-- javadocs -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <configuration>
+                  <encoding>${project.build.sourceEncoding}</encoding>
+                  <!--
+                  <stylesheetfile>${master.basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
+                  <overview>${basedir}/src/main/java/com/carrotsearch/hppc/package.html</overview>
+                  <groups>
+                    <group>
+                      <title>HPPC</title>
+                      <packages>com.carrotsearch.hppc*</packages>
+                    </group>
+                  </groups>
+                  -->
+                  <docfilessubdirs>true</docfilessubdirs>
+                  <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
+                  <windowtitle>${project.name} v${project.version} API Documentation (JavaDoc)</windowtitle>
+                  <doctitle>${project.name} v${project.version} API Documentation</doctitle>
+                  <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
+                  <failonerror>true</failonerror>
+                  <use>false</use>
+                </configuration>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Attach sources -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles> 
 </project>

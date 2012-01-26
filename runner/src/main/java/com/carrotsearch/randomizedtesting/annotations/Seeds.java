@@ -14,7 +14,10 @@ import java.lang.annotation.Target;
  * scenario in which the test was known to fail in the past. In addition, you may still permit
  * a randomized seed by adding a non-restricted {@link Seed} as in:
  * <pre>
- * @Seeds({@Seed("deadbeef"), @Seed("cafebabe"), @Seed()})
+ * {@literal @}{@link Seeds}({
+ *   {@literal @}{@link Seed}("deadbeef"),
+ *   {@literal @}{@link Seed}("cafebabe"), 
+ *   {@literal @}{@link Seed}()})
  * </pre></p>
  */
 @Documented

@@ -7,13 +7,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.SysGlobals;
 
 /**
  * Defines the starting seed for a given test or the entire suite. 
  * 
  * <p>If applied to the
- * suite, it semantically overrides {@link RandomizedRunner#SYSPROP_RANDOM_SEED}, but 
+ * suite, it semantically overrides {@link SysGlobals#SYSPROP_RANDOM_SEED}, but 
  * does not affect individual test cases (these should be repeatable anyway).</p>
  * 
  * <p>If applied to the method, it overrides the default randomized value that is derived

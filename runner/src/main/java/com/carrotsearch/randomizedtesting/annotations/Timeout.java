@@ -7,11 +7,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.SysGlobals;
 
 /**
  * Maximum execution time for a single test case. Override of a global
  * default {@link RandomizedRunner#DEFAULT_TIMEOUT} or a system property
- * override {@link RandomizedRunner#SYSPROP_TIMEOUT}. 
+ * override {@link SysGlobals#SYSPROP_TIMEOUT}. 
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})

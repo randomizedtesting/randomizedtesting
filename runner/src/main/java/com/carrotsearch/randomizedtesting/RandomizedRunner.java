@@ -99,7 +99,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Default timeout for a single test case. By default
    * the timeout is <b>disabled</b>. Use global system property
-   * {@link #SYSPROP_TIMEOUT} or an annotation {@link Timeout} if you need to set
+   * {@link SysGlobals#SYSPROP_TIMEOUT} or an annotation {@link Timeout} if you need to set
    * timeouts or expect some test cases may hang. This will slightly slow down
    * the tests because each test case is executed in a forked thread.
    *
