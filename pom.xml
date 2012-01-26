@@ -39,6 +39,7 @@
     <module>integration-maven/junit4-maven-plugin-tests</module>
     <module>examples/maven</module>
     <module>examples/ant</module>
+    <module>packaging</module>
   </modules>
 
   <build>
