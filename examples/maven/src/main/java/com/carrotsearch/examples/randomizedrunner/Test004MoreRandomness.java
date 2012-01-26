@@ -12,6 +12,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import com.carrotsearch.randomizedtesting.RandomizedContext;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
+import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
 
@@ -28,7 +29,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
  * test methods around (and the random numbers written to the output). 
  * We can "pin" the execution order by forcing the master random
  * seed using {@link Seed} annotation on the class (or a system property
- * {@link RandomizedRunner#SYSPROP_RANDOM_SEED}). Doing so also fixes all derivative random
+ * {@link SysGlobals#SYSPROP_RANDOM_SEED}). Doing so also fixes all derivative random
  * generators in all tests - this is shown in  
  * {@link Test004MoreRandomness.OrderRandomizedButFixed}, every execution of this
  * class will be identical (and will emit identical pseudo-random numbers).
