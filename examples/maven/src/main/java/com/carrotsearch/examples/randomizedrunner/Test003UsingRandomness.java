@@ -4,7 +4,8 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import com.carrotsearch.randomizedtesting.*;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.RandomizedTest;
 
 /**
  * So far we haven't really used the {@link Random} provided by
@@ -43,23 +44,28 @@ import com.carrotsearch.randomizedtesting.*;
  */
 public class Test003UsingRandomness extends RandomizedTest {
   public static class Adder {
+    //[[[start:adder]]]
     /**
      * This method adds <code>a</code> and <code>b</code> and returns their sum.
      */
     public static int add(int a, int b) {
       return a + b;
     }  
+    //[[[end:adder]]]
   }
 
+  //[[[start:adder-fixed]]]
   @Test
   public void fixedTesting() {
     // Note how we use superclass methods, RandomizedTest extends from
     // Assert so these methods are readily available.
-    assertEquals(4, Adder.add(2, 2));
+    assertEquals( 4, Adder.add(2, 2));
     assertEquals(-1, Adder.add(0, -1));
-    assertEquals(0, Adder.add(0, 0));
+    assertEquals( 0, Adder.add(0, 0));
   }
+  //[[[end:adder-fixed]]]
 
+  //[[[start:adder-randomized]]]
   @Test
   public void randomizedTesting() {
     // Here we pick two positive integers. Note superclass utility methods.
@@ -68,6 +74,7 @@ public class Test003UsingRandomness extends RandomizedTest {
     int result = Adder.add(a, b);
     assertTrue(result + " < (" + a + " or " + b + ")?", result >= a && result >= b);
   }
+  //[[[end:adder-randomized]]]
 
   @Test
   public void expectNoException() {
