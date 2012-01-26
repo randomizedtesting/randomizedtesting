@@ -1,0 +1,20 @@
+
+ <project default="setup_formatting">
+   <target name="setup_formatting">
+     <macrodef name="setup-project">
+       <attribute name="project-dir" />
+       <sequential>
+        <copy todir="@{project-dir}" overwrite="true">
+          <fileset dir="${basedir}/eclipse" />
+        </copy>
+      </sequential>
+     </macrodef>
+     
+     <setup-project project-dir="${basedir}/../runner/" />
+     <setup-project project-dir="${basedir}/../examples/ant" />
+     <setup-project project-dir="${basedir}/../examples/maven" />
+     <setup-project project-dir="${basedir}/../integration-ant/ant-junit4" />
+     <setup-project project-dir="${basedir}/../integration-maven/junit4-maven-plugin" />
+     <setup-project project-dir="${basedir}/../integration-maven/junit4-maven-plugin-tests" />
+   </target>
+ </project>
