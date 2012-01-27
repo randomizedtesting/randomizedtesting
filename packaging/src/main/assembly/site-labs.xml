@@ -13,7 +13,7 @@
     <!-- RandomizedRunner -->
     <fileSet>
       <directory>${project.parent.basedir}/runner/target</directory>
-      <outputDirectory>${version}</outputDirectory>
+      <outputDirectory>${project.version}/randomizedrunner</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
@@ -22,15 +22,16 @@
         <exclude>*-javadoc.jar</exclude>
       </excludes>
     </fileSet>
+
     <fileSet>
       <directory>${project.parent.basedir}/runner/target/apidocs</directory>
-      <outputDirectory>${version}/runner-api</outputDirectory>
+      <outputDirectory>${version}/randomizedrunner/apidocs</outputDirectory>
     </fileSet>
 
     <!-- JUnit4 -->
     <fileSet>
       <directory>${project.parent.basedir}/integration-ant/ant-junit4/target</directory>
-      <outputDirectory>${version}</outputDirectory>
+      <outputDirectory>${version}/junit4-ant</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
@@ -40,12 +41,11 @@
         <exclude>*proguard*</exclude>
       </excludes>
     </fileSet>
+
     <fileSet>
       <directory>${project.parent.basedir}/integration-ant/ant-junit4/target/apidocs</directory>
-      <outputDirectory>${version}/junit4-api</outputDirectory>
+      <outputDirectory>${version}/junit4-ant/apidocs</outputDirectory>
     </fileSet>
-
-    <!-- Maven goal documentation? -->
 
     <!-- Licenses and boilerplate -->
     <fileSet>
