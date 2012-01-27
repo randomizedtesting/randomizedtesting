@@ -35,6 +35,8 @@
     <junit.version>4.10</junit.version>
     <antplugin.version>1.7</antplugin.version>
     <ant.version>1.8.2</ant.version>
+
+    <gpg.passphrase></gpg.passphrase>
   </properties>
 
   <modules>
