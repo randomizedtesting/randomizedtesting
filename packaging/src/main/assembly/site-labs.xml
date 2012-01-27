@@ -12,7 +12,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.build.directory}/randomizedtesting-${project.version}/randomizedtesting-${project.version}</directory>
-      <outputDirectory>./</outputDirectory>
+      <outputDirectory>${project.version}/</outputDirectory>
       <includes>
         <include>api/**</include>
       </includes>
@@ -20,7 +20,7 @@
     
     <fileSet>
       <directory>${project.build.directory}</directory>
-      <outputDirectory>./</outputDirectory>
+      <outputDirectory>${project.version}/</outputDirectory>
       <includes>
         <include>*.zip</include>
       </includes>
