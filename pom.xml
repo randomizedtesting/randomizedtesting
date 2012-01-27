@@ -54,6 +54,18 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>2.8.1</version>
+          <configuration>
+            <offlineLinks>
+              <offlineLink>
+                <url>http://kentbeck.github.com/junit/javadoc/latest/</url>
+                <location>${project.parent.basedir}/etc/javadoc/junit</location>
+              </offlineLink>
+              <offlineLink>
+                <url>http://guava-libraries.googlecode.com/svn/trunk/javadoc/</url>
+                <location>${project.parent.basedir}/etc/javadoc/google-guava</location>
+              </offlineLink>              
+            </offlineLinks>
+          </configuration>
         </plugin>
 
         <plugin>

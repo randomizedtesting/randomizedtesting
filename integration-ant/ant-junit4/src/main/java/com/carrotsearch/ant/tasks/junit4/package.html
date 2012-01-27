@@ -1,0 +1,35 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />    
+        <title>Randomized Testing: Randomized Runner</title>
+        <style type="text/css">
+        <!--
+            @import url("doc-files/styles.css");
+        -->
+        </style>
+    </head>
+
+    <body>
+        Provides {@link com.carrotsearch.ant.tasks.junit4.JUnit4}: 
+        a JUnit test runner for ANT with parallel slave JVM execution, load balancing and
+        more reporting options.
+
+        <p>See {@link com.carrotsearch.ant.tasks.junit4.JUnit4} for the documentation
+        of available task options.
+
+        <p>Listeners and reporters API is covered in 
+          {@link com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener} class. Note
+          that the API is event-based and uses Google Guava's 
+          {@link com.google.common.eventbus.EventBus} to distribute events. 
+          Check out existing reporters for implementation details:
+        <ul>
+          <li>{@link com.carrotsearch.ant.tasks.junit4.listeners.TextReport}</li>
+          <li>{@link com.carrotsearch.ant.tasks.junit4.listeners.antxml.AntXmlReport}</li>
+          <li>{@link com.carrotsearch.ant.tasks.junit4.listeners.json.JsonReport}</li>
+          <li>{@link com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport}</li>
+        </ul>
+
+        <p>Examples of use and more resources can be found at: 
+          <a href="http://labs.carrotsearch.com/randomizedtesting.html">Carrot Search labs site</a>.</p>
+    </body>
+</html>

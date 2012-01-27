@@ -51,12 +51,6 @@
               </group>
             </groups>
             <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
-            <offlineLinks>
-              <offlineLink>
-                <url>http://kentbeck.github.com/junit/javadoc/latest/</url>
-                <location>${project.parent.basedir}/etc/javadoc/junit</location>
-              </offlineLink>
-            </offlineLinks>            
           </configuration>
         </plugin>        
       </plugins>
