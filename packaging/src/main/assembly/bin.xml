@@ -5,14 +5,56 @@
   <id>distribution</id>
 
   <formats>
+    <format>dir</format>
     <format>tar.gz</format>
     <format>zip</format>
   </formats>
 
   <fileSets>
+    <!-- RandomizedRunner -->
     <fileSet>
-      <directory>${project.build.directory}/site-labs/${project.version}</directory>
-      <outputDirectory />
+      <directory>${project.parent.basedir}/runner/target</directory>
+      <outputDirectory>./</outputDirectory>
+      <includes>
+        <include>*.jar</include>
+      </includes>
+      <excludes>
+        <exclude>*-sources.jar</exclude>
+        <exclude>*-javadoc.jar</exclude>
+      </excludes>
     </fileSet>
+
+    <fileSet>
+      <directory>${project.parent.basedir}/runner/target/apidocs</directory>
+      <outputDirectory>api/randomizedrunner</outputDirectory>
+    </fileSet>
+
+    <!-- JUnit4 -->
+    <fileSet>
+      <directory>${project.parent.basedir}/integration-ant/ant-junit4/target</directory>
+      <outputDirectory>./</outputDirectory>
+      <includes>
+        <include>*.jar</include>
+      </includes>
+      <excludes>
+        <exclude>*-sources.jar</exclude>
+        <exclude>*-javadoc.jar</exclude>
+        <exclude>*proguard*</exclude>
+      </excludes>
+    </fileSet>
+
+    <fileSet>
+      <directory>${project.parent.basedir}/integration-ant/ant-junit4/target/apidocs</directory>
+      <outputDirectory>api/ant-junit4</outputDirectory>
+    </fileSet>
+
+    <!-- Licenses and boilerplate -->
+    <fileSet>
+      <directory>${project.parent.basedir}</directory>
+      <outputDirectory>./</outputDirectory>
+      <includes>
+        <include>LICENSE</include>
+      </includes>
+    </fileSet>    
   </fileSets>
 </assembly>

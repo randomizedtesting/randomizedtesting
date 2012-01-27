@@ -58,6 +58,23 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <executions>
               <execution>
+                <id>make-bin</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/assembly/bin.xml</descriptor>
+                  </descriptors>
+                  <attach>false</attach>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                  <finalName>randomizedtesting-${project.version}</finalName>
+                </configuration>
+              </execution>
+
+              <execution>
                 <id>make-labs-assembly</id>
                 <phase>package</phase>
                 <goals>
@@ -71,24 +88,6 @@
                   <appendAssemblyId>false</appendAssemblyId>
                   <finalName>site-labs</finalName>
                   <tarLongFileMode>gnu</tarLongFileMode>
-                </configuration>
-              </execution>
-
-              <execution>
-                <id>make-bin</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/bin.xml</descriptor>
-                  </descriptors>
-                  <attach>false</attach>
-                  <appendAssemblyId>false</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <outputDirectory>${project.build.directory}/site-labs</outputDirectory>
-                  <finalName>randomizedtesting-${project.version}</finalName>
                 </configuration>
               </execution>
             </executions>
