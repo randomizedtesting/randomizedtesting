@@ -25,13 +25,13 @@
 
     <fileSet>
       <directory>${project.parent.basedir}/runner/target/apidocs</directory>
-      <outputDirectory>${version}/randomizedrunner/apidocs</outputDirectory>
+      <outputDirectory>${project.version}/randomizedrunner/apidocs</outputDirectory>
     </fileSet>
 
     <!-- JUnit4 -->
     <fileSet>
       <directory>${project.parent.basedir}/integration-ant/ant-junit4/target</directory>
-      <outputDirectory>${version}/junit4-ant</outputDirectory>
+      <outputDirectory>${project.version}/junit4-ant</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
@@ -44,13 +44,13 @@
 
     <fileSet>
       <directory>${project.parent.basedir}/integration-ant/ant-junit4/target/apidocs</directory>
-      <outputDirectory>${version}/junit4-ant/apidocs</outputDirectory>
+      <outputDirectory>${project.version}/junit4-ant/apidocs</outputDirectory>
     </fileSet>
 
     <!-- Licenses and boilerplate -->
     <fileSet>
       <directory>${project.parent.basedir}</directory>
-      <outputDirectory>${version}</outputDirectory>
+      <outputDirectory>${project.version}</outputDirectory>
       <includes>
         <include>LICENSE</include>
       </includes>

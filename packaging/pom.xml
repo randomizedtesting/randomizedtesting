@@ -86,8 +86,9 @@
                   </descriptors>
                   <attach>false</attach>
                   <appendAssemblyId>false</appendAssemblyId>
-                  <finalName>randomizedtesting-${project.version}</finalName>
                   <tarLongFileMode>gnu</tarLongFileMode>
+                  <outputDirectory>${project.build.directory}/site-labs</outputDirectory>
+                  <finalName>randomizedtesting-${project.version}</finalName>
                 </configuration>
               </execution>
             </executions>
