@@ -13,6 +13,10 @@
   <name><![CDATA[RandomizedTesting JUnit4 Maven Plugin Tests]]></name>
   <packaging>jar</packaging>
 
+  <properties>
+   <skip.deployment>true</skip.deployment>
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>
