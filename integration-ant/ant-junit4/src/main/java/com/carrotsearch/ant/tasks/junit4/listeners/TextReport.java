@@ -182,7 +182,9 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onStart(AggregatedStartEvent e) {
-    log("Executing tests with " + 
+    log("Executing " +
+        e.getSuiteCount() + Pluralize.pluralize(e.getSuiteCount(), " suite") +
+        " with " + 
         e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".");
   }
 

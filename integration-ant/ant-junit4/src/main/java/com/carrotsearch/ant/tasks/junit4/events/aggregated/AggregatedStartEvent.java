@@ -6,9 +6,11 @@ package com.carrotsearch.ant.tasks.junit4.events.aggregated;
  */
 public class AggregatedStartEvent {
   private int slaves;
+  private int suiteCount;
 
-  public AggregatedStartEvent(int slaves) {
+  public AggregatedStartEvent(int slaves, int suiteCount) {
     this.slaves = slaves;
+    this.suiteCount = suiteCount;
   }
   
   /**
@@ -16,5 +18,12 @@ public class AggregatedStartEvent {
    */
   public int getSlaveCount() {
     return slaves;
+  }
+
+  /**
+   * Number of test suites, total.
+   */
+  public int getSuiteCount() {
+    return suiteCount;
   }
 }

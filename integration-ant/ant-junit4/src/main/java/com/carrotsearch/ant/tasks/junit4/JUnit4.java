@@ -497,7 +497,7 @@ public class JUnit4 extends Task {
       }
 
       ExecutorService executor = Executors.newCachedThreadPool();
-      aggregatedBus.post(new AggregatedStartEvent(slaves.size()));
+      aggregatedBus.post(new AggregatedStartEvent(slaves.size(), testClassNames.size()));
 
       try {
         List<Future<Void>> all = executor.invokeAll(slaves);
