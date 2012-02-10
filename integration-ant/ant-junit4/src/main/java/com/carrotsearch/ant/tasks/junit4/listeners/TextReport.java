@@ -170,7 +170,7 @@ public class TextReport implements AggregatedEventListener {
 
     if (showSuiteSummary) {
       log(
-          String.format("Tests run: %3d, Failures: %3d, Errors: %3d, Skipped %3d, Time: %.2fs%s",
+          String.format("Tests run: %3d, Failures: %3d, Errors: %3d, Skipped: %3d, Time: %5.2fs%s",
               e.getTests().size(),
               e.getFailureCount(),
               e.getErrorCount(),
