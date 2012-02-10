@@ -526,8 +526,8 @@ public class JUnit4 extends Task {
               Project.MSG_INFO);
         }
       }
-      log(String.format(Locale.ENGLISH, "Execution time total: %.2fs", 
-          (System.currentTimeMillis() - start) / 1000.0));
+      log("Execution time total: " + Duration.toHumanDuration(
+          (System.currentTimeMillis() - start)));
 
       SlaveInfo slaveInError = null;
       for (SlaveInfo i : slaveInfos) {

@@ -18,8 +18,7 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 
-import com.carrotsearch.ant.tasks.junit4.JUnit4;
-import com.carrotsearch.ant.tasks.junit4.TestBalancer;
+import com.carrotsearch.ant.tasks.junit4.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -153,8 +152,8 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
       slave.estimatedFinish += hint.cost;
       pq.add(slave);
 
-      owner.log("Expected execution time for " + hint.suiteName + ": " + 
-          String.format(Locale.ENGLISH, "%.2f", hint.cost / 1000.0) + "s.",
+      owner.log("Expected execution time for " + hint.suiteName + ": " +
+          Duration.toHumanDuration(hint.cost),
           Project.MSG_DEBUG);
 
       assignments.put(hint.suiteName, slave.id);
