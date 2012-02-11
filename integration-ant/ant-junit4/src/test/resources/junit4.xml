@@ -119,7 +119,21 @@
         <delete dir="empty" failonerror="false" />
         <mkdir dir="empty" />
 
-        <junit4.preconf dir="empty">
+        <junit4.preconf dir="empty" leaveTemporary="true">
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestDir.class" />
+            </fileset>
+        </junit4.preconf>
+
+        <fail message="Expected marker file to appear at ${basedir}/empty/S0/touch.me">
+            <condition>
+                <not>
+                    <available file="empty/S0/touch.me" type="file" />
+                </not>
+            </condition>
+        </fail>
+
+        <junit4.preconf dir="empty" isolateWorkingDirectories="false">
             <fileset dir="${basedir}">
                 <include name="**/tests/TestDir.class" />
             </fileset>
@@ -131,7 +145,7 @@
                     <available file="empty/touch.me" type="file" />
                 </not>
             </condition>
-        </fail>
+        </fail>    	
     </target>
 
     <target name="maxmem">
@@ -446,5 +460,13 @@
                 <include name="**/tests/Test*.class" />
             </fileset>
         </junit4.preconf>
-    </target>    
+    </target>
+
+    <target name="cwdconflict">
+        <junit4.preconf haltonfailure="true" parallelism="2">
+            <fileset dir="${basedir}">
+                <include name="**/CwdConflict*.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
 </project>

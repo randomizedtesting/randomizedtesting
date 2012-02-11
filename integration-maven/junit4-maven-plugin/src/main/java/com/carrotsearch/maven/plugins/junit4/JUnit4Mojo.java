@@ -77,7 +77,8 @@ public class JUnit4Mojo extends AbstractMojo {
   private MavenProject project;
 
   /**
-   * The directory to invoke the VM in.
+   * Base directory to invoke slave VMs in. Also note <code>isolateWorkingDirectories</code>
+   * parameter.
    * 
    * @parameter expression="${project.build.directory}"
    */
@@ -146,6 +147,17 @@ public class JUnit4Mojo extends AbstractMojo {
    * @parameter default-value="true"
    */
   private boolean haltOnFailure = JUnit4.DEFAULT_HALT_ON_FAILURE;
+
+  /**
+   * If set to <code>true</code> each slave JVM gets a separate working directory
+   * under whatever is set in <code>dir</code>. The directory naming for each slave
+   * follows: "S<i>num</i>", where <i>num</i> is slave's number. Directories are created
+   * automatically and removed unless <code>leaveTemporary</code> is set to
+   * <code>true</code>.
+   * 
+   * @parameter default-value="true"
+   */
+  private boolean isolateWorkingDirectories = JUnit4.DEFAULT_ISOLATE_WORKING_DIRECTORIES;
 
   /**
    * Set the maximum memory to be used by all forked JVMs. The value as 
@@ -460,6 +472,7 @@ public class JUnit4Mojo extends AbstractMojo {
     if (maxMemory != null) junit4.addAttribute("maxMemory", maxMemory);
     junit4.addAttribute("shuffleOnSlave", Boolean.toString(shuffleOnSlave));
     junit4.addAttribute("printSummary", Boolean.toString(printSummary));
+    junit4.addAttribute("isolateWorkingDirectories", Boolean.toString(isolateWorkingDirectories));
     junit4.addAttribute("haltOnFailure", Boolean.toString(haltOnFailure));
     junit4.addAttribute("leaveTemporary", Boolean.toString(leaveTemporary));
 

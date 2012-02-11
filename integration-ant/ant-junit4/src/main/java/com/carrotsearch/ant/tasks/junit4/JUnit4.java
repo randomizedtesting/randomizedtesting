@@ -69,6 +69,9 @@ public class JUnit4 extends Task {
 
   /** Default value of {@link #setHaltOnFailure}. */
   public static final boolean DEFAULT_HALT_ON_FAILURE = true;
+  
+  /** Default value of {@link #setIsolateWorkingDirectories(boolean)}. */
+  public static final boolean DEFAULT_ISOLATE_WORKING_DIRECTORIES = true;
 
   /**
    * Slave VM command line.
@@ -151,6 +154,11 @@ public class JUnit4 extends Task {
    * @see #setSeed(String)
    */
   private String random;
+
+  /**
+   * @see #setIsolateWorkingDirectories(boolean)
+   */
+  private boolean isolateWorkingDirectories = DEFAULT_ISOLATE_WORKING_DIRECTORIES;
 
   /**
    * Multiple path resolution in {@link CommandlineJava#getCommandline()} is very slow
@@ -330,6 +338,17 @@ public class JUnit4 extends Task {
   }
 
   /**
+   * If set to <code>true</code> each slave JVM gets a separate working directory
+   * under whatever is set in {@link #setDir(File)}. The directory naming for each slave
+   * follows: "S<i>num</i>", where <i>num</i> is slave's number. Directories are created
+   * automatically and removed unless {@link #setLeaveTemporary(boolean)} is set to
+   * <code>true</code>.
+   */
+  public void setIsolateWorkingDirectories(boolean isolateWorkingDirectories) {
+    this.isolateWorkingDirectories = isolateWorkingDirectories;
+  }
+
+  /**
    * Adds an environment variable; used when forking.
    */
   public void addEnv(Environment.Variable var) {
@@ -395,6 +414,7 @@ public class JUnit4 extends Task {
     return bootclasspath.createPath();
   }
   
+  @SuppressWarnings("deprecation")
   @Override
   public void execute() throws BuildException {
     validateJUnit4();
@@ -562,7 +582,11 @@ public class JUnit4 extends Task {
 
     if (!leaveTemporary) {
       for (File f : temporaryFiles) {
-        f.delete();
+        try {
+          Files.deleteRecursively(f);
+        } catch (IOException e) {
+          log("Could not remove temporary path: " + f.getAbsolutePath(), Project.MSG_WARN);
+        }
       }
     }
   }
@@ -762,7 +786,7 @@ public class JUnit4 extends Task {
     });
 
     try {
-      forkProcess(eventBus, commandline);
+      forkProcess(slave, eventBus, commandline);
     } finally {
       Closeables.closeQuietly(w);
       Files.copy(classNamesDynamic,
@@ -778,14 +802,15 @@ public class JUnit4 extends Task {
   /**
    * Execute a slave process. Pump events to the given event bus.
    */
-  private void forkProcess(EventBus eventBus, CommandlineJava commandline) {
+  private void forkProcess(SlaveInfo slaveInfo, EventBus eventBus, CommandlineJava commandline) {
     try {
       final LocalSlaveStreamHandler streamHandler = 
           new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err);
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
       execute.setVMLauncher(true);
-      execute.setWorkingDirectory(dir == null ? getProject().getBaseDir() : dir);
+      File cwd = getWorkingDirectory(slaveInfo);
+      execute.setWorkingDirectory(cwd);
       execute.setStreamHandler(streamHandler);
       execute.setNewenvironment(newEnvironment);
       if (env.getVariables() != null)
@@ -821,6 +846,19 @@ public class JUnit4 extends Task {
       throw new BuildException("Could not execute slave process. Run ant with -verbose to get" +
       		" the execution details.", e);
     }
+  }
+
+  private File getWorkingDirectory(SlaveInfo slaveInfo) {
+    File baseDir = (dir == null ? getProject().getBaseDir() : dir);
+    final File slaveDir;
+    if (isolateWorkingDirectories) {
+      slaveDir = new File(baseDir, "S" + slaveInfo.id);
+      slaveDir.mkdirs();
+      temporaryFiles.add(slaveDir);
+    } else {
+      slaveDir = baseDir;
+    }
+    return slaveDir;
   }
 
   /**
