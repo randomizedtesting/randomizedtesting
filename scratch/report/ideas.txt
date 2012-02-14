@@ -1,4 +1,7 @@
-BUGS
+BUGS:
+
+* search highlighting does not work in method view
+
 
 TODO, must have:
 
@@ -21,7 +24,6 @@ TODO, must have:
   * execution time
   * stack trace
   * console output
-* navigation using HTML5 history API (bookmarkable urls)
 * ignored by assumption vs by annotation in descriptions
 * global start date in header (because individual tests report just time)
 * multiple column sorting tip
@@ -32,6 +34,7 @@ TODO, must have:
 
 Nice to have:
 
+* paging in method view on slow machines?
 * Automatic/configurable abbreviation of package names
 * Deemphasizing common prefix (package, class name) in class and method view.
 * Minification of assets
@@ -40,7 +43,6 @@ Nice to have:
 * bookmarkable links
 * Links for opening in an IDE
 * Copying stack trace to clipboard?
-* Hiding irrelevant parts of the stack trace? (filtering of certain packages)
 
 
 To decide:
@@ -73,3 +75,5 @@ DONE:
 * A "bulb" indication of general ok / failure (green/red, like in Bamboo)
 * Table filters: free text
 * navigation: package -> class -> method and back
+* Hiding irrelevant parts of the stack trace? (filtering of certain packages)
+* navigation using HTML5 history API (bookmarkable urls)

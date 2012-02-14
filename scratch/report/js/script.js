@@ -15,9 +15,88 @@
     IGNORED_ASSUMPTION: "IGNORED"
   };
 
+  // Handles for UI elements
   var $table, $search, $tools;
+
+  // Data model
   var data, aggregates;
-  var currentView, currentOrder, currentSearch = "", wasDrilldown = false;
+
+  // Application state encoded and parsed from the URL
+  var state = {
+    view: "",
+    order: {
+      columns: [],
+      ascendings: []
+    },
+    search: "",
+
+    encode: function() {
+      var url = [];
+      process(null, this);
+      return url.join("/");
+
+      function process(property, value) {
+        if ($.isFunction(value)) {
+          return;
+        }
+
+        if ($.isArray(value)) {
+          $.each(value, function(i, v) {
+            process(property + "[]", v);
+          });
+        } else if ($.isPlainObject(value)) {
+          $.each(value, function(key, v) {
+            process((property ? property + "." : "") + key, v);
+          });
+        } else {
+          url.push(property, encodeURIComponent(value));
+        }
+      }
+    },
+
+    decode: function(string) {
+      var s = string || window.location.href;
+      var split = (s.split("#")[1] || "").split("/");
+      var decoded = { };
+      outer: for (var i = 0; i < split.length / 2; i++) {
+        var path = decodeURIComponent(split[i*2] || "").split(/\./);
+        var property = path.shift();
+        var target = decoded;
+        while (path.length > 0) {
+          if (!$.isPlainObject(target)) {
+            break outer;
+          }
+          if (typeof target[property] == 'undefined') {
+            target[property] = { };
+          }
+          target = target[property];
+          property = path.shift();
+        }
+
+        var val = decodeURIComponent(split[i*2 + 1] || "");
+        if (property.indexOf("[]") > 0) {
+          property = property.replace(/[\[\]]/g, "");
+          if (typeof target[property] == 'undefined') {
+            target[property] = [];
+          }
+          target[property].push(val);
+        } else {
+          target[property] = val;
+        }
+      }
+      delete decoded.encode;
+      delete decoded.decode;
+      delete decoded.push;
+      $.extend(this, decoded);
+    },
+
+    push: function() {
+      var prev = window.location.hash;
+      window.location.hash = "#" + this.encode();
+      return prev != window.location.hash;
+    }
+  };
+  var wasDrilldown = false;
 
   // This function will be called by the JSONP data file
   window.testData = function(d) {
@@ -269,8 +348,8 @@
     function drilldown($row, view) {
       var search = $row.find("td:eq(0)").text();
       $search.val(search);
-      currentSearch = search;
-      currentView = view;
+      state.search = search;
+      state.view = view;
       refresh();
     }
 
@@ -286,8 +365,8 @@
     }
 
     function searchHighlighterRenderer(value, html) {
-      if (this.searchable && currentSearch) {
-        var s = currentSearch.toLowerCase(), sl = s.length, vlc = value.toLowerCase(), vl = value.length;
+      if (this.searchable && state.search) {
+        var s = state.search.toLowerCase(), sl = s.length, vlc = value.toLowerCase(), vl = value.length;
         var start = 0, found = -1;
         while ((found = vlc.indexOf(s, start)) >= 0) {
           html.push(value.substring(start, found), "<em>", value.substring(found, found + sl), "</em>");
@@ -374,24 +453,24 @@
 
     // Bind listeners
     $tools.on("click", "a", function () {
-      currentView = $(this).attr("href").substring(1);
+      state.view = $(this).attr("href").substring(1);
 
       // If the search seems to be a fully qualified method/class name,
       // strip the the last components to match the view type so that the
       // "no test results found" message does not appear.
       if (wasDrilldown) {
-        var split = currentSearch.split(/\./);
+        var split = state.search.split(/\./);
         if (split.length > 1) {
-          if (currentView == "classes") {
+          if (state.view == "classes") {
             strip(split, true);
             $search.val(split.join(".")).trigger("drilldownUpdate");
-          } else if (currentView == "packages") {
+          } else if (state.view == "packages") {
             $search.val("").trigger("drilldownUpdate");
           }
         }
       }
 
-      refreshTable();
+      state.push();
       return false;
 
       function strip(split, splitIfUpper) {
@@ -413,36 +492,37 @@
         // the order. If the ordering does not contain the selected column,
         // add it at the end of the ordering array.
         var matched = false;
-        for (var i = 0; i < currentOrder.columns.length; i++) {
-          if (currentOrder.columns[i] == newSort) {
-            currentOrder.ascendings[i] = !currentOrder.ascendings[i];
+        for (var i = 0; i < state.order.columns.length; i++) {
+          if (state.order.columns[i] == newSort) {
+            state.order.ascendings[i] = !state.order.ascendings[i];
             matched = true;
             break;
           }
         }
         if (!matched) {
-          currentOrder.columns.push(newSort);
-          currentOrder.ascendings.push(true);
+          state.order.columns.push(newSort);
+          state.order.ascendings.push(true);
         }
       } else {
         // Sort by just by the requested column or change sorting order
         var currentAscending = false;
-        for (var i = 0; i < currentOrder.columns.length; i++) {
-          if (currentOrder.columns[i] == newSort) {
-            currentAscending = currentOrder.ascendings[i];
+        for (var i = 0; i < state.order.columns.length; i++) {
+          if (state.order.columns[i] == newSort) {
+            currentAscending = state.order.ascendings[i];
             break;
           }
         }
-        currentOrder.columns = [ newSort ];
-        currentOrder.ascendings = [ !currentAscending ];
+        state.order.columns = [ newSort ];
+        state.order.ascendings = [ !currentAscending ];
       }
-      refreshTable();
+      state.push();
       return false;
     });
 
     $table.on("click", "tr.drilldown", function() {
       $table.data("source").spec.drilldown($(this));
       wasDrilldown = true;
+      state.push();
     });
 
     $table.on("click", ".stacktrace > span", function() {
@@ -453,12 +533,12 @@
       var $this = $(this);
       typewatch(function() {
         var v = $.trim($this.val());
-        if (currentSearch != v) {
+        if (state.search != v) {
           if (e.type != "drilldownUpdate") {
             wasDrilldown = false;
           }
-          currentSearch = v;
-          refresh();
+          state.search = v;
+          state.push();
         }
       }, e.type == "keyup" ? 500 : 0);
     });
@@ -466,31 +546,45 @@
     // If no failures or errors, show package view ordered by package name.
     // In case of errors or failures, show method view ordered by status.
     if (!(counts.byStatus[FAILURE] > 0 || counts.byStatus[ERROR] > 0)) {
-      currentView = "packages";
-      currentOrder = { columns:[ "signature" ], ascendings:[ true ] };
+      state.view = "packages";
+      state.order = { columns:[ "signature" ], ascendings:[ true ] };
     } else {
-      currentView = "methods";
-      currentOrder = { columns:[ "result" ], ascendings:[ false ] };
+      state.view = "methods";
+      state.order = { columns:[ "result" ], ascendings:[ false ] };
     }
 
-    refresh();
+    // React to path changes
+    $(window).pathchange(function() {
+      state.decode();
+      refresh();
+    });
+    $.pathchange.init({
+      useHistory: false
+    });
+
+    // Push initial state to the URL
+    if (!state.push()) {
+      // If the URL didn't change, we need to refresh manually
+      refresh();
+    }
     return this;
   });
 
   function refresh() {
     refreshTable();
     refreshSummary();
+    $search.val(state.search);
   }
 
   // Refreshes the results table based on the current parameters
   function refreshTable() {
     table($table.data("source", {
       data: data,
-      order: currentOrder,
-      type: currentView,
-      spec: tables[currentView]
+      order: state.order,
+      type: state.view,
+      spec: tables[state.view]
     }));
-    $tools.find("a").removeClass("active").filter("[href^=#" + currentView + "]").addClass("active");
+    $tools.find("a").removeClass("active").filter("[href^=#" + state.view + "]").addClass("active");
   }
 
   // Refreshes the summary box based on the current parameters
@@ -697,8 +791,8 @@
 
   var searchTargetsByView = { packages: "packageName", classes: "packageClassName", methods: "packageClassMethodName" };
   function signatureSearchFilter(test) {
-    if ($.trim(currentSearch).length > 0) {
-      return test.description[searchTargetsByView[currentView]].toLowerCase().indexOf(currentSearch.toLowerCase()) >= 0;
+    if ($.trim(state.search).length > 0) {
+      return test.description[searchTargetsByView[state.view]].toLowerCase().indexOf(state.search.toLowerCase()) >= 0;
     } else {
       return true;
     }
