@@ -73,7 +73,7 @@
           property = path.shift();
         }
 
-        var val = decodeURIComponent(split[i*2 + 1] || "");
+        var val = convert(decodeURIComponent(split[i*2 + 1] || ""));
         if (property.indexOf("[]") > 0) {
           property = property.replace(/[\[\]]/g, "");
           if (typeof target[property] == 'undefined') {
@@ -88,6 +88,16 @@
       delete decoded.decode;
       delete decoded.push;
       $.extend(this, decoded);
+
+      function convert(val) {
+        if (val == "false") {
+          return false;
+        } else if (val == "true") {
+          return true;
+        } else {
+          return val;
+        }
+      }
     },
 
     push: function() {
