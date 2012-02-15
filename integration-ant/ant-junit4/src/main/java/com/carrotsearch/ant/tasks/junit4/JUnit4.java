@@ -498,7 +498,8 @@ public class JUnit4 extends Task {
           if (stealingQueue.isEmpty()) {
             slave.finished();
           } else {
-            slave.newSuite(stealingQueue.pop());
+            String suiteName = stealingQueue.pop();
+            slave.newSuite(suiteName);
           }
         }
       });
@@ -769,17 +770,18 @@ public class JUnit4 extends Task {
     eventBus.register(new Object() {
       @SuppressWarnings("unused")
       @Subscribe
-      public void onIdleSlave(final SlaveIdle slave) {
+      public void onIdleSlave(final SlaveIdle idleSlave) {
         aggregatedBus.post(new SlaveIdle() {
           @Override
           public void finished() {
-            slave.finished();
+            idleSlave.finished();
           }
 
           @Override
           public void newSuite(String suiteName) {
+            log("Slave S" + slave.id + " stole suite: " + suiteName, Project.MSG_VERBOSE);
             w.println(suiteName);
-            slave.newSuite(suiteName);
+            idleSlave.newSuite(suiteName);
           }
         });
       }
