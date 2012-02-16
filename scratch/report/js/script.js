@@ -480,6 +480,9 @@
 
     // Console output, invisible by default
     $console = $("<div id='console' />").hide().appendTo($results);
+    $console.delegate('span[class ~= "label"]', "mouseenter mouseleave", function() {
+      $(this).parent().closest("span.test").toggleClass("highlight");
+    });
 
     // Bind listeners
     $tools.on("click", "a", function () {
@@ -728,12 +731,8 @@
     $canvas.attr("width",  $console.width())
            .attr("height", $console.height());
 
-    $console.delegate('span[class ~= "label"]', "mouseenter mouseleave", function() {
-      $(this).parent().closest("span.test").toggleClass("highlight");
-    });
-
-    // Redraw connectors.
-    redrawConnectors();
+    // Redraw connectors, but allow a content repaint before drawing
+    setTimeout(redrawConnectors, 0);
   }
 
   function redrawConnectors() {
@@ -746,25 +745,27 @@
     var canvas = $canvas.get(0);
     canvas.width = canvas.width;
 
+    var ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = .5;
     $.each(markers, function(index, marker) {
-      marker = $(marker);
+      var marker = $(marker);
       var label = $(marker).next().children().eq(0).children().eq(0);
 
-      var x0 = 0.5 + label.offset().left + label.width() - cleft;
-      var y0 = 0.5 + label.offset().top + label.height() / 2 - ctop;
-      var x1 = 1.5 + marker.position().left;
-      var y1 = 1.5 + marker.position().top;
+      var offset = label.offset();
+      var x0 = 0.5 + offset.left + label.width() - cleft;
+      var y0 = 0.5 + offset.top + label.height() / 2 - ctop;
+      var position = marker.position();
+      var x1 = 1.5 + position.left;
+      var y1 = 1.5 + position.top;
 
-      var ctx = canvas.getContext('2d');
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = .5;
-      ctx.beginPath();
       ctx.moveTo(x0, y0);
       ctx.bezierCurveTo((x1 + x0) / 2, y0,
                         (x1 + x0) / 2, y1,
                         x1, y1);
-      ctx.stroke();
     });
+    ctx.stroke();
   }
 
   // Renders contents of a table according to the provided spec
