@@ -1,4 +1,8 @@
 (function($) {
+  Array.prototype.peek = function() {
+    return this[this.length - 1];
+  };
+
   // Constants
   var OK = "OK";
   var FAILURE = "FAILURE";
@@ -16,7 +20,7 @@
   };
 
   // Handles for UI elements
-  var $table, $search, $tools;
+  var $table, $search, $tools, $console;
 
   // Data model
   var data, aggregates;
@@ -29,6 +33,9 @@
       ascendings: []
     },
     search: "",
+    filter: {
+      output: true
+    },
 
     encode: function() {
       var url = [];
@@ -159,6 +166,16 @@
       description.className = classSplit.pop();
       description.packageName = classSplit.join(".");
     });
+
+    // Link descriptions in the event list.
+    eachSuite(data, function(suite) {
+      $.each(suite.executionEvents, function(j, evt) {
+        if ("description" in evt) {
+          evt.description = descriptionsById[evt.description];
+        }
+      });
+    });
+
     return;
 
     function map(children) {
@@ -454,12 +471,15 @@
     // Results table tools
     $tools = $("<div id='tools'>\
       <input type='search' accesskey='s' placeholder='package, class, method name (Alt+Shift+S to focus)' />\
-      view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a>\
+      view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a> <a href='#console'>console</a>\
     </div>").appendTo($results);
 
 
     // Results table
     $table = $("<table />").appendTo($results);
+
+    // Console output, invisible by default
+    $console = $("<div id='console' />").hide().appendTo($results);
 
     // Bind listeners
     $tools.on("click", "a", function () {
@@ -572,17 +592,32 @@
       useHistory: false
     });
 
-    // Push initial state to the URL
-    if (!state.push()) {
-      // If the URL didn't change, we need to refresh manually
-      refresh();
+    if (window.location.hash) {
+      $(window).pathchange(); // decode and refresh
+    } else {
+      // Push initial state to the URL, only if the URL does not contain state
+      if (!state.push()) {
+        // If the URL didn't change, we need to refresh manually
+        refresh();
+      }
     }
     return this;
   });
 
   function refresh() {
-    refreshTable();
-    refreshSummary();
+    if (state.view == "console") {
+      $search.hide(); // No search in console for the time being
+      $table.hide();
+      $console.show();
+      refreshConsole();
+    } else {
+      $console.hide();
+      $search.show();
+      $table.show();
+      refreshTable();
+      refreshSummary();
+    }
+    $tools.find("a").removeClass("active").filter("[href^=#" + state.view + "]").addClass("active");
     $search.val(state.search);
   }
 
@@ -594,7 +629,6 @@
       type: state.view,
       spec: tables[state.view]
     }));
-    $tools.find("a").removeClass("active").filter("[href^=#" + state.view + "]").addClass("active");
   }
 
   // Refreshes the summary box based on the current parameters
@@ -646,6 +680,115 @@
 
     // Status bar
     $summary.append($(statusbar(counts.byStatus, counts.global)));
+  }
+
+  // Renders the console output
+  function refreshConsole() {
+    $console.html("");
+    eachSuite(data, function (suite) {
+      var $suitebox = $("<div class='suitebox' />").appendTo($console);
+      $("<div class='name'>" + suite.description.displayName + "</div>").appendTo($suitebox);
+
+      var stack = [];
+      stack.push($("<pre class='outbox' />").appendTo($suitebox));
+
+      $.each(suite.executionEvents, function(index, evtobj) {
+        switch (evtobj.event) {
+          case "SUITE_FAILURE":
+            // Add a marker.
+            var failureMarker = $("<span class='failure marker' />");
+            failureMarker.appendTo(stack.peek());
+
+            var label = $("<span class='suitefailure'>suite failure</span>");
+            stack.peek().append(
+              $("<span class='side' />").append(
+                $("<div />").append(
+                  label)));
+
+            failureMarker.data("refLabel", label);
+            break;
+
+          case "TEST_STARTED":
+            // Add a content wrapper for the test...
+            var testArea = $("<span class='test' />").appendTo(stack.peek());
+            stack.push(testArea);
+
+            // ...and a test start marker.
+            var startMarker = $("<span class='start marker' />");
+            startMarker.appendTo(testArea);
+
+            // ...and a side label.
+            var label = $("<span class='test label'>" + evtobj.description.methodName + "</span>");
+            testArea.append(
+              $("<span class='side' />").append(
+                $("<div />").append(
+                  label)));
+
+            startMarker.data("refLabel", label);
+            label.data("refTestArea", testArea);
+            break;
+
+          case "APPEND_STDOUT":
+            $("<span class='out'>" + evtobj.content + "</span>").appendTo(stack.peek());
+            break;
+
+          case "APPEND_STDERR":
+            $("<span class='err'>" + evtobj.content + "</span>").appendTo(stack.peek());
+            break;
+
+          case "TEST_FINISHED":
+            stack.pop();
+            break;
+
+          default:
+            // do nothing.
+        }
+      });
+    });
+
+    var $canvas = $("<canvas id='canvas_ovl' />").appendTo($console);
+    $canvas.attr("width",  $console.width())
+           .attr("height", $console.height());
+
+    // Attach on-hover highlights.
+    var f = function() {
+      $(this).data("refTestArea").toggleClass("highlight");
+    };
+    $('span[class ~= "label"]').hover(f, f);
+
+    // Redraw connectors.
+    redrawConnectors();
+  }
+
+  function redrawConnectors() {
+    var $canvas = $("#canvas_ovl");
+
+    var markers = $console.find(".marker");
+    var cleft = $console.offset().left;
+    var ctop  = $console.offset().top;
+
+    var canvas = $canvas.get(0);
+    canvas.width = canvas.width;
+
+    $.each(markers, function(index, marker) {
+      marker = $(marker);
+      var label = $(marker).data("refLabel");
+
+      var x0 = 0.5 + label.offset().left + label.width() - cleft;
+      var y0 = 0.5 + label.offset().top + label.height() / 2 - ctop;
+      var x1 = 1.5 + marker.position().left;
+      var y1 = 1.5 + marker.position().top;
+
+      var ctx = canvas.getContext('2d');
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = .5;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.bezierCurveTo((x1 + x0) / 2, y0,
+                        (x1 + x0) / 2, y1,
+                        x1, y1);
+      ctx.stroke();
+    });
   }
 
   // Renders contents of a table according to the provided spec
