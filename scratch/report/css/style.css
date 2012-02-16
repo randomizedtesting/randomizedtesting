@@ -656,7 +656,7 @@ td > em {
 .outbox .failure {
   position: absolute;
   margin-top: -1px;
-  margin-left: -6px;
+  margin-left: -0px;
   /** A CSS arrow */
   width: 0;
  	height: 0;

@@ -768,7 +768,7 @@
       var x0 = 0.5 + offset.left + label.width() - cleft + 6.5; // padding
       var y0 = 0.5 + offset.top + label.height() / 2 - ctop;
       var position = marker.position();
-      var x1 = 1.5 + position.left - 8; // padding
+      var x1 = 1.5 + position.left - 2; // padding
       var y1 = 1.5 + position.top;
 
       ctx.moveTo(x0, y0);
