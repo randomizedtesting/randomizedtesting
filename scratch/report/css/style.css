@@ -326,7 +326,7 @@ a, a:visited {
   border-bottom: 1px dotted #444;
 }
 
-.result > span {
+.tag {
   border-radius: 2px;
   color: #fff;
   padding: 0 2px;
@@ -579,9 +579,10 @@ td > em {
 
 #console {
   position: relative;
-  border: 1px solid #a0a0a0;
-  padding: 0px;
-  margin: 0px;
+  border: 1px solid #f0f0f0;
+  border-top: none;
+  padding: 15px 0 0 0;
+  margin: 0;
   overflow: hidden;
 }
 
@@ -596,25 +597,34 @@ td > em {
 
 .suitebox {
   clear: both;
-  margin-bottom: 1em;
+  margin-bottom: 2em;
 }
 
-.suitebox .name {
-  margin-left: 200px;
-  font-weight: bold;
+.suitebox > .name {
+  margin-left: 300px;
+  color: #777;
 }
 
 .outbox {
-  background-color: #f4f4f4;
+  background-color: #F8F8F8;
 
   margin-top:    0px;
   margin-bottom: 0px;
-  margin-left: 200px;
+  margin-left: 300px;
 
   /* Maybe we should now wrap? */
   white-space: pre;
   white-space: pre-wrap;
   word-wrap: break-word;
+
+  font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
+  font-size: 13px;
+
+  padding: 2px 4px;
+}
+
+.outbox.empty {
+  padding: 0 2px;
 }
 
 .side {
@@ -625,39 +635,42 @@ td > em {
 
 .side > div {
   position: relative;
-  right: 200px;
-  width: 180px;
+  right: 300px;
+  width: 280px;
   text-align: right;
-  font-size: .75em;
   margin-bottom: 2px;
 }
 
 .side > div > span {
-  border: 1px solid gray;
-}
-
-.side .test {
-  background-color: yellow;
-  color: black;
+  padding: 1px 4px;
+  font-family: sans-serif;
+  font-size: 12px;
 }
 
 .side .suitefailure {
-  background-color: red;
+  background-color: #ef0000;
   color: white;
 }
 
-.outbox .test .start {
+.outbox .test .start,
+.outbox .failure {
   position: absolute;
-  background-color: blue;
-  width: 3px;
-  height: 3px;
+  margin-top: -1px;
+  margin-left: -6px;
+  /** A CSS arrow */
+  width: 0;
+ 	height: 0;
+ 	border-top: 3px solid transparent;
+ 	border-bottom: 3px solid transparent;
+ 	border-left: 3px solid transparent;
+}
+
+.outbox .test .start {
+  border-left-color: #777;
 }
 
 .outbox .failure {
-  position: absolute;
-  background-color: red;
-  width: 3px;
-  height: 3px;
+ 	border-left-color: #ef0000;
 }
 
 .outbox .out {
@@ -669,7 +682,7 @@ td > em {
 }
 
 .highlight {
-  background-color: #a0e0a0;
+  background-color: rgba(255, 245, 159, 0.57);
 }
 
 

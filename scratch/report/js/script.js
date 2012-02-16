@@ -123,7 +123,7 @@
 
     // Index descriptions by id
     for (var i = 0; i < data.length; i++) {
-      map(data[i].description.children);
+      mapDescriptions(data[i].description.children);
     }
 
     // A hack to handle suite-level errors: copy them to the tests array.
@@ -169,8 +169,13 @@
 
     // Link descriptions in the event list.
     eachSuite(data, function(suite) {
+      var testsById = map(suite.tests, function(t) { return t.description.id; });
+
       $.each(suite.executionEvents, function(j, evt) {
         if ("description" in evt) {
+          if (testsById[evt.description]) {
+            evt.test = testsById[evt.description];
+          }
           evt.description = descriptionsById[evt.description];
         }
       });
@@ -178,13 +183,13 @@
 
     return;
 
-    function map(children) {
+    function mapDescriptions(children) {
       for (var j = 0; j < children.length; j++) {
         var child = children[j];
         if (typeof child == 'object') {
           descriptionsById[children[j].id] = child;
           if (child.children) {
-            map(child.children);
+            mapDescriptions(child.children);
           }
         } else {
           children[j] = descriptionsById[child];
@@ -299,7 +304,7 @@
               }
             },
             renderer: function(value, html) {
-              html.push("<span class='", value, "'>", statusLabels[value] ,"</span>")
+              html.push("<span class='tag ", value, "'>", statusLabels[value] ,"</span>")
             },
             type: "result"
           },
@@ -693,6 +698,7 @@
                 "<div class='name'>", suite.description.displayName, "</div>",
                 "<pre class='outbox'>");
 
+      var emptyOutBoxIndex = html.length - 1;
       $.each(suite.executionEvents, function(index, evtobj) {
         switch (evtobj.event) {
           case "SUITE_FAILURE":
@@ -704,15 +710,17 @@
             // Add a content wrapper for the test...
             html.push("<span class='test'>",
                       "<span class='start marker' />",
-                      "<span class='side'><div><span class='test label'>", evtobj.description.methodName, "</span></div></span>");
+                      "<span class='side'><div><span class='test label tag ", evtobj.test.status, "'>", evtobj.description.methodName, "</span></div></span>");
             break;
 
           case "APPEND_STDOUT":
             html.push("<span class='out'>", evtobj.content, "</span>");
+            emptyOutBoxIndex = undefined;
             break;
 
           case "APPEND_STDERR":
             html.push("<span class='err'>", evtobj.content, "</span>");
+            emptyOutBoxIndex = undefined;
             break;
 
           case "TEST_FINISHED":
@@ -723,6 +731,9 @@
             // do nothing.
         }
       });
+      if (emptyOutBoxIndex !== undefined) {
+        html[emptyOutBoxIndex] = html[emptyOutBoxIndex].replace(/outbox/, "outbox empty");
+      }
       html.push("</pre></div>");
     });
     $console.html(html.join(""));
@@ -747,17 +758,17 @@
 
     var ctx = canvas.getContext('2d');
     ctx.beginPath();
-    ctx.strokeStyle = "#333";
+    ctx.strokeStyle = "#555";
     ctx.lineWidth = .5;
     $.each(markers, function(index, marker) {
       var marker = $(marker);
       var label = $(marker).next().children().eq(0).children().eq(0);
 
       var offset = label.offset();
-      var x0 = 0.5 + offset.left + label.width() - cleft;
+      var x0 = 0.5 + offset.left + label.width() - cleft + 6.5; // padding
       var y0 = 0.5 + offset.top + label.height() / 2 - ctop;
       var position = marker.position();
-      var x1 = 1.5 + position.left;
+      var x1 = 1.5 + position.left - 8; // padding
       var y1 = 1.5 + position.top;
 
       ctx.moveTo(x0, y0);
