@@ -171,9 +171,9 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   @Test
   public void balancing() {
     executeTarget("balancing");
-    assertLogContains("TestTwoSeconds assigned to slave 0");
-    assertLogContains("TestOneSecond assigned to slave 1");
-    assertLogContains("TestHalfSecond assigned to slave 1");
-    assertLogContains("TestZeroSeconds assigned to slave 1");
+    assertLogContains("Assignment hint: S0  (cost  2019) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestTwoSeconds (by ExecutionTimeBalancer)");
+    assertLogContains("Assignment hint: S1  (cost  1002) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestOneSecond (by ExecutionTimeBalancer)");
+    assertLogContains("Assignment hint: S1  (cost   501) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestHalfSecond (by ExecutionTimeBalancer)");
+    assertLogContains("Assignment hint: S1  (cost     2) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestZeroSeconds (by ExecutionTimeBalancer)");
   }
 }

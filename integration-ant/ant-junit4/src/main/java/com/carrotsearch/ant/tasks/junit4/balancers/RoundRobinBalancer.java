@@ -1,7 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4.balancers;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.TestBalancer;
@@ -12,11 +12,11 @@ import com.google.common.collect.Maps;
  */
 public class RoundRobinBalancer implements TestBalancer {
   @Override
-  public Map<String,Integer> assign(Collection<String> suiteNames, int slaves, long seed) {
-    Map<String,Integer> result = Maps.newHashMap();
+  public LinkedHashMap<String,Assignment> assign(Collection<String> suiteNames, int slaves, long seed) {
+    LinkedHashMap<String,Assignment> result = Maps.newLinkedHashMap();
     int i = 0;
     for (String suite : suiteNames) {
-      result.put(suite, i++);
+      result.put(suite, new Assignment(i++, 0));
       if (i >= slaves) i = 0;
     }
     return result;

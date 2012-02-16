@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -18,7 +19,9 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 
-import com.carrotsearch.ant.tasks.junit4.*;
+import com.carrotsearch.ant.tasks.junit4.Duration;
+import com.carrotsearch.ant.tasks.junit4.JUnit4;
+import com.carrotsearch.ant.tasks.junit4.TestBalancer;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,29 +32,6 @@ import com.google.common.io.Closeables;
  * {@link ExecutionTimesReport}.
  */
 public class ExecutionTimeBalancer extends ProjectComponent implements TestBalancer {
-  private static class SuiteHint {
-    public static final Comparator<SuiteHint> DESCENDING_BY_WEIGHT = new Comparator<SuiteHint>() {
-      @Override
-      public int compare(SuiteHint o1, SuiteHint o2) {
-        if (o1.cost == o2.cost)
-          return o1.suiteName.compareTo(o2.suiteName);
-
-        if (o1.cost < o2.cost)
-          return 1;
-        else
-          return -1;
-      }
-    };
-
-    final String suiteName;
-    final long cost;
-
-    public SuiteHint(String suiteName, long weight) {
-      this.suiteName = suiteName;
-      this.cost = weight;
-    }
-  }
-
   private static class SlaveLoad {
     public static final Comparator<SlaveLoad> ASCENDING_BY_ESTIMATED_FINISH = 
         new Comparator<SlaveLoad>() {
@@ -102,7 +82,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
    * a decent average assignment.
    */
   @Override
-  public Map<String,Integer> assign(Collection<String> suiteNames, int slaves, long seed) {
+  public LinkedHashMap<String,Assignment> assign(Collection<String> suiteNames, int slaves, long seed) {
     // Read hints first.
     final Map<String,List<Long>> hints = Maps.newHashMap();
     for (ResourceCollection rc : resources) {
@@ -146,7 +126,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
       pq.add(new SlaveLoad(i));
     }
 
-    final Map<String, Integer> assignments = Maps.newLinkedHashMap();
+    final LinkedHashMap<String, Assignment> assignments = Maps.newLinkedHashMap();
     for (SuiteHint hint : costs) {
       SlaveLoad slave = pq.remove();
       slave.estimatedFinish += hint.cost;
@@ -156,7 +136,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
           Duration.toHumanDuration(hint.cost),
           Project.MSG_DEBUG);
 
-      assignments.put(hint.suiteName, slave.id);
+      assignments.put(hint.suiteName, new Assignment(slave.id, (int) hint.cost));
     }
     
     // Dump estimated execution times in verbose mode.

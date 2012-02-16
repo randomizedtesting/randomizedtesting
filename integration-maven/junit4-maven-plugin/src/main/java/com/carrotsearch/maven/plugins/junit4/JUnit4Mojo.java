@@ -160,6 +160,25 @@ public class JUnit4Mojo extends AbstractMojo {
   private boolean isolateWorkingDirectories = JUnit4.DEFAULT_ISOLATE_WORKING_DIRECTORIES;
 
   /**
+   * Specifies the ratio of suites moved to dynamic assignment list. A dynamic
+   * assignment list dispatches suites to the first idle slave JVM. Theoretically
+   * this is an optimal strategy, but it is usually better to have some static assignments
+   * to avoid communication costs.
+   * 
+   * <p>A ratio of 0 means only static assignments are used. A ratio of 1 means
+   * only dynamic assignments are used.
+   * 
+   * <p>The list of dynamic assignments is sorted by decreasing cost (always) and
+   * is inherently prone to race conditions in distributing suites. Should there
+   * be an error based on suite-dependency it will not be directly repeatable. In such
+   * case use the per-slave-jvm list of suites file dumped to disk for each slave JVM.
+   * (see <code>leaveTemporary</code> parameter).
+   * 
+   * @parameter default-value="0.25"
+   */
+  private float dynamicAssignmentRatio = JUnit4.DEFAULT_DYNAMIC_ASSIGNMENT_RATIO;
+  
+  /**
    * Set the maximum memory to be used by all forked JVMs. The value as 
    * defined by <tt>-mx</tt> or <tt>-Xmx</tt> in the java
    * command line options.
@@ -475,6 +494,7 @@ public class JUnit4Mojo extends AbstractMojo {
     junit4.addAttribute("isolateWorkingDirectories", Boolean.toString(isolateWorkingDirectories));
     junit4.addAttribute("haltOnFailure", Boolean.toString(haltOnFailure));
     junit4.addAttribute("leaveTemporary", Boolean.toString(leaveTemporary));
+    junit4.addAttribute("dynamicAssignmentRatio", Float.toString(dynamicAssignmentRatio));
 
     // JVM args.
     for (String jvmArg : Objects.firstNonNull(jvmArgs, EMPTY_STRING_ARRAY)) {

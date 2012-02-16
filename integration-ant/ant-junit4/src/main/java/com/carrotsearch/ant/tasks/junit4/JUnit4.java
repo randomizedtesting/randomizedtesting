@@ -13,7 +13,9 @@ import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
 import org.objectweb.asm.ClassReader;
 
+import com.carrotsearch.ant.tasks.junit4.TestBalancer.Assignment;
 import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
+import com.carrotsearch.ant.tasks.junit4.balancers.SuiteHint;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
@@ -21,6 +23,7 @@ import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.*;
 import com.google.common.base.*;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -73,6 +76,9 @@ public class JUnit4 extends Task {
   /** Default value of {@link #setIsolateWorkingDirectories(boolean)}. */
   public static final boolean DEFAULT_ISOLATE_WORKING_DIRECTORIES = true;
 
+  /** Default value of {@link #setDynamicAssignmentRatio(float)} */
+  public static final float DEFAULT_DYNAMIC_ASSIGNMENT_RATIO = .25f;
+  
   /**
    * Slave VM command line.
    */
@@ -168,6 +174,11 @@ public class JUnit4 extends Task {
   private Path bootclasspath;
 
   /**
+   * @see #setDynamicAssignmentRatio(float)
+   */
+  private float dynamicAssignmentRatio = DEFAULT_DYNAMIC_ASSIGNMENT_RATIO;
+
+  /**
    * @see #setShuffleOnSlave(boolean)
    */
   private boolean shuffleOnSlave = DEFAULT_SHUFFLE_ON_SLAVE;
@@ -179,7 +190,30 @@ public class JUnit4 extends Task {
     resources = new Resources();
     // resources.setCache(true);  // ANT 1.8.x+
   }
-  
+
+  /**
+   * Specifies the ratio of suites moved to dynamic assignment list. A dynamic
+   * assignment list dispatches suites to the first idle slave JVM. Theoretically
+   * this is an optimal strategy, but it is usually better to have some static assignments
+   * to avoid communication costs.
+   * 
+   * <p>A ratio of 0 means only static assignments are used. A ratio of 1 means
+   * only dynamic assignments are used.
+   * 
+   * <p>The list of dynamic assignments is sorted by decreasing cost (always) and
+   * is inherently prone to race conditions in distributing suites. Should there
+   * be an error based on suite-dependency it will not be directly repeatable. In such
+   * case use the per-slave-jvm list of suites file dumped to disk for each slave JVM.
+   * (see {@link #setLeaveTemporary(boolean)}).
+   */
+  public void setDynamicAssignmentRatio(float ratio) {
+    if (ratio < 0 || ratio > 1) {
+      throw new IllegalArgumentException("Dynamic assignment ratio must be " +
+      		"between 0 (only static assignments) to 1 (fully dynamic assignments).");
+    }
+    this.dynamicAssignmentRatio = ratio;
+  }
+
   /**
    * The number of parallel slaves. Can be set to a constant "max" for the
    * number of cores returned from {@link Runtime#availableProcessors()} or 
@@ -622,22 +656,30 @@ public class JUnit4 extends Task {
     }
 
     // Go through all the balancers, the first one to assign a suite wins.
+    final HashMap<String,Assignment> allCosts = Maps.newHashMap();
     final LinkedHashSet<String> remaining = Sets.newLinkedHashSet(testClassNames);
     for (TestBalancer balancer : balancersWithFallback) {
       balancer.setOwner(this);
 
-      Map<String, Integer> assignments = balancer.assign(
+      LinkedHashMap<String, Assignment> assignments = balancer.assign(
           Collections.unmodifiableCollection(remaining), slaveInfos.size(), masterSeed());
-      for (Map.Entry<String, Integer> e : assignments.entrySet()) {
+      for (Map.Entry<String, Assignment> e : assignments.entrySet()) {
         if (e.getValue() == null) {
           throw new RuntimeException("Balancer must return non-null slave ID.");
         }
         if (!remaining.remove(e.getKey())) {
-          throw new RuntimeException("Balancer must return suite name: " + e.getKey());
+          throw new RuntimeException("Balancer must return suite name as a key: " + e.getKey());
         }
-        log("Suite " + e.getKey() + " assigned to slave " + e.getValue() + "  by "
-            + "balancer " + balancer.getClass().getSimpleName(), Project.MSG_VERBOSE);
-        slaveInfos.get(e.getValue()).testSuites.add(e.getKey());
+
+        log(String.format(Locale.ENGLISH,
+            "Assignment hint: S%-2d (cost %5d) %s (by %s)",
+            e.getValue().slaveId,
+            e.getValue().estimatedCost,
+            e.getKey(),
+            balancer.getClass().getSimpleName()), Project.MSG_VERBOSE);
+
+        allCosts.put(e.getKey(), e.getValue());
+        slaveInfos.get(e.getValue().slaveId).testSuites.add(e.getKey());
       }
     }
 
@@ -645,28 +687,51 @@ public class JUnit4 extends Task {
       throw new RuntimeException("Not all suites assigned?: " + remaining);
     }    
 
-    // Take a fraction of suites scheduled as last on each slave and move them to a common
-    // job-stealing queue.
-    List<String> stealingQueue = Lists.newArrayList();
-    for (SlaveInfo si : slaveInfos) {
-      ArrayList<String> slaveSuites = si.testSuites;
-      int moveToCommon = slaveSuites.size() / 2; // 50%
-      if (moveToCommon > 0) {
-        List<String> sub = 
-            slaveSuites.subList(slaveSuites.size() - moveToCommon, slaveSuites.size());
-        stealingQueue.addAll(sub);
-        sub.clear();
-      }
-    }
-
-    // Shuffle the remaining jobs.
     if (shuffleOnSlave) {
+      // Shuffle suites on slaves so that the result is always the same wrt master seed
+      // (sort first, then shuffle with a constant seed).
       for (SlaveInfo si : slaveInfos) {
         Collections.sort(si.testSuites);
         Collections.shuffle(si.testSuites, new Random(this.masterSeed()));
       }
     }
 
+    // Take a fraction of suites scheduled as last on each slave and move them to a common
+    // job-stealing queue.
+    List<SuiteHint> stealingQueueWithHints = Lists.newArrayList();
+    for (SlaveInfo si : slaveInfos) {
+      ArrayList<String> slaveSuites = si.testSuites;
+      int moveToCommon = (int) (slaveSuites.size() * dynamicAssignmentRatio);
+      if (moveToCommon > 0) {
+        List<String> sublist = 
+            slaveSuites.subList(slaveSuites.size() - moveToCommon, slaveSuites.size());
+        for (String suiteName : sublist) {
+          stealingQueueWithHints.add(new SuiteHint(suiteName, allCosts.get(suiteName).estimatedCost));
+        }
+        sublist.clear();
+      }
+    }
+    
+    // Sort stealing queue according to descending cost.
+    Collections.sort(stealingQueueWithHints, SuiteHint.DESCENDING_BY_WEIGHT);
+
+    // Dump scheduling information.
+    for (SlaveInfo si : slaveInfos) {
+      log("Slave S" + si.id + " assignments (after shuffle):", Project.MSG_VERBOSE);
+      for (String suiteName : si.testSuites) {
+        log("  " + suiteName, Project.MSG_VERBOSE);
+      }
+    }
+
+    log("Stealing queue:", Project.MSG_VERBOSE);
+    for (SuiteHint suiteHint : stealingQueueWithHints) {
+      log("  " + suiteHint.suiteName + " " + suiteHint.cost, Project.MSG_VERBOSE);
+    }
+
+    List<String> stealingQueue = Lists.newArrayListWithCapacity(stealingQueueWithHints.size());
+    for (SuiteHint suiteHint : stealingQueueWithHints) {
+      stealingQueue.add(suiteHint.suiteName);
+    }
     return stealingQueue;
   }
 
