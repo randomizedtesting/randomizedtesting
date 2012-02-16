@@ -684,77 +684,53 @@
 
   // Renders the console output
   function refreshConsole() {
-    $console.html("");
+    var html = [];
     eachSuite(data, function (suite) {
-      var $suitebox = $("<div class='suitebox' />").appendTo($console);
-      $("<div class='name'>" + suite.description.displayName + "</div>").appendTo($suitebox);
-
-      var stack = [];
-      stack.push($("<pre class='outbox' />").appendTo($suitebox));
+      html.push("<div class='suitebox'>",
+                "<div class='name'>", suite.description.displayName, "</div>",
+                "<pre class='outbox'>");
 
       $.each(suite.executionEvents, function(index, evtobj) {
         switch (evtobj.event) {
           case "SUITE_FAILURE":
-            // Add a marker.
-            var failureMarker = $("<span class='failure marker' />");
-            failureMarker.appendTo(stack.peek());
-
-            var label = $("<span class='suitefailure'>suite failure</span>");
-            stack.peek().append(
-              $("<span class='side' />").append(
-                $("<div />").append(
-                  label)));
-
-            failureMarker.data("refLabel", label);
+            html.push("<span class='failure marker' />",
+                      "<span class='side'><div><span class='suitefailure'>suite failure</span></div></span>");
             break;
 
           case "TEST_STARTED":
             // Add a content wrapper for the test...
-            var testArea = $("<span class='test' />").appendTo(stack.peek());
-            stack.push(testArea);
-
-            // ...and a test start marker.
-            var startMarker = $("<span class='start marker' />");
-            startMarker.appendTo(testArea);
-
-            // ...and a side label.
-            var label = $("<span class='test label'>" + evtobj.description.methodName + "</span>");
-            testArea.append(
-              $("<span class='side' />").append(
-                $("<div />").append(
-                  label)));
-
-            startMarker.data("refLabel", label);
-            label.data("refTestArea", testArea);
+            html.push("<span class='test'>",
+                      "<span class='start marker' />",
+                      "<span class='side'><div><span class='test label'>", evtobj.description.methodName, "</span></div></span>");
             break;
 
           case "APPEND_STDOUT":
-            $("<span class='out'>" + evtobj.content + "</span>").appendTo(stack.peek());
+            html.push("<span class='out'>", evtobj.content, "</span>");
             break;
 
           case "APPEND_STDERR":
-            $("<span class='err'>" + evtobj.content + "</span>").appendTo(stack.peek());
+            html.push("<span class='err'>", evtobj.content, "</span>");
             break;
 
           case "TEST_FINISHED":
-            stack.pop();
+            html.push("</span>");
             break;
 
           default:
             // do nothing.
         }
       });
+      html.push("</pre></div>");
     });
+    $console.html(html.join(""));
 
     var $canvas = $("<canvas id='canvas_ovl' />").appendTo($console);
     $canvas.attr("width",  $console.width())
            .attr("height", $console.height());
 
-    // Attach on-hover highlights.
-    var f = function() {
-      $(this).data("refTestArea").toggleClass("highlight");
-    };
-    $('span[class ~= "label"]').hover(f, f);
+    $console.delegate('span[class ~= "label"]', "mouseenter mouseleave", function() {
+      $(this).parent().closest("span.test").toggleClass("highlight");
+    });
 
     // Redraw connectors.
     redrawConnectors();
@@ -772,7 +748,7 @@
 
     $.each(markers, function(index, marker) {
       marker = $(marker);
-      var label = $(marker).data("refLabel");
+      var label = $(marker).next().children().eq(0).children().eq(0);
 
       var x0 = 0.5 + label.offset().left + label.width() - cleft;
       var y0 = 0.5 + label.offset().top + label.height() / 2 - ctop;
