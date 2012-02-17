@@ -486,7 +486,12 @@
     // Console output, invisible by default
     $console = $("<div id='console' />").hide().appendTo($results);
     $console.delegate('span[class ~= "label"]', "mouseenter mouseleave", function() {
-      $(this).parent().closest("span.test").toggleClass("highlight");
+      $(this).parent().parent().next().add(this).toggleClass("highlight");
+      $(this).closest(".suitebox").toggleClass("highlight");
+    });
+    $console.delegate('span[class ~= "out"], span[class ~= "err"]', "mouseenter mouseleave", function() {
+      $(this).prev().children().eq(0).children().eq(0).add(this).toggleClass("highlight");
+      $(this).closest(".suitebox").toggleClass("highlight");
     });
 
     // Bind listeners

@@ -637,14 +637,15 @@ td > em {
   position: relative;
   right: 300px;
   width: 280px;
-  text-align: right;
   margin-bottom: 2px;
+  text-align: right;
 }
 
 .side > div > span {
   padding: 1px 4px;
   font-family: sans-serif;
   font-size: 12px;
+  display: inline-block;
 }
 
 .side .suitefailure {
@@ -686,8 +687,19 @@ td > em {
   color: red;
 }
 
-.highlight {
-  background-color: rgba(255, 245, 159, 0.57);
+.highlight.out,
+.highlight.err {
+  background-color: rgb(255, 247, 199);
+}
+
+.suitebox.highlight .label {
+  opacity: 0.35;
+  -webkit-transition: all 0.3s ease-out;
+}
+.suitebox .label,
+.suitebox.highlight .label.highlight {
+  opacity: 1.0;
+  -webkit-transition: all 0.3s ease-out;
 }
 
 
