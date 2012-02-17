@@ -34,7 +34,11 @@
     },
     search: "",
     filter: {
-      output: true
+      pass: true,
+      ignored: true,
+      error: true,
+      fail: true,
+      output: false
     },
 
     encode: function() {
@@ -476,7 +480,8 @@
     // Results table tools
     $tools = $("<div id='tools'>\
       <input type='search' accesskey='s' placeholder='package, class, method name (Alt+Shift+S to focus)' />\
-      view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a> <a href='#console'>console</a>\
+      <span class='filters'>show: <a href='#pass'>pass</a> <a href='#ignored'>ignored</a> <a href='#error'>error</a> <a href='#fail'>fail</a></span>\
+      <span class='views'>view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a> <a href='#console'>console</a></span>\
     </div>").appendTo($results);
 
 
@@ -495,8 +500,9 @@
     });
 
     // Bind listeners
-    $tools.on("click", "a", function () {
-      state.view = $(this).attr("href").substring(1);
+    $tools.on("click", ".views", function (e) {
+      if (!e.target.href) { return; }
+      state.view = $(e.target).attr("href").substring(1);
 
       // If the search seems to be a fully qualified method/class name,
       // strip the the last components to match the view type so that the
@@ -526,6 +532,14 @@
         }
         return false;
       }
+    });
+
+    $tools.on("click", ".filters", function (e) {
+      if (!e.target.href) { return; }
+      var filter = $(e.target).attr("href").substring(1);
+      state.filter[filter] = !state.filter[filter];
+      state.push();
+      return false;
     });
 
     $table.on("click", "th.sortable", function (e) {
@@ -617,6 +631,7 @@
     return this;
   });
 
+  // Called after UI state changes to refresh the UI
   function refresh() {
     if (state.view == "console") {
       $search.hide(); // No search in console for the time being
@@ -630,7 +645,16 @@
       refreshTable();
       refreshSummary();
     }
+
+    // Show which view is active
     $tools.find("a").removeClass("active").filter("[href^=#" + state.view + "]").addClass("active");
+
+    // Show which filters are active
+    $tools.find(".filters a").each(function() {
+      $(this).toggleClass("active", state.filter[this.hash.substring(1)]);
+    });
+
+    // Update search box
     $search.val(state.search);
   }
 
@@ -944,8 +968,13 @@
     }
   }
 
+  var testStatusToFilter = { OK: "pass", IGNORED: "ignored", IGNORED_ASSUMPTION: "ignored", ERROR: "error", FAILURE: "fail" };
+  function statusFilter(test) {
+    return state.filter[testStatusToFilter[test.status]];
+  }
+
   function currentFilter(test) {
-    return signatureSearchFilter(test);
+    return signatureSearchFilter(test) && statusFilter(test);
   }
 
   function global() {

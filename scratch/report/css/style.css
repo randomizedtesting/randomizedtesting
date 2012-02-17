@@ -556,25 +556,27 @@ td > em {
   border-bottom: 2px solid #bbb;
   padding-bottom: 4px;
 }
-#tools > a {
+#tools > span > a {
   border: 0;
   padding-bottom: 4px;
   background: no-repeat center bottom;
   margin-left: 5px;
 }
-#tools > a.active {
+#tools > span > a.active {
   background-image: url(../img/indicator.png);
 }
 #tools > input[type='search'] {
   float: left;
   position: relative;
   top: -8px;
-  min-width: 30em;
-  width: 50%;
+  width: 45%;
   border: 1px solid #e0e0e0;
   padding: 3px;
   border-radius: 2px;
   -webkit-appearance: none;
+}
+#tools > span {
+  padding-left: 2em;
 }
 
 #console {
