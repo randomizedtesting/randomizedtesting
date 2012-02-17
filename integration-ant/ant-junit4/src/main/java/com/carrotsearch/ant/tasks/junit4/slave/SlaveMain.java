@@ -186,7 +186,7 @@ public class SlaveMain {
       main.execute(parseArguments(main, args));
     } catch (Throwable t) {
       warn("Exception at main loop level?", t);
-      exitStatus = -1;
+      exitStatus = ERR_EXCEPTION;
     } finally {
       restoreStreams();
     }
@@ -195,7 +195,8 @@ public class SlaveMain {
       try {
         serializer.serialize(new QuitEvent());
         serializer.close();
-      } catch (IOException e) {
+      } catch (Throwable t) {
+        warn("Exception closing serializer?", t);
         // Ignore.
       }
     }
@@ -325,13 +326,17 @@ public class SlaveMain {
    * Warning emitter. Uses whatever alternative non-event communication channel is.
    */
   private static void warn(String string, Throwable t) {
-    PrintStream w = (warnings == null ? System.err : warnings);
-
-    w.println("WARN: " + string);
-    if (t != null) {
-      w.println("      " + t.toString());
-      t.printStackTrace(w);
+    try {
+      PrintStream w = (warnings == null ? System.err : warnings);
+  
+      w.println("WARN: " + string);
+      if (t != null) {
+        w.println("      " + t.toString());
+        t.printStackTrace(w);
+      }
+      w.flush();
+    } catch (Throwable t2) {
+      // Can't do anything, really.
     }
-    w.flush();
   }
 }

@@ -469,4 +469,13 @@
             </fileset>
         </junit4.preconf>
     </target>
+	
+    <target name="slavehanging">
+        <junit4.preconf haltonfailure="true" parallelism="2">
+            <fileset dir="${basedir}">
+                <include name="**/SlaveHanging*.class" />
+            	<exclude name="**/*$*" />
+            </fileset>
+        </junit4.preconf>
+    </target>	
 </project>

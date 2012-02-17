@@ -176,4 +176,9 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     assertLogContains("Assignment hint: S1  (cost   501) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestHalfSecond (by ExecutionTimeBalancer)");
     assertLogContains("Assignment hint: S1  (cost     2) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestZeroSeconds (by ExecutionTimeBalancer)");
   }
+
+  @Test
+  public void slavehanging() {
+    executeTarget("slavehanging");
+  }  
 }
