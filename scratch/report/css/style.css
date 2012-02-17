@@ -427,10 +427,10 @@ th.count {
 th.result {
   width: 7em;
 }
-table.methods th.result {
+#results.methods > table th.result {
   width: 5em;
 }
-#results > table.methods > tbody > tr > td.result {
+#results.methods > table > tbody > tr > td.result {
   padding-top: 6px;
 }
 #results > table > tbody > tr > td.result {
@@ -578,6 +578,12 @@ td > em {
 #tools > span {
   padding-left: 2em;
 }
+a[href ^= '#withoutoutput'] {
+  display: none;
+}
+#results.console a[href ^= '#withoutoutput'] {
+  display: inline;
+}
 
 #console {
   position: relative;
@@ -647,7 +653,6 @@ td > em {
   padding: 1px 4px;
   font-family: sans-serif;
   font-size: 12px;
-  display: inline-block;
 }
 
 .side .suitefailure {

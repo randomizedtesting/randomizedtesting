@@ -38,7 +38,7 @@
       ignored: true,
       error: true,
       fail: true,
-      output: false
+      withoutoutput: false
     },
 
     encode: function() {
@@ -175,12 +175,28 @@
     eachSuite(data, function(suite) {
       var testsById = map(suite.tests, function(t) { return t.description.id; });
 
+      var hasOutput = false;
       $.each(suite.executionEvents, function(j, evt) {
         if ("description" in evt) {
           if (testsById[evt.description]) {
             evt.test = testsById[evt.description];
           }
           evt.description = descriptionsById[evt.description];
+        }
+        switch (evt.event) {
+          case "TEST_STARTED":
+            hasOutput = false;
+            break;
+
+          case "APPEND_STDOUT":
+          case "APPEND_STDERR":
+            hasOutput = true;
+            break;
+
+          case "TEST_FINISHED":
+            evt.test.hasOutput = hasOutput;
+            hasOutput = false;
+            break;
         }
       });
     });
@@ -480,8 +496,15 @@
     // Results table tools
     $tools = $("<div id='tools'>\
       <input type='search' accesskey='s' placeholder='package, class, method name (Alt+Shift+S to focus)' />\
-      <span class='filters'>show: <a href='#pass'>pass</a> <a href='#ignored'>ignored</a> <a href='#error'>error</a> <a href='#fail'>fail</a></span>\
-      <span class='views'>view: <a href='#packages'>packages</a> <a href='#classes'>classes</a> <a href='#methods'>methods</a> <a href='#console'>console</a></span>\
+      <span class='filters'>show: <a href='#pass'>pass</a> \
+                                  <a href='#ignored'>ignored</a> \
+                                  <a href='#error'>error</a> \
+                                  <a href='#fail'>fail</a>\
+                                  <a href='#withoutoutput'>without output</a></span>\
+      <span class='views'>view: <a href='#packages'>packages</a> \
+                                <a href='#classes'>classes</a> \
+                                <a href='#methods'>methods</a> \
+                                <a href='#console'>console</a></span>\
     </div>").appendTo($results);
 
 
@@ -643,11 +666,13 @@
       $search.show();
       $table.show();
       refreshTable();
-      refreshSummary();
     }
+
+    refreshSummary();
 
     // Show which view is active
     $tools.find("a").removeClass("active").filter("[href^=#" + state.view + "]").addClass("active");
+    $("#results").attr("class", state.view);
 
     // Show which filters are active
     $tools.find(".filters a").each(function() {
@@ -723,12 +748,48 @@
   function refreshConsole() {
     var html = [];
     eachSuite(data, function (suite) {
+      // Check if we want to show the suite at all. Store this information in the model.
+      var showSuite = state.filter.withoutoutput;
+      var outputShown = true;
+      var insideTest = false;
+      $.each(suite.executionEvents, function(index, evtobj) {
+        switch (evtobj.event) {
+          case "TEST_STARTED":
+            outputShown = currentFilter(evtobj.test);
+            insideTest = true;
+            break;
+
+          case "TEST_FINISHED":
+            insideTest = false;
+            break;
+
+          case "APPEND_STDOUT":
+          case "APPEND_STDERR":
+            if ((insideTest && outputShown) || !insideTest) {
+              showSuite = true;
+            }
+            outputShown = true;
+            break;
+        }
+        evtobj.shown = outputShown;
+      });
+
+      if (!showSuite) {
+        return true; // continue the loop
+      }
+
       html.push("<div class='suitebox'>",
                 "<div class='name'>", suite.description.displayName, "</div>",
                 "<pre class='outbox'>");
 
       var emptyOutBoxIndex = html.length - 1;
       $.each(suite.executionEvents, function(index, evtobj) {
+        var shown = evtobj.shown;
+        delete evtobj.shown;
+        if (!shown) {
+          return true; // continue the loop
+        }
+
         switch (evtobj.event) {
           case "SUITE_FAILURE":
             html.push("<span class='failure marker' />",
@@ -739,16 +800,14 @@
             // Add a content wrapper for the test...
             html.push("<span class='test'>",
                       "<span class='start marker' />",
-                      "<span class='side'><div><span class='test label tag ", evtobj.test.status, "'>", evtobj.description.methodName, "</span></div></span>");
+                      "<span class='side'><div><span class='test label tag ",
+                          evtobj.test.status, "'>", evtobj.description.methodName,
+                      "</span></div></span>");
             break;
 
           case "APPEND_STDOUT":
-            html.push("<span class='out'>", evtobj.content, "</span>");
-            emptyOutBoxIndex = undefined;
-            break;
-
           case "APPEND_STDERR":
-            html.push("<span class='err'>", evtobj.content, "</span>");
+            html.push("<span class='", evtobj.event == "APPEND_STDOUT" ? "out" : "err", "'>", evtobj.content, "</span>");
             emptyOutBoxIndex = undefined;
             break;
 
@@ -814,7 +873,6 @@
     var spec = source.spec, data = source.data, order = source.order;
 
     var html = [ ];
-    $table.attr("class", source.type);
 
     // Get the data
     var rows = spec.rows(data);
@@ -974,7 +1032,8 @@
   }
 
   function currentFilter(test) {
-    return signatureSearchFilter(test) && statusFilter(test);
+    return signatureSearchFilter(test) && statusFilter(test) &&
+      (state.view != "console" || state.filter.withoutoutput || test.hasOutput);
   }
 
   function global() {
