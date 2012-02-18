@@ -882,9 +882,10 @@ public class JUnit4 extends Task {
       execute.setNewenvironment(newEnvironment);
       if (env.getVariables() != null)
         execute.setEnvironment(env.getVariables());
-      getProject().log("Starting slave.", Project.MSG_DEBUG);
+      log("Starting slave S" + slaveInfo.id, Project.MSG_DEBUG);
       int exitStatus = execute.execute();
-      getProject().log("Slave finished with exit code: " + exitStatus, Project.MSG_DEBUG);
+      log("Slave S" + slaveInfo.id + " finished with exit code: " 
+          + exitStatus, Project.MSG_DEBUG);
 
       if (streamHandler.isErrorStreamNonEmpty()) {
         log(">>> error stream from forked JVM (verbatim) ----", Project.MSG_ERR);
@@ -976,7 +977,7 @@ public class JUnit4 extends Task {
 
           ClassReader reader = new ClassReader(is);
           String className = reader.getClassName().replace('/', '.');
-          getProject().log("Test class parsed: " + r.getName() + " as " 
+          log("Test class parsed: " + r.getName() + " as " 
               + reader.getClassName(), Project.MSG_DEBUG);
           testClassNames.add(className);
         } finally {

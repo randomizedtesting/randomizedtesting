@@ -11,7 +11,7 @@ import org.junit.runner.notification.RunListener;
  * {@link RunListener} decorator that does something before and after a given method call.
  * A fancier impl. could use a {@link Proxy} but {@link RunListener} is not an interface.
  */
-public class NoExceptionRunListenerDecorator extends RunListener {
+public abstract class NoExceptionRunListenerDecorator extends RunListener {
   private final RunListener delegate;
   
   public NoExceptionRunListenerDecorator(RunListener delegate) {
@@ -74,5 +74,5 @@ public class NoExceptionRunListenerDecorator extends RunListener {
     }
   }
 
-  protected void exception(Throwable t) {}
+  protected abstract void exception(Throwable t);
 }

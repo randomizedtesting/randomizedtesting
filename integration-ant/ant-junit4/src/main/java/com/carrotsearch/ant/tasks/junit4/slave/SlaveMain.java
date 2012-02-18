@@ -3,6 +3,7 @@ package com.carrotsearch.ant.tasks.junit4.slave;
 import java.io.*;
 import java.util.*;
 
+import org.apache.commons.io.output.TeeOutputStream;
 import org.junit.runner.*;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
@@ -56,6 +57,11 @@ public class SlaveMain {
 
   /** Flush serialization stream frequently. */
   private boolean flushFrequently = false;
+
+  /**
+   * Sink log for the events stream.
+   */
+  private static File sinkLog;
 
   /**
    * Base for redirected streams. 
@@ -154,8 +160,12 @@ public class SlaveMain {
    * Console entry point.
    */
   public static void main(String[] args) {
+    if (System.getProperty("junit4.sinklog") != null) {
+      sinkLog = new File(System.getProperty("junit4.sinklog"));
+    }
+    
     int exitStatus = 0;
-    Serializer serializer = null;
+    Serializer serializer = null; 
     try {
       // Pick the communication channel.
       final BootstrapEvent.EventChannelType channel = establishCommunicationChannel(); 
@@ -163,15 +173,16 @@ public class SlaveMain {
         .serialize(new BootstrapEvent(channel))
         .flush();
 
+      OutputStream sink;
       final int bufferSize = 16 * 1024;
       switch (channel) {
         case STDERR:
-          serializer = new Serializer(new BufferedOutputStream(System.err, bufferSize));
+          sink = System.err;
           warnings = System.out;
           break;
 
         case STDOUT:
-          serializer = new Serializer(new BufferedOutputStream(System.out, bufferSize));
+          sink = System.out;
           warnings = System.err;
           break;
 
@@ -179,6 +190,12 @@ public class SlaveMain {
           warnings = System.err;
           throw new RuntimeException("Communication not implemented: " + channel);
       }
+
+      if (sinkLog != null) {
+        sink = new TeeOutputStream(sink, new FileOutputStream(sinkLog));
+      }
+
+      serializer = new Serializer(new BufferedOutputStream(sink, bufferSize));
 
       // Redirect original streams and start running tests.
       redirectStreams(serializer);
