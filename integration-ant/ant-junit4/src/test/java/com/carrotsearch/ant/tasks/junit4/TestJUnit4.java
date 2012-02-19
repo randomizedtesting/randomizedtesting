@@ -180,6 +180,7 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   @Test
   public void slavehanging() {
     executeTarget("slavehanging");
+    assertLogContains("Caused by: java.lang.ArithmeticException");
   }
 
   @Test

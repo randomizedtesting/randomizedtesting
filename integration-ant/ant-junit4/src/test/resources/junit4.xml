@@ -471,7 +471,7 @@
     </target>
 	
     <target name="slavehanging">
-        <junit4.preconf haltonfailure="true" parallelism="1">
+        <junit4.preconf haltonfailure="false" parallelism="1">
             <fileset dir="${basedir}">
                 <include name="**/SlaveHanging*.class" />
             	<exclude name="**/*$*" />

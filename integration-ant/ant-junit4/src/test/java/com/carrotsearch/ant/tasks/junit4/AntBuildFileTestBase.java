@@ -43,7 +43,7 @@ public class AntBuildFileTestBase {
       getProject().addBuildListener(listener);
 
       DefaultLogger console = new DefaultLogger();
-      console.setMessageOutputLevel(Project.MSG_DEBUG);
+      console.setMessageOutputLevel(Project.MSG_INFO);
       console.setErrorPrintStream(System.err);
       console.setOutputPrintStream(System.out);
       getProject().addBuildListener(console);
