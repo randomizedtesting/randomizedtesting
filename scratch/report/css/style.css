@@ -679,11 +679,6 @@ a[href ^= '#withoutoutput'] {
   font-size: 12px;
 }
 
-.side .suitefailure {
-  background-color: #ef0000;
-  color: white;
-}
-
 .outbox .test .start,
 .outbox .failure {
   position: absolute;

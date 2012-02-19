@@ -831,7 +831,7 @@
         switch (evtobj.event) {
           case "SUITE_FAILURE":
             html.push("<span class='failure marker' />",
-                      "<span class='side'><div><span class='suitefailure'>suite failure</span></div></span>");
+                      "<span class='side'><div><span class='suitefailure tag FAILURE'>suite failure</span></div></span>");
             break;
 
           case "TEST_STARTED":
