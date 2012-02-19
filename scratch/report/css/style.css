@@ -467,6 +467,10 @@ td > em {
   line-height: 1.4;
   color: #888;
   margin: 10px 0;
+  cursor: pointer;
+}
+.signature > .stacktrace:first-of-type {
+  margin-top: 0;
 }
 .signature:hover > .stacktrace {
   color: #000;
@@ -506,6 +510,26 @@ td > em {
 }
 .signature.fullStacktrace > .stacktrace > span {
   display: none;
+}
+.stdout,
+.stderr {
+  background-repeat: no-repeat;
+  width: 13px;
+  height: 13px;
+  float: right;
+  margin-top: 1px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.stdout:hover,
+.stderr:hover {
+  opacity: 1.0;
+}
+.stdout {
+  background-image: url(../img/stdout.png);
+}
+.stderr {
+  background-image: url(../img/stderr.png);
 }
 
 
@@ -694,6 +718,9 @@ a[href ^= '#withoutoutput'] {
   color: red;
 }
 
+#results > table > tbody > tr.highlight > td,
+.test.highlight .out,
+.test.highlight .err,
 .highlight.out,
 .highlight.err {
   background-color: rgb(255, 247, 199);
