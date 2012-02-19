@@ -427,10 +427,10 @@ th.count {
 th.result {
   width: 7em;
 }
-table.methods th.result {
+#results.methods > table th.result {
   width: 5em;
 }
-#results > table.methods > tbody > tr > td.result {
+#results.methods > table > tbody > tr > td.result {
   padding-top: 6px;
 }
 #results > table > tbody > tr > td.result {
@@ -467,6 +467,10 @@ td > em {
   line-height: 1.4;
   color: #888;
   margin: 10px 0;
+  cursor: pointer;
+}
+.signature > .stacktrace:first-of-type {
+  margin-top: 0;
 }
 .signature:hover > .stacktrace {
   color: #000;
@@ -506,6 +510,26 @@ td > em {
 }
 .signature.fullStacktrace > .stacktrace > span {
   display: none;
+}
+.stdout,
+.stderr {
+  background-repeat: no-repeat;
+  width: 13px;
+  height: 13px;
+  float: right;
+  margin-top: 1px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.stdout:hover,
+.stderr:hover {
+  opacity: 1.0;
+}
+.stdout {
+  background-image: url(../img/stdout.png);
+}
+.stderr {
+  background-image: url(../img/stderr.png);
 }
 
 
@@ -556,25 +580,33 @@ td > em {
   border-bottom: 2px solid #bbb;
   padding-bottom: 4px;
 }
-#tools > a {
+#tools > span > a {
   border: 0;
   padding-bottom: 4px;
   background: no-repeat center bottom;
   margin-left: 5px;
 }
-#tools > a.active {
+#tools > span > a.active {
   background-image: url(../img/indicator.png);
 }
 #tools > input[type='search'] {
   float: left;
   position: relative;
   top: -8px;
-  min-width: 30em;
-  width: 50%;
+  width: 45%;
   border: 1px solid #e0e0e0;
   padding: 3px;
   border-radius: 2px;
   -webkit-appearance: none;
+}
+#tools > span {
+  padding-left: 2em;
+}
+a[href ^= '#withoutoutput'] {
+  display: none;
+}
+#results.console a[href ^= '#withoutoutput'] {
+  display: inline;
 }
 
 #console {
@@ -637,8 +669,8 @@ td > em {
   position: relative;
   right: 300px;
   width: 280px;
-  text-align: right;
   margin-bottom: 2px;
+  text-align: right;
 }
 
 .side > div > span {
@@ -647,22 +679,22 @@ td > em {
   font-size: 12px;
 }
 
-.side .suitefailure {
-  background-color: #ef0000;
-  color: white;
-}
-
 .outbox .test .start,
 .outbox .failure {
   position: absolute;
-  margin-top: -1px;
-  margin-left: -0px;
+  margin-top: -2px;
+  margin-left: -3px;
   /** A CSS arrow */
   width: 0;
  	height: 0;
- 	border-top: 3px solid transparent;
- 	border-bottom: 3px solid transparent;
- 	border-left: 3px solid transparent;
+ 	border-top: 4px solid transparent;
+ 	border-bottom: 4px solid transparent;
+ 	border-left: 4px solid transparent;
+  -webkit-transform: rotate(225deg) scale(0.90);
+  -moz-transform: rotate(225deg) scale(0.90);
+  -ms-transform: rotate(225deg) scale(0.90);
+  -o-transform: rotate(225deg) scale(0.90);
+  transform: rotate(225deg) scale(0.90);
 }
 
 .outbox .test .start {
@@ -681,8 +713,30 @@ td > em {
   color: red;
 }
 
-.highlight {
-  background-color: rgba(255, 245, 159, 0.57);
+#results > table > tbody > tr.highlight > td,
+.test.highlight .out,
+.test.highlight .err,
+.highlight.out,
+.highlight.err {
+  background-color: rgb(255, 247, 199);
+}
+
+.suitebox.highlight .label {
+  opacity: 0.35;
+  -webkit-transition: all 0.3s ease-out;
+}
+.suitebox .label,
+.suitebox.highlight .label.highlight {
+  opacity: 1.0;
+  -webkit-transition: all 0.3s ease-out;
+}
+
+.label.test {
+  cursor: pointer;
+}
+.nooutput {
+  text-align: center;
+  margin: 1em 0 2em;
 }
 
 
