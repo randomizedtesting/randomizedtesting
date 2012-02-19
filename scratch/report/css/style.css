@@ -731,6 +731,10 @@ a[href ^= '#withoutoutput'] {
   -webkit-transition: all 0.3s ease-out;
 }
 
+.label.test {
+  cursor: pointer;
+}
+
 
 /* =============================================================================
    Non-semantic helper classes

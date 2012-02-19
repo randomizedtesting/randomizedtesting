@@ -533,14 +533,23 @@
 
     // Console output, invisible by default
     $console = $("<div id='console' />").hide().appendTo($results);
-    $console.delegate('span[class ~= "label"]', "mouseenter mouseleave", function() {
+    $console.delegate('.label', "mouseenter mouseleave", function() {
       $(this).parent().parent().nextAll(".out, .err").add(this).toggleClass("highlight");
       $(this).closest(".suitebox").toggleClass("highlight");
+      return false;
     });
-    $console.delegate('span[class ~= "out"], span[class ~= "err"]', "mouseenter mouseleave", function() {
+    $console.delegate('.out, .err', "mouseenter mouseleave", function() {
       $(this).prevAll(".side").children().eq(0).children().eq(0).add(this).toggleClass("highlight");
       $(this).closest(".suitebox").toggleClass("highlight");
+      return false;
     });
+    $console.delegate('.test.label', "click", function() {
+      state.highlight = $(this).parent().closest("span.test").attr("id").substring(1);
+      state.view = "methods";
+      state.push();
+      return false;
+    });
+
 
     // Bind listeners
     $tools.on("click", ".views", function (e) {
