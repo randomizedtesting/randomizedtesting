@@ -734,6 +734,10 @@ a[href ^= '#withoutoutput'] {
 .label.test {
   cursor: pointer;
 }
+.nooutput {
+  text-align: center;
+  margin: 1em 0 2em;
+}
 
 
 /* =============================================================================

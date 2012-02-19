@@ -871,6 +871,9 @@
       }
       html.push("</pre></div>");
     });
+    if (html.length == 0) {
+      html.push("<div class='nooutput'>No console output</div>");
+    }
     $console.html(html.join(""));
 
     var $canvas = $("<canvas id='canvas_ovl' />").appendTo($console);
