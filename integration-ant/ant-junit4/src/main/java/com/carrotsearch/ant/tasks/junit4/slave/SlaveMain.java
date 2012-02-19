@@ -46,12 +46,6 @@ public class SlaveMain {
    */
   private final Serializer serializer;
 
-  /** Stored original system output. */
-  private static PrintStream stdout;
-
-  /** Stored original system error. */
-  private static PrintStream stderr;
-
   /** A sink for warnings (non-event stream). */
   private static PrintStream warnings;
 
@@ -69,6 +63,11 @@ public class SlaveMain {
   private static class ChunkedStream extends OutputStream {
     public void write(int b) throws IOException {
       throw new IOException("Only buffered write(byte[],int,int) calls expected from super stream.");
+    }
+    
+    @Override
+    public void close() throws IOException {
+      throw new IOException("Not supposed to be called on redirected streams.");
     }
   }
 
@@ -204,21 +203,19 @@ public class SlaveMain {
     } catch (Throwable t) {
       warn("Exception at main loop level?", t);
       exitStatus = ERR_EXCEPTION;
-    } finally {
-      restoreStreams();
     }
 
-    if (serializer != null) {
-      try {
-        serializer.serialize(new QuitEvent());
-        serializer.close();
-      } catch (Throwable t) {
-        warn("Exception closing serializer?", t);
-        // Ignore.
+    try {
+      if (serializer != null) {
+        try {
+          serializer.close();
+        } catch (Throwable t) {
+          warn("Exception closing serializer?", t);
+        }
       }
+    } finally {
+      System.exit(exitStatus);
     }
-
-    System.exit(exitStatus);
   }
 
   /**
@@ -300,44 +297,20 @@ public class SlaveMain {
    * Redirect standard streams so that the output can be passed to listeners.
    */
   private static void redirectStreams(final Serializer serializer) {
-    final Object lock = new Object();
-
-    stdout = System.out;
-    stderr = System.err;
     System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
       @Override
       public void write(byte[] b, int off, int len) throws IOException {
-        synchronized (lock) {
-          serializer.serialize(new AppendStdOutEvent(b, off, len));
-        }
+        serializer.serialize(new AppendStdOutEvent(b, off, len));
       }
     })));
 
     System.setErr(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
       @Override
       public void write(byte[] b, int off, int len) throws IOException {
-        synchronized (lock) {
-          serializer.serialize(new AppendStdErrEvent(b, off, len));
-        }
+        serializer.serialize(new AppendStdErrEvent(b, off, len));
       }
     })));
   }
-
-  /**
-   * Flush current streams and restore original ones.
-   */
-  private static void restoreStreams() {
-    if (stdout != null) {
-      System.out.flush();
-      System.setOut(stdout);
-    }
-
-    if (stderr != null) {
-      System.err.flush();
-      System.setErr(stderr);
-    }
-  }
-  
 
   /**
    * Warning emitter. Uses whatever alternative non-event communication channel is.

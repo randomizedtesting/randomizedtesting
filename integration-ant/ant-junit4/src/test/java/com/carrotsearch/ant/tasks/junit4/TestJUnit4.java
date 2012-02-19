@@ -180,5 +180,10 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   @Test
   public void slavehanging() {
     executeTarget("slavehanging");
-  }  
+  }
+
+  @Test
+  public void outofordersysouts() {
+    executeTarget("outofordersysouts");
+  }
 }

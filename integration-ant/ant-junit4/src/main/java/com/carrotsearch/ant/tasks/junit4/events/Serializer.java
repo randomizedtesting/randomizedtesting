@@ -19,6 +19,11 @@ import com.google.gson.stream.JsonWriter;
  * Event serializer.
  */
 public class Serializer implements Closeable {
+  /**
+   * Should help in ensuring the right order of stream writes.
+   */
+  private final Object lock = new Object();
+
   private JsonWriter writer;
   private Gson gson;
 
@@ -31,23 +36,35 @@ public class Serializer implements Closeable {
   }
 
   public Serializer serialize(IEvent event) throws IOException {
-    writer.beginArray();
-    writer.value(event.getType().name());
-    gson.toJson(event, event.getClass(), writer);
-    writer.endArray();
-    return this;
+    synchronized (lock) {
+      if (writer == null) {
+        throw new IOException("Serializer already closed.");
+      }
+      writer.beginArray();
+      writer.value(event.getType().name());
+      gson.toJson(event, event.getClass(), writer);
+      writer.endArray();
+      return this;
+    }
   }
 
   public Serializer flush() throws IOException {
-    writer.flush();
-    return this;
+    synchronized (lock) {
+      if (writer != null) {
+        writer.flush();
+      }
+      return this;
+    }
   }
 
   public void close() throws IOException {
-    if (writer != null) {
-      writer.endArray();
-      writer.close();
-      writer = null;
+    synchronized (lock) {
+      if (writer != null) {
+        serialize(new QuitEvent());
+        writer.endArray();
+        writer.close();
+        writer = null;
+      }
     }
   }
 

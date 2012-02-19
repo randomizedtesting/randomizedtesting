@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
 
+import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.types.*;
@@ -1019,7 +1020,8 @@ public class JUnit4 extends Task {
         SlaveMain.class.getName(),
         Strings.class.getName(),
         MethodGlobFilter.class.getName(),
-        Gson.class.getName()
+        Gson.class.getName(),
+        TeeOutputStream.class.getName()
     };
 
     for (String clazz : Arrays.asList(REQUIRED_SLAVE_CLASSES)) {

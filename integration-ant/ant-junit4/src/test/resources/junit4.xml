@@ -471,11 +471,24 @@
     </target>
 	
     <target name="slavehanging">
-        <junit4.preconf haltonfailure="true" parallelism="2">
+        <junit4.preconf haltonfailure="true" parallelism="1">
             <fileset dir="${basedir}">
                 <include name="**/SlaveHanging*.class" />
             	<exclude name="**/*$*" />
             </fileset>
         </junit4.preconf>
-    </target>	
+    </target>
+	
+    <target name="outofordersysouts">
+        <junit4.preconf haltonfailure="true" parallelism="1">
+        	<classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/OutOfOrderSysouts.class" />
+                <exclude name="**/*$*" />
+            </fileset>
+        </junit4.preconf>
+    </target>   	
 </project>
