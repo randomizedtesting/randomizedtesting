@@ -1,22 +1,17 @@
 package com.carrotsearch.ant.tasks.junit4.balancers;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectComponent;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 
 import com.carrotsearch.ant.tasks.junit4.Duration;
@@ -25,7 +20,6 @@ import com.carrotsearch.ant.tasks.junit4.TestBalancer;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closeables;
 
 /**
  * A test suite balancer based on past execution times saved using
@@ -64,7 +58,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
   private JUnit4 owner;
 
   /**
-   * Adds a set of tests based on pattern matching.
+   * Adds a resource collection with execution hints.
    */
   public void add(ResourceCollection rc) {
     if (rc instanceof FileSet) {
@@ -84,27 +78,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
   @Override
   public LinkedHashMap<String,Assignment> assign(Collection<String> suiteNames, int slaves, long seed) {
     // Read hints first.
-    final Map<String,List<Long>> hints = Maps.newHashMap();
-    for (ResourceCollection rc : resources) {
-      @SuppressWarnings("unchecked")
-      Iterator<Resource> i = rc.iterator();
-      while (i.hasNext()) {
-        InputStream is = null;
-        Resource r = i.next();
-        try {
-          is = r.getInputStream();
-          ExecutionTimesReport.mergeHints(is, hints);
-
-          // Early prune the hints to those we have on the list.
-          hints.keySet().retainAll(suiteNames);
-        } catch (IOException e) {
-          throw new BuildException("Could not read hints from resource: "
-              + r.getDescription(), e);
-        } finally {
-          Closeables.closeQuietly(is);
-        }
-      }
-    }
+    final Map<String,List<Long>> hints = ExecutionTimesReport.mergeHints(resources, suiteNames);
 
     // Preprocess and sort costs. Take the median for each suite's measurements as the 
     // weight to avoid extreme measurements from screwing up the average.

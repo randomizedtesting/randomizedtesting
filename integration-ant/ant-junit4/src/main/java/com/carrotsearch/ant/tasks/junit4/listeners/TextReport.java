@@ -301,7 +301,7 @@ public class TextReport implements AggregatedEventListener {
   /*
    * 
    */
-  private Object formatTime(int timeMillis) {
+  private static Object formatTime(int timeMillis) {
     final int precision;
     if (timeMillis >= 100 * 1000) {
       precision = 0;

@@ -491,4 +491,26 @@
             </fileset>
         </junit4.preconf>
     </target>
+
+    <target name="mergehints">
+        <junit4.preconf parallelism="4">
+            <fileset dir="${basedir}">
+                <include name="**/tests/sub2/Test*.class" />
+            </fileset>
+
+            <listeners>
+                <report-execution-times file="${basedir}/hints-1.log" />
+            	<report-execution-times file="${basedir}/hints-2.log" />
+            	<report-execution-times file="${basedir}/hints-3.log" />
+            </listeners>
+        </junit4.preconf>
+
+    	<mergehints file="${basedir}/hints-merged.log" historyLength="3">
+    		<fileset dir="${basedir}" includes="hints-?.log" />
+	    </mergehints>
+
+        <tophints max="3">
+        	<fileset dir="${basedir}" includes="hints-merged.log" />
+        </tophints>
+    </target>
 </project>

@@ -3,6 +3,14 @@
         name="junit4" 
         classname="com.carrotsearch.ant.tasks.junit4.JUnit4" />
 
+    <taskdef 
+        name="mergehints" 
+        classname="com.carrotsearch.ant.tasks.junit4.balancers.MergeHints" />
+
+    <taskdef 
+        name="tophints" 
+        classname="com.carrotsearch.ant.tasks.junit4.balancers.TopHints" />
+
     <!-- TestBalancers -->
 
     <typedef

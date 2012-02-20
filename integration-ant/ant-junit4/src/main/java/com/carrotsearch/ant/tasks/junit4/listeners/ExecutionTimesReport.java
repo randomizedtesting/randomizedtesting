@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -14,6 +16,8 @@ import java.util.TreeMap;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
 
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
@@ -34,7 +38,7 @@ public class ExecutionTimesReport implements AggregatedEventListener {
   /**
    * @see #setHistoryLength(int)
    */
-  private final static int DEFAULT_HISTORY_LENGTH = 10;
+  public final static int DEFAULT_HISTORY_LENGTH = 10;
 
   /**
    * The file where suite hints are stored/ updated.
@@ -169,7 +173,7 @@ public class ExecutionTimesReport implements AggregatedEventListener {
   /**
    * Writes back hints file. 
    */
-  private static void writeHints(File file, Map<String,List<Long>> hints) throws IOException {
+  public static void writeHints(File file, Map<String,List<Long>> hints) throws IOException {
     BufferedWriter w = Files.newWriter(file, Charsets.UTF_8);
     try {
       if (!(hints instanceof SortedMap)) {
@@ -187,4 +191,37 @@ public class ExecutionTimesReport implements AggregatedEventListener {
       Closeables.closeQuietly(w);
     }
   }
+
+  /**
+   * Read hints from all resources in a collection, retaining 
+   * <code>suiteNames</code>. If <code>suiteNames</code> is null,
+   * everything is retained.
+   */
+  public static Map<String,List<Long>> mergeHints(
+      Collection<ResourceCollection> resources, Collection<String> suiteNames) {
+    final Map<String,List<Long>> hints = Maps.newHashMap();
+    for (ResourceCollection rc : resources) {
+      @SuppressWarnings("unchecked")
+      Iterator<Resource> i = rc.iterator();
+      while (i.hasNext()) {
+        InputStream is = null;
+        Resource r = i.next();
+        try {
+          is = r.getInputStream();
+          mergeHints(is, hints);
+
+          // Early prune the hints to those we have on the list.
+          if (suiteNames != null) {
+            hints.keySet().retainAll(suiteNames);
+          }
+        } catch (IOException e) {
+          throw new BuildException("Could not read hints from resource: "
+              + r.getDescription(), e);
+        } finally {
+          Closeables.closeQuietly(is);
+        }
+      }
+    }
+    return hints;
+  }  
 }

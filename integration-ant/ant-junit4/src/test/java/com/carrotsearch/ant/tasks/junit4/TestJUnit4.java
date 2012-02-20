@@ -187,4 +187,9 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   public void outofordersysouts() {
     executeTarget("outofordersysouts");
   }
+  
+  @Test
+  public void mergehints() {
+    executeTarget("mergehints");
+  }  
 }
