@@ -14,7 +14,11 @@ public class TestEscaping {
 
     Assert.assertEquals("${nonexistent-1}", System.getProperty("sysprop.key"));
     Assert.assertEquals("abc def", System.getProperty("sysprop.key2"));
-    Assert.assertEquals("${nonexistent-2}", System.getProperty("sysprop.key3"));
+    Assert.assertEquals("%PATH%", System.getProperty("sysprop.key3"));
     Assert.assertEquals("${nonexistent-3}", System.getenv("env.variable"));
+  }
+  
+  public static void main(String[] args) {
+    new TestEscaping().checkEscapes();
   }
 }

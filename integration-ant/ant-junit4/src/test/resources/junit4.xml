@@ -344,7 +344,7 @@
         <junit4.preconf dir="empty">
             <sysproperty key="sysprop.key" value="${nonexistent-1}" />
             <sysproperty key="sysprop.key2" value="abc def" />
-            <jvmarg value="-Dsysprop.key3=${nonexistent-2}" />
+            <jvmarg value="-Dsysprop.key3=%PATH%" />
             <env key="env.variable" value="${nonexistent-3}" />
 
             <fileset dir="${basedir}">
@@ -478,7 +478,7 @@
             </fileset>
         </junit4.preconf>
     </target>
-	
+
     <target name="outofordersysouts">
         <junit4.preconf haltonfailure="true" parallelism="1">
         	<classpath>
@@ -490,5 +490,5 @@
                 <exclude name="**/*$*" />
             </fileset>
         </junit4.preconf>
-    </target>   	
+    </target>
 </project>

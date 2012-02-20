@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.tools.ant.*;
@@ -821,14 +822,14 @@ public class JUnit4 extends Task {
     commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
 
     // Emit command line before -stdin to avoid confusion.
-    slave.slaveCommandLine = Joiner.on(" ").join(commandline.getCommandline());
-    log("Slave process command line:\n" + 
+    slave.slaveCommandLine = escapeAndJoin(commandline.getCommandline());
+    log("Slave process command line (may need escape sequences for your shell):\n" + 
         slave.slaveCommandLine, Project.MSG_VERBOSE);
 
     commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
 
     final EventBus eventBus = new EventBus("slave-" + slave.id);
-    final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, getProject());
+    final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, this);
     eventBus.register(diagnosticsListener);
     eventBus.register(new AggregatingListener(aggregatedBus, slave));
     
@@ -865,6 +866,27 @@ public class JUnit4 extends Task {
     if (!diagnosticsListener.quitReceived()) {
       throw new BuildException("Quit event not received from a slave process?");
     }
+  }
+
+  /**
+   * Try to provide an escaped, ready-to-use shell line to repeat a given command line.
+   */
+  private String escapeAndJoin(String[] commandline) {
+    // TODO: we should try to escape special characters here, depending on the OS.
+    StringBuilder b = new StringBuilder();
+    Pattern specials = Pattern.compile("[\\ ]");
+    for (String arg : commandline) {
+      if (b.length() > 0) {
+        b.append(" ");
+      }
+
+      if (specials.matcher(arg).find()) {
+        b.append('"').append(arg).append('"');
+      } else {
+        b.append(arg);
+      }
+    }
+    return b.toString();
   }
 
   /**

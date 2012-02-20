@@ -30,6 +30,7 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   @Test
   public void escaping() {
     executeTarget("escaping");
+    assertLogContains("\"-Dsysprop.key2=abc def\"");
   }
 
   @Test 
@@ -40,7 +41,6 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   @Test 
   public void customprefix() {
     executeForkedTarget("customprefix");
-    // assertLogContains("Forked JVM's classpath must use JUnit 4.10 or newer");
   }
 
   @Test 
