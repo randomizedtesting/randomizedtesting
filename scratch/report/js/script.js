@@ -876,45 +876,51 @@
     }
     $console.html(html.join(""));
 
-    var $canvas = $("<canvas id='canvas_ovl' />").appendTo($console);
-    $canvas.attr("width",  $console.width())
-           .attr("height", $console.height());
-
-    // Redraw connectors, but allow a content repaint before drawing
-    setTimeout(redrawConnectors, 0);
+    redrawConnectors();
   }
 
   function redrawConnectors() {
-    var $canvas = $("#canvas_ovl");
+    var tagHeight = $(".outbox .tag").first().height();
+    $(".outbox").each(function() {
+      var $box = $(this);
+      var $tags = $box.find(".tag");
+      if ($tags.size() == 0) {
+        return true;
+      }
 
-    var markers = $console.find(".marker");
-    var cleft = $console.offset().left;
-    var ctop  = $console.offset().top;
+      // Allow repaint before drawing
+      setTimeout(function() {
+        var $canvas = $("<canvas />")
+                        .attr("width",  $box.width() + 20)
+                        .attr("height", $tags.last().offset().top -
+                                        $box.offset().top + tagHeight)
+                        .appendTo($box);
 
-    var canvas = $canvas.get(0);
-    canvas.width = canvas.width;
+        var ctx = $canvas.get(0).getContext('2d');
+        ctx.translate(-$canvas.offset().left, -$canvas.offset().top);
 
-    var ctx = canvas.getContext('2d');
-    ctx.beginPath();
-    ctx.strokeStyle = "#555";
-    ctx.lineWidth = .5;
-    $.each(markers, function(index, marker) {
-      var marker = $(marker);
-      var label = $(marker).next().children().eq(0).children().eq(0);
+        ctx.beginPath();
+        ctx.strokeStyle = "#555";
+        ctx.lineWidth = 0.5;
+        $box.find(".marker").each(function() {
+          var $marker = $(this);
+          var $label = $marker.next().children().eq(0).children().eq(0);
 
-      var offset = label.offset();
-      var x0 = 0.5 + offset.left + label.width() - cleft + 6.5; // padding
-      var y0 = 0.5 + offset.top + label.height() / 2 - ctop;
-      var position = marker.position();
-      var x1 = 1.5 + position.left - 2; // padding
-      var y1 = 1.5 + position.top;
+          var offset = $label.offset();
+          var x0 = 0.5 + offset.left + $label.width() + 7.5;
+          var y0 = 0.5 + offset.top + $label.height() / 2;
+          var position = $marker.offset();
+          var x1 = 1.5 + position.left;
+          var y1 = 1.5 + position.top + 1.5;
 
-      ctx.moveTo(x0, y0);
-      ctx.bezierCurveTo((x1 + x0) / 2, y0,
-                        (x1 + x0) / 2, y1,
-                        x1, y1);
+          ctx.moveTo(x0, y0);
+          ctx.bezierCurveTo((x1 + x0) / 2, y0,
+                            (x1 + x0) / 2, y1,
+                            x1, y1);
+        });
+        ctx.stroke();
+      }, 0);
     });
-    ctx.stroke();
   }
 
   // Renders contents of a table according to the provided spec

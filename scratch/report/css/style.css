@@ -618,11 +618,13 @@ a[href ^= '#withoutoutput'] {
   overflow: hidden;
 }
 
-#canvas_ovl {
+#console canvas {
   pointer-events: none;
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: 280px;
+  right: 0;
+  top: 16px;
+  bottom: 0;
   padding: 0;
   margin: 0;
 }
@@ -630,6 +632,7 @@ a[href ^= '#withoutoutput'] {
 .suitebox {
   clear: both;
   margin-bottom: 2em;
+  position: relative;
 }
 
 .suitebox > .name {
