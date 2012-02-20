@@ -24,6 +24,7 @@ public class TestRules extends WithNestedTestClass {
         return new Statement() {
           @Override
           public void evaluate() throws Throwable {
+            assumeRunningNested();
             order.add("rule1-before");
             base.evaluate();
             order.add("rule1-after");
@@ -49,6 +50,7 @@ public class TestRules extends WithNestedTestClass {
     public Statement apply(final Statement base, Description description) {
       return new Statement() {
         public void evaluate() throws Throwable {
+          assumeRunningNested();
           order.add(msg + "-before");
           try {
             base.evaluate();

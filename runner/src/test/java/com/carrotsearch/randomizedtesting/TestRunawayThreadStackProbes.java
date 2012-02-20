@@ -18,7 +18,7 @@ public class TestRunawayThreadStackProbes extends WithNestedTestClass {
   @ThreadLeaks(stackSamples = 5)
   public static class Nested extends RandomizedTest {
     @Test
-    public void leaveBehind() throws Exception{
+    public void leaveBehind() throws Exception {
       assumeRunningNested();
       Thread t = new Thread(new Runnable() {
         public void run() {

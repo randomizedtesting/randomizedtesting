@@ -13,11 +13,15 @@ import java.util.Random;
  */
 public final class Randomness {
   final long seed;
-  final Random random;
+  private final RandomNoSetSeed random;
+
+  public Randomness(Thread owner, long seed) {
+    this.seed = seed;
+    this.random = new RandomNoSetSeed(owner, new Random(seed));
+  }
 
   public Randomness(long seed) {
-    this.seed = seed;
-    this.random = new RandomNoSetSeed(new Random(seed));
+    this(Thread.currentThread(), seed);
   }
 
   /** Random instance for this randomness. */
@@ -33,5 +37,14 @@ public final class Randomness {
   @Override
   public String toString() {
     return "[Randomness, seed=" + SeedUtils.formatSeedChain(this) + "]";
+  }
+
+  /**
+   * Invalidate the underling {@link #random}.
+   * 
+   * @see RandomNoSetSeed#valid
+   */
+  void destroy() {
+    this.random.valid = false;
   }
 }

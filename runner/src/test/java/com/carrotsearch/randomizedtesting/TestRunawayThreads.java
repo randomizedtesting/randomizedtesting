@@ -40,7 +40,7 @@ public class TestRunawayThreads extends WithNestedTestClass {
 
   @Test
   public void subThreadContextPropagation() throws Throwable {
-    final long seed = RandomizedContext.current().getRunnerRandomness().seed;
+    final long seed = RandomizedContext.current().getRunnerSeed();
     new ThreadWithException() {
       protected void runWrapped() {
         RandomizedContext ctx = RandomizedContext.current();
@@ -52,7 +52,7 @@ public class TestRunawayThreads extends WithNestedTestClass {
   @ThreadLeaks(linger = 2000)
   @Test
   public void ExecutorServiceContextPropagation() throws Throwable {
-    final long seed = RandomizedContext.current().getRunnerRandomness().seed;
+    final long seed = RandomizedContext.current().getRunnerSeed();
     final ExecutorService executor = Executors.newCachedThreadPool();
     try {
       executor.submit(new Runnable() {

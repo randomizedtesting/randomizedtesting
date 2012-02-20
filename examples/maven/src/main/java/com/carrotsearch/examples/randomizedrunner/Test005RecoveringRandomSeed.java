@@ -21,7 +21,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
  * ways to find out.
  * 
  * <p>The master seed is always available from
- * {@link RandomizedContext#getRunnerSeed()} so one can simply print it to the
+ * {@link RandomizedContext#getRunnerSeedAsString()} so one can simply print it to the
  * console. The current context's {@link Randomness} itself can be printed to the
  * console. In two methods in this class {@link #printMasterContext()} and {@link #printContext()} 
  * we print the master seed and current context's {@link Randomness}, note how the static 
@@ -65,14 +65,14 @@ public class Test005RecoveringRandomSeed extends RandomizedTest {
   @BeforeClass
   public static void printMasterContext() {
     System.out.println("# Static context (@BeforeClass)");
-    System.out.println(getContext().getRunnerSeed());
+    System.out.println(getContext().getRunnerSeedAsString());
     System.out.println(RandomizedContext.current().getRandomness());
   }
 
   @Test
   public void printContext() {
     System.out.println("# Test context (@Test)");
-    System.out.println(getContext().getRunnerSeed());
+    System.out.println(getContext().getRunnerSeedAsString());
     System.out.println(RandomizedContext.current().getRandomness());
   }
 

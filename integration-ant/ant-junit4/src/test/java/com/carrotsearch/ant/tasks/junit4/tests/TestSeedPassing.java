@@ -25,6 +25,6 @@ public class TestSeedPassing extends RandomizedTest {
         "[DEADBEEF]",
         SeedUtils.formatSeedChain(
             new Randomness(
-                SeedUtils.parseSeed(getContext().getRunnerSeed()))));
+                SeedUtils.parseSeed(getContext().getRunnerSeedAsString()))));
   }
 }

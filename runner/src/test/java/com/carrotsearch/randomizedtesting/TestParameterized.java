@@ -60,6 +60,7 @@ public class TestParameterized extends WithNestedTestClass {
 
     @ParametersFactory
     public static Iterable<Object[]> parameters() {
+      assumeRunningNested();
       return Arrays.asList($$($("xyz")));
     }
   }

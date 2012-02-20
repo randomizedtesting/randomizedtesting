@@ -27,6 +27,7 @@ public class TestExpected extends WithNestedTestClass {
   public static class Nested2 extends RandomizedTest {
     @Test(expected = RuntimeException.class)
     public void testMethod1() {
+      assumeRunningNested();
       // Don't do anything.
     }
   }

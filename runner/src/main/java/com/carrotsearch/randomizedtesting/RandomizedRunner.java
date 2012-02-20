@@ -126,13 +126,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Test candidate (model).
    */
   private static class TestCandidate {
-    public final Randomness randomness;
+    public final long seed;
     public final Description description;
     public final Method method;
     public final Object instance;
 
-    public TestCandidate(Method method, Object instance, Randomness rnd, Description description) {
-      this.randomness = rnd;
+    public TestCandidate(Method method, Object instance, long seed, Description description) {
+      this.seed = seed;
       this.description = description;
       this.method = method;
       this.instance = instance;
@@ -456,12 +456,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
                   // Do not remove.
                   RandomizedContext current = RandomizedContext.current();
                   try {
-                    current.push(c.randomness);
+                    current.push(new Randomness(c.seed));
                     runSingleTest(notifier, c);
                   } catch (Throwable t) {
                     Rethrow.rethrow(augmentStackTrace(t));                    
                   } finally {
-                    current.pop();
+                    current.popAndDestroy();
                   }
                 }
               };
@@ -522,7 +522,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       // Final cleanup.
       notifier.removeListener(accounting);
       unsubscribeListeners(notifier);
-      context.pop();
+      context.popAndDestroy();
     }    
   }
 
@@ -759,7 +759,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Collect stack probes, if requested.
     List<StackTraceElement[]> stackProbes = new ArrayList<StackTraceElement[]>();
-    Random r = new Random(ctx != null ? ctx.getRunnerRandomness().getSeed() : 0xdeadbeef);
+    Random r = new Random(ctx != null ? ctx.getRunnerSeed() : 0xDEADBEEF);
     for (int i = Math.max(0, stackSamples); i > 0 && t.isAlive(); i--) {
       try { 
         Thread.sleep(RandomInts.randomIntBetween(r, 10, 100));
@@ -1230,7 +1230,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     for (final long testSeed : seeds) {
       for (int i = 0; i < methodIterations; i++, repetition++) {
         final long thisSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
-        final Randomness thisRandomness = new Randomness(thisSeed);
 
         final LinkedHashMap<String, Object> args = new LinkedHashMap<String, Object>();
         if (hasRepetitions) { 
@@ -1238,7 +1237,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
         args.putAll(parameterizedArgs);
         if (hasRepetitions || appendSeedParameter) {
-          args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, thisRandomness));
+          args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed)));
         }
         Description description = Description.createSuiteDescription(
             String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()));
@@ -1255,7 +1254,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         } catch (Throwable t) {
           instance = new DeferredInstantiationException(t);
         }
-        candidates.add(new TestCandidate(method, instance, thisRandomness, description));
+        candidates.add(new TestCandidate(method, instance, thisSeed, description));
       }
     }
 

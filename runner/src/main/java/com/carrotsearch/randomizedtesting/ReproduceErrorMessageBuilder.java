@@ -36,7 +36,7 @@ public class ReproduceErrorMessageBuilder {
     RandomizedContext ctx = null;
     try {
       ctx = RandomizedContext.current();
-      appendOpt(SYSPROP_RANDOM_SEED(), ctx.getRunnerSeed());
+      appendOpt(SYSPROP_RANDOM_SEED(), ctx.getRunnerSeedAsString());
     } catch (IllegalStateException e) {
       logger.warning("No context available when dumping reproduce options?");
     }

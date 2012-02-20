@@ -70,17 +70,17 @@ public final class RandomizedContext {
     return suiteClass;
   }
 
-  /** Master seed/ randomness. */
-  Randomness getRunnerRandomness() {
-    return runner.runnerRandomness;
+  /** Runner's seed. */
+  long getRunnerSeed() {
+    return runner.runnerRandomness.seed;
   }
 
   /**
-   * Returns the runner's seed, formatted.
+   * Returns the runner's master seed, formatted.
    */
-  public String getRunnerSeed() {
+  public String getRunnerSeedAsString() {
     checkDisposed();
-    return SeedUtils.formatSeed(getRunnerRandomness().seed);
+    return SeedUtils.formatSeed(getRunnerSeed());
   }
 
   /** Source of randomness for the context's thread. */
@@ -188,7 +188,7 @@ public final class RandomizedContext {
         if (!context.perThreadResources.containsKey(thread)) {
           PerThreadResources perThreadResources = new PerThreadResources();
           perThreadResources.randomnesses.push(
-              new Randomness(context.getRunnerRandomness().seed));
+              new Randomness(thread, context.getRunnerSeed()));
           context.perThreadResources.put(thread, perThreadResources);
         }
       }
@@ -214,10 +214,19 @@ public final class RandomizedContext {
    * Dispose of the context.
    */
   void dispose() {
-    checkDisposed();
     synchronized (_globalLock) {
+      checkDisposed();
       disposed = true;
       contexts.remove(threadGroup);
+
+      // Clean up and invalidate any per-thread published randoms.
+      synchronized (_contextLock) {
+        for (PerThreadResources ptr : perThreadResources.values()) {
+          for (Randomness randomness : ptr.randomnesses) {
+            randomness.destroy();
+          }
+        }
+      }
     }
   }
 
@@ -226,9 +235,9 @@ public final class RandomizedContext {
     getPerThread().randomnesses.push(rnd);
   }
 
-  /** Push a new randomness on top of the stack. */
-  Randomness pop() {
-    return getPerThread().randomnesses.pop();
+  /** Pop a randomness off the stack and dispose it. */
+  void popAndDestroy() {
+    getPerThread().randomnesses.pop().destroy();
   }
 
   /** Return per-thread resources associated with the current thread. */
@@ -243,9 +252,10 @@ public final class RandomizedContext {
    * Throw an exception if disposed.
    */
   private void checkDisposed() {
-    if (disposed) 
+    if (disposed) {
       throw new IllegalStateException("Context disposed: " + 
           toString() + " for thread: " + Thread.currentThread());
+    }
   }
 
   /**
