@@ -154,7 +154,6 @@
       <id>release</id>
       <build>
         <defaultGoal>package</defaultGoal>
-
         <plugins>
           <!-- javadocs -->
           <plugin>
@@ -165,16 +164,6 @@
                 <id>attach-javadocs</id>
                 <configuration>
                   <encoding>${project.build.sourceEncoding}</encoding>
-                  <!--
-                  <stylesheetfile>${master.basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
-                  <overview>${basedir}/src/main/java/com/carrotsearch/hppc/package.html</overview>
-                  <groups>
-                    <group>
-                      <title>HPPC</title>
-                      <packages>com.carrotsearch.hppc*</packages>
-                    </group>
-                  </groups>
-                  -->
                   <docfilessubdirs>true</docfilessubdirs>
                   <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
                   <windowtitle>${project.name} v${project.version} API Documentation (JavaDoc)</windowtitle>

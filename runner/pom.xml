@@ -52,8 +52,42 @@
             </groups>
             <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
           </configuration>
-        </plugin>        
+        </plugin>
+        
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <configuration>
+            <archive>  
+              <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+            </archive>
+          </configuration>
+        </plugin>
       </plugins>
-    </pluginManagement>    
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.3.4</version>
+        <configuration>
+          <instructions>
+            <Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
+            <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+            <Export-Package>${project.groupId}.*;version="${project.version}"</Export-Package>
+          </instructions>
+        </configuration>
+        <executions>
+          <execution>
+            <id>bundle-manifest</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>
