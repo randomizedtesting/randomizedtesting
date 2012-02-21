@@ -7,11 +7,13 @@ import static java.lang.reflect.Modifier.isStatic;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -161,12 +163,47 @@ public final class MethodCollector {
   /**
    * Return a mutable copy of the method list.
    */
-  public static List<List<Method>> mutableCopy(List<List<Method>> methods) {
+  public static List<List<Method>> mutableCopy2(List<List<Method>> methods) {
     List<List<Method>> result = new ArrayList<List<Method>>();
     for (List<Method> classMethods : methods) {
       result.add(new ArrayList<Method>(classMethods));
     }
     return result;
+  }
+
+  /**
+   * Return a mutable copy of a given list.
+   */
+  public static <T> List<T> mutableCopy1(List<T> flatten) {
+    List<T> copy = new ArrayList<T>();
+    copy.addAll(flatten);
+    return copy;
+  }
+
+  /**
+   * Selects only public methods from the list, mutating it.
+   */
+  public static List<Method> onlyPublic(List<Method> mutatedList) {
+    Iterator<Method> i = mutatedList.iterator();
+    while (i.hasNext()) {
+      if (!Modifier.isPublic(i.next().getModifiers())) {
+        i.remove();
+      }
+    }
+    return mutatedList;
+  }
+
+  /**
+   * Selects only instance methods from the list, mutating it.
+   */
+  public static List<Method> onlyInstance(List<Method> mutatedList) {
+    Iterator<Method> i = mutatedList.iterator();
+    while (i.hasNext()) {
+      if (Modifier.isStatic(i.next().getModifiers())) {
+        i.remove();
+      }
+    }
+    return mutatedList;
   }
 
   /**

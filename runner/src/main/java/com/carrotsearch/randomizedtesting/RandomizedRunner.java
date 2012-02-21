@@ -29,8 +29,8 @@ import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 /**
- * A somewhat less hairy (?), no-fancy {@link Runner} implementation for 
- * running randomized test cases with predictable and repeatable randomness.
+ * A {@link Runner} implementation for running randomized test cases with 
+ * predictable and repeatable randomness.
  * 
  * <p>Supports the following JUnit4 features:
  * <ul>
@@ -39,7 +39,8 @@ import static com.carrotsearch.randomizedtesting.SysGlobals.*;
  *   <li>{@link Test}-annotated methods,</li>
  *   <li>{@link After}-annotated methods (after each test),</li>
  *   <li>{@link AfterClass}-annotated methods (after all tests of a class/superclass),</li>
- *   <li>{@link Rule}-annotated fields implementing <code>MethodRule</code>.</li>
+ *   <li>{@link Rule}-annotated fields implementing {@link org.junit.rules.MethodRule} 
+ *       and {@link TestRule}.</li>
  * </ul>
  * 
  * <p>Contracts:
@@ -66,14 +67,17 @@ import static com.carrotsearch.randomizedtesting.SysGlobals.*;
  *       in the standard library leave active threads behind without waiting for them to terminate).
  *       One can use the {@link ThreadLeaks} annotation to control how aggressive the detection
  *       strategy is and if it fails the test or not.</li>
+ *   <li>uncaught exceptions from any of children threads will cause the test to fail.</li>
  * </ul>
  * 
  * @see RandomizedTest
+ * @see TestMethodProviders
  * @see Validators
  * @see Listeners
  * @see RandomizedContext
  * @see ThreadLeaks
  */
+@SuppressWarnings("javadoc")
 public final class RandomizedRunner extends Runner implements Filterable {
   /** A dummy class serving as the source of defaults for annotations. */
   @ThreadLeaks  @Nightly
@@ -340,15 +344,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
     this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT(), DEFAULT_KILLWAIT);
     this.timeoutOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_TIMEOUT(), DEFAULT_TIMEOUT);
 
-    // TODO: should validation and everything else be done lazily after RunNotifier is available?
-
     // Fail fast if suiteClass is inconsistent or selected "standard" JUnit rules are somehow broken.
-    validateTarget();
-
-    // Collect all test candidates, regardless if they will be executed or not.
-    suiteDescription = Description.createSuiteDescription(suiteClass);
-    testCandidates = collectTestCandidates(suiteDescription);
-    testGroups = collectGroups(testCandidates);
+    try {
+      validateTarget();
+  
+      // Collect all test candidates, regardless if they will be executed or not.
+      suiteDescription = Description.createSuiteDescription(suiteClass);
+      testCandidates = collectTestCandidates(suiteDescription);
+      testGroups = collectGroups(testCandidates);
+    } catch (Throwable t) {
+      throw new InitializationError(t);
+    }
   }
 
   /**
@@ -646,6 +652,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private Statement wrapExpectedExceptions(final Statement s, TestCandidate c, Object instance) {
     Test ann = c.method.getAnnotation(Test.class);
 
+    if (ann == null) {
+      return s;
+    }
+    
     // If there's no expected class, don't wrap. Eh, None is package-private...
     final Class<? extends Throwable> expectedClass = ann.expected();
     if (expectedClass.getName().equals("org.junit.Test$None")) {
@@ -1103,7 +1113,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * on the annotation (reversing order, etc.). 
    */
   private List<Method> getTargetMethods(Class<? extends Annotation> ann) {
-    List<List<Method>> list = mutableCopy(
+    List<List<Method>> list = mutableCopy2(
         removeShadowed(removeOverrides(annotatedWith(allTargetMethods, ann))));
 
     // Reverse processing order to super...clazz for befores
@@ -1131,9 +1141,45 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * @see Rants#RANT_1
    */
   private List<TestCandidate> collectTestCandidates(Description classDescription) {
-    final List<Method> testMethods = 
-        new ArrayList<Method>(
-            flatten(removeOverrides(annotatedWith(allTargetMethods, Test.class))));
+    // Get the test instance provider if explicitly stated.
+    TestMethodProviders providersAnnotation = 
+        suiteClass.getAnnotation(TestMethodProviders.class);
+
+    // If nothing, fallback to the default.
+    final TestMethodProvider [] providers;
+    if (providersAnnotation != null) {
+      providers = new TestMethodProvider [providersAnnotation.value().length];
+      int i = 0;
+      for (Class<? extends TestMethodProvider> clazz : providersAnnotation.value()) {
+        try {
+          providers[i++] = clazz.newInstance();
+        } catch (Exception e) {
+          throw new RuntimeException(TestMethodProviders.class.getSimpleName() +
+          		" classes could not be instantiated.", e);
+        }
+      }
+    } else {
+      providers = new TestMethodProvider [] {
+          new JUnit4MethodProvider(),
+          // new JUnit3MethodProvider(),
+      };
+    }
+
+    // Get test methods from providers.
+    final Set<Method> allTestMethods = new TreeSet<Method>(new Comparator<Method>() {
+      @Override
+      public int compare(Method m1, Method m2) {
+        return m1.getName().compareTo(m2.getName());
+      }
+    });
+    List<List<Method>> candidates = removeShadowed(removeOverrides(allTargetMethods));
+    for (TestMethodProvider provider : providers) {
+      allTestMethods.addAll(provider.getTestMethods(suiteClass, immutableCopy(candidates)));
+    }
+    List<Method> testMethods = new ArrayList<Method>(allTestMethods);
+
+    // Perform candidate method validation.
+    validateTestMethods(testMethods);
 
     // Shuffle at real test-case level, don't shuffle iterations or explicit @Seeds order.
     Collections.shuffle(testMethods, new Random(runnerRandomness.seed));
@@ -1473,9 +1519,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // @Test annotation timeout value.
-    long junitTimeout = c.method.getAnnotation(Test.class).timeout(); 
-    if (junitTimeout > 0) {
-      timeout = (int) Math.min(Integer.MAX_VALUE, junitTimeout);
+    Test testAnn = c.method.getAnnotation(Test.class);
+    if (testAnn != null && testAnn.timeout() > 0) {
+      timeout = (int) Math.min(Integer.MAX_VALUE, testAnn.timeout());
     }
 
     // Method-override.
@@ -1510,6 +1556,55 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   }
 
+  /**
+   * Perform additional checks on methods returned from the providers. 
+   */
+  private void validateTestMethods(List<Method> testMethods) {
+    HashSet<Class<?>> parents = new HashSet<Class<?>>();
+    for (Class<?> c = suiteClass; c != null; c = c.getSuperclass()) {
+      parents.add(c);
+    }
+
+    for (Method method : testMethods) {
+      if (!parents.contains(method.getDeclaringClass())) {
+        throw new IllegalArgumentException("Test method does not belong to " +
+        		"test suite class hierarchy: " + method.getDeclaringClass() + "#" +
+            method.getName());
+      }
+
+      // public * method()
+      Validation.checkThat(method)
+        .describedAs("Test method " + suiteClass.getName() + "#" + method.getName())
+        .isPublic()
+        .isNotStatic()
+        .hasArgsCount(0);
+
+      // No @Test(timeout=...) and @Timeout at the same time.
+      Test testAnn = method.getAnnotation(Test.class);
+      if (testAnn != null && testAnn.timeout() > 0 && method.isAnnotationPresent(Timeout.class)) {
+        throw new IllegalArgumentException("Conflicting @Test(timeout=...) and @Timeout " +
+            "annotations in: " + suiteClass.getName() + "#" + method.getName());
+      }
+
+      // @Seed annotation on test methods must have at most 1 seed value.
+      if (method.isAnnotationPresent(Seed.class)) {
+        try {
+          String seedChain = method.getAnnotation(Seed.class).value();
+          if (!seedChain.equals("random")) {
+            long[] chain = SeedUtils.parseSeedChain(seedChain);
+            if (chain.length > 1) {
+              throw new IllegalArgumentException("@Seed on methods must contain one seed only (no runner seed).");
+            }
+          }
+        } catch (IllegalArgumentException e) {
+          throw new RuntimeException("@Seed annotation invalid on method "
+              + method.getName() + ", in class " + suiteClass.getName() + ": "
+              + e.getMessage());
+        }
+      }
+    }
+  }
+  
   /**
    * Validate methods and hooks in the suiteClass. Follows "standard" JUnit rules,
    * with some exceptions on return values and more rigorous checking of shadowed
@@ -1579,39 +1674,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
         // .isPublic()  // Intentional, you can hide it from subclasses.
         .isNotStatic()
         .hasArgsCount(0);
-    }
-
-    // @Test methods
-    for (Method method : flatten(annotatedWith(allTargetMethods, Test.class))) {
-      Validation.checkThat(method)
-        .describedAs("Test method " + suiteClass.getName() + "#" + method.getName())
-        .isPublic()
-        .isNotStatic()
-        .hasArgsCount(0);
-
-      // No @Test(timeout=...) and @Timeout at the same time.
-      if (method.getAnnotation(Test.class).timeout() > 0
-          && method.isAnnotationPresent(Timeout.class)) {
-        throw new IllegalArgumentException("Conflicting @Test(timeout=...) and @Timeout " +
-        		"annotations in: " + suiteClass.getName() + "#" + method.getName());
-      }
-
-      // @Seed annotation on test methods must have at most 1 seed value.
-      if (method.isAnnotationPresent(Seed.class)) {
-        try {
-          String seedChain = method.getAnnotation(Seed.class).value();
-          if (!seedChain.equals("random")) {
-            long[] chain = SeedUtils.parseSeedChain(seedChain);
-            if (chain.length > 1) {
-              throw new IllegalArgumentException("@Seed on methods must contain one seed only (no runner seed).");
-            }
-          }
-        } catch (IllegalArgumentException e) {
-          throw new RuntimeException("@Seed annotation invalid on method "
-              + method.getName() + ", in class " + suiteClass.getName() + ": "
-              + e.getMessage());
-        }
-      }
     }
 
     // TODO: Validate @Rule fields (what are the "rules" for these anyway?)
