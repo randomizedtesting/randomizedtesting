@@ -321,8 +321,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
             + SYSPROP_RANDOM_SEED() + " specification: " + globalSeed);
       }
 
-      if (seedChain.length > 1)
+      if (seedChain.length > 1) {
         testCaseRandomnessOverride = new Randomness(seedChain[1]);
+      }
+
       runnerRandomness = new Randomness(seedChain[0]);
     } else if (suiteClass.isAnnotationPresent(Seed.class)) {
       runnerRandomness = new Randomness(seedFromAnnot(suiteClass, randomSeed)[0]);
@@ -432,7 +434,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final RunListener accounting = result.createListener();
     notifier.addListener(accounting);
 
-    context.push(runnerRandomness);
+    final Randomness classRandomness = new Randomness(runnerRandomness.seed);
+    context.push(classRandomness);
     try {
       // Check for automatically hookable listeners.
       subscribeListeners(notifier);

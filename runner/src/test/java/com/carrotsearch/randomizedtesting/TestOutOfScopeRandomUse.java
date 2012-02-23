@@ -4,6 +4,7 @@ import java.util.Random;
 
 import junit.framework.Assert;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,7 +16,6 @@ import com.carrotsearch.randomizedtesting.annotations.Timeout;
 /**
  * Check out of scope {@link Random} use.
  */
-@Timeout(millis = 5000)
 public class TestOutOfScopeRandomUse extends WithNestedTestClass {
   public static class Nested extends RandomizedTest {
     static Random instanceRandom;
@@ -29,6 +29,9 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
       instanceRandom = null;
       staticContextRandom = getRandom();
       
+      // Should be able to use the random we've acquired for the static context.
+      staticContextRandom.nextBoolean();
+      
       Thread t = new Thread() {
         public void run() {
           otherThreadRandom = getRandom();
@@ -36,6 +39,12 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
       };
       t.start();
       t.join();
+    }
+    
+    @AfterClass
+    public static void afterClass() {
+      // Again should be able to use the random we've acquired for the static context.
+      staticContextRandom.nextBoolean();
     }
 
     @Before
@@ -45,16 +54,6 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
 
     private void touchRandom() {
       assumeRunningNested();
-
-      // We shouldn't be able to use the static random because by default tests
-      // are executed in their own thread and before and after class hooks are
-      // dispatched in their own thread to allow termination/ interruptions.
-      try {
-        staticContextRandom.nextBoolean();
-        fail("Shouldn't be able to use static context thread's Random.");
-      } catch (IllegalStateException e) {
-        // Expected.
-      }
 
       // We shouldn't be able to reach to some other thread's random for which
       // the context is still valid.
@@ -87,9 +86,19 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
       touchRandom();
     }
 
-    @Test
+    @Test @Timeout(millis = 2000)
     public void method2() throws Exception {
       touchRandom();
+      
+      // We shouldn't be able to use the static random because timeouting tests
+      // are executed in their own thread and before and after class hooks are
+      // dispatched in their own thread to allow termination/ interruptions.
+      try {
+        staticContextRandom.nextBoolean();
+        fail("Shouldn't be able to use static context thread's Random.");
+      } catch (IllegalStateException e) {
+        // Expected.
+      }      
     }    
   }
 
