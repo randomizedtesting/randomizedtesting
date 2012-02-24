@@ -87,7 +87,6 @@ public class TestRules extends WithNestedTestClass {
     }
   }
 
-
   public static class NewRuleSupportIgnored {
     @Rule
     public TestRule rule1 = RuleChain
