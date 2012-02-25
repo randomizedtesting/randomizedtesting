@@ -29,7 +29,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
  * Before and after hooks order with a class hierarchy.
  */
 @SuppressWarnings("deprecation")
-public class TestBeforeAfterMethodOrder {
+public class TestBeforeAfterMethodOrder extends WithNestedTestClass {
   static final List<String> callOrder = new ArrayList<String>();
 
   public static class AppendMethodRule implements MethodRule {
@@ -82,14 +82,13 @@ public class TestBeforeAfterMethodOrder {
     }
 
     @Rule
-    public TestRule rule = RuleChain
+    public TestRule superRule = RuleChain
       .outerRule(new AppendRule("superOuterTestRule"))
       .around(new AppendRule("superMiddleTestRule"))
       .around(new AppendRule("superInnerTestRule"));
 
-    @SuppressWarnings("deprecation")
     @Rule
-    public MethodRule methodRule = new AppendMethodRule("superMethodRule");
+    public MethodRule superMethodRule = new AppendMethodRule("superMethodRule");
 
     @Before
     public final void beforeTest() {
@@ -117,37 +116,36 @@ public class TestBeforeAfterMethodOrder {
   public static class SubSub extends Super {
     @Rule
     public TestRule rule = RuleChain
-      .outerRule(new AppendRule("subOuterTestRule"))
-      .around(new AppendRule("subMiddleTestRule"))
-      .around(new AppendRule("subInnerTestRule"));
+      .outerRule(new AppendRule("  subOuterTestRule"))
+      .around(new AppendRule("  subMiddleTestRule"))
+      .around(new AppendRule("  subInnerTestRule"));
 
-    @SuppressWarnings("deprecation")
     @Rule
-    public MethodRule methodRule = new AppendMethodRule("subMethodRule");
+    public MethodRule methodRule = new AppendMethodRule("  subMethodRule");
 
     @BeforeClass
     public static void beforeClass() {
-      callOrder.add("beforeClassSub");
+      callOrder.add("  beforeClassSub");
     }
 
     @Before
     public void beforeTestSub() {
-      callOrder.add("beforeTestSub");
+      callOrder.add("  beforeTestSub");
     }
     
     @Test
     public void testMethod() {
-      callOrder.add("testMethodSub");
+      callOrder.add("    testMethodSub");
     }
 
     @After
     public void afterTestSub() {
-      callOrder.add("afterTestSub");
+      callOrder.add("  afterTestSub");
     }
     
     @AfterClass
     public static void afterClass() {
-      callOrder.add("afterClassSub");
+      callOrder.add("  afterClassSub");
     }
   }
 
@@ -163,6 +161,7 @@ public class TestBeforeAfterMethodOrder {
 
     @Before
     public void beforeTestSub() {
+      assumeRunningNested();
       callOrder.add("beforeTestSubFS");
     }
 
@@ -210,6 +209,8 @@ public class TestBeforeAfterMethodOrder {
       final int i = junitOrder.size();
       final int j = callOrder.size();
       
+      System.out.println(String.format(Locale.ENGLISH,
+          "%-30s | %-30s", "JUnit4", "RR"));
       for (int k = 0; k < Math.max(i, j); k++) {
         System.out.println(String.format(Locale.ENGLISH,
             "%-30s | %-30s",

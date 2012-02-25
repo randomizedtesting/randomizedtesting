@@ -43,6 +43,10 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
     
     @AfterClass
     public static void afterClass() {
+      if (!isRunningNested()) {
+        return;
+      }
+      
       // Again should be able to use the random we've acquired for the static context.
       staticContextRandom.nextBoolean();
     }

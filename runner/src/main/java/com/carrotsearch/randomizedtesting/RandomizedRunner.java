@@ -1,32 +1,91 @@
 package com.carrotsearch.randomizedtesting;
 
 
-import static com.carrotsearch.randomizedtesting.MethodCollector.*;
+import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
+import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
+import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
+import static com.carrotsearch.randomizedtesting.MethodCollector.immutableCopy;
+import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy2;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
+import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
+import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_APPEND_SEED;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_ITERATIONS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLATTEMPTS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLWAIT;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_RANDOM_SEED;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_STACKFILTERING;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTCLASS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTMETHOD;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TIMEOUT;
 
 import java.lang.Thread.State;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import junit.framework.Assert;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
-import org.junit.runner.*;
-import org.junit.runner.manipulation.*;
-import org.junit.runner.notification.*;
-import org.junit.runners.model.*;
+import org.junit.runner.Description;
+import org.junit.runner.Result;
+import org.junit.runner.Runner;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.Filterable;
+import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.FrameworkField;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.MultipleFailureException;
+import org.junit.runners.model.Statement;
+import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.*;
+import com.carrotsearch.randomizedtesting.annotations.Listeners;
+import com.carrotsearch.randomizedtesting.annotations.Name;
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.annotations.TestGroup;
+import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+import com.carrotsearch.randomizedtesting.annotations.Timeout;
+import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
-
-import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 /**
  * A {@link Runner} implementation for running randomized test cases with 
@@ -77,7 +136,6 @@ import static com.carrotsearch.randomizedtesting.SysGlobals.*;
  * @see RandomizedContext
  * @see ThreadLeaks
  */
-@SuppressWarnings("javadoc")
 public final class RandomizedRunner extends Runner implements Filterable {
   /** A dummy class serving as the source of defaults for annotations. */
   @ThreadLeaks  @Nightly
@@ -570,7 +628,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   
     Set<Thread> beforeTestSnapshot = threadsSnapshot();
-    Object instance = null;
+    final Object instance;
     try {
       // Get the test instance.
       if (c.instance instanceof DeferredInstantiationException) {
@@ -579,12 +637,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
         instance = c.instance;
       }
 
-      // Run @Before hooks.
-      for (Method m : getTargetMethods(Before.class))
-        invoke(m, instance);
-  
       // Collect rules and execute wrapped method.
-      runWithRules(c, instance);
+      Statement s = new Statement() {
+        public void evaluate() throws Throwable {
+          invoke(c.method, instance);
+        }
+      };
+
+      s = wrapExpectedExceptions(s, c, instance);
+      s = wrapBeforeAndAfters(s, c, instance, notifier);
+      s = wrapMethodRules(s, c, instance);
+      s.evaluate();
     } catch (Throwable e) {
       boolean isKilled = runnerThreadGroup.isKilled(Thread.currentThread());
 
@@ -592,7 +655,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       // there is no point in reporting such an exception back. Also,
       // if the thread's been killed, we will not run any hooks (this is
       // pretty much a situation in which the world ends).
-      if (isKilled && (e instanceof ThreadDeath)) {
+      if (isKilled && e instanceof ThreadDeath) {
         // TODO: System.exit() wouldn't run any post-cleanup on hooks. A better
         // way to resolve this would be to mark a global condition to ignore
         // all the remaining tests (fail with an assumption exception saying
@@ -600,25 +663,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
         return;
       }
 
-      // Augment stack trace and inject a fake stack entry with seed information.
       if (!isKilled) {
+        // Augment stack trace and inject a fake stack entry with seed information.
         e = augmentStackTrace(e);
         if (e instanceof AssumptionViolatedException) {
           notifier.fireTestAssumptionFailed(new Failure(c.description, e));
         } else {
           notifier.fireTestFailure(new Failure(c.description, e));
-        }
-      }
-    }
-
-    // Run @After hooks if an instance has been created.
-    if (instance != null) {
-      for (Method m : getTargetMethods(After.class)) {
-        try {
-          invoke(m, instance);
-        } catch (Throwable t) {
-          t = augmentStackTrace(t);
-          notifier.fireTestFailure(new Failure(c.description, t));
         }
       }
     }
@@ -636,17 +687,66 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Wrap with any rules the suiteClass has and execute as a {@link Statement}.
+   * Wrap before and after hooks.
+   * @param notifier 
    */
-  private void runWithRules(final TestCandidate c, final Object instance) throws Throwable {
-    Statement s = new Statement() {
-      public void evaluate() throws Throwable {
-        invoke(c.method, instance);
-      }
-    };
-    s = wrapExpectedExceptions(s, c, instance);
-    s = wrapMethodRules(s, c, instance);
-    s.evaluate();
+  private Statement wrapBeforeAndAfters(Statement s, final TestCandidate c, final Object instance, final RunNotifier notifier) {
+    // Process @Before hooks. The first @Before to fail will immediately stop processing any other @Befores.
+    final List<Method> befores = getTargetMethods(Before.class);
+    if (!befores.isEmpty()) {
+      final Statement afterBefores = s;
+      s = new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          for (Method m : befores) {
+            invoke(m, instance);
+          }
+          afterBefores.evaluate();
+        }
+      };
+    }
+
+    // Process @After hooks. All @After hooks are processed, regardless of their own exceptions.
+    final List<Method> afters = getTargetMethods(After.class);
+    if (!afters.isEmpty()) {
+      final Statement afterAfters = s;
+      s = new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          List<Throwable> cumulative = new ArrayList<Throwable>();
+          try {
+            afterAfters.evaluate();
+          } catch (Throwable t) {
+            cumulative.add(t);
+          }
+
+          // All @Afters must be called.
+          for (Method m : afters) {
+            try {
+              invoke(m, instance);
+            } catch (Throwable t) {
+              cumulative.add(t);
+            }
+          }
+
+          // At end, throw the exception or cumulate.
+          //
+          // TODO: this is unfortunate, but we need to propagate exceptions up the stack because
+          // certain rules may choose to... ignore exceptions that happened on the @After hooks.
+          // it really should be a requirement that hook methods do _not_ throw any excepions
+          // and if they do (unchecked), these should be propagated to the notifier and not up
+          // the stack (where they can be ignored or obscured).
+          if (cumulative.size() == 1) {
+            throw cumulative.get(0);
+          }
+          if (cumulative.size() > 1) {
+            throw new MultipleFailureException(cumulative);
+          }
+        }
+      };
+    }
+
+    return s;
   }
 
   /**
@@ -690,33 +790,79 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @SuppressWarnings("deprecation")
   private Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
-    TestClass info = new TestClass(suiteClass);
     FrameworkMethod fm = new FrameworkMethod(c.method);
 
-    // Shuffle rules declared in fields, there is no predictable order for them (and there
-    // shouldn't be any assumptions about it).
+    // Old-style MethodRules first.
+    List<org.junit.rules.MethodRule> methodRules = 
+        getAnnotatedFieldValues(instance, Rule.class, org.junit.rules.MethodRule.class);
+    for (org.junit.rules.MethodRule rule : methodRules) {
+      s = rule.apply(s, fm, instance);
+    }
 
-    List<Object> rules = new ArrayList<Object>();
-    // Old-style MethodRule instances.
-    rules.addAll(info.getAnnotatedFieldValues(instance, Rule.class, org.junit.rules.MethodRule.class));
-    // New-style TestRule instances.
-    rules.addAll(info.getAnnotatedFieldValues(instance, Rule.class, TestRule.class));
-
-    // Shuffle all.
-    Collections.shuffle(rules, new Random(runnerRandomness.getSeed()));
-
-    for (Object rule : rules) {
-      if (rule instanceof TestRule) {
-        s = ((TestRule) rule).apply(s, c.description);
-      } else if (rule instanceof org.junit.rules.MethodRule) {
-        s = ((org.junit.rules.MethodRule) rule).apply(s, fm, instance);
-      } else {
-        throw new RuntimeException("A rule field that is neither a TestRule nor a MethodRule: "
-            + rule.getClass().getName());
-      }
+    // New-style TestRule next.
+    List<TestRule> testRules = 
+        getAnnotatedFieldValues(instance, Rule.class, TestRule.class);
+    for (TestRule rule : testRules) {
+      s = rule.apply(s, c.description);
     }
 
     return s;
+  }
+
+  /*
+   * We're using JUnit infrastructure here, but provide constant 
+   * ordering of the result. The returned list has class...super order.
+   */
+  private <T> List<T> getAnnotatedFieldValues(Object test,
+      Class<? extends Annotation> annotationClass, Class<T> valueClass) {
+    TestClass info = new TestClass(suiteClass);
+    List<T> results = new ArrayList<T>();
+
+    List<FrameworkField> annotatedFields = 
+        new ArrayList<FrameworkField>(info.getAnnotatedFields(annotationClass));
+
+    // Split fields by class
+    final HashMap<Class<?>, List<FrameworkField>> byClass = 
+        new HashMap<Class<?>, List<FrameworkField>>();
+    for (FrameworkField field : annotatedFields) {
+      Class<?> clz = field.getField().getDeclaringClass();
+      if (!byClass.containsKey(clz)) {
+        byClass.put(clz, new ArrayList<FrameworkField>());
+      }
+      byClass.get(clz).add(field);
+    }
+
+    // Consistent order at class level.
+    for (List<FrameworkField> fields : byClass.values()) {
+      Collections.sort(fields, new Comparator<FrameworkField>() {
+        @Override
+        public int compare(FrameworkField o1, FrameworkField o2) {
+          return o1.getField().getName().compareTo(
+                 o2.getField().getName());
+        }
+      });
+      Collections.shuffle(fields, new Random(runnerRandomness.seed));
+    }
+
+    annotatedFields.clear();
+    for (Class<?> clz = suiteClass; clz != null; clz = clz.getSuperclass()) {
+      List<FrameworkField> clzFields = byClass.get(clz);
+      if (clzFields != null) {
+        annotatedFields.addAll(clzFields);
+      }
+    }
+
+    for (FrameworkField each : annotatedFields) {
+      try {
+        Object fieldValue = each.get(test);
+        if (valueClass.isInstance(fieldValue))
+          results.add(valueClass.cast(fieldValue));
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return results;
   }
 
   /**

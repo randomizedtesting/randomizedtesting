@@ -1,13 +1,16 @@
 package com.carrotsearch.randomizedtesting;
 
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLATTEMPTS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLWAIT;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
-import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 public class TestRunawayTestTermination extends WithNestedTestClass {
   @Timeout(millis = 1000)
@@ -66,6 +69,9 @@ public class TestRunawayTestTermination extends WithNestedTestClass {
   @Test
   public void sleeping() throws Throwable {
     Result r = JUnitCore.runClasses(Nested2.class);
+    for (Failure f : r.getFailures()) {
+      System.out.println(f.toString());
+    }
     Assert.assertEquals(1, r.getFailureCount());
   }
 
