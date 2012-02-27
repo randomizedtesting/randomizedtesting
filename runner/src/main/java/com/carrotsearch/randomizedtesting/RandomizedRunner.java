@@ -458,9 +458,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     this.runnerThreadGroup = new RunnerThreadGroup(
-        "RandomizedRunner " + SeedUtils.formatSeedChain(runnerRandomness));
+        RandomizedRunner.class.getSimpleName() +
+          "-SuiteThreadGroup-" + suiteClass.getName());
 
-    final Thread runner = new Thread(runnerThreadGroup, "main-" + SeedUtils.formatSeedChain(runnerRandomness)) {
+    final Thread runner = new Thread(runnerThreadGroup,
+        RandomizedRunner.class.getSimpleName() +
+          "-SuiteThread-" + suiteClass.getName()) {
       public void run() {
         try {
           RandomizedContext context = createContext(runnerThreadGroup);
@@ -599,11 +602,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * it prematurely if timeout expires, logging an exception.
    */
   private void runAndWait(RunNotifier notifier, TestCandidate c, Runnable runnable, int timeout) {
-    Thread t = new Thread(runnable);
+    Thread t = new Thread(runnable,
+        RandomizedRunner.class.getSimpleName() +
+              "-TestThread-" + suiteClass.getName());
     try {
       t.start();
       t.join(timeout);
-  
+
       if (t.isAlive()) {
         ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
         terminateAndFireFailure(t, notifier, c.description, tl.stackSamples(), "Test case thread timed out ");

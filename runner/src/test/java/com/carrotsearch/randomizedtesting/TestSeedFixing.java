@@ -13,7 +13,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
  */
 @RunWith(RandomizedRunner.class)
 @Seed("deadbeef")
-public class TestSeedFixing extends WithNestedTestClass {
+public class TestSeedFixing {
   @BeforeClass
   public static void beforeClass() {
     assertEquals(0xdeadbeefL, RandomizedContext.current().getRandomness().getSeed());
