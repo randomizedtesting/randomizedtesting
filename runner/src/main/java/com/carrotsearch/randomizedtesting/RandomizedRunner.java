@@ -136,6 +136,7 @@ import com.carrotsearch.randomizedtesting.generators.RandomInts;
  * @see RandomizedContext
  * @see ThreadLeaks
  */
+@SuppressWarnings("javadoc")
 public final class RandomizedRunner extends Runner implements Filterable {
   /** A dummy class serving as the source of defaults for annotations. */
   @ThreadLeaks  @Nightly
@@ -463,7 +464,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     final Thread runner = new Thread(runnerThreadGroup,
         RandomizedRunner.class.getSimpleName() +
-          "-SuiteThread-" + suiteClass.getName()) {
+          "-SuiteThread-" + suiteClass.getName() + 
+          "-seed#" + SeedUtils.formatSeedChain(runnerRandomness)) {
       public void run() {
         try {
           RandomizedContext context = createContext(runnerThreadGroup);
@@ -604,7 +606,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private void runAndWait(RunNotifier notifier, TestCandidate c, Runnable runnable, int timeout) {
     Thread t = new Thread(runnable,
         RandomizedRunner.class.getSimpleName() +
-              "-TestThread-" + suiteClass.getName());
+              "-TestThread-" + suiteClass.getName() +
+              "-seed#" + SeedUtils.formatSeedChain(runnerRandomness));
     try {
       t.start();
       t.join(timeout);
@@ -1064,7 +1067,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           logger.warning("Stopped a runaway thread: " + tname);
       }      
     }
-  
+
     if (t.isAlive()) {
       logger.severe("Could not interrupt or stop thread: " + tname);
     }

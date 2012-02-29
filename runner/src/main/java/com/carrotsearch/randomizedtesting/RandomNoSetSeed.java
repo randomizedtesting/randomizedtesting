@@ -119,7 +119,7 @@ final class RandomNoSetSeed extends Random {
       		"is probably used out of its allowed context (test or suite).");
     }
     if (Thread.currentThread() != owner) {
-      Throwable allocationEx = new Throwable("Dummy: Random allocation stack.");
+      Throwable allocationEx = new NotAnException("Original allocation stack for this Random.");
       allocationEx.setStackTrace(allocationStack);
       throw new IllegalStateException("This Random was created for/by another thread (" +
           owner.toString() + ")." +
