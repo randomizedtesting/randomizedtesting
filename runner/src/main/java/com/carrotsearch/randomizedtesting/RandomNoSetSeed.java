@@ -9,6 +9,7 @@ import java.util.Random;
 final class RandomNoSetSeed extends Random {
   private final Random delegate;
   private final Thread owner;
+  private final String ownerName;
   private final StackTraceElement[] allocationStack;
 
   /** 
@@ -23,6 +24,7 @@ final class RandomNoSetSeed extends Random {
     super(0);
     this.delegate = delegate;
     this.owner = owner;
+    this.ownerName = owner.toString();
     this.allocationStack = Thread.currentThread().getStackTrace();
   }
 
@@ -119,11 +121,12 @@ final class RandomNoSetSeed extends Random {
       		"is probably used out of its allowed context (test or suite).");
     }
     if (Thread.currentThread() != owner) {
-      Throwable allocationEx = new NotAnException("Original allocation stack for this Random.");
+      Throwable allocationEx = new NotAnException("Original allocation stack for this Random (" +
+          "allocated by " + ownerName + ")");
       allocationEx.setStackTrace(allocationStack);
-      throw new IllegalStateException("This Random was created for/by another thread (" +
-          owner.toString() + ")." +
-          " Random instances must not be shared (acquire per-thread). Current thread: " +
+      throw new IllegalStateException(
+          "This Random was created for/by another thread (" + ownerName + ")." +
+          " Random instances must not be shared (acquire per-thread). Current thread: " + 
           Thread.currentThread().toString(), allocationEx);
     }
   }

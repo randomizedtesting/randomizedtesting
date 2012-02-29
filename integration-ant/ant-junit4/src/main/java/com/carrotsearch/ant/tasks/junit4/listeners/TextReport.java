@@ -198,6 +198,8 @@ public class TextReport implements AggregatedEventListener {
       try {
         output.write(message);
         output.write("\n");
+        // Flush early for tailing etc.
+        output.flush();
       } catch (IOException e) {
         // Ignore, what to do.
       }

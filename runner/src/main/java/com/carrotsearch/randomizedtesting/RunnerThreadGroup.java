@@ -84,11 +84,22 @@ final class RunnerThreadGroup extends ThreadGroup {
         String message = 
             "Thread threw an uncaught exception" + 
             (afterTermination ? " (after termination attempt)" : "") +
-            ", thread: " + p.a;
+            ", thread: " + safeThreadName(p.a);
 
         notifier.fireTestFailure(new Failure(description, 
             new RuntimeException(message, p.b)));
       }
+    }
+  }
+
+  /**
+   * This actually happens...
+   */
+  private String safeThreadName(Thread t) {
+    try {
+      return t.toString();
+    } catch (Throwable t2) {
+      return "Thread[" + "exception when acquiring name: " + t2.toString() + "]";
     }
   }
 

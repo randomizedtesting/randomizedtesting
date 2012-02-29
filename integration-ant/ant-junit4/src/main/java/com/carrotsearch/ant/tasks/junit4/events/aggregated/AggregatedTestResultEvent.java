@@ -80,6 +80,8 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
    */
   @Override
   public List<IEvent> getEventStream() {
+    if (eventStream == null)
+      throw new RuntimeException("Unfinished test?" + suite + ", " + description);
     return Collections.unmodifiableList(eventStream);
   }
 

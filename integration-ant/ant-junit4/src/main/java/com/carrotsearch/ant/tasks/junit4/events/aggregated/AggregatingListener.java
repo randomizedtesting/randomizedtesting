@@ -69,6 +69,7 @@ public class AggregatingListener {
     tests = new ArrayDeque<AggregatedTestResultEvent>();
     suiteFailures = Lists.newArrayList();
     eventStream = Lists.newArrayList();
+    lastSuite = e.getDescription();
   }
 
   @Subscribe
