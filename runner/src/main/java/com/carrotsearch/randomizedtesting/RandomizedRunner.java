@@ -130,11 +130,11 @@ import com.carrotsearch.randomizedtesting.generators.RandomInts;
  * </ul>
  * 
  * @see RandomizedTest
- * @see TestMethodProviders
+ * @see ThreadLeaks
  * @see Validators
  * @see Listeners
  * @see RandomizedContext
- * @see ThreadLeaks
+ * @see TestMethodProviders
  */
 @SuppressWarnings("javadoc")
 public final class RandomizedRunner extends Runner implements Filterable {
@@ -192,13 +192,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
     public final long seed;
     public final Description description;
     public final Method method;
-    public final Object instance;
+    public final InstanceProvider instanceProvider;
 
-    public TestCandidate(Method method, Object instance, long seed, Description description) {
+    public TestCandidate(Method method, long seed, Description description, InstanceProvider provider) {
       this.seed = seed;
       this.description = description;
       this.method = method;
-      this.instance = instance;
+      this.instanceProvider = provider;
+    }
+
+    /**
+     * TODO: can this be anything else, really? I mean: even with factory methods we're 
+     * still creating instances of suiteClass.
+     */
+    public Class<?> getTestClass() {
+      return instanceProvider.getTestClass();
     }
   }
 
@@ -346,17 +354,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
   };
 
-  /**
-   * We're creating test instances early (to allow test factories and annotation scans).
-   * We also defer any instantiation exceptions until a test is actually executed. 
-   */
-  @SuppressWarnings("serial")
-  private class DeferredInstantiationException extends Error {
-    public DeferredInstantiationException(Throwable cause) {
-      super(cause);
-    }
-  }
-
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     appendSeedParameter = RandomizedTest.systemPropertyAsBoolean(SYSPROP_APPEND_SEED(), false);
@@ -468,6 +465,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
           "-seed#" + SeedUtils.formatSeedChain(runnerRandomness)) {
       public void run() {
         try {
+          // Make sure static initializers are invoked and that they are invoked outside of
+          // the randomized context scope. This is for consistency so that we're not relying
+          // on the class NOT being initialized before.
+          try {
+            Class.forName(suiteClass.getName(), true, suiteClass.getClassLoader());
+          } catch (ExceptionInInitializerError e) {
+            throw e.getCause();
+          }
+
           RandomizedContext context = createContext(runnerThreadGroup);
           runSuite(context, notifier);
           context.dispose();
@@ -639,11 +645,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final Object instance;
     try {
       // Get the test instance.
-      if (c.instance instanceof DeferredInstantiationException) {
-        throw ((DeferredInstantiationException) c.instance).getCause();
-      } else {
-        instance = c.instance;
-      }
+      instance = c.instanceProvider.newInstance();
 
       // Collect rules and execute wrapped method.
       Statement s = new Statement() {
@@ -1221,7 +1223,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       final TestCandidate candidate = i.next();
       for (Filter f : testFilters) {
         if (!f.shouldRun(Description.createTestDescription(
-            candidate.instance.getClass(), candidate.method.getName()))) {
+            candidate.getTestClass(), candidate.method.getName()))) {
           i.remove();
           break;
         }
@@ -1421,7 +1423,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Collect test candidates for a single method and the given seed.
    */
   private List<TestCandidate> collectCandidatesForMethod(
-      Constructor<?> constructor, Object[] params, Method method, 
+      final Constructor<?> constructor, final Object[] params, Method method, 
       LinkedHashMap<String, Object> parameterizedArgs) {
     final List<TestCandidate> candidates = new ArrayList<TestCandidate>();
     final boolean fixedSeed = isConstantSeedForAllIterations(method);
@@ -1446,18 +1448,24 @@ public final class RandomizedRunner extends Runner implements Filterable {
             String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()));
    
         // Create an instance and delay instantiation exception if not possible.
-        Object instance = null;
-        try {
-          instance = constructor.newInstance(params);
-        } catch (IllegalArgumentException e) {
-          instance = new DeferredInstantiationException(new IllegalArgumentException(
-              "The provided parameters do not match or cannot be assigned to the" +
-              " suite's class constructor parameters of type: " 
-                  + Arrays.toString(constructor.getParameterTypes())));
-        } catch (Throwable t) {
-          instance = new DeferredInstantiationException(t);
-        }
-        candidates.add(new TestCandidate(method, instance, thisSeed, description));
+        candidates.add(new TestCandidate(method, thisSeed, description, new InstanceProvider() {
+          @Override
+          public Object newInstance() throws Throwable {
+            try {
+              return constructor.newInstance(params);
+            } catch (InvocationTargetException e) {
+              throw ((InvocationTargetException) e).getTargetException();
+            } catch (IllegalArgumentException e) {
+              throw new IllegalArgumentException(
+                  "Constructor arguments do not match provider parameters?", e);
+            }
+          }
+
+          @Override
+          public Class<?> getTestClass() {
+            return suiteClass;
+          }
+        }));
       }
     }
 
@@ -1536,9 +1544,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     HashSet<Class<?>> clazzes = new HashSet<Class<?>>();
     HashSet<Annotation> annotations = new HashSet<Annotation>();
     for (TestCandidate c : testCandidates) {
-      if (!clazzes.contains(c.instance.getClass())) {
-        clazzes.add(c.instance.getClass());
-        annotations.addAll(Arrays.asList(c.instance.getClass().getAnnotations()));
+      if (!clazzes.contains(c.getTestClass())) {
+        clazzes.add(c.getTestClass());
+        annotations.addAll(Arrays.asList(c.getTestClass().getAnnotations()));
       }
       annotations.addAll(Arrays.asList(c.method.getAnnotations()));
     }
