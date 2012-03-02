@@ -15,7 +15,7 @@ import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
 import org.objectweb.asm.ClassReader;
 
-import com.carrotsearch.ant.tasks.junit4.TestBalancer.Assignment;
+import com.carrotsearch.ant.tasks.junit4.SuiteBalancer.Assignment;
 import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
 import com.carrotsearch.ant.tasks.junit4.balancers.SuiteHint;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
@@ -135,7 +135,7 @@ public class JUnit4 extends Task {
   /**
    * Balancers scheduling tests for individual JVMs in parallel mode.
    */
-  private List<TestBalancer> balancers = Lists.newArrayList();
+  private List<SuiteBalancer> balancers = Lists.newArrayList();
 
   /**
    * Class loader used to resolve annotations and classes referenced from annotations
@@ -648,8 +648,8 @@ public class JUnit4 extends Task {
    * that should be load-balanced dynamically based on job stealing.
    */
   private List<String> loadBalanceSuites(List<SlaveInfo> slaveInfos,
-      List<String> testClassNames, List<TestBalancer> balancers) {
-    final List<TestBalancer> balancersWithFallback = Lists.newArrayList(balancers);
+      List<String> testClassNames, List<SuiteBalancer> balancers) {
+    final List<SuiteBalancer> balancersWithFallback = Lists.newArrayList(balancers);
     balancersWithFallback.add(new RoundRobinBalancer());
 
     // Initialize per-slave lists.
@@ -660,7 +660,7 @@ public class JUnit4 extends Task {
     // Go through all the balancers, the first one to assign a suite wins.
     final HashMap<String,Assignment> allCosts = Maps.newHashMap();
     final LinkedHashSet<String> remaining = Sets.newLinkedHashSet(testClassNames);
-    for (TestBalancer balancer : balancersWithFallback) {
+    for (SuiteBalancer balancer : balancersWithFallback) {
       balancer.setOwner(this);
 
       LinkedHashMap<String, Assignment> assignments = balancer.assign(

@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 /**
  * A test balancer schedules test suites to be executed on a given JVM.
  */
-public interface TestBalancer {
+public interface SuiteBalancer {
   public final static class Assignment {
     /**
      * Slave assignment.

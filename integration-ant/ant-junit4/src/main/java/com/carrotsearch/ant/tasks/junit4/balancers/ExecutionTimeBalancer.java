@@ -1,13 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.balancers;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectComponent;
@@ -16,7 +9,7 @@ import org.apache.tools.ant.types.ResourceCollection;
 
 import com.carrotsearch.ant.tasks.junit4.Duration;
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
-import com.carrotsearch.ant.tasks.junit4.TestBalancer;
+import com.carrotsearch.ant.tasks.junit4.SuiteBalancer;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -25,7 +18,7 @@ import com.google.common.collect.Maps;
  * A test suite balancer based on past execution times saved using
  * {@link ExecutionTimesReport}.
  */
-public class ExecutionTimeBalancer extends ProjectComponent implements TestBalancer {
+public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBalancer {
   private static class SlaveLoad {
     public static final Comparator<SlaveLoad> ASCENDING_BY_ESTIMATED_FINISH = 
         new Comparator<SlaveLoad>() {
@@ -113,9 +106,13 @@ public class ExecutionTimeBalancer extends ProjectComponent implements TestBalan
       assignments.put(hint.suiteName, new Assignment(slave.id, (int) hint.cost));
     }
     
-    // Dump estimated execution times in verbose mode.
+    // Dump estimated execution times.
+    TreeMap<Long, SlaveLoad> ordered = new TreeMap<Long, SlaveLoad>();
     while (!pq.isEmpty()) {
       SlaveLoad slave = pq.remove();
+      ordered.put(slave.estimatedFinish, slave);
+    }
+    for (SlaveLoad slave : ordered.values()) {
       owner.log(String.format(Locale.ENGLISH, 
           "Expected execution time on slave %d: %8.2fs",
           slave.id,
