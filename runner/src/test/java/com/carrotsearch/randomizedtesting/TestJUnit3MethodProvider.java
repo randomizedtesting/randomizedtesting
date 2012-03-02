@@ -56,5 +56,16 @@ public class TestJUnit3MethodProvider {
         // expected.
       }
     }
+  }
+  
+  public static class S1 extends Base {         public    void test1() {} }
+  public static class S2 extends S1   {         public    void test1() {} }
+  public static class S3 extends S2   {         public    void test1() {} }
+
+  @Test
+  public void testJUnit3Overrides() throws Exception {
+    Result r = new JUnitCore().run(new RandomizedRunner(S3.class));
+    Assert.assertEquals(0, r.getFailureCount());
+    Assert.assertEquals(1, r.getRunCount());
   }  
 }
