@@ -6,6 +6,8 @@ import java.util.*;
 import org.junit.runner.Description;
 
 import com.carrotsearch.ant.tasks.junit4.*;
+import com.carrotsearch.ant.tasks.junit4.events.EventType;
+import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.google.common.base.Charsets;
@@ -159,8 +161,29 @@ public class TextReport implements AggregatedEventListener {
     if (showSuiteSummary) {
       log("Running " + e.getDescription().getDisplayName());
 
+      // Static context output.
+      if (showOutputStream || showErrorStream) {
+        String decoded = decodeStreamEvents(
+            e.getSlave(), eventsBeforeFirstTest(e.getEventStream())).toString();
+        if (!decoded.isEmpty()) {
+          log(indent + "(@BeforeClass output)");
+          log(decoded);
+        }
+      }
+
+      // Tests.
       for (AggregatedTestResultEvent test : e.getTests()) {
         format(test, test.getStatus(), test.getExecutionTime());
+      }
+
+      // Trailing static context output.
+      if (showOutputStream || showErrorStream) {
+        String decoded = decodeStreamEvents(
+            e.getSlave(), eventsAfterLastTest(e.getEventStream())).toString();
+        if (!decoded.isEmpty()) {
+          log(indent + "(@AfterClass output)");
+          log(decoded);
+        }
       }
     }
 
@@ -178,6 +201,41 @@ public class TextReport implements AggregatedEventListener {
               e.getExecutionTime() / 1000.0d,
               e.isSuccessful() ? "" : " <<< FAILURES!"));
     }
+  }
+
+  /**
+   * Pick events before the first test starts (static context hooks).
+   */
+  private List<IEvent> eventsBeforeFirstTest(List<IEvent> eventStream) {
+    int i = 0;
+    for (IEvent event : eventStream) {
+      if (event.getType() == EventType.TEST_STARTED) {
+        return eventStream.subList(0, i);
+      }
+      i++;
+    }
+
+    // No test was ever started? Take the entire event stream. 
+    return eventStream;
+  }
+
+  /**
+   * Pick events after the last test ends (static context hooks).
+   */
+  private List<IEvent> eventsAfterLastTest(List<IEvent> eventStream) {
+    if (!(eventStream instanceof RandomAccess)) {
+      throw new RuntimeException("Event stream should be a RandomAccess list.");
+    }
+
+    for (int i = eventStream.size(); --i >= 0;) {
+      // There should ALWAYS be a TEST_FINISHED event, even after unsuccessful tests.
+      if (eventStream.get(i).getType() == EventType.TEST_FINISHED) {
+        return eventStream.subList(i + 1, eventStream.size());
+      }
+    }
+
+    // No test was ever finished? Weird.
+    return Collections.emptyList();
   }
 
   @Subscribe
@@ -272,18 +330,25 @@ public class TextReport implements AggregatedEventListener {
     }
 
     if (showOutputStream || showErrorStream) {
-      StringWriter sw = new StringWriter();
-      Writer stdout = new PrefixedWriter(stdoutIndent, new LineBufferWriter(sw));
-      Writer stderr = new PrefixedWriter(stderrIndent, new LineBufferWriter(sw));
-      slave.decodeStreams(result.getEventStream(), stdout, stderr);
-      
-      if (sw.getBuffer().length() > 0) {
-        line.append(sw.toString());
+      CharSequence out = decodeStreamEvents(slave, result.getEventStream());
+      if (out.length() > 0) {
+        line.append(out);
         line.append("\n");
       }
     }
 
     log(line.toString().trim());
+  }
+
+  /**
+   * Decode stream events, indent, format. 
+   */
+  private CharSequence decodeStreamEvents(SlaveInfo slave, List<IEvent> eventStream) {
+    StringWriter sw = new StringWriter();
+    Writer stdout = new PrefixedWriter(stdoutIndent, new LineBufferWriter(sw));
+    Writer stderr = new PrefixedWriter(stderrIndent, new LineBufferWriter(sw));
+    slave.decodeStreams(eventStream, stdout, stderr);
+    return sw.getBuffer();
   }
 
   @Subscribe

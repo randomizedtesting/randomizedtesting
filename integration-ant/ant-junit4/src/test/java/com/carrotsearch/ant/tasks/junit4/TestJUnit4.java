@@ -191,5 +191,13 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   @Test
   public void mergehints() {
     executeTarget("mergehints");
-  }  
+  }
+
+  @Test
+  public void staticScopeOutput() {
+    executeTarget("staticScopeOutput");
+    assertLogContains("1> static-scope");
+    assertLogContains("1> before-class");
+    assertLogContains("1> after-class");
+  }
 }

@@ -140,7 +140,7 @@ public class SlaveMain {
    */
   private Class<?> instantiate(String className) {
     try {
-      return Class.forName(className);
+      return Class.forName(className, false, Thread.currentThread().getContextClassLoader());
     } catch (Throwable t) {
       try {
         serializer.serialize(
