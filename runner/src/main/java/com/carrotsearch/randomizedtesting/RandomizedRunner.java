@@ -52,6 +52,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -522,45 +523,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (runCustomValidators(notifier)) {
         // Filter out test candidates to see if there's anything left. If not,
         // don't bother running class hooks.
-        List<TestCandidate> filtered = getFilteredTestCandidates();
+        final List<TestCandidate> filtered = getFilteredTestCandidates();
         if (!filtered.isEmpty()) {
+          Statement s = runTestsStatement(notifier, filtered);
+          s = withClassBefores(notifier, s);
+          s = withClassAfters(notifier, s);
+          s = withClassRules(notifier, s);
           try {
-            runBeforeClassMethods();
-
-            for (final TestCandidate c : filtered) {
-              final Runnable testRunner = new Runnable() {
-                public void run() {
-                  // This has a side effect of setting up a nested context for the test thread.
-                  // Do not remove.
-                  RandomizedContext current = RandomizedContext.current();
-                  try {
-                    current.push(new Randomness(c.seed));
-                    runSingleTest(notifier, c);
-                  } catch (Throwable t) {
-                    Rethrow.rethrow(augmentStackTrace(t));                    
-                  } finally {
-                    current.popAndDestroy();
-                  }
-                }
-              };
-
-              // If the timeout is zero we'll need to wait for the test to terminate
-              // anyway, so we just run it from the current thread. Otherwise we spawn
-              // a child so that we can either kill it or abandon it. This is a bit harsh
-              // on jvm resources, but will do for now.
-
-              // This is also the place where we, theoretically at least, could spawn
-              // multi-threaded tests. Simply by using executor service to run testRunners
-
-              final int timeout = determineTimeout(c);
-              if (timeout == 0) {
-                testRunner.run();
-              } else {
-                runAndWait(notifier, c, testRunner, timeout);
-              }
-
-              notifier.fireTestFinished(c.description);
-            }
+            s.evaluate();
           } catch (Throwable t) {
             if (t instanceof AssumptionViolatedException) {
               // Class level assumptions cause all tests to be ignored.
@@ -570,15 +540,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
               }
               notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
             } else {
-              notifier.fireTestFailure(new Failure(suiteDescription, t));
+              fireTestFailure(notifier, suiteDescription, t);
             }
+          } finally {
+            // Dispose of resources at suite scope.
+            RandomizedContext.current().closeResources(
+                new ResourceDisposal(notifier, suiteDescription), LifecycleScope.SUITE);
           }
-
-          runAfterClassMethods(notifier);
-
-          // Dispose of resources at suite scope.
-          RandomizedContext.current().closeResources(
-              new ResourceDisposal(notifier, suiteDescription), LifecycleScope.SUITE);
         }
       }
     } catch (Throwable t) {
@@ -602,6 +570,113 @@ public final class RandomizedRunner extends Runner implements Filterable {
       unsubscribeListeners(notifier);
       context.popAndDestroy();
     }    
+  }
+
+  private Statement runTestsStatement(final RunNotifier notifier, final List<TestCandidate> filtered) {
+    Statement s = new Statement() {
+      public void evaluate() throws Throwable {
+        for (final TestCandidate c : filtered) {
+          final Runnable testRunner = new Runnable() {
+            public void run() {
+              // This has a side effect of setting up a nested context for the test thread.
+              // Do not remove.
+              RandomizedContext current = RandomizedContext.current();
+              try {
+                current.push(new Randomness(c.seed));
+                runSingleTest(notifier, c);
+              } catch (Throwable t) {
+                Rethrow.rethrow(augmentStackTrace(t));                    
+              } finally {
+                current.popAndDestroy();
+              }
+            }
+          };
+
+          // If the timeout is zero we'll need to wait for the test to terminate
+          // anyway, so we just run it from the current thread. Otherwise we spawn
+          // a child so that we can either kill it or abandon it. This is a bit harsh
+          // on jvm resources, but will do for now.
+
+          // This is also the place where we, theoretically at least, could spawn
+          // multi-threaded tests. Simply by using executor service to run testRunners
+
+          final int timeout = determineTimeout(c);
+          if (timeout == 0) {
+            testRunner.run();
+          } else {
+            runAndWait(notifier, c, testRunner, timeout);
+          }
+
+          notifier.fireTestFinished(c.description);
+        }              
+      }
+    };
+    return s;
+  }
+
+  private void fireTestFailure(RunNotifier notifier, Description description, Throwable t) {
+    if (t instanceof MultipleFailureException) {
+      for (Throwable nested : ((MultipleFailureException) t).getFailures()) {
+        fireTestFailure(notifier, description, nested);
+      }
+    } else {
+      notifier.fireTestFailure(new Failure(description, t));      
+    }
+  }
+
+  /**
+   * Decorate a {@link Statement} with {@link BeforeClass} hooks.
+   */
+  private Statement withClassBefores(RunNotifier notifier, final Statement s) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        try {
+          for (Method method : getTargetMethods(BeforeClass.class)) {
+            invoke(method, null);
+          }
+        } catch (Throwable t) {
+          throw augmentStackTraceNoContext(t, runnerRandomness);
+        }
+        s.evaluate();
+      }
+    };
+  }
+
+  private Statement withClassAfters(final RunNotifier notifier, final Statement s) {
+    return new Statement() {
+      @Override
+      public void evaluate() throws Throwable {
+        List<Throwable> errors = new ArrayList<Throwable>();
+        try {
+          s.evaluate();
+        } catch (Throwable t) {
+          errors.add(augmentStackTraceNoContext(t, runnerRandomness));
+        }
+
+        for (Method method : getTargetMethods(AfterClass.class)) {
+          try {
+            invoke(method, null);
+          } catch (Throwable t) {
+            errors.add(augmentStackTraceNoContext(t, runnerRandomness));
+          }
+        }
+
+        MultipleFailureException.assertEmpty(errors);
+      }
+    };
+  }
+
+  /**
+   * Wrap with {@link ClassRule}s.
+   */
+  private Statement withClassRules(RunNotifier notifier, Statement s) {
+    List<TestRule> classRules = 
+        getAnnotatedFieldValues(null, ClassRule.class, TestRule.class);
+    for (TestRule rule : classRules) {
+      s = rule.apply(s, suiteDescription);
+    }
+    return s;
   }
 
   /**
@@ -679,7 +754,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (e instanceof AssumptionViolatedException) {
           notifier.fireTestAssumptionFailed(new Failure(c.description, e));
         } else {
-          notifier.fireTestFailure(new Failure(c.description, e));
+          fireTestFailure(notifier, c.description, e);
         }
       }
     }
@@ -873,33 +948,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     return results;
-  }
-
-  /**
-   * Run before class methods. These fail immediately.
-   */
-  private void runBeforeClassMethods() throws Throwable {
-    try {
-      for (Method method : getTargetMethods(BeforeClass.class)) {
-        invoke(method, null);
-      }
-    } catch (Throwable t) {
-      throw augmentStackTraceNoContext(t, runnerRandomness);
-    }
-  }
-
-  /**
-   * Run after class methods. Collect exceptions, execute all.
-   */
-  private void runAfterClassMethods(RunNotifier notifier) {
-    for (Method method : getTargetMethods(AfterClass.class)) {
-      try {
-        invoke(method, null);
-      } catch (Throwable t) {
-        t = augmentStackTraceNoContext(t, runnerRandomness);
-        notifier.fireTestFailure(new Failure(suiteDescription, t));
-      }
-    }
   }
 
   /**
