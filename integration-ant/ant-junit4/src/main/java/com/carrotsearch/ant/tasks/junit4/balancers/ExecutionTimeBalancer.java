@@ -7,9 +7,7 @@ import org.apache.tools.ant.ProjectComponent;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.ResourceCollection;
 
-import com.carrotsearch.ant.tasks.junit4.Duration;
-import com.carrotsearch.ant.tasks.junit4.JUnit4;
-import com.carrotsearch.ant.tasks.junit4.SuiteBalancer;
+import com.carrotsearch.ant.tasks.junit4.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -107,14 +105,15 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
     }
     
     // Dump estimated execution times.
-    TreeMap<Long, SlaveLoad> ordered = new TreeMap<Long, SlaveLoad>();
+    TreeMap<Integer, SlaveLoad> ordered = new TreeMap<Integer, SlaveLoad>();
     while (!pq.isEmpty()) {
       SlaveLoad slave = pq.remove();
-      ordered.put(slave.estimatedFinish, slave);
+      ordered.put(slave.id, slave);
     }
-    for (SlaveLoad slave : ordered.values()) {
+    for (Integer id : ordered.keySet()) {
+      final SlaveLoad slave = ordered.get(id);
       owner.log(String.format(Locale.ENGLISH, 
-          "Expected execution time on slave %d: %8.2fs",
+          "Expected execution time on JVM J%d: %8.2fs",
           slave.id,
           slave.estimatedFinish / 1000.0f), Project.MSG_INFO);
     }

@@ -171,10 +171,10 @@ public class TestJUnit4 extends AntBuildFileTestBase {
   @Test
   public void balancing() {
     executeTarget("balancing");
-    assertLogContains("Assignment hint: S0  (cost  2019) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestTwoSeconds (by ExecutionTimeBalancer)");
-    assertLogContains("Assignment hint: S1  (cost  1002) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestOneSecond (by ExecutionTimeBalancer)");
-    assertLogContains("Assignment hint: S1  (cost   501) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestHalfSecond (by ExecutionTimeBalancer)");
-    assertLogContains("Assignment hint: S1  (cost     2) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestZeroSeconds (by ExecutionTimeBalancer)");
+    assertLogContains("Assignment hint: J0  (cost  2019) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestTwoSeconds (by ExecutionTimeBalancer)");
+    assertLogContains("Assignment hint: J1  (cost  1002) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestOneSecond (by ExecutionTimeBalancer)");
+    assertLogContains("Assignment hint: J1  (cost   501) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestHalfSecond (by ExecutionTimeBalancer)");
+    assertLogContains("Assignment hint: J1  (cost     2) com.carrotsearch.ant.tasks.junit4.tests.sub2.TestZeroSeconds (by ExecutionTimeBalancer)");
   }
 
   @Test

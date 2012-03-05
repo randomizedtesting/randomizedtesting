@@ -575,7 +575,7 @@ public class JUnit4 extends Task {
 
       for (SlaveInfo si : slaveInfos) {
         if (si.start > 0 && si.end > 0) {
-          log(String.format(Locale.ENGLISH, "Slave %d: %8.2f .. %8.2f = %8.2fs",
+          log(String.format(Locale.ENGLISH, "JVM J%d: %8.2f .. %8.2f = %8.2fs",
               si.id,
               (si.start - start) / 1000.0f,
               (si.end - start) / 1000.0f,
@@ -589,7 +589,7 @@ public class JUnit4 extends Task {
       SlaveInfo slaveInError = null;
       for (SlaveInfo i : slaveInfos) {
         if (i.executionError != null) {
-          log("ERROR: Slave execution exception: " + 
+          log("ERROR: Forked JVM execution exception: " + 
               i.id + ", execution line: " + i.getCommandLine(), i.executionError, Project.MSG_ERR);
           if (slaveInError == null) {
             slaveInError = i;
@@ -667,14 +667,14 @@ public class JUnit4 extends Task {
           Collections.unmodifiableCollection(remaining), slaveInfos.size(), masterSeed());
       for (Map.Entry<String, Assignment> e : assignments.entrySet()) {
         if (e.getValue() == null) {
-          throw new RuntimeException("Balancer must return non-null slave ID.");
+          throw new RuntimeException("Balancer must return non-null JVM ID.");
         }
         if (!remaining.remove(e.getKey())) {
           throw new RuntimeException("Balancer must return suite name as a key: " + e.getKey());
         }
 
         log(String.format(Locale.ENGLISH,
-            "Assignment hint: S%-2d (cost %5d) %s (by %s)",
+            "Assignment hint: J%-2d (cost %5d) %s (by %s)",
             e.getValue().slaveId,
             e.getValue().estimatedCost,
             e.getKey(),
@@ -719,7 +719,7 @@ public class JUnit4 extends Task {
 
     // Dump scheduling information.
     for (SlaveInfo si : slaveInfos) {
-      log("Slave S" + si.id + " assignments (after shuffle):", Project.MSG_VERBOSE);
+      log("Forked JVM J" + si.id + " assignments (after shuffle):", Project.MSG_VERBOSE);
       for (String suiteName : si.testSuites) {
         log("  " + suiteName, Project.MSG_VERBOSE);
       }
@@ -823,7 +823,7 @@ public class JUnit4 extends Task {
 
     // Emit command line before -stdin to avoid confusion.
     slave.slaveCommandLine = escapeAndJoin(commandline.getCommandline());
-    log("Slave process command line (may need escape sequences for your shell):\n" + 
+    log("Forked JVM process command line (may need escape sequences for your shell):\n" + 
         slave.slaveCommandLine, Project.MSG_VERBOSE);
 
     commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
@@ -846,7 +846,7 @@ public class JUnit4 extends Task {
 
           @Override
           public void newSuite(String suiteName) {
-            log("Slave S" + slave.id + " stole suite: " + suiteName, Project.MSG_VERBOSE);
+            log("Forked JVM J" + slave.id + " stole suite: " + suiteName, Project.MSG_VERBOSE);
             w.println(suiteName);
             idleSlave.newSuite(suiteName);
           }
@@ -905,9 +905,9 @@ public class JUnit4 extends Task {
       execute.setNewenvironment(newEnvironment);
       if (env.getVariables() != null)
         execute.setEnvironment(env.getVariables());
-      log("Starting slave S" + slaveInfo.id, Project.MSG_DEBUG);
+      log("Starting JVM J" + slaveInfo.id, Project.MSG_DEBUG);
       int exitStatus = execute.execute();
-      log("Slave S" + slaveInfo.id + " finished with exit code: " 
+      log("Forked JVM J" + slaveInfo.id + " finished with exit code: " 
           + exitStatus, Project.MSG_DEBUG);
 
       if (streamHandler.isErrorStreamNonEmpty()) {

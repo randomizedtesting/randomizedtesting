@@ -282,7 +282,7 @@ public class TextReport implements AggregatedEventListener {
     line.append(formatTime(timeMillis));
     if (slave.slaves > 1) {
       final int digits = 1 + (int) Math.floor(Math.log10(slave.slaves));
-      line.append(String.format(" S%-" + digits + "d", slave.id));
+      line.append(String.format(" J%-" + digits + "d", slave.id));
     }    
     line.append(" | ");
 
