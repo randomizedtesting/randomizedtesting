@@ -13,11 +13,11 @@ import java.util.Random;
  */
 public final class Randomness {
   final long seed;
-  private final RandomNoSetSeed random;
+  private final AssertingRandom random;
 
   public Randomness(Thread owner, long seed) {
     this.seed = seed;
-    this.random = new RandomNoSetSeed(owner, new Random(seed));
+    this.random = new AssertingRandom(owner, new Random(seed));
   }
 
   public Randomness(long seed) {
@@ -42,9 +42,9 @@ public final class Randomness {
   /**
    * Invalidate the underling {@link #random}.
    * 
-   * @see RandomNoSetSeed#valid
+   * @see AssertingRandom#valid
    */
   void destroy() {
-    this.random.valid = false;
+    this.random.destroy();
   }
 }

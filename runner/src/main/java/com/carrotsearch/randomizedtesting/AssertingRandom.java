@@ -3,10 +3,11 @@ package com.carrotsearch.randomizedtesting;
 import java.util.Random;
 
 /**
- * A random with a delegate, but preventing {@link Random#setSeed(long)}.
+ * A random with a delegate, preventing {@link Random#setSeed(long)} and locked
+ * to be used by a single thread.
  */
 @SuppressWarnings("serial")
-final class RandomNoSetSeed extends Random {
+public final class AssertingRandom extends Random {
   private final Random delegate;
   private final Thread owner;
   private final String ownerName;
@@ -17,10 +18,14 @@ final class RandomNoSetSeed extends Random {
    * barriers and scheduling side-effects but there's no other way to do it in any other
    * way and sharing randoms across threads or test cases is very bad and worth tracking. 
    */
-  volatile boolean valid = true;
+  private volatile boolean valid = true;
 
-  public RandomNoSetSeed(Thread owner, Random delegate) {
-    // must be here, the only Random constructor. Has side-effects on setSeed, see below.
+  /**
+   * Creates an instance to be used by <code>owner</code> thread and delegating
+   * to <code>delegate</code> until {@link #destroy()}ed.
+   */
+  public AssertingRandom(Thread owner, Random delegate) {
+    // Must be here, the only Random constructor. Has side-effects on setSeed, see below.
     super(0);
     this.delegate = delegate;
     this.owner = owner;
@@ -114,6 +119,13 @@ final class RandomNoSetSeed extends Random {
     return delegate.hashCode();
   }
 
+  /**
+   * This object will no longer be usable after this method is called.
+   */
+  public void destroy() {
+    this.valid = false;
+  }
+  
   /* */
   private final void checkValid() {
     if (!valid) {
