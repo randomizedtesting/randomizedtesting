@@ -3,7 +3,10 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.File;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -200,4 +203,16 @@ public class TestJUnit4 extends AntBuildFileTestBase {
     assertLogContains("1> before-class");
     assertLogContains("1> after-class");
   }
+  
+  @Test
+  public void iters() {
+    executeTarget("iters");
+    Pattern p = Pattern.compile("TestSuccess\\.alwaysPasses");
+    Matcher matcher = p.matcher(getLog());
+    int count = 0;
+    while (matcher.find()) {
+      count++;
+    }
+    Assert.assertEquals(5, count);
+  }  
 }

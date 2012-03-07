@@ -539,4 +539,13 @@
             </listeners>
         </junit4>
     </target>
+	
+    <target name="iters">
+        <junit4.preconf haltonfailure="true" prefix="junit4">
+        	<sysproperty key="junit4.iters" value="5" />
+            <fileset dir="${basedir}">
+                <include name="**/TestSuccess.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>	
 </project>
