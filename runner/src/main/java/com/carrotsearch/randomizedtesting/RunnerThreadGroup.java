@@ -66,29 +66,35 @@ final class RunnerThreadGroup extends ThreadGroup {
    */
   void processUncaught(RunNotifier notifier, Description description) {
     Set<Thread> terminated = new HashSet<Thread>();
+
+    final ArrayList<Pair<Thread, Throwable>> uncaughtExceptionsCopy;
     synchronized (uncaughtExceptions) {
-      for (Pair<Thread, Throwable> p : uncaughtExceptions) {
-        if (p.b == terminationMarker) {
-          terminated.add(p.a);
-          continue;
-        }
+      uncaughtExceptionsCopy = 
+          new ArrayList<Pair<Thread, Throwable>>(uncaughtExceptions);
+      uncaughtExceptions.clear();
+    }
 
-        // Ignore ThreadDeath and InterruptedException after termination marker.
-        boolean afterTermination = terminated.contains(p.a);
-        if (afterTermination && 
-            (p.b instanceof ThreadDeath ||
-             p.b instanceof InterruptedException)) {
-          continue;
-        }
-
-        String message = 
-            "Thread threw an uncaught exception" + 
-            (afterTermination ? " (after termination attempt)" : "") +
-            ", thread: " + safeThreadName(p.a);
-
-        notifier.fireTestFailure(new Failure(description, 
-            new RuntimeException(message, p.b)));
+    for (Pair<Thread, Throwable> p : uncaughtExceptionsCopy) {
+      if (p.b == terminationMarker) {
+        terminated.add(p.a);
+        continue;
       }
+
+      // Ignore ThreadDeath and InterruptedException after termination marker.
+      boolean afterTermination = terminated.contains(p.a);
+      if (afterTermination && 
+          (p.b instanceof ThreadDeath ||
+           p.b instanceof InterruptedException)) {
+        continue;
+      }
+
+      String message = 
+          "Thread threw an uncaught exception" + 
+          (afterTermination ? " (after termination attempt)" : "") +
+          ", thread: " + safeThreadName(p.a);
+
+      notifier.fireTestFailure(new Failure(description, 
+          new RuntimeException(message, p.b)));
     }
   }
 
