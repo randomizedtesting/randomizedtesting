@@ -125,6 +125,7 @@ public class TextReport implements AggregatedEventListener {
    * If enabled, shows suite summaries in "maven-like" format of:
    * <pre>
    * Running SuiteName
+   * [...suite tests if enabled...]
    * Tests: xx, Failures: xx, Errors: xx, Skipped: xx, Time: xx sec [<<< FAILURES!]
    * </pre>
    */
@@ -162,7 +163,7 @@ public class TextReport implements AggregatedEventListener {
       log("Running " + e.getDescription().getDisplayName());
 
       // Static context output.
-      if (showOutputStream || showErrorStream) {
+      if (shouldShowSuiteLevelOutput(e)) {
         String decoded = decodeStreamEvents(
             e.getSlave(), eventsBeforeFirstTest(e.getEventStream())).toString();
         if (!decoded.isEmpty()) {
@@ -177,7 +178,7 @@ public class TextReport implements AggregatedEventListener {
       }
 
       // Trailing static context output.
-      if (showOutputStream || showErrorStream) {
+      if (shouldShowSuiteLevelOutput(e)) {
         String decoded = decodeStreamEvents(
             e.getSlave(), eventsAfterLastTest(e.getEventStream())).toString();
         if (!decoded.isEmpty()) {
@@ -201,6 +202,14 @@ public class TextReport implements AggregatedEventListener {
               e.getExecutionTime() / 1000.0d,
               e.isSuccessful() ? "" : " <<< FAILURES!"));
     }
+  }
+
+  /**
+   * Display suite level output if showing the OK status or if the test wasn't successful. 
+   */
+  private boolean shouldShowSuiteLevelOutput(AggregatedSuiteResultEvent e) {
+    return (showOutputStream || showErrorStream) &&
+           (showStatusOk || !e.isSuccessful());
   }
 
   /**
