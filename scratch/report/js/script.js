@@ -1198,11 +1198,11 @@
     return typeof string === 'string' ? string.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : string;
   }
 
-  var typewatch = (function(){
-    var timer = 0;
-    return function(callback, ms){
-      clearTimeout (timer);
-      timer = setTimeout(callback, ms);
-    }
-  })();
 })(jQuery);
+var typewatch = (function(){
+  var timer = 0;
+  return function(callback, ms){
+    clearTimeout (timer);
+    timer = setTimeout(callback, ms);
+  }
+})();

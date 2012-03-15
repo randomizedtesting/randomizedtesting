@@ -30,6 +30,7 @@ TODO, must have:
 * fix white gaps in status bar
 * keyboard navigation + hints
 * fix changing column width when adding sorting
+* drop the array/push/joing paradigm for string building, string concatenation is now faster
 
 
 Nice to have:
