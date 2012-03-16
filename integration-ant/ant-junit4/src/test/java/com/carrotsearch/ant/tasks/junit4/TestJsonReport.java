@@ -24,5 +24,11 @@ public class TestJsonReport extends AntBuildFileTestBase {
     Assert.assertTrue(
         new File(getProject().getBaseDir(), 
             "json/report.json").length() > 0);
+    Assert.assertTrue(
+        new File(getProject().getBaseDir(), 
+            "json/report.jsonp").length() > 0);
+    Assert.assertTrue(
+        new File(getProject().getBaseDir(), 
+            "json/output.html").length() > 0);    
   }
 }

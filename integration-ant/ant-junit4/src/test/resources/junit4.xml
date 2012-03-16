@@ -270,6 +270,7 @@
             <listeners>
                 <report-json file="json/report.json" />
                 <report-json jsonpMethod="callbackMethod" file="json/report.jsonp" />
+                <report-json file="json/output.html" projectName="Nice project" />
             </listeners>
 
             <fileset dir="${basedir}">

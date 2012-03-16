@@ -1,0 +1,677 @@
+testData({
+  "junit4": {
+    "tests.seed": "B19FBD1BB1231191",
+    "project.name": "Nice project"
+  },
+  "suites": [
+    {
+      "slave": 0,
+      "startTimestamp": 1331889914622,
+      "startTimestampDate": "2012-03-16T10:25:14.622",
+      "executionTime": 109,
+      "description": {
+        "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError[0]",
+        "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError",
+        "className": "com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError",
+        "annotations": [],
+        "children": [
+          {
+            "id": "id#method(com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError)[1]",
+            "displayName": "method(com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError)",
+            "methodName": "method",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              }
+            ],
+            "children": []
+          }
+        ]
+      },
+      "tests": [],
+      "suiteFailures": [
+        {
+          "throwableClass": "java.lang.RuntimeException",
+          "throwableString": "java.lang.RuntimeException",
+          "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError.beforeClass(TestBeforeClassError.java:9)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:27)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+          "kind": "error"
+        }
+      ],
+      "executionEvents": [
+        {
+          "event": "SUITE_FAILURE",
+          "description": "id#com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError[0]",
+          "failure": {
+            "throwableClass": "java.lang.RuntimeException",
+            "throwableString": "java.lang.RuntimeException",
+            "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError.beforeClass(TestBeforeClassError.java:9)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:27)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "error"
+          }
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1331889914744,
+      "startTimestampDate": "2012-03-16T10:25:14.744",
+      "executionTime": 2,
+      "description": {
+        "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestIgnoredSuite[1]",
+        "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestIgnoredSuite",
+        "className": "com.carrotsearch.ant.tasks.junit4.tests.TestIgnoredSuite",
+        "annotations": [
+          {
+            "org.junit.Ignore": {
+              "value": ""
+            }
+          }
+        ],
+        "children": []
+      },
+      "tests": [],
+      "suiteFailures": [],
+      "executionEvents": []
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1331889914756,
+      "startTimestampDate": "2012-03-16T10:25:14.756",
+      "executionTime": 18,
+      "description": {
+        "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams[0]",
+        "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams",
+        "className": "com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams",
+        "annotations": [],
+        "children": [
+          {
+            "id": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]",
+            "displayName": "ok(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)",
+            "methodName": "ok",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              }
+            ],
+            "children": []
+          },
+          {
+            "id": "id#ok_sysout_syserr(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]",
+            "displayName": "ok_sysout_syserr(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)",
+            "methodName": "ok_sysout_syserr",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              }
+            ],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1331889914769,
+          "startTimestampDate": "2012-03-16T10:25:14.769",
+          "executionTime": 1,
+          "description": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1331889914771,
+          "startTimestampDate": "2012-03-16T10:25:14.771",
+          "executionTime": 2,
+          "description": "id#ok_sysout_syserr(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]",
+          "status": "OK",
+          "testFailures": []
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "description": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]"
+        },
+        {
+          "event": "TEST_STARTED",
+          "description": "id#ok_sysout_syserr(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "sysout"
+        },
+        {
+          "event": "APPEND_STDERR",
+          "content": "syserr"
+        },
+        {
+          "event": "APPEND_STDOUT",
+          "content": "-sysout-contd."
+        },
+        {
+          "event": "APPEND_STDERR",
+          "content": "-syserr-contd."
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#ok_sysout_syserr(com.carrotsearch.ant.tasks.junit4.tests.TestSysstreams)[1]"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1331889914800,
+      "startTimestampDate": "2012-03-16T10:25:14.800",
+      "executionTime": 93,
+      "description": {
+        "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestStatuses[0]",
+        "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestStatuses",
+        "className": "com.carrotsearch.ant.tasks.junit4.tests.TestStatuses",
+        "annotations": [],
+        "children": [
+          {
+            "id": "id#failure(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+            "displayName": "failure(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)",
+            "methodName": "failure",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestStatuses",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              }
+            ],
+            "children": []
+          },
+          {
+            "id": "id#error(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+            "displayName": "error(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)",
+            "methodName": "error",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestStatuses",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              }
+            ],
+            "children": []
+          },
+          {
+            "id": "id#ignored(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[2]",
+            "displayName": "ignored(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)",
+            "methodName": "ignored",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestStatuses",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              },
+              {
+                "org.junit.Ignore": {
+                  "value": ""
+                }
+              }
+            ],
+            "children": []
+          },
+          {
+            "id": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+            "displayName": "ok(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)",
+            "methodName": "ok",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestStatuses",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              }
+            ],
+            "children": []
+          },
+          {
+            "id": "id#ignored_a(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+            "displayName": "ignored_a(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)",
+            "methodName": "ignored_a",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestStatuses",
+            "annotations": [
+              {
+                "org.junit.Test": {
+                  "timeout": 0,
+                  "expected": "org.junit.Test$None"
+                }
+              }
+            ],
+            "children": []
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1331889914811,
+          "startTimestampDate": "2012-03-16T10:25:14.811",
+          "executionTime": 15,
+          "description": "id#failure(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+          "status": "FAILURE",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.AssertionError",
+              "throwableString": "java.lang.AssertionError",
+              "stackTrace": "java.lang.AssertionError\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestStatuses.failure(TestStatuses.java:24)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+              "kind": "assertion"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1331889914829,
+          "startTimestampDate": "2012-03-16T10:25:14.829",
+          "executionTime": 14,
+          "description": "id#error(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.RuntimeException",
+              "throwableString": "java.lang.RuntimeException",
+              "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestStatuses.error(TestStatuses.java:29)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+              "kind": "error"
+            }
+          ]
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1331889914845,
+          "startTimestampDate": "2012-03-16T10:25:14.845",
+          "executionTime": 0,
+          "description": "id#ignored(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[2]",
+          "status": "IGNORED",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1331889914846,
+          "startTimestampDate": "2012-03-16T10:25:14.846",
+          "executionTime": 0,
+          "description": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1331889914847,
+          "startTimestampDate": "2012-03-16T10:25:14.847",
+          "executionTime": 45,
+          "description": "id#ignored_a(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+          "status": "IGNORED_ASSUMPTION",
+          "testFailures": [
+            {
+              "throwableClass": "org.junit.internal.AssumptionViolatedException",
+              "throwableString": "org.junit.internal.AssumptionViolatedException: got: \u003cfalse\u003e, expected: is \u003ctrue\u003e",
+              "stackTrace": "org.junit.internal.AssumptionViolatedException: got: \u003cfalse\u003e, expected: is \u003ctrue\u003e\n\tat org.junit.Assume.assumeThat(Assume.java:70)\n\tat org.junit.Assume.assumeTrue(Assume.java:39)\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestStatuses.ignored_a(TestStatuses.java:19)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+              "kind": "assumption"
+            }
+          ]
+        }
+      ],
+      "suiteFailures": [],
+      "executionEvents": [
+        {
+          "event": "TEST_STARTED",
+          "description": "id#failure(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        },
+        {
+          "event": "TEST_FAILURE",
+          "description": "id#failure(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+          "failure": {
+            "throwableClass": "java.lang.AssertionError",
+            "throwableString": "java.lang.AssertionError",
+            "stackTrace": "java.lang.AssertionError\n\tat org.junit.Assert.fail(Assert.java:92)\n\tat org.junit.Assert.assertTrue(Assert.java:43)\n\tat org.junit.Assert.assertTrue(Assert.java:54)\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestStatuses.failure(TestStatuses.java:24)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "assertion"
+          }
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#failure(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        },
+        {
+          "event": "TEST_STARTED",
+          "description": "id#error(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        },
+        {
+          "event": "TEST_FAILURE",
+          "description": "id#error(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+          "failure": {
+            "throwableClass": "java.lang.RuntimeException",
+            "throwableString": "java.lang.RuntimeException",
+            "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestStatuses.error(TestStatuses.java:29)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "error"
+          }
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#error(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        },
+        {
+          "event": "TEST_IGNORED",
+          "description": "id#ignored(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[2]"
+        },
+        {
+          "event": "TEST_STARTED",
+          "description": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#ok(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        },
+        {
+          "event": "TEST_STARTED",
+          "description": "id#ignored_a(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        },
+        {
+          "event": "TEST_IGNORED_ASSUMPTION",
+          "description": "id#ignored_a(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]",
+          "failure": {
+            "throwableClass": "org.junit.internal.AssumptionViolatedException",
+            "throwableString": "org.junit.internal.AssumptionViolatedException: got: \u003cfalse\u003e, expected: is \u003ctrue\u003e",
+            "stackTrace": "org.junit.internal.AssumptionViolatedException: got: \u003cfalse\u003e, expected: is \u003ctrue\u003e\n\tat org.junit.Assume.assumeThat(Assume.java:70)\n\tat org.junit.Assume.assumeTrue(Assume.java:39)\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestStatuses.ignored_a(TestStatuses.java:19)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "assumption"
+          }
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#ignored_a(com.carrotsearch.ant.tasks.junit4.tests.TestStatuses)[1]"
+        }
+      ]
+    },
+    {
+      "slave": 0,
+      "startTimestamp": 1331889915015,
+      "startTimestampDate": "2012-03-16T10:25:15.015",
+      "executionTime": 90,
+      "description": {
+        "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription[2]",
+        "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription",
+        "className": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription",
+        "annotations": [
+          {
+            "org.junit.runner.RunWith": {
+              "value": "org.junit.runners.Suite"
+            }
+          },
+          {
+            "org.junit.runners.Suite$SuiteClasses": {
+              "value": [
+                "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1",
+                "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2",
+                "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3"
+              ]
+            }
+          }
+        ],
+        "children": [
+          {
+            "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1[0]",
+            "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1)[1]",
+                "displayName": "method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1)",
+                "methodName": "method1",
+                "className": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1",
+                "annotations": [
+                  {
+                    "org.junit.Test": {
+                      "timeout": 0,
+                      "expected": "org.junit.Test$None"
+                    }
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2[0]",
+            "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2)[1]",
+                "displayName": "method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2)",
+                "methodName": "method1",
+                "className": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2",
+                "annotations": [
+                  {
+                    "org.junit.Test": {
+                      "timeout": 0,
+                      "expected": "org.junit.Test$None"
+                    }
+                  }
+                ],
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "id#com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3[0]",
+            "displayName": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3",
+            "className": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3",
+            "annotations": [],
+            "children": [
+              {
+                "id": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3)[1]",
+                "displayName": "method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3)",
+                "methodName": "method1",
+                "className": "com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3",
+                "annotations": [
+                  {
+                    "org.junit.Test": {
+                      "timeout": 0,
+                      "expected": "org.junit.Test$None"
+                    }
+                  }
+                ],
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      "tests": [
+        {
+          "slave": 0,
+          "startTimestamp": 1331889915049,
+          "startTimestampDate": "2012-03-16T10:25:15.049",
+          "executionTime": 0,
+          "description": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2)[1]",
+          "status": "OK",
+          "testFailures": []
+        },
+        {
+          "slave": 0,
+          "startTimestamp": 1331889915086,
+          "startTimestampDate": "2012-03-16T10:25:15.086",
+          "executionTime": 4,
+          "description": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3)[1]",
+          "status": "ERROR",
+          "testFailures": [
+            {
+              "throwableClass": "java.lang.RuntimeException",
+              "throwableString": "java.lang.RuntimeException",
+              "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3.method1(TestHierarchicalSuiteDescription.java:40)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runners.Suite.runChild(Suite.java:128)\n\tat org.junit.runners.Suite.runChild(Suite.java:24)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:30)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+              "kind": "error"
+            }
+          ]
+        }
+      ],
+      "suiteFailures": [
+        {
+          "throwableClass": "java.lang.RuntimeException",
+          "throwableString": "java.lang.RuntimeException",
+          "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1.beforeClass(TestHierarchicalSuiteDescription.java:23)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:27)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runners.Suite.runChild(Suite.java:128)\n\tat org.junit.runners.Suite.runChild(Suite.java:24)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:30)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+          "kind": "error"
+        },
+        {
+          "throwableClass": "java.lang.RuntimeException",
+          "throwableString": "java.lang.RuntimeException",
+          "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2.afterClass(TestHierarchicalSuiteDescription.java:33)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:36)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runners.Suite.runChild(Suite.java:128)\n\tat org.junit.runners.Suite.runChild(Suite.java:24)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:30)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+          "kind": "error"
+        },
+        {
+          "throwableClass": "java.lang.RuntimeException",
+          "throwableString": "java.lang.RuntimeException",
+          "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription.afterClass(TestHierarchicalSuiteDescription.java:46)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:36)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+          "kind": "error"
+        }
+      ],
+      "executionEvents": [
+        {
+          "event": "TEST_FAILURE",
+          "description": "id#com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1[0]",
+          "failure": {
+            "throwableClass": "java.lang.RuntimeException",
+            "throwableString": "java.lang.RuntimeException",
+            "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub1.beforeClass(TestHierarchicalSuiteDescription.java:23)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:27)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runners.Suite.runChild(Suite.java:128)\n\tat org.junit.runners.Suite.runChild(Suite.java:24)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:30)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "error"
+          }
+        },
+        {
+          "event": "TEST_STARTED",
+          "description": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2)[1]"
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2)[1]"
+        },
+        {
+          "event": "TEST_FAILURE",
+          "description": "id#com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2[0]",
+          "failure": {
+            "throwableClass": "java.lang.RuntimeException",
+            "throwableString": "java.lang.RuntimeException",
+            "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub2.afterClass(TestHierarchicalSuiteDescription.java:33)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:36)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runners.Suite.runChild(Suite.java:128)\n\tat org.junit.runners.Suite.runChild(Suite.java:24)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:30)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "error"
+          }
+        },
+        {
+          "event": "TEST_STARTED",
+          "description": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3)[1]"
+        },
+        {
+          "event": "TEST_FAILURE",
+          "description": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3)[1]",
+          "failure": {
+            "throwableClass": "java.lang.RuntimeException",
+            "throwableString": "java.lang.RuntimeException",
+            "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3.method1(TestHierarchicalSuiteDescription.java:40)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)\n\tat org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:263)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:68)\n\tat org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:47)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runners.Suite.runChild(Suite.java:128)\n\tat org.junit.runners.Suite.runChild(Suite.java:24)\n\tat org.junit.runners.ParentRunner$3.run(ParentRunner.java:231)\n\tat org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:60)\n\tat org.junit.runners.ParentRunner.runChildren(ParentRunner.java:229)\n\tat org.junit.runners.ParentRunner.access$000(ParentRunner.java:50)\n\tat org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:222)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:30)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "error"
+          }
+        },
+        {
+          "event": "TEST_FINISHED",
+          "description": "id#method1(com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription$Sub3)[1]"
+        },
+        {
+          "event": "SUITE_FAILURE",
+          "description": "id#com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription[2]",
+          "failure": {
+            "throwableClass": "java.lang.RuntimeException",
+            "throwableString": "java.lang.RuntimeException",
+            "stackTrace": "java.lang.RuntimeException\n\tat com.carrotsearch.ant.tasks.junit4.tests.TestHierarchicalSuiteDescription.afterClass(TestHierarchicalSuiteDescription.java:46)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)\n\tat java.lang.reflect.Method.invoke(Method.java:597)\n\tat org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:45)\n\tat org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)\n\tat org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:42)\n\tat org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:36)\n\tat org.junit.runners.ParentRunner.run(ParentRunner.java:300)\n\tat org.junit.runner.JUnitCore.run(JUnitCore.java:157)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.execute(SlaveMain.java:129)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMain.main(SlaveMain.java:202)\n\tat com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe.main(SlaveMainSafe.java:12)\n",
+            "kind": "error"
+          }
+        }
+      ]
+    }
+  ],
+  "slaves": {
+    "0": {
+      "id": 0,
+      "jvmName": "Java HotSpot(TM) 64-Bit Server VM, 16.3-b01",
+      "charset": "UTF-8",
+      "commandLine": "/home/dweiss/Applications/java/jdk1.6.0_20/jre/bin/java -Drt.prefix\u003drt -Drt.seed\u003dB19FBD1BB1231191 -classpath /home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/test-classes:/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/dependency/junit-4.10.jar:/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/classes:/home/dweiss/.m2/repository/com/google/guava/guava/10.0.1/guava-10.0.1.jar:/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/runner/target/classes:/home/dweiss/.m2/repository/com/google/code/gson/gson/2.0/gson-2.0.jar:/home/dweiss/.m2/repository/commons-io/commons-io/2.1/commons-io-2.1.jar com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe -flush @/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/test-classes/junit4-slave-04421343907870964512.suites",
+      "systemProperties": {
+        "file.encoding": "UTF-8",
+        "file.encoding.pkg": "sun.io",
+        "file.separator": "/",
+        "java.awt.graphicsenv": "sun.awt.X11GraphicsEnvironment",
+        "java.awt.printerjob": "sun.print.PSPrinterJob",
+        "java.class.path": "/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/test-classes:/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/dependency/junit-4.10.jar:/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/classes:/home/dweiss/.m2/repository/com/google/guava/guava/10.0.1/guava-10.0.1.jar:/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/runner/target/classes:/home/dweiss/.m2/repository/com/google/code/gson/gson/2.0/gson-2.0.jar:/home/dweiss/.m2/repository/commons-io/commons-io/2.1/commons-io-2.1.jar",
+        "java.class.version": "50.0",
+        "java.endorsed.dirs": "/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/endorsed",
+        "java.ext.dirs": "/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/ext:/usr/java/packages/lib/ext",
+        "java.home": "/home/dweiss/Applications/java/jdk1.6.0_20/jre",
+        "java.io.tmpdir": "/tmp",
+        "java.library.path": "/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/amd64/server:/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/amd64:/home/dweiss/Applications/java/jdk1.6.0_20/jre/../lib/amd64:/usr/lib/jvm/java-6-openjdk/jre/lib/amd64/server:/usr/lib/jvm/java-6-openjdk/jre/lib/amd64:/usr/lib/jvm/java-6-openjdk/jre/../lib/amd64:/usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib",
+        "java.runtime.name": "Java(TM) SE Runtime Environment",
+        "java.runtime.version": "1.6.0_20-b02",
+        "java.specification.name": "Java Platform API Specification",
+        "java.specification.vendor": "Sun Microsystems Inc.",
+        "java.specification.version": "1.6",
+        "java.vendor": "Sun Microsystems Inc.",
+        "java.vendor.url": "http://java.sun.com/",
+        "java.vendor.url.bug": "http://java.sun.com/cgi-bin/bugreport.cgi",
+        "java.version": "1.6.0_20",
+        "java.vm.info": "mixed mode",
+        "java.vm.name": "Java HotSpot(TM) 64-Bit Server VM",
+        "java.vm.specification.name": "Java Virtual Machine Specification",
+        "java.vm.specification.vendor": "Sun Microsystems Inc.",
+        "java.vm.specification.version": "1.0",
+        "java.vm.vendor": "Sun Microsystems Inc.",
+        "java.vm.version": "16.3-b01",
+        "junit4.memory.total": "62259200",
+        "junit4.processors": "2",
+        "line.separator": "\n",
+        "os.arch": "amd64",
+        "os.name": "Linux",
+        "os.version": "3.0.0-16-generic",
+        "path.separator": ":",
+        "rt.prefix": "rt",
+        "rt.seed": "B19FBD1BB1231191",
+        "sun.arch.data.model": "64",
+        "sun.boot.class.path": "/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/resources.jar:/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/rt.jar:/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/sunrsasign.jar:/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/jsse.jar:/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/jce.jar:/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/charsets.jar:/home/dweiss/Applications/java/jdk1.6.0_20/jre/classes",
+        "sun.boot.library.path": "/home/dweiss/Applications/java/jdk1.6.0_20/jre/lib/amd64",
+        "sun.cpu.endian": "little",
+        "sun.cpu.isalist": "",
+        "sun.desktop": "gnome",
+        "sun.io.unicode.encoding": "UnicodeLittle",
+        "sun.java.launcher": "SUN_STANDARD",
+        "sun.jnu.encoding": "UTF-8",
+        "sun.management.compiler": "HotSpot 64-Bit Server Compiler",
+        "sun.os.patch.level": "unknown",
+        "user.country": "US",
+        "user.dir": "/home/dweiss/carrot2/carrotsearch.labs/randomizedtesting/integration-ant/ant-junit4/target/test-classes/S0",
+        "user.home": "/home/dweiss",
+        "user.language": "en",
+        "user.name": "dweiss",
+        "user.timezone": ""
+      }
+    }
+  }
+});
