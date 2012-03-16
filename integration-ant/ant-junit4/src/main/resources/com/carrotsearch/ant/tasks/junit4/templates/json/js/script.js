@@ -484,29 +484,35 @@
   // Initialize the table
   $(document).ready(function() {
     // Create global aggregations
-    var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus }, noFilter);
+    var counts = aggregate(data, testCount, { "global": global, "byStatus": byStatus }, noFilter);
+    var hasResults = keys(counts).length > 0;
 
     // Generate markup
     var $results = $("#results");
 
     // Results heading
     var heading = { };
-    var numFailures = counts.byStatus[FAILURE];
-    var numErrors = counts.byStatus[ERROR];
-    if ((numFailures + numErrors) > 0) {
-      var h = [];
-      if (numErrors > 0) {
-        h.push(countText(counts.byStatus[ERROR], "test") + " had errors");
-        heading.class = ERROR;
+    if (hasResults) {
+      var numFailures = counts.byStatus[FAILURE];
+      var numErrors = counts.byStatus[ERROR];
+      if ((numFailures + numErrors) > 0) {
+        var h = [];
+        if (numErrors > 0) {
+          h.push(countText(counts.byStatus[ERROR], "test") + " had errors");
+          heading.class = ERROR;
+        }
+        if (numFailures > 0) {
+          h.push(countText(counts.byStatus[FAILURE], "test") + " failed");
+          heading.class = FAILURE;
+        }
+        heading.text = h.join(", ");
+      } else if (counts.byStatus[ERROR] > 0) {
+      } else {
+        heading.text = "tests successful";
+        heading.class = OK;
       }
-      if (numFailures > 0) {
-        h.push(countText(counts.byStatus[FAILURE], "test") + " failed");
-        heading.class = FAILURE;
-      }
-      heading.text = h.join(", ");
-    } else if (counts.byStatus[ERROR] > 0) {
     } else {
-      heading.text = "tests successful";
+      heading.text = "no tests";
       heading.class = OK;
     }
 
@@ -516,46 +522,54 @@
     document.title = $.trim($("header > h1").text());
 
     // Results table tools
-    $tools = $("<div id='tools'>\
-      <input type='search' accesskey='s' placeholder='package, class, method name (Alt+Shift+S to focus)' />\
-      <span class='filters'>show: <a href='#pass'>pass</a> \
-                                  <a href='#ignored'>ignored</a> \
-                                  <a href='#error'>error</a> \
-                                  <a href='#fail'>fail</a>\
-                                  <a href='#withoutoutput'>without output</a></span>\
-      <span class='views'>view: <a href='#packages'>packages</a> \
-                                <a href='#classes'>classes</a> \
-                                <a href='#methods'>methods</a> \
-                                <a href='#console'>console</a></span>\
-    </div>").appendTo($results);
-
+    if (hasResults) {
+      $tools = $("<div id='tools'>\
+        <input type='search' accesskey='s' placeholder='package, class, method name (Alt+Shift+S to focus)' />\
+        <span class='filters'>show: <a href='#pass'>pass</a> \
+                                    <a href='#ignored'>ignored</a> \
+                                    <a href='#error'>error</a> \
+                                    <a href='#fail'>fail</a>\
+                                    <a href='#withoutoutput'>without output</a></span>\
+        <span class='views'>view: <a href='#packages'>packages</a> \
+                                  <a href='#classes'>classes</a> \
+                                  <a href='#methods'>methods</a> \
+                                  <a href='#console'>console</a></span>\
+      </div>").appendTo($results);
+    }
 
     // Results table
     $table = $("<table />").appendTo($results);
+    if (!hasResults) {
+      $table.addClass("no-results");
+      tableEmpty($table);
+      return;
+    }
+
 
     // Console output, invisible by default
     $console = $("<div id='console' />").hide().appendTo($results);
-    $console.delegate('.label', "mouseenter mouseleave", function() {
+    $console.delegate('.label', "mouseenter mouseleave", function () {
       $(this).parent().parent().nextAll(".out, .err").add(this).toggleClass("highlight");
       $(this).closest(".suitebox").toggleClass("highlight");
       return false;
     });
-    $console.delegate('.out, .err', "mouseenter mouseleave", function() {
+    $console.delegate('.out, .err', "mouseenter mouseleave", function () {
       $(this).prevAll(".side").children().eq(0).children().eq(0).add(this).toggleClass("highlight");
       $(this).closest(".suitebox").toggleClass("highlight");
       return false;
     });
-    $console.delegate('.test.label', "click", function() {
+    $console.delegate('.test.label', "click", function () {
       state.highlight = $(this).parent().closest("span.test").attr("id").substring(1);
       state.view = "methods";
       state.push();
       return false;
     });
 
-
     // Bind listeners
     $tools.on("click", ".views", function (e) {
-      if (!e.target.href) { return; }
+      if (!e.target.href) {
+        return;
+      }
       state.view = $(e.target).attr("href").substring(1);
 
       // If the search seems to be a fully qualified method/class name,
@@ -580,7 +594,7 @@
         var method = split[split.length - 1];
         var firstLetter = method.charAt(0);
         if ((splitIfUpper && firstLetter == firstLetter.toUpperCase()) ||
-            (!splitIfUpper && firstLetter == firstLetter.toLowerCase())) {
+          (!splitIfUpper && firstLetter == firstLetter.toLowerCase())) {
           split.pop();
           return true;
         }
@@ -589,7 +603,9 @@
     });
 
     $tools.on("click", ".filters", function (e) {
-      if (!e.target.href) { return; }
+      if (!e.target.href) {
+        return;
+      }
       var filter = $(e.target).attr("href").substring(1);
       state.filter[filter] = !state.filter[filter];
       state.push();
@@ -630,28 +646,28 @@
       return false;
     });
 
-    $table.on("click", "tr.drilldown", function() {
+    $table.on("click", "tr.drilldown", function () {
       $table.data("source").spec.drilldown($(this));
       wasDrilldown = true;
       state.push();
       return false;
     });
 
-    $table.on("click", ".stacktrace", function() {
+    $table.on("click", ".stacktrace", function () {
       $(this).closest("td").toggleClass("fullStacktrace");
       return false;
     });
 
-    $table.on("click", ".stdout, .stderr", function() {
+    $table.on("click", ".stdout, .stderr", function () {
       state.highlight = $(this).closest("tr").attr("id").substring(1);
       state.view = "console";
       state.push();
       return false;
     });
 
-    $search = $tools.find("input[type='search']").on("keyup click drilldownUpdate", function(e) {
+    $search = $tools.find("input[type='search']").on("keyup click drilldownUpdate", function (e) {
       var $this = $(this);
-      typewatch(function() {
+      typewatch(function () {
         var v = $.trim($this.val());
         if (state.search != v) {
           if (e.type != "drilldownUpdate") {
@@ -667,14 +683,14 @@
     // In case of errors or failures, show method view ordered by status.
     if (!(counts.byStatus[FAILURE] > 0 || counts.byStatus[ERROR] > 0)) {
       state.view = "packages";
-      state.order = { columns:[ "signature" ], ascendings:[ true ] };
+      state.order = { columns: [ "signature" ], ascendings: [ true ] };
     } else {
       state.view = "methods";
-      state.order = { columns:[ "result" ], ascendings:[ false ] };
+      state.order = { columns: [ "result" ], ascendings: [ false ] };
     }
 
     // React to path changes
-    $(window).pathchange(function() {
+    $(window).pathchange(function () {
       state.decode();
       refresh();
     });
@@ -935,8 +951,7 @@
     // Get the data
     var rows = spec.rows(data);
     if (rows.length == 0) {
-      html.push("<thead class='empty'><tr><th>", "No tests results found" ,"</th></tr></thead>");
-      $table.html(html.join(""));
+      tableEmpty($table);
       return;
     }
 
@@ -1002,6 +1017,10 @@
     html.push("</tbody>");
 
     $table.html(html.join(""));
+  }
+
+  function tableEmpty($table) {
+    $table.html("<thead class='empty'><tr><th>No tests results found</th></tr></thead>");
   }
 
   function time(id, code) {

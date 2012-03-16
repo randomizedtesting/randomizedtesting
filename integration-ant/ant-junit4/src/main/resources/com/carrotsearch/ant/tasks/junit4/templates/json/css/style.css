@@ -405,6 +405,9 @@ td > .statusbar {
 #results > table > thead > tr > th {
   border-top: none;
 }
+#results > table.no-results > thead > tr > th {
+  border: none;
+}
 th {
   white-space: nowrap;
 }
