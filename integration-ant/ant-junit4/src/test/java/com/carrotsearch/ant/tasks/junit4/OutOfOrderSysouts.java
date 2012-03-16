@@ -32,8 +32,9 @@ public class OutOfOrderSysouts extends RandomizedTest {
   }
   
   @AfterClass
-  public static void afterClass() {
+  public static void afterClass() throws Exception {
     t.interrupt();
+    t.join();
   }
 
   @Test public void method1() { sysout("method1"); }
