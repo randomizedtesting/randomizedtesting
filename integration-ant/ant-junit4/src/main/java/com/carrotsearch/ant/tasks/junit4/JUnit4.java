@@ -512,7 +512,9 @@ public class JUnit4 extends Task {
       aggregatedBus.register(o);
     }
 
-    if (!testClassNames.isEmpty()) {
+    if (testClassNames.isEmpty()) {
+      aggregatedBus.post(new AggregatedQuitEvent());
+    } else {
       start = System.currentTimeMillis();
       
       final int slaveCount = determineSlaveCount(testClassNames.size());
