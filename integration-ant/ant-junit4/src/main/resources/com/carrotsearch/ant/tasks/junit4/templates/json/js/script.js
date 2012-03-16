@@ -23,7 +23,7 @@
   var $table, $search, $tools, $console;
 
   // Data model
-  var data, aggregates;
+  var data, aggregates, project;
 
   // Application state encoded and parsed from the URL
   var state = {
@@ -123,6 +123,7 @@
   // This function will be called by the JSONP data file
   window.testData = function(d) {
     data = d.suites;
+    project = d.junit4;
 
     var descriptionsById = { };
 
@@ -508,7 +509,8 @@
       heading.text = "tests successful";
       heading.class = OK;
     }
-    $("header > h1").append(" <strong>" + heading.text + "</strong>").parent().addClass(heading.class);
+
+    $("header > h1").text(project["project.name"] + ":").append(" <strong>" + heading.text + "</strong>").parent().addClass(heading.class);
 
     // Update window title
     document.title = $.trim($("header > h1").text());
