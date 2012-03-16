@@ -175,10 +175,14 @@ public class JsonReport implements AggregatedEventListener {
    * Return the project name or the default project name.
    */
   private String getProjectName() {
-    String pName = Objects.firstNonNull(
-        Strings.emptyToNull(projectName),
-        Strings.emptyToNull(junit4.getProject().getName()));
-    return Objects.firstNonNull(pName, "(unnamed project)");
+    String pName = Strings.emptyToNull(projectName);
+    if (pName == null) { 
+      pName = Strings.emptyToNull(junit4.getProject().getName());
+    }
+    if (pName == null) {
+      pName = "(unnamed project)";      
+    }
+    return pName;
   }
 
   /**

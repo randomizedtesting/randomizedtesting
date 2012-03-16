@@ -24,6 +24,6 @@ public class TestSuiteClassesBad extends AntBuildFileTestBase {
   @Test
   public void notinstantiable() {
     expectBuildExceptionContaining("notinstantiable",
-        "1 suite, 0 tests, 1 suite-level error");
+        "There were test failures: 1 suite, 1 test, 1 error");
   }
 }

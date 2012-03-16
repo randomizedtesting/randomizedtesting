@@ -1,37 +1,41 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.util.concurrent.CountDownLatch;
-
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
 
-
+@ThreadLeaks(leakedThreadsBelongToSuite = true)
 public class OutOfOrderSysouts extends RandomizedTest {
-  final static CountDownLatch latch = new CountDownLatch(1);
+  private static Thread t;
+
   static {
-    new Thread("background-non-daemon") {
+    t = new Thread("background-non-daemon") {
       public void run() {
         sysout("Starting...");
         try {
           while (true) {
             syserr("garbage...");
-            Thread.yield();
+            Thread.sleep(1);
           }
         } catch (Exception e) {
           // empty.
         }
       }
-    }.start();
+    };
+    t.start();
   }
 
   @Before
   public void before() {
-    latch.countDown();
     sleep(1 + randomInt(20));
   }
   
+  @AfterClass
+  public static void afterClass() {
+    t.interrupt();
+  }
+
   @Test public void method1() { sysout("method1"); }
   @Test public void method2() { sysout("method2"); }
   @Test public void method3() { sysout("method3"); }

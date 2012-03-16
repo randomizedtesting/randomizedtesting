@@ -84,7 +84,10 @@
                     showStatusIgnored="true"
 
                     showSuiteSummary="false"
-                />              
+                />
+
+                <!-- JSON report with HTML scaffolding. -->
+                <report-json file="${dir.ant.tests}/result-json/results.html" />
               </listeners>
 
               <assertions>

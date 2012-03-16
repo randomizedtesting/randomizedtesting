@@ -153,9 +153,8 @@
                     showSuiteSummary="false"
                 />
 
-                <!-- JSON reports. -->
-                <report-json file="${dir.ant.tests}/result-json/results.json"  />
-                <report-json file="${dir.ant.tests}/result-json/results.jsonp" jsonpMethod="callbackMethod" />
+                <!-- JSON report with HTML scaffolding. -->
+                <report-json file="${dir.ant.tests}/result-json/results.html" />
 
                 <!-- XML reports compatible with ant-report task. -->
                 <report-ant-xml dir="${dir.ant.tests}/result-xml" />
