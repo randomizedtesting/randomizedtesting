@@ -237,40 +237,42 @@ public class JsonReport implements AggregatedEventListener {
    * Copy HTML/JS/CSS scaffolding to a targetFile's directory.
    */
   private void copyScaffolding(File targetFile) throws IOException {
+    String resourcePrefix = "com/carrotsearch/ant/tasks/junit4/templates/json/";
+
     File parent = targetFile.getParentFile();
 
     // Handle index.html substitutitons.
     ClassLoader cl = this.getClass().getClassLoader();
     String index = 
         Resources.toString(
-            cl.getResource("reports/json/index.html"), Charsets.UTF_8);
+            cl.getResource(resourcePrefix + "index.html"), Charsets.UTF_8);
     index = index.replaceAll(Pattern.quote("tests-output.jsonp"),
         FilenameUtils.removeExtension(targetFile.getName()) + ".jsonp");
     Files.write(index, targetFile, Charsets.UTF_8);
     
     // Copy over the remaining files. This is hard coded but scanning a JAR seems like an overkill.
     String [] resources = {
-        "reports/json/js/jquery-1.7.1.min.js",
-        "reports/json/js/script.js",
-        "reports/json/js/jquery.pathchange.js",
-        "reports/json/img/pass.png",
-        "reports/json/img/error.png",
-        "reports/json/img/stderr.png",
-        "reports/json/img/arrow-up.png",
-        "reports/json/img/stdout.png",
-        "reports/json/img/indicator.png",
-        "reports/json/img/failure.png",
-        "reports/json/img/omited.png",
-        "reports/json/img/arrow-down.png",
-        "reports/json/css/style.css"
+        "js/jquery-1.7.1.min.js",
+        "js/script.js",
+        "js/jquery.pathchange.js",
+        "img/pass.png",
+        "img/error.png",
+        "img/stderr.png",
+        "img/arrow-up.png",
+        "img/stdout.png",
+        "img/indicator.png",
+        "img/failure.png",
+        "img/omited.png",
+        "img/arrow-down.png",
+        "css/style.css"
     };
 
     for (String resource : resources) {
-      File target = new File(parent, resource.replaceAll("^reports/json/", ""));
+      File target = new File(parent, resource);
       if (!target.getParentFile().exists()) {
         target.getParentFile().mkdirs();
       }
-      URL res = cl.getResource(resource);
+      URL res = cl.getResource(resourcePrefix + resource);
       if (res == null) {
         throw new IOException("Could not find the required report resource: " + resource);
       }
