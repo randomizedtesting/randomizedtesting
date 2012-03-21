@@ -495,7 +495,7 @@
     if (hasResults) {
       var numFailures = counts.byStatus[FAILURE];
       var numErrors = counts.byStatus[ERROR];
-      if ((numFailures + numErrors) > 0) {
+      if (numFailures > 0 || numErrors > 0) {
         var h = [];
         if (numErrors > 0) {
           h.push(countText(counts.byStatus[ERROR], "test") + " had errors");
