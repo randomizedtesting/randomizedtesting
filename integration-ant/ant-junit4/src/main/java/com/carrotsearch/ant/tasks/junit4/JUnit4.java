@@ -237,6 +237,13 @@ public class JUnit4 extends Task {
   }
   
   /**
+   * Do not propagate the old environment when new environment variables are specified.
+   */
+  public void setNewEnvironment(boolean v) {
+    this.newEnvironment = v;
+  }
+  
+  /**
    * Initial random seed used for shuffling test suites and other sources
    * of pseudo-randomness. If not set, any random value is set. 
    * 
@@ -449,6 +456,62 @@ public class JUnit4 extends Task {
   public Path createBootclasspath() {
     return bootclasspath.createPath();
   }
+  
+  /* ANT-junit compat only. */
+  public void setFork(boolean fork) {
+    warnUnsupported("fork");
+  }
+
+  public void setForkmode(String forkMode) {
+    warnUnsupported("forkmode");
+  }
+  
+  public void setHaltOnError(boolean haltOnError) {
+    warnUnsupported("haltonerror");
+  }
+
+  public void setFiltertrace(boolean filterTrace) {
+    warnUnsupported("filtertrace");
+  }
+
+  public void setTimeout(String v) {
+    warnUnsupported("timeout");
+  }
+
+  public void setIncludeantruntime(String v) {
+    warnUnsupported("includeantruntime");
+  }
+
+  public void setShowoutput(String v) {
+    warnUnsupported("showoutput");
+  }
+
+  public void setOutputtoformatters(String v) {
+    warnUnsupported("outputtoformatters");
+  }
+
+  public void setReloading(String v) {
+    warnUnsupported("reloading");
+  }
+  
+  public void setClonevm(String v) {
+    warnUnsupported("clonevm");
+  }
+
+  public void setLogfailedtests(String v) {
+    warnUnsupported("logfailedtests");
+  }
+  
+  public void setEnableTestListenerEvents(String v) {
+    warnUnsupported("enableTestListenerEvents");
+  }
+
+  
+  
+  private void warnUnsupported(String attName) {
+    log("The '" + attName + "' attribute is not supported by <junit4>.", Project.MSG_WARN);
+  }
+
   
   @SuppressWarnings("deprecation")
   @Override
@@ -975,38 +1038,56 @@ public class JUnit4 extends Task {
   private List<String> processTestResources() {
     List<String> testClassNames = Lists.newArrayList();
     resources.setProject(getProject());
-    
+
     @SuppressWarnings("unchecked")
     Iterator<Resource> iter = (Iterator<Resource>) resources.iterator();
+    boolean javaSourceWarn = false;
     while (iter.hasNext()) {
       final Resource r = iter.next();
       if (!r.isExists()) 
         throw new BuildException("Test class resource does not exist?: " + r.getName());
 
       try {
-        InputStream is = r.getInputStream();
-        if (!is.markSupported()) {
-          is = new BufferedInputStream(is);          
-        }
-
-        try {
-          is.mark(4);
-          if (is.read() != 0xca ||
-              is.read() != 0xfe ||
-              is.read() != 0xba ||
-              is.read() != 0xbe) {
-            throw new BuildException("File does not start with a class magic 0xcafebabe: "
-                + r.getName() + ", " + r.getLocation());
-          }
-          is.reset();
-
-          ClassReader reader = new ClassReader(is);
-          String className = reader.getClassName().replace('/', '.');
-          log("Test class parsed: " + r.getName() + " as " 
-              + reader.getClassName(), Project.MSG_DEBUG);
+        if (r.getName().endsWith(".java")) {
+          String pathname = r.getName();
+          String className = pathname.substring(0, pathname.length() - ".java".length());
+          className = className
+            .replace(File.separatorChar, '.')
+            .replace('/', '.')
+            .replace('\\', '.');
           testClassNames.add(className);
-        } finally {
-          is.close();
+          
+          if (!javaSourceWarn) {
+            log("Source (.java) files used for naming source suites. This is discouraged, " +
+            		"use a resource collection pointing to .class files instead.", Project.MSG_INFO);
+            javaSourceWarn = true;
+          }
+        } else {
+          // Assume .class file.
+          InputStream is = r.getInputStream();
+          if (!is.markSupported()) {
+            is = new BufferedInputStream(is);          
+          }
+  
+          try {
+            is.mark(4);
+            if (is.read() != 0xca ||
+                is.read() != 0xfe ||
+                is.read() != 0xba ||
+                is.read() != 0xbe) {
+              throw new BuildException("File does not start with a class magic 0xcafebabe: "
+                  + r.getName() + ", " + r.getLocation());
+            }
+            is.reset();
+  
+            ClassReader reader = new ClassReader(is);
+            String className = reader.getClassName().replace('/', '.');
+            log("Test class parsed: " + r.getName() + " as " 
+                + reader.getClassName(), Project.MSG_DEBUG);
+            testClassNames.add(className);
+          } finally {
+            is.close();
+          }
         }
       } catch (IOException e) {
         throw new BuildException("Could not read or parse as Java class: "

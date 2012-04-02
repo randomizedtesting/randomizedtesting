@@ -46,6 +46,13 @@
     </presetdef>
 
     <!-- Targets below are connected with test cases. -->
+    <target name="sourcesuites">
+        <junit4.preconf>
+            <fileset dir="${basedir}/../../src/test/java">
+                <include name="**/TestSuccess.java" />
+            </fileset>
+        </junit4.preconf>
+    </target>
 
     <target name="sysstreams">
         <junit4.preconf>
