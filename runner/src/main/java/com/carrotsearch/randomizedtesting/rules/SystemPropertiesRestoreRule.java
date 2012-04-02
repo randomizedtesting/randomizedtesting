@@ -17,6 +17,32 @@ import org.junit.runners.model.Statement;
  * @see Rule
  */
 public class SystemPropertiesRestoreRule implements TestRule {
+  /**
+   * Ignored property keys.
+   */
+  private final HashSet<String> ignoredProperties;
+
+  /**
+   * Restores all properties.
+   */
+  public SystemPropertiesRestoreRule() {
+    this(Collections.<String>emptySet());
+  }
+
+  /**
+   * @param ignoredProperties Properties that will be ignored (and will not be restored).
+   */
+  public SystemPropertiesRestoreRule(Set<String> ignoredProperties) {
+    this.ignoredProperties = new HashSet<String>(ignoredProperties);
+  }
+
+  /**
+   * @param ignoredProperties Properties that will be ignored (and will not be restored).
+   */
+  public SystemPropertiesRestoreRule(String... ignoredProperties) {
+    this.ignoredProperties = new HashSet<String>(Arrays.asList(ignoredProperties));
+  }
+
   @Override
   public Statement apply(final Statement s, Description d) {
     return new Statement() {
@@ -29,7 +55,7 @@ public class SystemPropertiesRestoreRule implements TestRule {
           TreeMap<String,String> after = cloneAsMap(System.getProperties());
           if (!after.equals(before)) {
             // Restore original properties.
-            restore(before, after);
+            restore(before, after, ignoredProperties);
           }
         }
       }
@@ -59,16 +85,25 @@ public class SystemPropertiesRestoreRule implements TestRule {
 
   static void restore(
       TreeMap<String,String> before,
-      TreeMap<String,String> after) {
+      TreeMap<String,String> after,
+      Set<String> ignoredKeys) {
+
+    // Clear anything that is present after but wasn't before.
     after.keySet().removeAll(before.keySet());
     for (String key : after.keySet()) {
-      System.clearProperty(key);
+      if (!ignoredKeys.contains(key))
+        System.clearProperty(key);
     }
+
+    // Restore original property values unless they are ignored (then leave).
     for (Map.Entry<String,String> e : before.entrySet()) {
-      if (e.getValue() == null) {
-        System.clearProperty(e.getKey()); // Can this happen?
-      } else {
-        System.setProperty(e.getKey(), e.getValue());
+      String key = e.getValue();
+      if (!ignoredKeys.contains(key)) {
+        if (key == null) {
+          System.clearProperty(e.getKey()); // Can this happen?
+        } else {
+          System.setProperty(e.getKey(), key);
+        }
       }
     }
   }  
