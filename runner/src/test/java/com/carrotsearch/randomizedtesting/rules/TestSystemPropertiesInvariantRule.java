@@ -10,18 +10,31 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
+import org.junit.runner.*;
 import org.junit.runner.notification.Failure;
+import org.junit.runners.model.Statement;
 
-public class TestSystemPropertiesInvariantRule {
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
+
+public class TestSystemPropertiesInvariantRule extends WithNestedTestClass {
   public static final String PROP_KEY1 = "new-property-1";
   public static final String VALUE1 = "new-value-1";
   
   public static class Base {
+    private static TestRule assumeNotNestedRule = new TestRule() {
+      public Statement apply(final Statement base, Description description) {
+        return new Statement() {
+          public void evaluate() throws Throwable {
+            assumeRunningNested();
+            base.evaluate();
+          }
+        };
+      }
+    };
+    
     @ClassRule
     public static TestRule classRules = 
-      RuleChain.outerRule(new SystemPropertiesInvariantRule());
+      RuleChain.outerRule(assumeNotNestedRule).around(new SystemPropertiesInvariantRule());
 
     @Rule
     public TestRule testRules = 

@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,12 +175,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * The default number of first interrupts, then Thread.stop attempts.
    */
-  public static final int DEFAULT_KILLATTEMPTS = 10;
+  public static final int DEFAULT_KILLATTEMPTS = 5;
   
   /**
    * Time in between interrupt retries or stop retries.
    */
-  public static final int DEFAULT_KILLWAIT = 1000;
+  public static final int DEFAULT_KILLWAIT = 500;
 
   /**
    * The default number of iterations.
@@ -1159,14 +1160,67 @@ public final class RandomizedRunner extends Runner implements Filterable {
          */
       } else {
         if (threadLeaks.failTestIfLeaking()) {
-          for (Thread t : now) {
-            terminateAndFireFailure(t, notifier, description, 
-                threadLeaks.stackSamples(), "Left-over thread detected ");
-          }
+          now = terminateAndFireFailureForAll(now, notifier, description, threadLeaks);
         }
         bulletProofZombies.addAll(now);        
       }
     }
+  }
+
+  /**
+   * Attempts to terminate all threads at once.
+   * @return Returns the set of threads that couldn't be terminated properly.
+   */
+  private Set<Thread> terminateAndFireFailureForAll(Set<Thread> now, 
+      final RunNotifier notifier, 
+      final Description description,
+      final ThreadLeaks threadLeaks) {
+    
+    // TODO: this routine could be done from a single thread by it would make the code
+    // much more complex so we go with the easy (although resource-consuming) way now.
+    final CountDownLatch latch = new CountDownLatch(1);
+    List<Thread> rickDeckards = new ArrayList<Thread>(now.size()); 
+    for (final Thread t : now) {
+      rickDeckards.add(new Thread() {
+        @Override
+        public void run() {
+          try {
+            latch.await();
+            terminateAndFireFailure(
+                t, notifier, description, 
+                threadLeaks.stackSamples(), 
+                "Left-over thread detected ");
+          } catch (Throwable x) {
+            logger.log(Level.SEVERE, "Rick Deckard exception?", x);
+          }
+        }
+      });
+    }
+    
+    for (Thread t : rickDeckards) {
+      t.setPriority(Thread.MAX_PRIORITY);
+      t.start();
+    }
+    latch.countDown();
+
+    for (Thread t : rickDeckards) {
+      while (true) {
+        try {
+          t.join();
+          break;
+        } catch (InterruptedException e) {
+          continue;
+        }
+      }
+    }
+
+    Set<Thread> s = new HashSet<Thread>();
+    for (Thread t : now) {
+      if (t.isAlive()) {
+        s.add(t);
+      }
+    }
+    return s;
   }
 
   /**
