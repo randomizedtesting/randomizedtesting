@@ -15,9 +15,10 @@
       <outputDirectory>${project.version}/</outputDirectory>
       <includes>
         <include>api/**</include>
+        <include>docs/**</include>
       </includes>
     </fileSet>
-    
+
     <fileSet>
       <directory>${project.build.directory}</directory>
       <outputDirectory>${project.version}/</outputDirectory>

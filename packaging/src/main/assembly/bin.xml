@@ -29,6 +29,11 @@
       <outputDirectory>api/randomizedrunner</outputDirectory>
     </fileSet>
 
+    <fileSet>
+      <directory>${project.parent.basedir}/integration-ant/ant-junit4/src/tasks</directory>
+      <outputDirectory>docs</outputDirectory>
+    </fileSet>
+
     <!-- JUnit4 -->
     <fileSet>
       <directory>${project.parent.basedir}/integration-ant/ant-junit4/target</directory>
