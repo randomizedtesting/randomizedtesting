@@ -1,4 +1,4 @@
-<antlib>
+<antlib xmlns:current="ant:current">
     <taskdef 
         name="junit4" 
         classname="com.carrotsearch.ant.tasks.junit4.JUnit4" />

@@ -1,37 +1,38 @@
- 
-<project default="test">
-  <presetdef name="javac">
-      <javac deprecation="false" debug="true"
-          target="1.6" source="1.6"
-          encoding="UTF-8" includeantruntime="false" />
-  </presetdef>
+
+<project default="test" xmlns:junit4="antlib:com.carrotsearch.junit4">
+    <presetdef name="javac">
+        <javac deprecation="false" debug="true" target="1.6" source="1.6" encoding="UTF-8" includeantruntime="false" />
+    </presetdef>
 
     <property name="tmp.dir" location="${basedir}/target" />
 
     <!--
     This setup is a bit complex because it needs to work for integration tests and for distribution examples.
       -->
-    <target name="classpath.resolve">  
-      <available property="libs.dir" value="${basedir}/target/lib" file="${basedir}/target/lib" type="dir" />
-      <available property="libs.dir" value="${basedir}/../../lib" file="${basedir}/../../lib" type="dir" />
+    <target name="classpath.resolve">
+        <available property="libs.dir" value="${basedir}/target/lib" file="${basedir}/target/lib" type="dir" />
+        <available property="libs.dir" value="${basedir}/../../lib" file="${basedir}/../../lib" type="dir" />
 
-      <fail message="No classpath?">
-        <condition>
-          <not>
-            <isset property="libs.dir" />
-          </not>
-        </condition>
-      </fail>
+        <fail message="No classpath?">
+            <condition>
+                <not>
+                    <isset property="libs.dir" />
+                </not>
+            </condition>
+        </fail>
     </target>
 
-    <target name="compile" depends="classpath.resolve">  
-      <mkdir dir="${tmp.dir}/classes" />
-      <javac destdir="${tmp.dir}/classes">
-        <src location="${basedir}/../maven/src/main/java" />
-        <classpath>
-          <fileset dir="${libs.dir}" includes="*.jar" />
-        </classpath>
-      </javac>
+    <!--
+    Compile the sources from maven examples to avoid duplication.
+      -->
+    <target name="compile" depends="classpath.resolve">
+        <mkdir dir="${tmp.dir}/classes" />
+        <javac destdir="${tmp.dir}/classes">
+            <src location="${basedir}/../maven/src/main/java" />
+            <classpath>
+                <fileset dir="${libs.dir}" includes="*.jar" />
+            </classpath>
+        </javac>
     </target>
 
     <!--
@@ -39,14 +40,15 @@
       -->
     <target name="test" depends="classpath.resolve,compile">
         <!-- Make room for tests output and report. -->
-        <delete dir="${tmp.dir}"  failonerror="false" quiet="true">
-          <include name="test-report*/**" />
+        <delete dir="${tmp.dir}" failonerror="false" quiet="true">
+            <include name="test-report*/**" />
         </delete>
 
         <!-- 
-            Load JUnit4.
+            Load JUnit4. This can be loaded as an antlib or into the default
+            namespace using resource=com/carrotsearch/junit4/antlib.xml
         -->
-        <taskdef resource="junit4.antlib.xml">
+        <taskdef uri="antlib:com.carrotsearch.junit4">
             <classpath>
                 <fileset dir="${libs.dir}">
                     <include name="junit4-ant*.jar" />
@@ -58,21 +60,10 @@
         <!--
         Run junit4 tests.
         -->
-        <junit4
-            jvm=""
-            dir="${tmp.dir}"
-            maxmemory="50m"
-            haltonfailure="false" 
-            failureProperty="tests.failed"
-            parallelism="1"
-            shuffleOnSlave="true"
-            leaveTemporary="false"
-            seed=""
-            printSummary="false"
-        >
+        <junit4:junit4 jvm="" dir="${tmp.dir}" maxmemory="50m" haltonfailure="false" failureProperty="tests.failed" parallelism="1" shuffleOnSlave="true" leaveTemporary="false" seed="" printSummary="false">
             <classpath>
-              <pathelement location="${tmp.dir}/classes" />
-              <fileset dir="${libs.dir}" includes="*.jar" />
+                <pathelement location="${tmp.dir}/classes" />
+                <fileset dir="${libs.dir}" includes="*.jar" />
             </classpath>
 
             <!-- 
@@ -90,8 +81,8 @@
             <env key="env.foo" value="bar" />
 
             <assertions>
-              <enable package="com.carrotsearch"/>
-            </assertions>            
+                <enable package="com.carrotsearch" />
+            </assertions>
 
             <!-- Attached listeners -->
             <listeners>
@@ -99,83 +90,67 @@
                     'verbose' config in which each suite and its test case is individually 
                     shown along with its output, exceptions, stack traces etc. 
                 -->
-                <report-text
-                    file="${tmp.dir}/test-report-txt/results-verbose.txt"
+                <junit4:report-text file="${tmp.dir}/test-report-txt/results-verbose.txt" 
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
-                    showErrorStream="true"
-
-                    showStatusOk="true"
-                    showStatusError="true"
-                    showStatusFailure="true"
-                    showStatusIgnored="true"
-
-                    showSuiteSummary="true"
-                />
+                    showErrorStream="true" 
+                    showStatusOk="true" 
+                    showStatusError="true" 
+                    showStatusFailure="true" 
+                    showStatusIgnored="true" 
+                    showSuiteSummary="true" />
 
                 <!-- 
                     'suite' maven-like output in which each test case is individually shown along
                     with its output. No exceptions or stacks.
                 -->
-                <report-text
-                    file="${tmp.dir}/test-report-txt/results-suite.txt"
+                <junit4:report-text file="${tmp.dir}/test-report-txt/results-suite.txt" 
                     showThrowable="false" 
                     showStackTraces="false" 
                     showOutputStream="false" 
-                    showErrorStream="false"
-
-                    showStatusOk="false"
-                    showStatusError="false"
-                    showStatusFailure="false"
-                    showStatusIgnored="false"
-
-                    showSuiteSummary="true"
-                />
+                    showErrorStream="false" 
+                    showStatusOk="false" 
+                    showStatusError="false" 
+                    showStatusFailure="false" 
+                    showStatusIgnored="false" 
+                    showSuiteSummary="true" />
 
                 <!--
                     'quiet' output in which only errors are shown (without stacks).
                 -->
-                <report-text
-                    file="${tmp.dir}/test-report-txt/results-quiet.txt"
+                <junit4:report-text file="${tmp.dir}/test-report-txt/results-quiet.txt" 
                     showThrowable="true" 
                     showStackTraces="false" 
                     showOutputStream="false" 
-                    showErrorStream="false"
-
-                    showStatusOk="false"
+                    showErrorStream="false" 
+                    showStatusOk="false" 
                     showStatusError="true"
                     showStatusFailure="true"
                     showStatusIgnored="false"
-
-                    showSuiteSummary="false"
-                />
+                    showSuiteSummary="false" />
 
                 <!--
                     All tests with status information.
                 -->
-                <report-text
-                    file="${tmp.dir}/test-report-txt/results-testlist.txt"
+                <junit4:report-text file="${tmp.dir}/test-report-txt/results-testlist.txt" 
                     showThrowable="false" 
                     showStackTraces="false" 
                     showOutputStream="false" 
-                    showErrorStream="false"
-
-                    showStatusOk="true"
-                    showStatusError="true"
-                    showStatusFailure="true"
-                    showStatusIgnored="true"
-
-                    showSuiteSummary="false"
-                />
+                    showErrorStream="false" 
+                    showStatusOk="true" 
+                    showStatusError="true" 
+                    showStatusFailure="true" 
+                    showStatusIgnored="true" 
+                    showSuiteSummary="false" />
 
                 <!-- JSON report with HTML scaffolding. -->
-                <report-json file="${tmp.dir}/test-report-json/results.html" />
+                <junit4:report-json file="${tmp.dir}/test-report-json/results.html" />
 
                 <!-- XML reports compatible with ant-report task. -->
-                <report-ant-xml dir="${tmp.dir}/test-report-xml" />
+                <junit4:report-ant-xml dir="${tmp.dir}/test-report-xml" />
             </listeners>
-        </junit4>
+        </junit4:junit4>
 
         <!-- Run a "standard" JUnit report on the generated XML files. JSON report is recommended. -->
         <junitreport todir="${tmp.dir}/test-report-xml">
@@ -185,6 +160,10 @@
             <report format="frames" todir="${tmp.dir}/test-report-xml" />
         </junitreport>
 
-        <echo>Done. See reports under ${tmp.dir}.</echo>
+        <echo>
+
+Done. See reports under target/.
+
+        </echo>
     </target>
 </project>

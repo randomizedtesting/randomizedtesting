@@ -114,10 +114,9 @@
       <profile>
           <id>tools.jar</id>
           <activation>
-              <property>
-                  <name>java.vendor</name>
-                  <value>Sun Microsystems Inc.</value>
-              </property>
+              <file>
+                <exists>${java.home}/../lib/tools.jar</exists>
+              </file>
           </activation>
           <build>
             <plugins>

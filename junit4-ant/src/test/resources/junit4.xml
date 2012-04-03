@@ -1,5 +1,5 @@
 
-<project name="junit4" default="statuses">
+<project name="junit4" default="statuses" xmlns:junit4="antlib:com.carrotsearch.junit4">
     <property name="native.libs" location="${basedir}/../../src/native/lib" />
 
     <path id="junit.classpath">
@@ -13,7 +13,7 @@
         <path refid="junit.classpath" />
     </path>
 
-    <taskdef resource="junit4.antlib.xml">
+    <taskdef uri="antlib:com.carrotsearch.junit4">
         <classpath refid="junit.classpath" />
         <classpath>
             <fileset dir=".." id="fileset.junit4">
@@ -24,11 +24,11 @@
     </taskdef>
 
     <presetdef name="junit4.preconf">
-        <junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true">
+        <junit4:junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true">
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-text
+                <junit4:report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -42,7 +42,7 @@
                     showSuiteSummary="false"
                 />
             </listeners>
-        </junit4>
+        </junit4:junit4>
     </presetdef>
 
     <!-- Targets below are connected with test cases. -->
@@ -67,15 +67,15 @@
     </target>
 
     <target name="nojunit">
-        <junit4>
+        <junit4:junit4>
             <fileset dir="${basedir}">
                 <include name="**/tests/TestSysstreams.class" />
             </fileset>
-        </junit4>
+        </junit4:junit4>
     </target>
     
     <target name="oldjunit">
-        <junit4>
+        <junit4:junit4>
             <classpath>
                 <path location="." />
                 <fileset dir="${basedir}/../.." includes="lib/junit*.jar" />
@@ -83,7 +83,7 @@
             <fileset dir="${basedir}">
                 <include name="**/tests/TestStatuses.class" />
             </fileset>
-        </junit4>
+        </junit4:junit4>
     </target>    
 
     <target name="statuses">
@@ -248,17 +248,17 @@
         <delete dir="ant-xmls" failonerror="false" />
         <mkdir dir="ant-xmls" />
 
-        <junit4 haltonfailure="false">
+        <junit4:junit4 haltonfailure="false">
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-ant-xml dir="ant-xmls">
+                <junit4:report-ant-xml dir="ant-xmls">
                     <!--
                     <tokenfilter>
                       <replaceregex pattern="" replace="" flags="gi" />
                     </tokenfilter>
                     -->
-                </report-ant-xml>
+                </junit4:report-ant-xml>
             </listeners>
 
             <fileset dir="${basedir}">
@@ -268,20 +268,20 @@
                 <include name="**/tests/TestBeforeClassError.class" />
                 <include name="**/tests/TestHierarchicalSuiteDescription.class" />
             </fileset>
-        </junit4>
+        </junit4:junit4>
     </target>
 
     <target name="json">
         <delete dir="json" failonerror="false" />
         <mkdir dir="json" />
 
-        <junit4 haltonfailure="false">
+        <junit4:junit4 haltonfailure="false">
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <report-json file="json/report.json" />
-                <report-json jsonpMethod="callbackMethod" file="json/report.jsonp" />
-                <report-json file="json/output.html" projectName="Nice project" />
+                <junit4:report-json file="json/report.json" />
+                <junit4:report-json jsonpMethod="callbackMethod" file="json/report.jsonp" />
+                <junit4:report-json file="json/output.html" projectName="Nice project" />
             </listeners>
 
             <fileset dir="${basedir}">
@@ -291,7 +291,7 @@
                 <include name="**/tests/TestBeforeClassError.class" />
                 <include name="**/tests/TestHierarchicalSuiteDescription.class" />
             </fileset>
-        </junit4>
+        </junit4:junit4>
     </target>
 
     <target name="classfilter">
@@ -418,13 +418,13 @@
             </fileset>
 
             <listeners>
-            	<report-execution-times file="${basedir}/hints.log" historyLength="5" />
+            	<junit4:report-execution-times file="${basedir}/hints.log" historyLength="5" />
         	</listeners>
 
         	<balancers>
-        		<execution-times>
+        		<junit4:execution-times>
         			<fileset dir="${basedir}" includes="hints*.log" />
-    			</execution-times>
+    			</junit4:execution-times>
     		</balancers>
         </junit4.preconf>
 
@@ -511,23 +511,23 @@
             </fileset>
 
             <listeners>
-                <report-execution-times file="${basedir}/hints-1.log" />
-            	<report-execution-times file="${basedir}/hints-2.log" />
-            	<report-execution-times file="${basedir}/hints-3.log" />
+                <junit4:report-execution-times file="${basedir}/hints-1.log" />
+            	<junit4:report-execution-times file="${basedir}/hints-2.log" />
+            	<junit4:report-execution-times file="${basedir}/hints-3.log" />
             </listeners>
         </junit4.preconf>
 
-    	<mergehints file="${basedir}/hints-merged.log" historyLength="3">
+    	<junit4:mergehints file="${basedir}/hints-merged.log" historyLength="3">
     		<fileset dir="${basedir}" includes="hints-?.log" />
-	    </mergehints>
+	    </junit4:mergehints>
 
-        <tophints max="3">
+        <junit4:tophints max="3">
         	<fileset dir="${basedir}" includes="hints-merged.log" />
-        </tophints>
+        </junit4:tophints>
     </target>
 
     <target name="staticScopeOutput">
-        <junit4>
+        <junit4:junit4>
             <classpath refid="tests.classpath" />
 
             <fileset dir="${basedir}">
@@ -535,7 +535,7 @@
             </fileset>
 
             <listeners>
-                <report-text
+                <junit4:report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -547,9 +547,9 @@
                     showSuiteSummary="true"
                 />
 
-            	<report-json file="json/static-scope.json" />
+            	<junit4:report-json file="json/static-scope.json" />
             </listeners>
-        </junit4>
+        </junit4:junit4>
     </target>
 	
     <target name="iters">

@@ -55,8 +55,8 @@ import static com.carrotsearch.randomizedtesting.SysGlobals.*;
  */
 public class JUnit4 extends Task {
   /** Name of the antlib resource inside JUnit4 JAR. */
-  public static final String ANTLIB_RESOURCE_NAME = "junit4.antlib.xml";
-  
+  public static final String ANTLIB_RESOURCE_NAME = "com/carrotsearch/junit4/antlib.xml";
+
   /** @see #setParallelism(String) */
   public static final Object PARALLELISM_AUTO = "auto";
 
