@@ -562,5 +562,51 @@
                 <include name="**/TestSuccess.class" />
             </fileset>
         </junit4.preconf>
-    </target>	
+    </target>
+
+    <target name="junitcompat1">
+        <junit4.preconf
+            fork="true"
+            forkmode="once"
+            haltonerror="true"
+            errorproperty="dummy"
+            filtertrace="yes"
+            timeout="60"
+            includeantruntime="true"
+            showoutput="yes"
+            outputtoformatters="true"
+            reloading="true"
+            clonevm="true"
+            logfailedtests="true"
+            enableTestListenerEvents="true"
+        >
+            <formatter type="plain"/>
+        </junit4.preconf>
+    </target>
+    
+    <target name="junitcompat2">
+        <junit4.preconf>
+            <test name="my.test.TestCase" haltonfailure="no" outfile="result">
+                <formatter type="xml"/>
+            </test>
+    
+            <batchtest fork="yes" todir="${reports.tests}">
+              <fileset dir="${src.tests}">
+                <include name="**/*Test*.java"/>
+                <exclude name="**/AllTests.java"/>
+              </fileset>
+            </batchtest>
+        </junit4.preconf>
+    </target>
+    
+    <target name="junitcompat3">
+        <junit4.preconf>
+            <batchtest fork="yes" todir="${reports.tests}">
+              <fileset dir="${src.tests}">
+                <include name="**/*Test*.java"/>
+                <exclude name="**/AllTests.java"/>
+              </fileset>
+            </batchtest>
+        </junit4.preconf>
+    </target>        
 </project>

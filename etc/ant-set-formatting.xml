@@ -10,7 +10,7 @@
       </sequential>
      </macrodef>
      
-     <setup-project project-dir="${basedir}/../runner/" />
+     <setup-project project-dir="${basedir}/../randomized-runner/" />
      <setup-project project-dir="${basedir}/../examples/ant" />
      <setup-project project-dir="${basedir}/../examples/maven" />
      <setup-project project-dir="${basedir}/../junit4-ant" />

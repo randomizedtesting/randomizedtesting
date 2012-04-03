@@ -498,6 +498,10 @@ public class JUnit4 extends Task {
     warnUnsupported("clonevm");
   }
 
+  public void setErrorproperty(String v) {
+      warnUnsupported("errorproperty");
+  }
+
   public void setLogfailedtests(String v) {
     warnUnsupported("logfailedtests");
   }
@@ -506,8 +510,21 @@ public class JUnit4 extends Task {
     warnUnsupported("enableTestListenerEvents");
   }
 
-  
-  
+  public Object createFormatter() {
+      throw new BuildException("<formatter> elements are not supported by <junit4>. " +
+      		"Refer to the documentation about listeners and reports.");
+  }
+
+  public Object createTest() {
+      throw new BuildException("<test> elements are not supported by <junit4>. " +
+            "Use regular ANT resource collections to point at individual tests or their groups.");
+  }
+
+  public Object createBatchtest() {
+    throw new BuildException("<batchtest> elements are not supported by <junit4>. " +
+        "Use regular ANT resource collections to point at individual tests or their groups.");
+  }
+
   private void warnUnsupported(String attName) {
     log("The '" + attName + "' attribute is not supported by <junit4>.", Project.MSG_WARN);
   }
