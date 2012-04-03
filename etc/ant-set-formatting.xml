@@ -13,8 +13,8 @@
      <setup-project project-dir="${basedir}/../runner/" />
      <setup-project project-dir="${basedir}/../examples/ant" />
      <setup-project project-dir="${basedir}/../examples/maven" />
-     <setup-project project-dir="${basedir}/../integration-ant/ant-junit4" />
-     <setup-project project-dir="${basedir}/../integration-maven/junit4-maven-plugin" />
-     <setup-project project-dir="${basedir}/../integration-maven/junit4-maven-plugin-tests" />
+     <setup-project project-dir="${basedir}/../junit4-ant" />
+     <setup-project project-dir="${basedir}/../junit4-maven-plugin" />
+     <setup-project project-dir="${basedir}/../junit4-maven-plugin-tests" />
    </target>
  </project>

@@ -2,16 +2,15 @@
 JUnit extensions for testing with pseudo-randomness
 ===================================================
 
-runner - A JUnit runner and base classes for testing with repeatable 
+randomized-runner - A JUnit runner and base classes for testing with repeatable 
     pseudo-randomness.
 
-integration-ant - A <junit4> task for ANT for running tests in multiple 
+junit4-ant - A <junit4> task for ANT for running tests in multiple 
     JVMs, better listener support, etc.
 
-integration-maven - A Maven plugin and mojos for running tests in multiple 
+junit4-maven - A Maven plugin and mojos for running tests in multiple 
     JVMs, better listener support, etc. This works via integration with
     ANT, but is seamless with maven.
-    
+
 examples - A mini-tutorial which shows how to use randomized runner using
     increasingly more complex examples.
-           

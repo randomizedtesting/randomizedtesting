@@ -32,7 +32,7 @@
         <taskdef resource="junit4.antlib.xml">
             <classpath>
                 <fileset dir="${dir.ant.tests}/lib">
-                    <include name="ant-junit4-*.jar" />
+                    <include name="junit4-ant*.jar" />
                     <include name="junit-*.jar" />
                 </fileset>
             </classpath>

@@ -9,7 +9,7 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>ant-junit4</artifactId>
+  <artifactId>junit4-ant</artifactId>
   <name><![CDATA[RandomizedTesting JUnit4 ANT Task]]></name>
 
   <dependencies>

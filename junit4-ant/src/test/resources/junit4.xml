@@ -17,7 +17,7 @@
         <classpath refid="junit.classpath" />
         <classpath>
             <fileset dir=".." id="fileset.junit4">
-                <include name="ant-junit4-*.jar" />
+                <include name="junit4-ant*.jar" />
                 <exclude name="*proguard_base.jar" />
             </fileset>
         </classpath>

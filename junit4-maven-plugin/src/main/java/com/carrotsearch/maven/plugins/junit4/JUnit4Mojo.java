@@ -605,7 +605,7 @@ public class JUnit4Mojo extends AbstractMojo {
     taskdef.addAttribute("resource", JUnit4.ANTLIB_RESOURCE_NAME);
     addArtifactClassPath(
         taskdef.addElement("classpath"),
-        pluginArtifactMap.get("com.carrotsearch.randomizedtesting:ant-junit4"));
+        pluginArtifactMap.get("com.carrotsearch.randomizedtesting:junit4-ant"));
     addArtifactClassPath(
         taskdef.addElement("classpath"),
         projectArtifactMap.get("junit:junit"));

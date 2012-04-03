@@ -30,10 +30,10 @@
       <scope>compile</scope>
     </dependency>
 
-    <!-- And we'll need ant-junit4 locally, so add it as a dependency. -->
+    <!-- And we'll need junit4-ant locally, so add it as a dependency. -->
     <dependency>
       <groupId>com.carrotsearch.randomizedtesting</groupId>
-      <artifactId>ant-junit4</artifactId>
+      <artifactId>junit4-ant</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>

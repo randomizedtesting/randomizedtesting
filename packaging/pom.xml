@@ -37,7 +37,7 @@
     
     <dependency>
       <groupId>com.carrotsearch.randomizedtesting</groupId>
-      <artifactId>ant-junit4</artifactId>
+      <artifactId>junit4-ant</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>    
