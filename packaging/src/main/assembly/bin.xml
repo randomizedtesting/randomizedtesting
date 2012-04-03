@@ -39,6 +39,9 @@
       <outputDirectory>examples</outputDirectory>
       <excludes>
         <exclude>**/target/**</exclude>
+        <exclude>**/.settings/**</exclude>
+        <exclude>**/.classpath/**</exclude>
+        <exclude>**/.project/**</exclude>
         <exclude>ant/pom.xml</exclude>
       </excludes>
     </fileSet>
@@ -76,6 +79,7 @@
       <outputDirectory>./</outputDirectory>
       <includes>
         <include>LICENSE</include>
+        <include>README</include>
       </includes>
     </fileSet>    
   </fileSets>

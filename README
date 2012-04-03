@@ -2,8 +2,8 @@
 JUnit extensions for testing with pseudo-randomness
 ===================================================
 
-randomized-runner - A JUnit runner and base classes for testing with repeatable 
-    pseudo-randomness.
+randomizedtesting-runner - A JUnit runner and base classes for testing 
+    with repeatable pseudo-randomness.
 
 junit4-ant - A <junit4> task for ANT for running tests in multiple 
     JVMs, better listener support, etc.
