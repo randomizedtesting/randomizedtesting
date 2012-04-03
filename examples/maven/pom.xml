@@ -52,7 +52,10 @@
     </pluginManagement>
 
     <plugins>
-      <!-- Run tests with JUnit4 instead. A simple configuration here. -->
+      <!-- 
+       !!! LOOK HERE !!!
+       Run tests with JUnit4 instead. A simple configuration here. 
+       -->
       <plugin>
         <groupId>com.carrotsearch.randomizedtesting</groupId>
         <artifactId>junit4-maven-plugin</artifactId>

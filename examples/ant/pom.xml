@@ -82,7 +82,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/ant/lib</outputDirectory>
+              <outputDirectory>${basedir}/target/lib</outputDirectory>
             </configuration>
           </execution>
         </executions>
@@ -97,13 +97,7 @@
             <phase>integration-test</phase>
             <configuration>
               <target unless="${skipTests}">
-                <!-- Save classpath to a temporary file so that local execution directly 
-                  from ant is possible. -->
-                <property name="test.classpath" refid="maven.compile.classpath" />
-                <echo encoding="UTF-8" file="${basedir}/target/ant/.classpath">${test.classpath}</echo>
-
-                <ant antfile="${basedir}/build.xml" inheritRefs="true"
-                  inheritAll="true" target="run" />
+                <ant antfile="${basedir}/build.xml" inheritRefs="true" inheritAll="true" target="test" />
               </target>
             </configuration>
             <goals>

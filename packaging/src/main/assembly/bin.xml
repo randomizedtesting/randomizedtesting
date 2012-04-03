@@ -14,7 +14,7 @@
     <!-- RandomizedRunner -->
     <fileSet>
       <directory>${project.parent.basedir}/randomized-runner/target</directory>
-      <outputDirectory>./</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
@@ -26,18 +26,27 @@
 
     <fileSet>
       <directory>${project.parent.basedir}/randomized-runner/target/apidocs</directory>
-      <outputDirectory>api/randomizedrunner</outputDirectory>
+      <outputDirectory>api/randomizedtesting-runner</outputDirectory>
     </fileSet>
 
     <fileSet>
       <directory>${project.parent.basedir}/junit4-ant/src/tasks</directory>
-      <outputDirectory>docs</outputDirectory>
+      <outputDirectory>docs/junit4-ant</outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>${project.parent.basedir}/examples</directory>
+      <outputDirectory>examples</outputDirectory>
+      <excludes>
+        <exclude>**/target/**</exclude>
+        <exclude>ant/pom.xml</exclude>
+      </excludes>
     </fileSet>
 
     <!-- JUnit4 -->
     <fileSet>
       <directory>${project.parent.basedir}/junit4-ant/target</directory>
-      <outputDirectory>./</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
@@ -46,6 +55,14 @@
         <exclude>*-javadoc.jar</exclude>
         <exclude>*proguard*</exclude>
       </excludes>
+    </fileSet>
+
+    <fileSet>
+      <directory>${project.parent.basedir}/junit4-ant/target/dependency</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>junit-*.jar</include>
+      </includes>
     </fileSet>
 
     <fileSet>

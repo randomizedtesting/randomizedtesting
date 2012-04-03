@@ -1,50 +1,66 @@
  
-<project default="run">
-    <property name="dir.ant.tests" location="${basedir}/target/ant" />
+<project default="test">
+  <presetdef name="javac">
+      <javac deprecation="false" debug="true"
+          target="1.6" source="1.6"
+          encoding="UTF-8" includeantruntime="false" />
+  </presetdef>
 
-    <target name="setup">
-        <!-- We pull dependencies using maven. -->
-        <fail message="No classpath. Run 'mvn verify' on this project first (requires Maven 3.x).">
-            <condition>
-                <not>
-                    <available file="${dir.ant.tests}/.classpath" type="file" />
-                </not>
-            </condition>
-        </fail>
-        <loadfile property="classpath.dependencies" srcfile="${dir.ant.tests}/.classpath" encoding="UTF-8" />
+    <property name="tmp.dir" location="${basedir}/target" />
+
+    <!--
+    This setup is a bit complex because it needs to work for integration tests and for distribution examples.
+      -->
+    <target name="classpath.resolve">  
+      <available property="libs.dir" value="${basedir}/target/lib" file="${basedir}/target/lib" type="dir" />
+      <available property="libs.dir" value="${basedir}/../../lib" file="${basedir}/../../lib" type="dir" />
+
+      <fail message="No classpath?">
+        <condition>
+          <not>
+            <isset property="libs.dir" />
+          </not>
+        </condition>
+      </fail>
     </target>
 
-    <target name="run" depends="setup">
+    <target name="compile" depends="classpath.resolve">  
+      <mkdir dir="${tmp.dir}/classes" />
+      <javac destdir="${tmp.dir}/classes">
+        <src location="${basedir}/../maven/src/main/java" />
+        <classpath>
+          <fileset dir="${libs.dir}" includes="*.jar" />
+        </classpath>
+      </javac>
+    </target>
+
+    <!--
+    Run the test.
+      -->
+    <target name="test" depends="classpath.resolve,compile">
         <!-- Make room for tests output and report. -->
-        <delete dir="${dir.ant.tests}/result-xml"  failonerror="false" quiet="true" />
-        <mkdir  dir="${dir.ant.tests}/result-xml"  />
-        <delete dir="${dir.ant.tests}/result-json" failonerror="false" quiet="true" />
-        <mkdir  dir="${dir.ant.tests}/result-json" />
-        <delete dir="${dir.ant.tests}/result-txt"  failonerror="false" quiet="true" />
-        <mkdir  dir="${dir.ant.tests}/result-txt"  />
+        <delete dir="${tmp.dir}"  failonerror="false" quiet="true">
+          <include name="test-report*/**" />
+        </delete>
 
         <!-- 
-            Use JUnit4 to run the examples. This also shows every attribute
-            and nested element possible. Most settings are in their default 
-            values. 
+            Load JUnit4.
         -->
-
         <taskdef resource="junit4.antlib.xml">
             <classpath>
-                <fileset dir="${dir.ant.tests}/lib">
+                <fileset dir="${libs.dir}">
                     <include name="junit4-ant*.jar" />
                     <include name="junit-*.jar" />
                 </fileset>
             </classpath>
         </taskdef>
-        
-        <pathconvert property="randomizedtesting-examples.jarlocation">
-          <fileset dir="${dir.ant.tests}/lib" includes="randomizedtesting-examples*.jar" />
-        </pathconvert>
 
+        <!--
+        Run junit4 tests.
+        -->
         <junit4
             jvm=""
-            dir="${dir.ant.tests}"
+            dir="${tmp.dir}"
             maxmemory="50m"
             haltonfailure="false" 
             failureProperty="tests.failed"
@@ -54,18 +70,18 @@
             seed=""
             printSummary="false"
         >
-            <!-- Pulled in from Maven. -->
-            <classpath path="${classpath.dependencies}" />
+            <classpath>
+              <pathelement location="${tmp.dir}/classes" />
+              <fileset dir="${libs.dir}" includes="*.jar" />
+            </classpath>
 
-            <!-- Test selector. junit4 only supports *.class files but can work
-                 with any resource collections (parses class names from .class files).
-                 This shows how to use test classes in a ZIP file directly. In regular
-                 projects you'd use a fileset element.
-              -->
-            <zipfileset src="${randomizedtesting-examples.jarlocation}">
+            <!-- 
+            Test selector. junit4 supports *.class files (and these are preferred over .java files).
+            -->
+            <fileset dir="${tmp.dir}/classes">
                 <include name="**/Test*.class" />
                 <exclude name="**/*$*" />
-            </zipfileset>
+            </fileset>
 
             <!-- Nested elements much like in "standard" ANT 'junit' task. -->
             <jvmarg value="-ea" />
@@ -84,7 +100,7 @@
                     shown along with its output, exceptions, stack traces etc. 
                 -->
                 <report-text
-                    file="${dir.ant.tests}/result-txt/results-verbose.txt"
+                    file="${tmp.dir}/test-report-txt/results-verbose.txt"
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -103,7 +119,7 @@
                     with its output. No exceptions or stacks.
                 -->
                 <report-text
-                    file="${dir.ant.tests}/result-txt/results-suite.txt"
+                    file="${tmp.dir}/test-report-txt/results-suite.txt"
                     showThrowable="false" 
                     showStackTraces="false" 
                     showOutputStream="false" 
@@ -121,7 +137,7 @@
                     'quiet' output in which only errors are shown (without stacks).
                 -->
                 <report-text
-                    file="${dir.ant.tests}/result-txt/results-quiet.txt"
+                    file="${tmp.dir}/test-report-txt/results-quiet.txt"
                     showThrowable="true" 
                     showStackTraces="false" 
                     showOutputStream="false" 
@@ -139,7 +155,7 @@
                     All tests with status information.
                 -->
                 <report-text
-                    file="${dir.ant.tests}/result-txt/results-testlist.txt"
+                    file="${tmp.dir}/test-report-txt/results-testlist.txt"
                     showThrowable="false" 
                     showStackTraces="false" 
                     showOutputStream="false" 
@@ -154,19 +170,21 @@
                 />
 
                 <!-- JSON report with HTML scaffolding. -->
-                <report-json file="${dir.ant.tests}/result-json/results.html" />
+                <report-json file="${tmp.dir}/test-report-json/results.html" />
 
                 <!-- XML reports compatible with ant-report task. -->
-                <report-ant-xml dir="${dir.ant.tests}/result-xml" />
+                <report-ant-xml dir="${tmp.dir}/test-report-xml" />
             </listeners>
         </junit4>
 
         <!-- Run a "standard" JUnit report on the generated XML files. JSON report is recommended. -->
-        <junitreport todir="${dir.ant.tests}/result-xml">
-            <fileset dir="${dir.ant.tests}/result-xml">
+        <junitreport todir="${tmp.dir}/test-report-xml">
+            <fileset dir="${tmp.dir}/test-report-xml">
                 <include name="TEST-*.xml" />
             </fileset>
-            <report format="frames" todir="${dir.ant.tests}/result-xml" />
+            <report format="frames" todir="${tmp.dir}/test-report-xml" />
         </junitreport>
+
+        <echo>Done. See reports under ${tmp.dir}.</echo>
     </target>
 </project>
