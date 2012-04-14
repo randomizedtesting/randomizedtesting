@@ -371,7 +371,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Initialize the runner's master seed/ randomness source.
     final long randomSeed = MurmurHash3.hash(sequencer.getAndIncrement() + System.nanoTime());
-    final String globalSeed = System.getProperty(SYSPROP_RANDOM_SEED());
+    final String globalSeed = emptyToNull(System.getProperty(SYSPROP_RANDOM_SEED()));
     if (globalSeed != null) {
       final long[] seedChain = SeedUtils.parseSeedChain(globalSeed);
       if (seedChain.length == 0 || seedChain.length > 2) {
@@ -391,7 +391,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Iterations property is primary wrt to annotations, so we leave an "undefined" value as null.
-    if (System.getProperty(SYSPROP_ITERATIONS()) != null) {
+    if (emptyToNull(System.getProperty(SYSPROP_ITERATIONS())) != null) {
       this.iterationsOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_ITERATIONS(), 0);
       if (iterationsOverride < 1)
         throw new IllegalArgumentException(
