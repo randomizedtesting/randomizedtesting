@@ -83,10 +83,34 @@ public class TextReport implements AggregatedEventListener {
    */
   private Writer output; 
 
+  /**
+   * Maximum number of columns for class name.
+   */
+  private int maxClassNameColumns = Integer.MAX_VALUE;
+  
+  /**
+   * Use simple names for suite names.
+   */
+  private boolean useSimpleNames = false;
+
   public void setShowStatusError(boolean showStatusError)     { this.showStatusError = showStatusError;   }
   public void setShowStatusFailure(boolean showStatusFailure) { this.showStatusFailure = showStatusFailure; }
   public void setShowStatusIgnored(boolean showStatusIgnored) { this.showStatusIgnored = showStatusIgnored; }
   public void setShowStatusOk(boolean showStatusOk)           { this.showStatusOk = showStatusOk;  }
+
+  /**
+   * Set maximum number of class name columns before truncated with ellipsis.
+   */
+  public void setMaxClassNameColumns(int maxClassNameColumns) {
+    this.maxClassNameColumns = maxClassNameColumns;
+  }
+  
+  /**
+   * Use simple class names for suite naming. 
+   */
+  public void setUseSimpleNames(boolean useSimpleNames) {
+    this.useSimpleNames = useSimpleNames;
+  }
   
   /**
    * If enabled, displays extended error information for tests that failed
@@ -154,13 +178,29 @@ public class TextReport implements AggregatedEventListener {
     }
   }
 
+  /* */
+  public static String padTo(int columns, String text, String ellipsis) {
+    if (text.length() < columns) {
+      return text;
+    }
+
+    text = ellipsis + text.substring(text.length() - (columns - ellipsis.length()));
+    return text;
+  }
+  
   /*
    * 
    */
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) {
     if (showSuiteSummary) {
-      log("Running " + e.getDescription().getDisplayName());
+      String suiteName = e.getDescription().getDisplayName();
+      if (useSimpleNames) {
+        if (suiteName.lastIndexOf('.') >= 0) {
+          suiteName = suiteName.substring(suiteName.lastIndexOf('.') + 1);
+        }
+      }
+      log("Suite: " + padTo(maxClassNameColumns, suiteName, "[...]"));
 
       // Static context output.
       if (shouldShowSuiteLevelOutput(e)) {
@@ -193,14 +233,26 @@ public class TextReport implements AggregatedEventListener {
     }
 
     if (showSuiteSummary) {
-      log(
-          String.format("Tests run: %3d, Failures: %3d, Errors: %3d, Skipped: %3d, Time: %5.2fs%s\n ",
-              e.getTests().size(),
-              e.getFailureCount(),
-              e.getErrorCount(),
-              e.getIgnoredCount(),
-              e.getExecutionTime() / 1000.0d,
-              e.isSuccessful() ? "" : " <<< FAILURES!"));
+      StringBuilder b = new StringBuilder();
+      b.append(String.format(Locale.ENGLISH, "Completed in %.2fs, ", e.getExecutionTime() / 1000.0d));
+      b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));
+      int failures = e.getFailureCount();
+      if (failures > 0) {
+        b.append(", ").append(failures).append(Pluralize.pluralize(failures, " failure"));
+      }
+      int errors = e.getErrorCount();
+      if (errors > 0) {
+        b.append(", ").append(errors).append(Pluralize.pluralize(errors, " error"));
+      }
+      int ignored = e.getIgnoredCount();
+      if (ignored > 0) {
+        b.append(", ").append(ignored).append(" skipped");
+      }
+      if (!e.isSuccessful()) {
+        b.append(" <<< FAILURES!");
+      }
+      b.append("\n "); // trailing space here intentional. 
+      log(b.toString());
     }
   }
 
