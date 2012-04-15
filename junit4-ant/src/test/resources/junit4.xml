@@ -295,8 +295,8 @@
     </target>
 
     <target name="classfilter">
-    	<local name="rt.class" />
-    	<property name="rt.class" value="*Statuses" />
+    	<local name="tests.class" />
+    	<property name="tests.class" value="*Statuses" />
         <junit4.preconf haltonfailure="false">
             <fileset dir="${basedir}">
                 <include name="**/tests/Test*.class" />
@@ -305,10 +305,10 @@
     </target>
 
     <target name="methodfilter">
-        <local name="rt.class" />
-    	<local name="rt.method" />
-        <property name="rt.class" value="*Statuses" />
-    	<property name="rt.method" value="ignored*" />
+        <local name="tests.class" />
+    	<local name="tests.method" />
+        <property name="tests.class" value="*Statuses" />
+    	<property name="tests.method" value="ignored*" />
         <junit4.preconf haltonfailure="false">
             <fileset dir="${basedir}">
                 <include name="**/tests/Test*.class" />

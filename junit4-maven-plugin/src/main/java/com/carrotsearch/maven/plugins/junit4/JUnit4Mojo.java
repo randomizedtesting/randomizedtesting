@@ -118,10 +118,10 @@ public class JUnit4Mojo extends AbstractMojo {
    * 
    * <p>The seed's format is compatible with {@link RandomizedRunner} so that
    * seed can be fixed for suites and methods alike. Unless the global prefix of
-   * randomized testing properties is changed, the seed can be overriden using "rt.seed"
+   * randomized testing properties is changed, the seed can be overriden using "tests.seed"
    * property.
    * 
-   * @parameter expression="${rt.seed}" default-value=""
+   * @parameter expression="${tests.seed}" default-value=""
    */
   private String seed;
 

@@ -15,7 +15,7 @@ public final class SysGlobals {
   /**
    * Default prefix for all properties.
    */
-  private static final String DEFAULT_PREFIX = "rt";
+  private static final String DEFAULT_PREFIX = "tests";
 
   /**
    * A common prefix for all system properties used by <code>randomizedtesting</code>

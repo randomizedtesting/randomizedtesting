@@ -45,9 +45,9 @@ public class TestTestGroups extends WithNestedTestClass {
   public void checkDefaultNames() {
     Assert.assertEquals("group1", RuntimeTestGroup.getGroupName(Group1.class));
     Assert.assertEquals("abc", RuntimeTestGroup.getGroupName(Group2.class));
-    Assert.assertEquals("rt.group1", RuntimeTestGroup.getGroupSysProperty(Group1.class));
+    Assert.assertEquals(SysGlobals.CURRENT_PREFIX() + ".group1", RuntimeTestGroup.getGroupSysProperty(Group1.class));
     Assert.assertEquals("custom.abc", RuntimeTestGroup.getGroupSysProperty(Group2.class));
-    Assert.assertEquals("rt.nightly", RuntimeTestGroup.getGroupSysProperty(Nightly.class));
+    Assert.assertEquals(SysGlobals.CURRENT_PREFIX() + ".nightly", RuntimeTestGroup.getGroupSysProperty(Nightly.class));
     Assert.assertEquals("nightly", RuntimeTestGroup.getGroupName(Nightly.class));
   }  
 
