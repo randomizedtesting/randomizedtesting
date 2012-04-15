@@ -2,6 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import junit.framework.Assert;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -49,5 +50,10 @@ public class TestTimeoutOverride extends WithNestedTestClass {
     long end = System.currentTimeMillis();
     Assert.assertEquals(0, result.getFailureCount());
     Assert.assertTrue(end - start > 900);
+  }
+  
+  @After
+  public void cleanup() {
+    System.clearProperty(SysGlobals.SYSPROP_TIMEOUT());
   }
 }
