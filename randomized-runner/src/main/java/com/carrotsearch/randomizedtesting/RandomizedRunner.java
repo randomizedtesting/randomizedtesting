@@ -88,7 +88,6 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
-import com.google.common.base.Strings;
 
 /**
  * A {@link Runner} implementation for running randomized test cases with 
@@ -411,8 +410,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT(), DEFAULT_KILLWAIT);
     
     // Determine default timeout value.
-    String timeoutValue = Strings.emptyToNull(System.getProperty(SYSPROP_TIMEOUT()));
-    if (Strings.emptyToNull(timeoutValue) != null) {
+    String timeoutValue = System.getProperty(SYSPROP_TIMEOUT());
+    if (timeoutValue == null || timeoutValue.trim().length() == 0) {
+      timeoutValue = null;
+    }
+    if (timeoutValue != null) {
       // Check for timeout precedence.
       globalTimeoutFirst = timeoutValue.matches("[0-9]+\\!");
       timeoutValue = timeoutValue.replaceAll("\\!", "");
