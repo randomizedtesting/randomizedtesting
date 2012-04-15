@@ -88,6 +88,7 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
+import com.google.common.base.Strings;
 
 /**
  * A {@link Runner} implementation for running randomized test cases with 
@@ -168,7 +169,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * timeouts or expect some test cases may hang. This will slightly slow down
    * the tests because each test case is executed in a forked thread.
    *
-   * <p>Annotation takes precedence, if defined. 
+   * @see SysGlobals#SYSPROP_TIMEOUT() 
    */
   public static final int DEFAULT_TIMEOUT = 0;
 
@@ -258,11 +259,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private final Integer iterationsOverride;
 
   /**
-   * Test case timeout in millis.
+   * Default test case timeout in millis.
    * 
    * @see #SYSPROP_TIMEOUT
    */
   private final int timeoutOverride;
+  
+  /**
+   * Should {@link #timeoutOverride} take precedence over annotations?
+   */
+  private boolean globalTimeoutFirst;
+
 
   /** All test candidates, processed (seeds assigned) and flattened. */
   private List<TestCandidate> testCandidates;
@@ -402,7 +409,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS(), DEFAULT_KILLATTEMPTS);
     this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT(), DEFAULT_KILLWAIT);
-    this.timeoutOverride = RandomizedTest.systemPropertyAsInt(SYSPROP_TIMEOUT(), DEFAULT_TIMEOUT);
+    
+    // Determine default timeout value.
+    String timeoutValue = Strings.emptyToNull(System.getProperty(SYSPROP_TIMEOUT()));
+    if (Strings.emptyToNull(timeoutValue) != null) {
+      // Check for timeout precedence.
+      globalTimeoutFirst = timeoutValue.matches("[0-9]+\\!");
+      timeoutValue = timeoutValue.replaceAll("\\!", "");
+    } else {
+      timeoutValue = Integer.toString(DEFAULT_TIMEOUT);
+    }
+    this.timeoutOverride = Integer.parseInt(timeoutValue);
 
     // Fail fast if suiteClass is inconsistent or selected "standard" JUnit rules are somehow broken.
     try {
@@ -1779,6 +1796,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // initial value
     int timeout = this.timeoutOverride;
     
+    // GH-75: take into account the need to override timeouts for debugging sessions.
+    if (globalTimeoutFirst) {
+      return timeout;
+    }
+
     // Class-override.
     Timeout timeoutAnn = c.method.getDeclaringClass().getAnnotation(Timeout.class);
     if (timeoutAnn != null) {

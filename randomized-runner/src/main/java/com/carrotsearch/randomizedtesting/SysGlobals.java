@@ -172,7 +172,12 @@ public final class SysGlobals {
   /**
    * Global override for a single test case's maximum execution time after which
    * it is considered out of control and an attempt to interrupt it is executed.
-   * Timeout in millis. 
+   * The timeout value should be in milliseconds. If the value is trailed by a 
+   * "!" then the timeout value takes precedence over annotations, otherwise annotations
+   * take precedence over the default timeout. This is useful for running debugging
+   * sessions, for example, when default timeouts may be too short.
+   * 
+   * @see RandomizedRunner#DEFAULT_TIMEOUT
    */
   public static String SYSPROP_TIMEOUT() { return singleton().SYSPROP_TIMEOUT; }
 
