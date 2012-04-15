@@ -608,5 +608,31 @@
               </fileset>
             </batchtest>
         </junit4.preconf>
-    </target>        
+    </target>
+	
+    <target name="suiteerror">
+        <junit4:junit4 haltonfailure="false">
+            <classpath refid="tests.classpath" />
+
+            <listeners>
+                <junit4:report-text
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutputStream="true" 
+                    showErrorStream="true"
+
+                    showStatusOk="false"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="true"
+                />
+            </listeners>
+        	
+        	<fileset dir="${basedir}">
+                <include name="**/FailInAfterClass.class" />
+            </fileset>
+        </junit4:junit4>
+    </target>        	
 </project>

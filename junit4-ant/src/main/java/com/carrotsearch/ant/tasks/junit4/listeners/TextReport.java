@@ -339,10 +339,12 @@ public class TextReport implements AggregatedEventListener {
     }
 
     if (showOutputStream || showErrorStream) {
-      CharSequence out = decodeStreamEvents(slave, result.getEventStream());
-      if (out.length() > 0) {
-        line.append(out);
-        line.append("\n");
+      if (!(result instanceof AggregatedSuiteResultEvent)) {
+        CharSequence out = decodeStreamEvents(slave, result.getEventStream());
+        if (out.length() > 0) {
+          line.append(out);
+          line.append("\n");
+        }
       }
     }
 
