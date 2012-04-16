@@ -10,8 +10,7 @@ import com.carrotsearch.ant.tasks.junit4.events.EventType;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
+import com.google.common.base.*;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Closeables;
@@ -234,7 +233,9 @@ public class TextReport implements AggregatedEventListener {
 
     if (showSuiteSummary) {
       StringBuilder b = new StringBuilder();
-      b.append(String.format(Locale.ENGLISH, "Completed in %.2fs, ", e.getExecutionTime() / 1000.0d));
+      b.append(String.format(Locale.ENGLISH, "Completed%s in %.2fs, ",
+          e.getSlave().slaves > 1 ? " on J" + e.getSlave().id : "",
+          e.getExecutionTime() / 1000.0d));
       b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));
       int failures = e.getFailureCount();
       if (failures > 0) {
@@ -371,14 +372,16 @@ public class TextReport implements AggregatedEventListener {
       for (FailureMirror fm : failures) {
         count++;
         try {
-          final String details = 
-              (showStackTraces && !fm.isAssumptionViolation())
-              ? fm.getTrace()
-              : fm.getThrowableString();
-
-          pos.write(String.format(Locale.ENGLISH, 
-              "Throwable #%d: %s",
-              count, details));
+          if (fm.isAssumptionViolation()) {
+              pos.write(String.format(Locale.ENGLISH, 
+                  "Assumption #%d: %s",
+                  count, Objects.firstNonNull(fm.getMessage(), "(no message)")));
+          } else {
+              pos.write(String.format(Locale.ENGLISH, 
+                  "Throwable #%d: %s",
+                  count,
+                  showStackTraces ? fm.getTrace() : fm.getThrowableString()));
+          }
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
