@@ -375,7 +375,7 @@ public class TextReport implements AggregatedEventListener {
           if (fm.isAssumptionViolation()) {
               pos.write(String.format(Locale.ENGLISH, 
                   "Assumption #%d: %s",
-                  count, Objects.firstNonNull(fm.getMessage(), "(no message)")));
+                  count, com.google.common.base.Objects.firstNonNull(fm.getMessage(), "(no message)")));
           } else {
               pos.write(String.format(Locale.ENGLISH, 
                   "Throwable #%d: %s",
