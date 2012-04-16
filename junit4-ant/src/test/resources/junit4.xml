@@ -39,7 +39,7 @@
                     showStatusFailure="true"
                     showStatusIgnored="true"
 
-                    showSuiteSummary="false"
+                    showSuiteSummary="true"
                 />
             </listeners>
         </junit4:junit4>
