@@ -18,7 +18,7 @@ public interface TestMethodProvider {
    *          The suite class.
    * @param methods
    *          A list of precomputed method candidates including static and
-   *          instance methods with removed shadowed and overriden methods. This
+   *          instance methods with removed shadowed and overridden methods. This
    *          is for performance only.
    * @return Return a set of methods which should be invoked by the runner as
    *         tests.

@@ -45,11 +45,11 @@ public class NoTestMethodOverrides implements ClassValidator {
         b.append(m.toGenericString());
       }
 
-      throw new RuntimeException("There are overriden methods annotated with "
+      throw new RuntimeException("There are overridden methods annotated with "
           + ann.getName()
           + ". This is considered bad practice. See javadoc for" + " "
           + NoTestMethodOverrides.class.getName()
-          + " class for more info. Overriden test methods: " + b.toString());
+          + " class for more info. Overridden test methods: " + b.toString());
     }
   }
 }

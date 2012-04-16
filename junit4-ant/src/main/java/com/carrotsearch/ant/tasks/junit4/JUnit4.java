@@ -252,7 +252,10 @@ public class JUnit4 extends Task {
    */
   public void setSeed(String randomSeed) {
     if (!Strings.isNullOrEmpty(getProject().getUserProperty(SYSPROP_RANDOM_SEED()))) {
-      log("Ignoring seed attribute because it is overriden by user properties.", Project.MSG_WARN);
+      String userProperty = getProject().getUserProperty(SYSPROP_RANDOM_SEED());
+      if (!userProperty.equals(randomSeed)) {
+        log("Ignoring seed attribute because it is overridden by user properties.", Project.MSG_WARN);
+      }
     } else if (!Strings.isNullOrEmpty(randomSeed)) {
       this.random = randomSeed;
     }
@@ -264,7 +267,7 @@ public class JUnit4 extends Task {
    */
   public void setPrefix(String prefix) {
     if (!Strings.isNullOrEmpty(getProject().getUserProperty(SYSPROP_PREFIX()))) {
-      log("Ignoring prefix attribute because it is overriden by user properties.", Project.MSG_WARN);
+      log("Ignoring prefix attribute because it is overridden by user properties.", Project.MSG_WARN);
     } else {
       SysGlobals.initializeWith(prefix);
     }

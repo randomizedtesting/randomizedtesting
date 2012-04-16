@@ -190,7 +190,7 @@ public final class SysGlobals {
   public static String SYSPROP_APPEND_SEED() { return singleton().SYSPROP_APPEND_SEED; } 
 
   /**
-   * Prefix a given property name with a common prefix. The prefix itself can be overriden
+   * Prefix a given property name with a common prefix. The prefix itself can be overridden
    * using {@link #SYSPROP_PREFIX}. This method initializes static singleton property
    * names so it shouldn't be called on class initialization anywhere.
    */

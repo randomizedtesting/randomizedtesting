@@ -71,7 +71,7 @@ public class NoHookMethodShadowing implements ClassValidator {
         b.append(m.toGenericString());
       }
 
-      throw new RuntimeException("There are overriden methods annotated with "
+      throw new RuntimeException("There are overridden methods annotated with "
           + ann.getName() + ". These methods need to manually call super.xxx() , which can lead to" +
               " maintenance problems. Use unique names for overridden methods: " + b.toString());
     }

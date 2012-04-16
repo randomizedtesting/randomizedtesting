@@ -96,7 +96,7 @@ public class TestBeforeAfterMethodOrder extends WithNestedTestClass {
     }
 
     protected void testMethod() {
-      throw new RuntimeException("Should be overriden and public.");
+      throw new RuntimeException("Should be overridden and public.");
     }
 
     @After

@@ -17,7 +17,7 @@ import com.carrotsearch.randomizedtesting.validators.*;
  * believe are quite handly. For example {@link NoJUnit3TestMethods} validator
  * will ensure there are no accidental JUnit3-style test methods without proper
  * {@link Test} annotation. {@link NoTestMethodOverrides} will ensure no hook
- * methods are overriden (assuming overriding is accidental and shouldn't
+ * methods are overridden (assuming overriding is accidental and shouldn't
  * happen). Similarly, {@link NoHookMethodShadowing} will ensure no static hook
  * methods are shadowed (shadowed hooks are not executed by JUnit and this
  * behavior is simulated by {@link RandomizedRunner}).
