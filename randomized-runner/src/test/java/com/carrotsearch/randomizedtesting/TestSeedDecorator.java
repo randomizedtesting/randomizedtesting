@@ -15,33 +15,6 @@ import com.carrotsearch.randomizedtesting.generators.RandomStrings;
 public class TestSeedDecorator extends WithNestedTestClass {
   private static List<String> runnerSeeds = new ArrayList<String>();
   private static List<String> strings = new ArrayList<String>();
-
-  /**
-   * Seed decorator for tests.
-   */
-  public static class MixWithSuiteName implements SeedDecorator {
-    private long xorHash;
-
-    @Override
-    public void initialize(Class<?> suiteClass) {
-      this.xorHash = fmix64(suiteClass.getName().hashCode());
-    }
-
-    @Override
-    public long decorate(long seed) {
-      return seed ^ xorHash;
-    }
-
-    /** final mix from murmur hash. */
-    private long fmix64(long k) {
-      k ^= k >>> 33;
-      k *= 0xff51afd7ed558ccdL;
-      k ^= k >>> 33;
-      k *= 0xc4ceb9fe1a85ec53L;
-      k ^= k >>> 33;
-      return k;
-    }
-  }
   
   @RunWith(RandomizedRunner.class)
   public static class Nested1 {
