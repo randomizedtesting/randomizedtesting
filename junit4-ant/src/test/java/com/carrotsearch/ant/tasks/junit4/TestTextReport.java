@@ -10,7 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import com.carrotsearch.ant.tasks.junit4.tests.FailInAfterClass;
 
-
+/**
+ * Test report-text listener.
+ */
 public class TestTextReport extends AntBuildFileTestBase {
 
   @Before
