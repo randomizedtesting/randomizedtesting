@@ -326,6 +326,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private final TraceFormatting traces;
 
   /**
+   * The container we're running in.
+   */
+  private RunnerContainer containerRunner;
+  
+  /**
+   * What kind of container are we in? Unfortunately we need to adjust
+   * to some "assumptions" containers make about runners.
+   */
+  private static enum RunnerContainer {
+    ECLIPSE,
+    IDEA,
+    UNKNOWN
+  }
+  
+  /**
    * Resource disposal snippet.
    */
   private static class ResourceDisposal implements ObjectProcedure<CloseableResourceInfo> {
@@ -363,6 +378,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     this.suiteClass = testClass;
     this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(suiteClass)));
+    
+    // Try to detect the container.
+    {
+      this.containerRunner = detectContainer();
+    }
 
     // Initialize the runner's master seed/ randomness source.
     {
@@ -443,6 +463,28 @@ public final class RandomizedRunner extends Runner implements Filterable {
     } catch (Throwable t) {
       throw new InitializationError(t);
     }
+  }
+
+  /**
+   * Attempt to detect the container we're running under. 
+   */
+  private static RunnerContainer detectContainer() {
+    StackTraceElement [] stack = Thread.currentThread().getStackTrace();
+
+    // Look for Eclipse first.
+    if (stack.length > 0) {
+      String topClass = stack[stack.length - 1].getClassName();
+
+      if (topClass.equals("org.eclipse.jdt.internal.junit.runner.RemoteTestRunner")) {
+        return RunnerContainer.ECLIPSE;
+      }
+
+      if (topClass.startsWith("com.intellij.")) {
+        return RunnerContainer.IDEA;
+      }
+    }
+
+    return RunnerContainer.UNKNOWN;
   }
 
   /**
@@ -605,6 +647,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
     Statement s = new Statement() {
       public void evaluate() throws Throwable {
         for (final TestCandidate c : filtered) {
+          // Check for @Ignore on method early on, like JUnit.
+          if (c.method.getAnnotation(Ignore.class) != null) {
+            notifier.fireTestIgnored(c.description);
+            continue;
+          }
+          
+          // Check for ignored groups.
+          if (checkIgnoredGroup(notifier, c)) {
+            continue;
+          }
+
           final Runnable testRunner = new Runnable() {
             public void run() {
               // This has a side effect of setting up a nested context for the test thread.
@@ -740,10 +793,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private void runSingleTest(final RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
 
-    if (isIgnored(notifier, c)) {
-      return;
-    }
-  
     Set<Thread> beforeTestSnapshot = threadsSnapshot();
     final Object instance;
     try {
@@ -1374,13 +1423,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Returns true if we should ignore this test candidate.
    */
   @SuppressWarnings("all")
-  private boolean isIgnored(RunNotifier notifier, TestCandidate c) {
-    // Check for @Ignore on method.
-    if (c.method.getAnnotation(Ignore.class) != null) {
-      notifier.fireTestIgnored(c.description);
-      return true;
-    }
-
+  private boolean checkIgnoredGroup(RunNotifier notifier, TestCandidate c) {
     final HashMap<Class<? extends Annotation>,RuntimeTestGroup> testGroups = 
         RandomizedContext.current().getTestGroups();
 
@@ -1395,10 +1438,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
            * cause of an ignored test and at the same time mark a test as ignored in certain IDEs
            * (Eclipse).
            */
-          notifier.fireTestIgnored(c.description);
+          notifier.fireTestStarted(c.description);
+          if (containerRunner != RunnerContainer.IDEA) {
+            notifier.fireTestIgnored(c.description);
+          }
           notifier.fireTestAssumptionFailed(new Failure(c.description, 
               new InternalAssumptionViolatedException("'" + g.getName() + "' test group is disabled (@"
                   + g.getAnnotation().annotationType().getSimpleName() + ")")));
+          notifier.fireTestFinished(c.description);
+
           // Ignore this test.
           return true;
         }
