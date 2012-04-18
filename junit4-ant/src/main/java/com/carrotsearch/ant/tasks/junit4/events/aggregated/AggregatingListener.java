@@ -90,10 +90,10 @@ public class AggregatingListener {
     // Test ignored is not emitted within start...end space with default JUnit runners.
     // Try to correct it here.
     if (!tests.isEmpty() && description.equals(tests.peek().getDescription())) {
-      tests.peek().setIgnored();
+      tests.peek().setIgnored(e.getCause());
     } else {
       receiveTestStart(new TestStartedEvent(description));
-      tests.peek().setIgnored();
+      tests.peek().setIgnored(e.getCause());
       receiveTestEnd(new TestFinishedEvent(description, 0, e.getStartTimestamp()));
     }
   }

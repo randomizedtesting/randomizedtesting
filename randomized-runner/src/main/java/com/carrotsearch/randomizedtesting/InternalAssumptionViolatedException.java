@@ -31,7 +31,11 @@ class InternalAssumptionViolatedException extends org.junit.internal.AssumptionV
   
   @Override
   public void describeTo(Description description) {
-    description.appendText("failed assumption: " + message);
+    if (message == null || message.trim().length() == 0) {
+      description.appendText("failed assumption");
+    } else {
+      description.appendText(message);
+    }
     if (getCause() != null) {
       description.appendText("(throwable: " + getCause().toString() + ")");
     }

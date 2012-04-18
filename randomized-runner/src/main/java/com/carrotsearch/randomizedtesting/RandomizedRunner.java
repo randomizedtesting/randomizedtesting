@@ -731,8 +731,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private void runSingleTest(final RunNotifier notifier, final TestCandidate c) {
     notifier.fireTestStarted(c.description);
 
-    if (isIgnored(c)) {
-      notifier.fireTestIgnored(c.description);
+    if (isIgnored(notifier, c)) {
       return;
     }
   
@@ -1366,9 +1365,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Returns true if we should ignore this test candidate.
    */
   @SuppressWarnings("all")
-  private boolean isIgnored(final TestCandidate c) {
-    if (c.method.getAnnotation(Ignore.class) != null)
+  private boolean isIgnored(RunNotifier notifier, TestCandidate c) {
+    // Check for @Ignore on method.
+    if (c.method.getAnnotation(Ignore.class) != null) {
+      notifier.fireTestIgnored(c.description);
       return true;
+    }
 
     final HashMap<Class<? extends Annotation>,RuntimeTestGroup> testGroups = 
         RandomizedContext.current().getTestGroups();
@@ -1379,6 +1381,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
       for (Annotation ann : element.getAnnotations()) {
         RuntimeTestGroup g = testGroups.get(ann.annotationType());
         if (g != null && !g.isEnabled()) {
+          /*
+           * This is mighty weird but it's a workaround for JUnit's limitations in passing the
+           * cause of an ignored test and at the same time mark a test as ignored in certain IDEs
+           * (Eclipse).
+           */
+          notifier.fireTestIgnored(c.description);
+          notifier.fireTestAssumptionFailed(new Failure(c.description, 
+              new AssumptionViolatedException("'" + g.getName() + "' test group is disabled (@"
+                  + g.getAnnotation().annotationType().getSimpleName() + ")")));
           // Ignore this test.
           return true;
         }
@@ -1566,8 +1577,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
           args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed)));
         }
         Description description = Description.createSuiteDescription(
-            String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()));
-   
+            String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()),
+            method.getAnnotations());
+
         // Create an instance and delay instantiation exception if not possible.
         candidates.add(new TestCandidate(method, thisSeed, description, new InstanceProvider() {
           @Override

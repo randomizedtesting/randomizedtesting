@@ -330,7 +330,6 @@ public class TextReport implements AggregatedEventListener {
    * 
    */
   private void format(AggregatedResultEvent result, TestStatus status, int timeMillis) {
-    isStatusShown(TestStatus.ERROR);
     if (!isStatusShown(status)) {
       return;
     }
@@ -365,31 +364,45 @@ public class TextReport implements AggregatedEventListener {
     }
     line.append("\n");
 
-    if (showThrowable && !failures.isEmpty()) {
-      StringWriter sw = new StringWriter();
-      PrefixedWriter pos = new PrefixedWriter(indent, sw);
-      int count = 0;
-      for (FailureMirror fm : failures) {
-        count++;
-        try {
-          if (fm.isAssumptionViolation()) {
-              pos.write(String.format(Locale.ENGLISH, 
-                  "Assumption #%d: %s",
-                  count, com.google.common.base.Objects.firstNonNull(fm.getMessage(), "(no message)")));
-          } else {
-              pos.write(String.format(Locale.ENGLISH, 
-                  "Throwable #%d: %s",
-                  count,
-                  showStackTraces ? fm.getTrace() : fm.getThrowableString()));
-          }
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
+    if (showThrowable) {
+      try {
+        // GH-82 (cause for ignored tests). 
+        if (status == TestStatus.IGNORED && result instanceof AggregatedTestResultEvent) {
+          final StringWriter sw = new StringWriter();
+          PrefixedWriter pos = new PrefixedWriter(indent, sw);
+          pos.write("Cause: ");
+          pos.write(((AggregatedTestResultEvent) result).getCauseForIgnored());
+          pos.flush();
 
-      if (sw.getBuffer().length() > 0) {
-        line.append(sw.toString());
-        line.append("\n");
+          line.append(sw.toString());
+          line.append("\n");
+        }
+
+        if (!failures.isEmpty()) {
+          final StringWriter sw = new StringWriter();
+          PrefixedWriter pos = new PrefixedWriter(indent, sw);
+          int count = 0;
+          for (FailureMirror fm : failures) {
+            count++;
+              if (fm.isAssumptionViolation()) {
+                  pos.write(String.format(Locale.ENGLISH, 
+                      "Assumption #%d: %s",
+                      count, com.google.common.base.Objects.firstNonNull(fm.getMessage(), "(no message)")));
+              } else {
+                  pos.write(String.format(Locale.ENGLISH, 
+                      "Throwable #%d: %s",
+                      count,
+                      showStackTraces ? fm.getTrace() : fm.getThrowableString()));
+              }
+          }
+          pos.flush();
+          if (sw.getBuffer().length() > 0) {
+            line.append(sw.toString());
+            line.append("\n");
+          }
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     }
 

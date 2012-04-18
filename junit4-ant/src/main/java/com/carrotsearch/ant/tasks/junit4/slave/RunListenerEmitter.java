@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.slave;
 
 import java.io.IOException;
 
+import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -56,9 +57,29 @@ public class RunListenerEmitter extends RunListener {
   @Override
   public void testIgnored(Description description) throws Exception {
     if (suiteDescription.equals(description)) {
-      // Should we report all ignored tests here?
+      // JUnitCore has built-in precedence of runners and handles @Ignore
+      // with a different runner, regardless of what is declared in @RunWith. This is
+      // bad.
     } else {
-      serializer.serialize(new TestIgnoredEvent(description));
+      // GH-82: try to determine the reason why the test has been ignored and populate
+      // the cause message. This really should be passed from the runner but the API does
+      // not allow it.
+      String cause = "Unknown reason for ignore status.";
+      try {
+        Ignore ignoreAnn = description.getAnnotation(Ignore.class);
+        if ((ignoreAnn = description.getAnnotation(Ignore.class)) != null) {
+          cause = "Annotated @Ignore(" + ignoreAnn.value() + ")"; 
+        } else {
+          // Try class.
+          ignoreAnn = description.getTestClass().getAnnotation(Ignore.class);
+          if (ignoreAnn != null) {
+            cause = "Class annotated @Ignore(" + ignoreAnn.value() + ")";
+          }
+        }
+      } catch (Throwable t) {
+        // Never fail on this.
+      }
+      serializer.serialize(new TestIgnoredEvent(description, cause));
     }
   }
 

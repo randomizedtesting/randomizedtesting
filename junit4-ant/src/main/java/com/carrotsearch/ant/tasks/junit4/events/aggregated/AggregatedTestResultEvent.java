@@ -29,6 +29,9 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   private boolean hasErrors;
   private boolean hasIgnoredAssumptions;
 
+  /** If {@link #status} is {@link TestStatus#IGNORED} then this contains the cause. */
+  private String ignoreCause;
+
   public AggregatedTestResultEvent(SlaveInfo slave, Description suiteDescription, Description description) {
     this.description = description;
     this.suite = suiteDescription;
@@ -92,9 +95,14 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
     return status;
   }
   
-  void setIgnored() {
+  public String getCauseForIgnored() {
+    return ignoreCause;
+  }
+  
+  void setIgnored(String cause) {
     assert status == TestStatus.OK;
     status = TestStatus.IGNORED;
+    ignoreCause = cause;
   }
 
   void addFailure(FailureMirror failure) {

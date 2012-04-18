@@ -38,4 +38,9 @@ public class TestTextReport extends AntBuildFileTestBase {
     
     Assert.assertEquals(1, count);
   }
+  
+  @Test 
+  public void reasonForIgnored() {
+    super.executeTarget("reasonForIgnored");
+  }  
 }

@@ -124,7 +124,7 @@ public class SlaveMain {
 
       Request request = Request.aClass(clazz);
       try {
-        Runner runner= request.getRunner();
+        Runner runner = request.getRunner();
         methodFilter.apply(runner);
         core.run(runner);        
       } catch (NoTestsRemainException e) {
