@@ -66,6 +66,7 @@
             <goals>
               <goal>junit4</goal>
             </goals>
+            <phase>test</phase>
             <configuration>
               <!-- Some of these examples have intentional failures, so don't fail on errors. -->
               <haltOnFailure>false</haltOnFailure>
