@@ -72,7 +72,7 @@ public final class RandomizedContext {
 
   /** Runner's seed. */
   long getRunnerSeed() {
-    return runner.runnerRandomness.seed;
+    return runner.runnerRandomness.getSeed();
   }
 
   /**

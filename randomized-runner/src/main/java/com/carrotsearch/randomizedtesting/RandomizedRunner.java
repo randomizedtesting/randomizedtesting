@@ -75,18 +75,7 @@ import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.Listeners;
-import com.carrotsearch.randomizedtesting.annotations.Name;
-import com.carrotsearch.randomizedtesting.annotations.Nightly;
-import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
-import com.carrotsearch.randomizedtesting.annotations.Repeat;
-import com.carrotsearch.randomizedtesting.annotations.Seed;
-import com.carrotsearch.randomizedtesting.annotations.Seeds;
-import com.carrotsearch.randomizedtesting.annotations.TestGroup;
-import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
-import com.carrotsearch.randomizedtesting.annotations.Timeout;
-import com.carrotsearch.randomizedtesting.annotations.Validators;
+import com.carrotsearch.randomizedtesting.annotations.*;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 
 /**
@@ -376,24 +365,44 @@ public final class RandomizedRunner extends Runner implements Filterable {
     this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(suiteClass)));
 
     // Initialize the runner's master seed/ randomness source.
-    final long randomSeed = MurmurHash3.hash(sequencer.getAndIncrement() + System.nanoTime());
-    final String globalSeed = emptyToNull(System.getProperty(SYSPROP_RANDOM_SEED()));
-    if (globalSeed != null) {
-      final long[] seedChain = SeedUtils.parseSeedChain(globalSeed);
-      if (seedChain.length == 0 || seedChain.length > 2) {
-        throw new IllegalArgumentException("Invalid system property " 
-            + SYSPROP_RANDOM_SEED() + " specification: " + globalSeed);
+    {
+      List<SeedDecorator> decorators = new ArrayList<SeedDecorator>();
+      for (SeedDecorators decAnn : getAnnotationsFromClassHierarchy(testClass, SeedDecorators.class)) {
+        for (Class<? extends SeedDecorator> clazz : decAnn.value()) {
+          try {
+            SeedDecorator dec = clazz.newInstance();
+            dec.initialize(testClass);
+            decorators.add(dec);
+          } catch (Throwable t) {
+            throw new RuntimeException("Could not initialize suite class: "
+                + testClass.getName() + " because its @SeedDecorators contains non-instantiable: "
+                + clazz.getName(), t); 
+          }
+        }
       }
+      SeedDecorator[] decArray = decorators.toArray(new SeedDecorator [decorators.size()]);
 
-      if (seedChain.length > 1) {
-        testCaseRandomnessOverride = new Randomness(seedChain[1]);
+      final long randomSeed = MurmurHash3.hash(sequencer.getAndIncrement() + System.nanoTime());
+      final String globalSeed = emptyToNull(System.getProperty(SYSPROP_RANDOM_SEED()));
+      final long initialSeed;
+      if (globalSeed != null) {
+        final long[] seedChain = SeedUtils.parseSeedChain(globalSeed);
+        if (seedChain.length == 0 || seedChain.length > 2) {
+          throw new IllegalArgumentException("Invalid system property " 
+              + SYSPROP_RANDOM_SEED() + " specification: " + globalSeed);
+        }
+
+        if (seedChain.length > 1) {
+          testCaseRandomnessOverride = new Randomness(seedChain[1]);
+        }
+
+        initialSeed = seedChain[0];
+      } else if (suiteClass.isAnnotationPresent(Seed.class)) {
+        initialSeed = seedFromAnnot(suiteClass, randomSeed)[0];
+      } else {
+        initialSeed = randomSeed;
       }
-
-      runnerRandomness = new Randomness(seedChain[0]);
-    } else if (suiteClass.isAnnotationPresent(Seed.class)) {
-      runnerRandomness = new Randomness(seedFromAnnot(suiteClass, randomSeed)[0]);
-    } else {
-      runnerRandomness = new Randomness(randomSeed);
+      runnerRandomness = new Randomness(initialSeed, decArray);
     }
 
     // Iterations property is primary wrt to annotations, so we leave an "undefined" value as null.
@@ -524,7 +533,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final RunListener accounting = result.createListener();
     notifier.addListener(accounting);
 
-    final Randomness classRandomness = new Randomness(runnerRandomness.seed);
+    final Randomness classRandomness = runnerRandomness.clone(Thread.currentThread());
     context.push(classRandomness);
     try {
       // Check for automatically hookable listeners.
@@ -945,7 +954,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
                  o2.getField().getName());
         }
       });
-      Collections.shuffle(fields, new Random(runnerRandomness.seed));
+      Collections.shuffle(fields, new Random(runnerRandomness.getSeed()));
     }
 
     annotatedFields.clear();
@@ -1388,7 +1397,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
            */
           notifier.fireTestIgnored(c.description);
           notifier.fireTestAssumptionFailed(new Failure(c.description, 
-              new AssumptionViolatedException("'" + g.getName() + "' test group is disabled (@"
+              new InternalAssumptionViolatedException("'" + g.getName() + "' test group is disabled (@"
                   + g.getAnnotation().annotationType().getSimpleName() + ")")));
           // Ignore this test.
           return true;
@@ -1413,7 +1422,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Shuffle at class level.
-    Random rnd = new Random(runnerRandomness.seed);
+    Random rnd = new Random(runnerRandomness.getSeed());
     for (List<Method> clazzLevel : list) {
       Collections.shuffle(clazzLevel, rnd);
     }
@@ -1473,7 +1482,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     validateTestMethods(testMethods);
 
     // Shuffle at real test-case level, don't shuffle iterations or explicit @Seeds order.
-    Collections.shuffle(testMethods, new Random(runnerRandomness.seed));
+    Collections.shuffle(testMethods, new Random(runnerRandomness.getSeed()));
 
     final Constructor<?> constructor = suiteClass.getConstructors()[0];
 
@@ -1653,7 +1662,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
 
       if (result.isEmpty()) {
-        throw new AssumptionViolatedException("Parameters set should not be empty. Ignoring tests.");
+        throw new InternalAssumptionViolatedException("Parameters set should not be empty. Ignoring tests.");
       }
 
       parameters.addAll(result);
@@ -1746,7 +1755,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private long [] determineMethodSeeds(Method method) {
     if (testCaseRandomnessOverride != null) {
-      return new long [] { testCaseRandomnessOverride.seed };
+      return new long [] { testCaseRandomnessOverride.getSeed() };
     }
 
     // We assign each method a different starting hash based on the global seed
@@ -1754,7 +1763,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // their names). Take into account global override and method and class level
     // {@link Seed} annotations.    
     final long randomSeed = 
-        runnerRandomness.seed ^ MurmurHash3.hash((long) method.getName().hashCode());
+        runnerRandomness.getSeed() ^ MurmurHash3.hash((long) method.getName().hashCode());
     final HashSet<Long> seeds = new HashSet<Long>();
 
     // Check method-level @Seed and @Seeds annotation first. 

@@ -38,9 +38,12 @@ public class TestTextReport extends AntBuildFileTestBase {
     
     Assert.assertEquals(1, count);
   }
-  
+
   @Test 
   public void reasonForIgnored() {
     super.executeTarget("reasonForIgnored");
+    assertLogContains("@DisabledGroup");
+    assertLogContains("> Cause: Annotated @Ignore");
+    assertLogContains("(Ignored method.)");
   }  
 }

@@ -175,7 +175,7 @@ public class TestJUnit4 extends AntBuildFileTestBase {
 
   @Test
   public void seedpassingInvalid() {
-    expectBuildExceptionContaining("seedpassing.invalid", "Expected hexadecimal seed");
+    expectBuildExceptionContaining("seedpassing.invalid", "Not a valid seed chain");
   }
   
   @Test

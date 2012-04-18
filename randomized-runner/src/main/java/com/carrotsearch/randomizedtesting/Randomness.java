@@ -12,26 +12,27 @@ import java.util.Random;
  * @see RandomizedContext
  */
 public final class Randomness {
-  final long seed;
+  private final long seed;
   private final AssertingRandom random;
+  private SeedDecorator[] decorators;
 
-  public Randomness(Thread owner, long seed) {
+  public Randomness(Thread owner, long seed, SeedDecorator... decorators) {
     this.seed = seed;
-    this.random = new AssertingRandom(owner, new Random(seed));
+    this.decorators = decorators;
+    this.random = new AssertingRandom(owner, new Random(decorate(seed, decorators)));
   }
 
-  public Randomness(long seed) {
-    this(Thread.currentThread(), seed);
+  public Randomness(long seed, SeedDecorator...decorators) {
+    this(Thread.currentThread(), seed, decorators);
   }
 
   /** Random instance for this randomness. */
   public Random getRandom() {
     return random;
-  }  
+  }
 
-  /** Starting seed, read-only. */
-  public long getSeed() {
-    return seed;
+  Randomness clone(Thread newOwner) {
+    return new Randomness(newOwner, seed, decorators);
   }
 
   @Override
@@ -46,5 +47,20 @@ public final class Randomness {
    */
   void destroy() {
     this.random.destroy();
+  }
+  
+  /** Starting seed, read-only for tests. */
+  long getSeed() {
+    return seed;
+  }
+  
+  /**
+   * Decorate a given seed.
+   */
+  private static long decorate(long seed, SeedDecorator[] decorators) {
+    for (SeedDecorator decorator : decorators) {
+      seed = decorator.decorate(seed);
+    }
+    return seed;
   }
 }

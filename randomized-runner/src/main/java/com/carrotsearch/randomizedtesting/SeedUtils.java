@@ -43,7 +43,7 @@ public final class SeedUtils {
    */
   public static long [] parseSeedChain(String chain) {
     chain = chain.replaceAll("[\\[\\]]", "");
-    if (!chain.matches("[\\-0-9A-Za-z\\:]+")) {
+    if (!chain.matches("[0-9A-Fa-f\\:]+")) {
       throw new IllegalArgumentException("Not a valid seed chain: " + chain);
     }
     String [] splits = chain.split("[\\:]");
@@ -62,7 +62,7 @@ public final class SeedUtils {
     b.append("[");
     for (int i = 0; i < randomnesses.length; i++) {
       if (i > 0) b.append(":");
-      b.append(formatSeed(randomnesses[i].seed));
+      b.append(formatSeed(randomnesses[i].getSeed()));
     }
     b.append("]");
     return b.toString();
