@@ -23,6 +23,7 @@ import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.*;
+import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -54,6 +55,19 @@ import static com.carrotsearch.randomizedtesting.SysGlobals.*;
  * </ul>
  */
 public class JUnit4 extends Task {
+  /**
+   * Welcome messages.
+   */
+  private static String [] WELCOME_MESSAGES = {
+    "hello!",
+    "hi!",
+    "g'day!",
+    "¡Hola!",
+    "jolly good day!",
+    "aloha!",
+    "cześć."
+  };
+  
   /** Name of the antlib resource inside JUnit4 JAR. */
   public static final String ANTLIB_RESOURCE_NAME = "com/carrotsearch/junit4/antlib.xml";
 
@@ -547,7 +561,9 @@ public class JUnit4 extends Task {
     masterSeed();
 
     // Say hello and continue.
-    log("<JUnit4> says hello. Random seed: " + getSeed(), Project.MSG_INFO);
+    log("<JUnit4> says " +
+        RandomPicks.randomFrom(new Random(masterSeed()), WELCOME_MESSAGES) +
+        " Master seed: " + getSeed(), Project.MSG_INFO);
 
     // Pass the random seed property.
     createJvmarg().setValue("-D" + SYSPROP_PREFIX() + "=" + CURRENT_PREFIX());
