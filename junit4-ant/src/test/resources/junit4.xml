@@ -661,5 +661,31 @@
                 />
             </listeners>
         </junit4:junit4>
+    </target>
+    
+    <target name="jvmverbose">
+        <junit4:junit4 haltonfailure="false">
+            <classpath refid="tests.classpath" />
+
+            <jvmarg value="-verbose" /> 
+
+            <fileset dir="${basedir}">
+                <include name="**/TestStatuses.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutputStream="true" 
+                    showErrorStream="true"
+                    showStatusOk="true"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+                    showSuiteSummary="true"
+                />
+            </listeners>
+        </junit4:junit4>
     </target>    
 </project>
