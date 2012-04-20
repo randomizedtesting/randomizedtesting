@@ -11,7 +11,6 @@ import org.junit.*;
  */
 @Ignore("https://github.com/carrotsearch/randomizedtesting/issues/87")
 public class TestJvmLogging extends AntBuildFileTestBase {
-  
   @Before
   public void setUp() throws Exception {
     URL resource = getClass().getClassLoader().getResource("junit4.xml");
