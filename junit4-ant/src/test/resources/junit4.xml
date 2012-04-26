@@ -1,34 +1,34 @@
 
 <project name="junit4" default="statuses" xmlns:junit4="antlib:com.carrotsearch.junit4">
-    <property name="native.libs" location="${basedir}/../../src/native/lib" />
+	<property name="native.libs" location="${basedir}/../../src/native/lib" />
 
-    <path id="junit.classpath">
-        <fileset dir="..">
-            <include name="dependency/junit-*.jar" />
-        </fileset>
-    </path>
+	<path id="junit.classpath">
+		<fileset dir="..">
+			<include name="dependency/junit-*.jar" />
+		</fileset>
+	</path>
 
-    <path id="tests.classpath">
-        <path location="." />
-        <path refid="junit.classpath" />
-    </path>
+	<path id="tests.classpath">
+		<path location="." />
+		<path refid="junit.classpath" />
+	</path>
 
-    <taskdef uri="antlib:com.carrotsearch.junit4">
-        <classpath refid="junit.classpath" />
-        <classpath>
-            <fileset dir=".." id="fileset.junit4">
-                <include name="junit4-ant*.jar" />
-                <exclude name="*proguard_base.jar" />
-            </fileset>
-        </classpath>
-    </taskdef>
+	<taskdef uri="antlib:com.carrotsearch.junit4">
+		<classpath refid="junit.classpath" />
+		<classpath>
+			<fileset dir=".." id="fileset.junit4">
+				<include name="junit4-ant*.jar" />
+				<exclude name="*proguard_base.jar" />
+			</fileset>
+		</classpath>
+	</taskdef>
 
-    <presetdef name="junit4.preconf">
-        <junit4:junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true">
-            <classpath refid="tests.classpath" />
+	<presetdef name="junit4.preconf">
+		<junit4:junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true">
+			<classpath refid="tests.classpath" />
 
-            <listeners>
-                <junit4:report-text
+			<listeners>
+				<junit4:report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -41,501 +41,501 @@
 
                     showSuiteSummary="true"
                 />
-            </listeners>
-        </junit4:junit4>
-    </presetdef>
+			</listeners>
+		</junit4:junit4>
+	</presetdef>
 
-    <!-- Targets below are connected with test cases. -->
-    <target name="sourcesuites">
-        <junit4.preconf>
-            <classpath>
-                <fileset dir=".." includes="dependency/randomized*.jar" />
-            </classpath>
+	<!-- Targets below are connected with test cases. -->
+	<target name="sourcesuites">
+		<junit4.preconf>
+			<classpath>
+				<fileset dir=".." includes="dependency/randomized*.jar" />
+			</classpath>
 
-            <fileset dir="${basedir}/../../src/test/java">
-                <include name="**/TestSuccess.java" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+			<fileset dir="${basedir}/../../src/test/java">
+				<include name="**/TestSuccess.java" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="sysstreams">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestSysstreams.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="sysstreams">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestSysstreams.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="nojunit">
-        <junit4:junit4>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestSysstreams.class" />
-            </fileset>
-        </junit4:junit4>
-    </target>
-    
-    <target name="oldjunit">
-        <junit4:junit4>
-            <classpath>
-                <path location="." />
-                <fileset dir="${basedir}/../.." includes="lib/junit*.jar" />
-            </classpath>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-            </fileset>
-        </junit4:junit4>
-    </target>    
+	<target name="nojunit">
+		<junit4:junit4>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestSysstreams.class" />
+			</fileset>
+		</junit4:junit4>
+	</target>
 
-    <target name="statuses">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="oldjunit">
+		<junit4:junit4>
+			<classpath>
+				<path location="." />
+				<fileset dir="${basedir}/../.." includes="lib/junit*.jar" />
+			</classpath>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+			</fileset>
+		</junit4:junit4>
+	</target>
 
-    <target name="ignoredSuite">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestIgnoredSuite.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="statuses">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="beforeClassError">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestBeforeClassError.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="ignoredSuite">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestIgnoredSuite.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="afterClassError">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestAfterClassError.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="beforeClassError">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestBeforeClassError.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="hierarchicalSuiteDescription">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestHierarchicalSuiteDescription.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="afterClassError">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestAfterClassError.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="dir">
-        <delete dir="empty" failonerror="false" />
-        <mkdir dir="empty" />
+	<target name="hierarchicalSuiteDescription">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestHierarchicalSuiteDescription.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-        <junit4.preconf dir="empty" leaveTemporary="true">
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestDir.class" />
-            </fileset>
-        </junit4.preconf>
+	<target name="dir">
+		<delete dir="empty" failonerror="false" />
+		<mkdir dir="empty" />
 
-        <fail message="Expected marker file to appear at ${basedir}/empty/S0/touch.me">
-            <condition>
-                <not>
-                    <available file="empty/S0/touch.me" type="file" />
-                </not>
-            </condition>
-        </fail>
+		<junit4.preconf dir="empty" leaveTemporary="true">
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestDir.class" />
+			</fileset>
+		</junit4.preconf>
 
-        <junit4.preconf dir="empty" isolateWorkingDirectories="false">
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestDir.class" />
-            </fileset>
-        </junit4.preconf>
+		<fail message="Expected marker file to appear at ${basedir}/empty/S0/touch.me">
+			<condition>
+				<not>
+					<available file="empty/S0/touch.me" type="file" />
+				</not>
+			</condition>
+		</fail>
 
-        <fail message="Expected marker file to appear.">
-            <condition>
-                <not>
-                    <available file="empty/touch.me" type="file" />
-                </not>
-            </condition>
-        </fail>    	
-    </target>
+		<junit4.preconf dir="empty" isolateWorkingDirectories="false">
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestDir.class" />
+			</fileset>
+		</junit4.preconf>
 
-    <target name="maxmem">
-        <junit4.preconf maxmemory="100m">
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestMaxMem.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+		<fail message="Expected marker file to appear.">
+			<condition>
+				<not>
+					<available file="empty/touch.me" type="file" />
+				</not>
+			</condition>
+		</fail>
+	</target>
 
-    <target name="jvmarg">
-        <junit4.preconf>
-            <jvmarg value="-Xmx100m" />
-            <jvmarg value="-Dtest.param=foobar" />
+	<target name="maxmem">
+		<junit4.preconf maxmemory="100m">
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestMaxMem.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestMaxMem.class" />
-                <include name="**/tests/TestJvmArg.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="jvmarg">
+		<junit4.preconf>
+			<jvmarg value="-Xmx100m" />
+			<jvmarg value="-Dtest.param=foobar" />
 
-    <target name="sysproperty">
-        <junit4.preconf>
-            <sysproperty key="test.param" value="foobar" />
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestMaxMem.class" />
+				<include name="**/tests/TestJvmArg.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestJvmArg.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="sysproperty">
+		<junit4.preconf>
+			<sysproperty key="test.param" value="foobar" />
 
-    <target name="env">
-        <junit4.preconf>
-            <env key="env.variable" value="foobar" />
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestJvmArg.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestEnvVar.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="env">
+		<junit4.preconf>
+			<env key="env.variable" value="foobar" />
 
-    <target name="failureProperty">
-        <junit4.preconf haltonfailure="false">
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-            </fileset>
-        </junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestEnvVar.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-        <junit4.preconf haltonfailure="false" failureProperty="tests.failed">
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-            </fileset>
-        </junit4.preconf>
+	<target name="failureProperty">
+		<junit4.preconf haltonfailure="false">
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+			</fileset>
+		</junit4.preconf>
 
-        <fail message="Expected failure property to be set.">
-            <condition>
-                <not>
-                    <isset property="tests.failed" />
-                </not>
-            </condition>
-        </fail>
-    </target>
+		<junit4.preconf haltonfailure="false" failureProperty="tests.failed">
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+			</fileset>
+		</junit4.preconf>
 
-    <target name="failureTypePassing">
-        <junit4.preconf haltonfailure="false">
-            <classpath>
-                <fileset dir=".." includes="dependency/asm*.jar" />
-            </classpath>
+		<fail message="Expected failure property to be set.">
+			<condition>
+				<not>
+					<isset property="tests.failed" />
+				</not>
+			</condition>
+		</fail>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestFailureTypePassing.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="failureTypePassing">
+		<junit4.preconf haltonfailure="false">
+			<classpath>
+				<fileset dir=".." includes="dependency/asm*.jar" />
+			</classpath>
 
-    <target name="jvmcrash">
-        <echo>${native.libs}</echo>
-        <junit4.preconf>
-            <jvmarg value="-Djava.library.path=${native.libs}" />
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestFailureTypePassing.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestJvmCrash.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="jvmcrash">
+		<echo>${native.libs}</echo>
+		<junit4.preconf>
+			<jvmarg value="-Djava.library.path=${native.libs}" />
 
-    <target name="antxml">
-        <delete dir="ant-xmls" failonerror="false" />
-        <mkdir dir="ant-xmls" />
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestJvmCrash.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-        <junit4:junit4 haltonfailure="false">
-            <classpath refid="tests.classpath" />
+	<target name="antxml">
+		<delete dir="ant-xmls" failonerror="false" />
+		<mkdir dir="ant-xmls" />
 
-            <listeners>
-                <junit4:report-ant-xml dir="ant-xmls">
-                    <!--
+		<junit4:junit4 haltonfailure="false">
+			<classpath refid="tests.classpath" />
+
+			<listeners>
+				<junit4:report-ant-xml dir="ant-xmls">
+					<!--
                     <tokenfilter>
                       <replaceregex pattern="" replace="" flags="gi" />
                     </tokenfilter>
                     -->
-                </junit4:report-ant-xml>
-            </listeners>
+				</junit4:report-ant-xml>
+			</listeners>
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-                <include name="**/tests/TestSysstreams.class" />
-                <include name="**/tests/TestIgnoredSuite.class" />
-                <include name="**/tests/TestBeforeClassError.class" />
-                <include name="**/tests/TestHierarchicalSuiteDescription.class" />
-            </fileset>
-        </junit4:junit4>
-    </target>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+				<include name="**/tests/TestSysstreams.class" />
+				<include name="**/tests/TestIgnoredSuite.class" />
+				<include name="**/tests/TestBeforeClassError.class" />
+				<include name="**/tests/TestHierarchicalSuiteDescription.class" />
+			</fileset>
+		</junit4:junit4>
+	</target>
 
-    <target name="json">
-        <delete dir="json" failonerror="false" />
-        <mkdir dir="json" />
+	<target name="json">
+		<delete dir="json" failonerror="false" />
+		<mkdir dir="json" />
 
-        <junit4:junit4 haltonfailure="false">
-            <classpath refid="tests.classpath" />
+		<junit4:junit4 haltonfailure="false">
+			<classpath refid="tests.classpath" />
 
-            <listeners>
-                <junit4:report-json file="json/report.json" />
-                <junit4:report-json jsonpMethod="callbackMethod" file="json/report.jsonp" />
-                <junit4:report-json file="json/output.html" projectName="Nice project" />
-            </listeners>
+			<listeners>
+				<junit4:report-json file="json/report.json" />
+				<junit4:report-json jsonpMethod="callbackMethod" file="json/report.jsonp" />
+				<junit4:report-json file="json/output.html" projectName="Nice project" />
+			</listeners>
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-                <include name="**/tests/TestSysstreams.class" />
-                <include name="**/tests/TestIgnoredSuite.class" />
-                <include name="**/tests/TestBeforeClassError.class" />
-                <include name="**/tests/TestHierarchicalSuiteDescription.class" />
-            </fileset>
-        </junit4:junit4>
-    </target>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+				<include name="**/tests/TestSysstreams.class" />
+				<include name="**/tests/TestIgnoredSuite.class" />
+				<include name="**/tests/TestBeforeClassError.class" />
+				<include name="**/tests/TestHierarchicalSuiteDescription.class" />
+			</fileset>
+		</junit4:junit4>
+	</target>
 
-    <target name="classfilter">
-    	<local name="tests.class" />
-    	<property name="tests.class" value="*Statuses" />
-        <junit4.preconf haltonfailure="false">
-            <fileset dir="${basedir}">
-                <include name="**/tests/Test*.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="classfilter">
+		<local name="tests.class" />
+		<property name="tests.class" value="*Statuses" />
+		<junit4.preconf haltonfailure="false">
+			<fileset dir="${basedir}">
+				<include name="**/tests/Test*.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="methodfilter">
-        <local name="tests.class" />
-    	<local name="tests.method" />
-        <property name="tests.class" value="*Statuses" />
-    	<property name="tests.method" value="ignored*" />
-        <junit4.preconf haltonfailure="false">
-            <fileset dir="${basedir}">
-                <include name="**/tests/Test*.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="methodfilter">
+		<local name="tests.class" />
+		<local name="tests.method" />
+		<property name="tests.class" value="*Statuses" />
+		<property name="tests.method" value="ignored*" />
+		<junit4.preconf haltonfailure="false">
+			<fileset dir="${basedir}">
+				<include name="**/tests/Test*.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="nojunit-task">
-        <taskdef name="junit4-nojunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
-            <classpath>
-                <fileset refid="fileset.junit4" />
-            </classpath>
-        </taskdef>
+	<target name="nojunit-task">
+		<taskdef name="junit4-nojunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
+			<classpath>
+				<fileset refid="fileset.junit4" />
+			</classpath>
+		</taskdef>
 
-        <junit4-nojunit>
-            <classpath refid="tests.classpath" />
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-            </fileset>
-        </junit4-nojunit>
-    </target>
-    
-    <target name="oldjunit-task">
-        <taskdef name="junit4-oldjunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
-            <classpath>
-                <fileset dir="../..">
-                    <include name="lib/junit-4.9.jar" />
-                </fileset>
-                <fileset refid="fileset.junit4" />
-            </classpath>
-        </taskdef>
+		<junit4-nojunit>
+			<classpath refid="tests.classpath" />
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+			</fileset>
+		</junit4-nojunit>
+	</target>
 
-        <junit4-oldjunit>
-            <classpath refid="tests.classpath" />
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-            </fileset>
-        </junit4-oldjunit>
-    </target>
+	<target name="oldjunit-task">
+		<taskdef name="junit4-oldjunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
+			<classpath>
+				<fileset dir="../..">
+					<include name="lib/junit-4.9.jar" />
+				</fileset>
+				<fileset refid="fileset.junit4" />
+			</classpath>
+		</taskdef>
 
-    <target name="escaping">
-        <delete dir="empty" failonerror="false" />
-        <mkdir dir="empty" />
+		<junit4-oldjunit>
+			<classpath refid="tests.classpath" />
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+			</fileset>
+		</junit4-oldjunit>
+	</target>
 
-        <junit4.preconf dir="empty">
-            <sysproperty key="sysprop.key" value="${nonexistent-1}" />
-            <sysproperty key="sysprop.key2" value="abc def" />
-            <jvmarg value="-Dsysprop.key3=%PATH%" />
-            <env key="env.variable" value="${nonexistent-3}" />
+	<target name="escaping">
+		<delete dir="empty" failonerror="false" />
+		<mkdir dir="empty" />
 
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestEscaping.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+		<junit4.preconf dir="empty">
+			<sysproperty key="sysprop.key" value="${nonexistent-1}" />
+			<sysproperty key="sysprop.key2" value="abc def" />
+			<jvmarg value="-Dsysprop.key3=%PATH%" />
+			<env key="env.variable" value="${nonexistent-3}" />
 
-    <target name="seedpassing">
-        <junit4.preconf seed="[DEADBEEF:CAFEBABE]">
-            <classpath>
-                <fileset dir=".." includes="dependency/randomized*.jar" />
-            </classpath>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestSeedPassing.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestEscaping.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="seedpassing.invalid">
-        <junit4.preconf seed="invalid">
-            <classpath>
-                <fileset dir=".." includes="dependency/randomized*.jar" />
-            </classpath>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestSeedPassing.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
-    
-    <target name="reproducestring">
-        <junit4.preconf haltonfailure="false">
-            <classpath>
-                <fileset dir=".." includes="dependency/randomized*.jar" />
-            </classpath>
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestReproduceString.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
-    
-    <target name="assertions">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/sub1/TestAssertions.class" />
-            </fileset>
+	<target name="seedpassing">
+		<junit4.preconf seed="[DEADBEEF:CAFEBABE]">
+			<classpath>
+				<fileset dir=".." includes="dependency/randomized*.jar" />
+			</classpath>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestSeedPassing.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <assertions>
-              <enable package="com.carrotsearch.ant.tasks.junit4.tests.sub1"/>
-            </assertions>            
-        </junit4.preconf>
-    </target>
+	<target name="seedpassing.invalid">
+		<junit4.preconf seed="invalid">
+			<classpath>
+				<fileset dir=".." includes="dependency/randomized*.jar" />
+			</classpath>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestSeedPassing.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="balancing">
-    	<delete file="${basedir}/hints.log" />
-        <junit4.preconf parallelism="2">
-            <fileset dir="${basedir}">
-                <include name="**/tests/sub2/Test*.class" />
-            </fileset>
+	<target name="reproducestring">
+		<junit4.preconf haltonfailure="false">
+			<classpath>
+				<fileset dir=".." includes="dependency/randomized*.jar" />
+			</classpath>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestReproduceString.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <listeners>
-            	<junit4:report-execution-times file="${basedir}/hints.log" historyLength="5" />
-        	</listeners>
+	<target name="assertions">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/sub1/TestAssertions.class" />
+			</fileset>
 
-        	<balancers>
-        		<junit4:execution-times>
-        			<fileset dir="${basedir}" includes="hints*.log" />
-    			</junit4:execution-times>
-    		</balancers>
-        </junit4.preconf>
+			<assertions>
+				<enable package="com.carrotsearch.ant.tasks.junit4.tests.sub1"/>
+			</assertions>
+		</junit4.preconf>
+	</target>
 
-        <fail message="Expected hints file to appear.">
-            <condition>
-                <not>
-                    <available file="${basedir}/hints.log" type="file" />
-                </not>
-            </condition>
-        </fail>    	
-    </target>	
+	<target name="balancing">
+		<delete file="${basedir}/hints.log" />
+		<junit4.preconf parallelism="2">
+			<fileset dir="${basedir}">
+				<include name="**/tests/sub2/Test*.class" />
+			</fileset>
 
-    <target name="alt-vendor">
-        <fail unless="jvm.exec">jvm.exec property must be set.</fail>
-        <junit4.preconf parallelism="1" leaveTemporary="true" 
+			<listeners>
+				<junit4:report-execution-times file="${basedir}/hints.log" historyLength="5" />
+			</listeners>
+
+			<balancers>
+				<junit4:execution-times>
+					<fileset dir="${basedir}" includes="hints*.log" />
+				</junit4:execution-times>
+			</balancers>
+		</junit4.preconf>
+
+		<fail message="Expected hints file to appear.">
+			<condition>
+				<not>
+					<available file="${basedir}/hints.log" type="file" />
+				</not>
+			</condition>
+		</fail>
+	</target>
+
+	<target name="alt-vendor">
+		<fail unless="jvm.exec">jvm.exec property must be set.</fail>
+		<junit4.preconf parallelism="1" leaveTemporary="true" 
             jvm="${jvm.exec}">
-            <fileset dir="${basedir}">
-                <include name="**/tests/TestStatuses.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+			<fileset dir="${basedir}">
+				<include name="**/tests/TestStatuses.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="notaclass">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="junit4.xml" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="notaclass">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="junit4.xml" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="notinstantiable">
-        <junit4.preconf>
-            <fileset dir="${basedir}">
-                <include name="**/tests/NotInstantiable.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="notinstantiable">
+		<junit4.preconf>
+			<fileset dir="${basedir}">
+				<include name="**/tests/NotInstantiable.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="customprefix">
-        <local name="blah.class" />
-        <property name="blah.class" value="*Statuses" />
-        <property name="blah.seed" value="deadbeef" />
-        <junit4.preconf haltonfailure="false" prefix="blah">
-            <fileset dir="${basedir}">
-                <include name="**/tests/Test*.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="customprefix">
+		<local name="blah.class" />
+		<property name="blah.class" value="*Statuses" />
+		<property name="blah.seed" value="deadbeef" />
+		<junit4.preconf haltonfailure="false" prefix="blah">
+			<fileset dir="${basedir}">
+				<include name="**/tests/Test*.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="cwdconflict">
-        <junit4.preconf haltonfailure="true" parallelism="2">
-            <fileset dir="${basedir}">
-                <include name="**/CwdConflict*.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
-	
-    <target name="slavehanging">
-        <junit4.preconf haltonfailure="false" parallelism="1">
-            <fileset dir="${basedir}">
-                <include name="**/SlaveHanging*.class" />
-            	<exclude name="**/*$*" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="cwdconflict">
+		<junit4.preconf haltonfailure="true" parallelism="2">
+			<fileset dir="${basedir}">
+				<include name="**/CwdConflict*.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-    <target name="outofordersysouts">
-        <junit4.preconf haltonfailure="true" parallelism="1">
-        	<classpath>
-                <fileset dir=".." includes="dependency/randomized*.jar" />
-            </classpath>
+	<target name="slavehanging">
+		<junit4.preconf haltonfailure="false" parallelism="1">
+			<fileset dir="${basedir}">
+				<include name="**/SlaveHanging*.class" />
+				<exclude name="**/*$*" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/OutOfOrderSysouts.class" />
-                <exclude name="**/*$*" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+	<target name="outofordersysouts">
+		<junit4.preconf haltonfailure="true" parallelism="1">
+			<classpath>
+				<fileset dir=".." includes="dependency/randomized*.jar" />
+			</classpath>
 
-    <target name="mergehints">
-        <junit4.preconf parallelism="4">
-            <fileset dir="${basedir}">
-                <include name="**/tests/sub2/Test*.class" />
-            </fileset>
+			<fileset dir="${basedir}">
+				<include name="**/OutOfOrderSysouts.class" />
+				<exclude name="**/*$*" />
+			</fileset>
+		</junit4.preconf>
+	</target>
 
-            <listeners>
-                <junit4:report-execution-times file="${basedir}/hints-1.log" />
-            	<junit4:report-execution-times file="${basedir}/hints-2.log" />
-            	<junit4:report-execution-times file="${basedir}/hints-3.log" />
-            </listeners>
-        </junit4.preconf>
+	<target name="mergehints">
+		<junit4.preconf parallelism="4">
+			<fileset dir="${basedir}">
+				<include name="**/tests/sub2/Test*.class" />
+			</fileset>
 
-    	<junit4:mergehints file="${basedir}/hints-merged.log" historyLength="3">
-    		<fileset dir="${basedir}" includes="hints-?.log" />
-	    </junit4:mergehints>
+			<listeners>
+				<junit4:report-execution-times file="${basedir}/hints-1.log" />
+				<junit4:report-execution-times file="${basedir}/hints-2.log" />
+				<junit4:report-execution-times file="${basedir}/hints-3.log" />
+			</listeners>
+		</junit4.preconf>
 
-        <junit4:tophints max="3">
-        	<fileset dir="${basedir}" includes="hints-merged.log" />
-        </junit4:tophints>
-    </target>
+		<junit4:mergehints file="${basedir}/hints-merged.log" historyLength="3">
+			<fileset dir="${basedir}" includes="hints-?.log" />
+		</junit4:mergehints>
 
-    <target name="staticScopeOutput">
-        <junit4:junit4>
-            <classpath refid="tests.classpath" />
+		<junit4:tophints max="3">
+			<fileset dir="${basedir}" includes="hints-merged.log" />
+		</junit4:tophints>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/TestStaticScopeOutput.class" />
-            </fileset>
+	<target name="staticScopeOutput">
+		<junit4:junit4>
+			<classpath refid="tests.classpath" />
 
-            <listeners>
-                <junit4:report-text
+			<fileset dir="${basedir}">
+				<include name="**/TestStaticScopeOutput.class" />
+			</fileset>
+
+			<listeners>
+				<junit4:report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -547,25 +547,25 @@
                     showSuiteSummary="true"
                 />
 
-            	<junit4:report-json file="json/static-scope.json" />
-            </listeners>
-        </junit4:junit4>
-    </target>
-	
-    <target name="iters">
-        <junit4.preconf haltonfailure="true">
-            <classpath>
-                <fileset dir=".." includes="dependency/randomized*.jar" />
-            </classpath>
-        	<sysproperty key="tests.iters" value="5" />
-            <fileset dir="${basedir}">
-                <include name="**/TestSuccess.class" />
-            </fileset>
-        </junit4.preconf>
-    </target>
+				<junit4:report-json file="json/static-scope.json" />
+			</listeners>
+		</junit4:junit4>
+	</target>
 
-    <target name="junitcompat1">
-        <junit4.preconf
+	<target name="iters">
+		<junit4.preconf haltonfailure="true">
+			<classpath>
+				<fileset dir=".." includes="dependency/randomized*.jar" />
+			</classpath>
+			<sysproperty key="tests.iters" value="5" />
+			<fileset dir="${basedir}">
+				<include name="**/TestSuccess.class" />
+			</fileset>
+		</junit4.preconf>
+	</target>
+
+	<target name="junitcompat1">
+		<junit4.preconf
             fork="true"
             forkmode="once"
             haltonerror="true"
@@ -580,42 +580,42 @@
             logfailedtests="true"
             enableTestListenerEvents="true"
         >
-            <formatter type="plain"/>
-        </junit4.preconf>
-    </target>
-    
-    <target name="junitcompat2">
-        <junit4.preconf>
-            <test name="my.test.TestCase" haltonfailure="no" outfile="result">
-                <formatter type="xml"/>
-            </test>
-    
-            <batchtest fork="yes" todir="${reports.tests}">
-              <fileset dir="${src.tests}">
-                <include name="**/*Test*.java"/>
-                <exclude name="**/AllTests.java"/>
-              </fileset>
-            </batchtest>
-        </junit4.preconf>
-    </target>
-    
-    <target name="junitcompat3">
-        <junit4.preconf>
-            <batchtest fork="yes" todir="${reports.tests}">
-              <fileset dir="${src.tests}">
-                <include name="**/*Test*.java"/>
-                <exclude name="**/AllTests.java"/>
-              </fileset>
-            </batchtest>
-        </junit4.preconf>
-    </target>
-	
-    <target name="suiteerror">
-        <junit4:junit4 haltonfailure="false">
-            <classpath refid="tests.classpath" />
+			<formatter type="plain"/>
+		</junit4.preconf>
+	</target>
 
-            <listeners>
-                <junit4:report-text
+	<target name="junitcompat2">
+		<junit4.preconf>
+			<test name="my.test.TestCase" haltonfailure="no" outfile="result">
+				<formatter type="xml"/>
+			</test>
+
+			<batchtest fork="yes" todir="${reports.tests}">
+				<fileset dir="${src.tests}">
+					<include name="**/*Test*.java"/>
+					<exclude name="**/AllTests.java"/>
+				</fileset>
+			</batchtest>
+		</junit4.preconf>
+	</target>
+
+	<target name="junitcompat3">
+		<junit4.preconf>
+			<batchtest fork="yes" todir="${reports.tests}">
+				<fileset dir="${src.tests}">
+					<include name="**/*Test*.java"/>
+					<exclude name="**/AllTests.java"/>
+				</fileset>
+			</batchtest>
+		</junit4.preconf>
+	</target>
+
+	<target name="suiteerror">
+		<junit4:junit4 haltonfailure="false">
+			<classpath refid="tests.classpath" />
+
+			<listeners>
+				<junit4:report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -628,27 +628,27 @@
 
                     showSuiteSummary="true"
                 />
-            </listeners>
-        	
-        	<fileset dir="${basedir}">
-                <include name="**/FailInAfterClass.class" />
-            </fileset>
-        </junit4:junit4>
-    </target>
+			</listeners>
 
-    <target name="reasonForIgnored">
-        <junit4:junit4>
-            <classpath refid="tests.classpath" />
-            <classpath>
-                <fileset dir=".." includes="dependency/randomized*.jar" />
-            </classpath>
+			<fileset dir="${basedir}">
+				<include name="**/FailInAfterClass.class" />
+			</fileset>
+		</junit4:junit4>
+	</target>
 
-            <fileset dir="${basedir}">
-                <include name="**/ReasonForIgnored$*.class" />
-            </fileset>
+	<target name="reasonForIgnored">
+		<junit4:junit4>
+			<classpath refid="tests.classpath" />
+			<classpath>
+				<fileset dir=".." includes="dependency/randomized*.jar" />
+			</classpath>
 
-            <listeners>
-                <junit4:report-text
+			<fileset dir="${basedir}">
+				<include name="**/ReasonForIgnored$*.class" />
+			</fileset>
+
+			<listeners>
+				<junit4:report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -659,22 +659,22 @@
                     showStatusIgnored="true"
                     showSuiteSummary="true"
                 />
-            </listeners>
-        </junit4:junit4>
-    </target>
-    
-    <target name="jvmverbose">
-        <junit4:junit4 haltonfailure="false">
-            <classpath refid="tests.classpath" />
+			</listeners>
+		</junit4:junit4>
+	</target>
 
-            <jvmarg value="-verbose" /> 
+	<target name="jvmverbose">
+		<junit4:junit4 haltonfailure="false">
+			<classpath refid="tests.classpath" />
 
-            <fileset dir="${basedir}">
-                <include name="**/TestStatuses.class" />
-            </fileset>
+			<jvmarg value="-verbose" />
 
-            <listeners>
-                <junit4:report-text
+			<fileset dir="${basedir}">
+				<include name="**/TestStatuses.class" />
+			</fileset>
+
+			<listeners>
+				<junit4:report-text
                     showThrowable="true" 
                     showStackTraces="true" 
                     showOutputStream="true" 
@@ -685,7 +685,24 @@
                     showStatusIgnored="true"
                     showSuiteSummary="true"
                 />
-            </listeners>
-        </junit4:junit4>
-    </target>    
+			</listeners>
+		</junit4:junit4>
+	</target>
+
+	<target name="weirdclasses">
+		<junit haltonfailure="false" haltonerror="false" printsummary="false" showoutput="false"
+			 filtertrace="false">
+			<classpath refid="tests.classpath" />
+			<classpath>
+                <fileset dir="../..">
+                    <include name="lib/junit-4.9.jar" />
+                </fileset>
+			</classpath>
+
+			<batchtest>
+				<formatter type="plain" usefile="false" />
+				<fileset dir="${basedir}/../../src/test/java" includes="**/bad/*.java" />
+			</batchtest>
+		</junit>
+	</target>
 </project>
