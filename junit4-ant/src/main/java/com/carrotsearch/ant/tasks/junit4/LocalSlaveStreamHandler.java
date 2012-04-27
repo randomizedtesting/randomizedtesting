@@ -19,20 +19,25 @@ import com.google.common.eventbus.EventBus;
 public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private final EventBus eventBus;
   private final ClassLoader refLoader;
-  private BootstrapEvent bootstrapPacket;
+  private volatile BootstrapEvent bootstrapPacket;
 
   private InputStream stdout;
   private InputStream stderr;
   private OutputStreamWriter stdin;
   private final PrintStream warnStream;
+  private final InputStream eventStream;
+  
+  private volatile boolean stopping;
 
   private ByteArrayOutputStream stderrBuffered = new ByteArrayOutputStream();
   private List<Thread> pumpers = Lists.newArrayList();
 
-  public LocalSlaveStreamHandler(EventBus eventBus, ClassLoader classLoader, PrintStream warnStream) {
+  public LocalSlaveStreamHandler(
+      EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, InputStream eventStream) {
     this.eventBus = eventBus;
     this.warnStream = warnStream;
     this.refLoader = classLoader;
+    this.eventStream = eventStream;
   }
 
   @Override
@@ -53,42 +58,14 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   
   @Override
   public void start() throws IOException {
-    // Establish event stream first.
-    Deserializer deserializer = null;
-
-    // Receive bootstrap event on stdout.
-    try {
-      deserializer = new Deserializer(stdout, refLoader);
-      BootstrapEvent bootstrap = (BootstrapEvent) deserializer.deserialize();
-      this.bootstrapPacket = bootstrap;
-
-      switch (bootstrap.getEventChannel()) {
-        case STDERR:
-          // Swap stderr/stdout.
-          InputStream tmp = stdout;
-          stdout = stderr;
-          stderr = tmp;
-          break;
-        case STDOUT:
-          // Don't do anything.
-          break;
+    pumpers.add(new Thread(new StreamPumper(stderr, stderrBuffered), "pumper-stderr"));
+    pumpers.add(new Thread(new StreamPumper(stdout, stderrBuffered), "pumper-stdout"));
+    pumpers.add(new Thread(new Runnable() {
+      public void run() {
+        pumpEvents(eventStream);
       }
-      eventBus.post(bootstrap);
+    }, "pumper-events"));
 
-      pumpers.add(new Thread(new StreamPumper(stderr, stderrBuffered), "pumper-stderr"));
-      pumpers.add(new Thread(new Runnable() {
-        public void run() {
-          pumpEvents();
-        }
-      }, "pumper-events"));
-    } catch (IOException e) {
-      warnStream.println("Couldn't establish event communication with the slave: " + e.toString());
-      if (!(e instanceof EOFException)) {
-        e.printStackTrace(warnStream);
-      }
-      pumpers.add(new Thread(new StreamPumper(stderr, stderrBuffered), "pumper-stderr"));
-    }
-    
     // Start all pumper threads.
     UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
@@ -96,6 +73,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
         e.printStackTrace(warnStream);
       }
     };
+
     for (Thread t : pumpers) {
       t.setUncaughtExceptionHandler(handler);
       t.setDaemon(true);
@@ -127,36 +105,51 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   /**
    * Pump events from event stream.
    */
-  void pumpEvents() {
+  void pumpEvents(InputStream eventStream) {
     try {
-      Deserializer deserializer = new Deserializer(stdout, refLoader);
+      Deserializer deserializer = new Deserializer(eventStream, refLoader);
+
       IEvent event = null;
       while ((event = deserializer.deserialize()) != null) {
         try {
-          if (event.getType() == EventType.IDLE) {
-            eventBus.post(new SlaveIdle(stdin));
-          } else {
-            eventBus.post(event);
+          switch (event.getType()) {
+            case QUIT:
+              eventBus.post(event);
+              return;
+
+            case IDLE:
+              eventBus.post(new SlaveIdle(stdin));
+              break;
+
+            case BOOTSTRAP:
+              bootstrapPacket = (BootstrapEvent) event;
+              eventBus.post(event);
+              break;
+
+            default:
+              eventBus.post(event);
           }
         } catch (Throwable t) {
           warnStream.println("Event bus dispatch error: " + t.toString());
           t.printStackTrace(warnStream);
         }
       }
-    } catch (EOFException e) {
-      // This is a bit unexpected, but don't dump stack trace.
-      warnStream.println("Event stream error EOF?");
     } catch (IOException e) {
-      warnStream.println("Event stream error: " + e.toString());
-      e.printStackTrace(warnStream);
+      if (!stopping) {
+        warnStream.println("Event stream error: " + e.toString());
+        e.printStackTrace(warnStream);
+      }
     }
   }
   
   @Override
   public void stop() {
+    stopping = true;
     try {
+      final int defaultDelay = 2000;
       for (Thread t : pumpers) {
-        t.join();
+        t.join(defaultDelay);
+        t.interrupt();
       }
     } catch (InterruptedException e) {
       // Don't wait.

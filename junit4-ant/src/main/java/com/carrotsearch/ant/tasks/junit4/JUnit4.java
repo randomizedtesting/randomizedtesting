@@ -920,6 +920,15 @@ public class JUnit4 extends Task {
     if (slave.slaves == 1) {
       commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
     }
+
+    // Set up communication channel.
+    File eventFile = File.createTempFile(
+        "junit4-slave-" + slave.id, ".events", getTempDir());
+    commandline.createArgument().setValue(SlaveMain.OPTION_EVENTSFILE);
+    commandline.createArgument().setFile(eventFile);
+    InputStream eventStream = new TailInputStream(eventFile);
+
+    // Set up input suites file.
     commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
 
     // Emit command line before -stdin to avoid confusion.
@@ -956,12 +965,17 @@ public class JUnit4 extends Task {
     });
 
     try {
-      forkProcess(slave, eventBus, commandline);
+      forkProcess(slave, eventBus, commandline, eventStream);
     } finally {
       Closeables.closeQuietly(w);
+      Closeables.closeQuietly(eventStream);
       Files.copy(classNamesDynamic,
           Files.newOutputStreamSupplier(classNamesFile, true));
       classNamesDynamic.delete();
+
+      if (!leaveTemporary) {
+        eventFile.delete();
+      }
     }
 
     if (!diagnosticsListener.quitReceived()) {
@@ -993,10 +1007,11 @@ public class JUnit4 extends Task {
   /**
    * Execute a slave process. Pump events to the given event bus.
    */
-  private void forkProcess(SlaveInfo slaveInfo, EventBus eventBus, CommandlineJava commandline) {
+  private void forkProcess(SlaveInfo slaveInfo, EventBus eventBus, CommandlineJava commandline, InputStream eventStream) {
     try {
       final LocalSlaveStreamHandler streamHandler = 
-          new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err);
+          new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err, eventStream);
+
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
       execute.setVMLauncher(true);

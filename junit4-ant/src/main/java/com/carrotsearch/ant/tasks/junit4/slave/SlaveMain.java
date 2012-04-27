@@ -3,7 +3,6 @@ package com.carrotsearch.ant.tasks.junit4.slave;
 import java.io.*;
 import java.util.*;
 
-import org.apache.commons.io.output.TeeOutputStream;
 import org.junit.runner.*;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
@@ -11,7 +10,6 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import com.carrotsearch.ant.tasks.junit4.events.*;
-import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent.EventChannelType;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.google.common.base.Strings;
@@ -40,7 +38,13 @@ public class SlaveMain {
    * Read class names from standard input.
    */
   public static final String OPTION_STDIN = "-stdin";
-  
+
+  /**
+   * Name the sink for events. If given, accepts one argument - name of a file
+   * to which events should be dumped. The file has to be initially empty!
+   */
+  public static final String OPTION_EVENTSFILE = "-eventsfile";
+
   /**
    * Event sink.
    */
@@ -51,11 +55,6 @@ public class SlaveMain {
 
   /** Flush serialization stream frequently. */
   private boolean flushFrequently = false;
-
-  /**
-   * Sink log for the events stream.
-   */
-  private static File sinkLog;
 
   /**
    * Base for redirected streams. 
@@ -158,48 +157,65 @@ public class SlaveMain {
   /**
    * Console entry point.
    */
-  public static void main(String[] args) {
-    if (System.getProperty("junit4.sinklog") != null) {
-      sinkLog = new File(System.getProperty("junit4.sinklog"));
-    }
-    
+  public static void main(String[] allArgs) {
     int exitStatus = 0;
-    Serializer serializer = null; 
+
+    Serializer serializer = null;
     try {
-      // Pick the communication channel.
-      final BootstrapEvent.EventChannelType channel = establishCommunicationChannel(); 
-      new Serializer(System.out)
-        .serialize(new BootstrapEvent(channel))
+      final ArrayDeque<String> args = new ArrayDeque<String>(Arrays.asList(allArgs));
+
+      // Options.
+      Boolean flushFrequently = null;
+      File  eventsFile = null;
+      boolean suitesOnStdin = false;
+      List<String> testClasses = Lists.newArrayList();
+
+      while (!args.isEmpty()) {
+        String option = args.pop();
+        if (option.equals(OPTION_FREQUENT_FLUSH)) {
+          flushFrequently = true;
+        } else if (option.equals(OPTION_STDIN)) {
+          suitesOnStdin = true;
+        } else if (option.equals(OPTION_EVENTSFILE)) {
+          eventsFile = new File(args.pop());
+          if (eventsFile.isFile() && eventsFile.length() > 0) {
+            RandomAccessFile raf = new RandomAccessFile(eventsFile, "rw");
+            raf.setLength(0);
+            raf.close();
+          }
+        } else if (option.startsWith("@")) {
+          // Append arguments file, one line per option.
+          args.addAll(Arrays.asList(readArgsFile(option.substring(1))));
+        } else {
+          // The default expectation is a test class.
+          testClasses.add(option);
+        }
+      }
+
+      // Set up events channel and events serializer.
+      if (eventsFile == null) {
+        throw new IOException("You must specify communication channel for events.");
+      }
+      final OutputStream eventsChannel = new RandomAccessFileOutputStream(eventsFile);
+
+      // Send bootstrap package.
+      final int bufferSize = 8 * 1024;
+      serializer = new Serializer(new BufferedOutputStream(eventsChannel, bufferSize))
+        .serialize(new BootstrapEvent())
         .flush();
-
-      OutputStream sink;
-      final int bufferSize = 16 * 1024;
-      switch (channel) {
-        case STDERR:
-          sink = System.err;
-          warnings = System.out;
-          break;
-
-        case STDOUT:
-          sink = System.out;
-          warnings = System.err;
-          break;
-
-        default:
-          warnings = System.err;
-          throw new RuntimeException("Communication not implemented: " + channel);
-      }
-
-      if (sinkLog != null) {
-        sink = new TeeOutputStream(sink, new FileOutputStream(sinkLog));
-      }
-
-      serializer = new Serializer(new BufferedOutputStream(sink, bufferSize));
 
       // Redirect original streams and start running tests.
       redirectStreams(serializer);
       final SlaveMain main = new SlaveMain(serializer);
-      main.execute(parseArguments(main, args));
+      if (flushFrequently != null) main.flushFrequently = flushFrequently;
+
+      final Iterator<String> stdInput;
+      if (suitesOnStdin) { 
+        stdInput = new StdInLineIterator(main.serializer);
+      } else {
+        stdInput = Collections.<String>emptyList().iterator();
+      }
+      main.execute(Iterators.concat(testClasses.iterator(), stdInput));
     } catch (Throwable t) {
       warn("Exception at main loop level?", t);
       exitStatus = ERR_EXCEPTION;
@@ -216,40 +232,6 @@ public class SlaveMain {
     } finally {
       System.exit(exitStatus);
     }
-  }
-
-  /**
-   * Parse command line arguments and return an iterator
-   * over test suites we should execute. The iterator may be
-   * lazy (may block awaiting input) so tests should be executed as 
-   * they are made available.
-   */
-  private static Iterator<String> parseArguments(SlaveMain main, String[] initial) throws IOException {
-    ArrayDeque<String> args = new ArrayDeque<String>();
-    args.addAll(Arrays.asList(initial));
-
-    Iterator<String> stdInput = null; 
-    List<String> testClasses = Lists.newArrayList();
-    while (!args.isEmpty()) {
-      String option = args.pop();
-      if (option.equals(OPTION_FREQUENT_FLUSH)) {
-        main.flushFrequently = true;
-      } else if (option.equals(OPTION_STDIN)) {
-        if (stdInput == null) {
-          stdInput = new StdInLineIterator(main.serializer);
-        }
-      } else if (option.startsWith("@")) {
-        // Append arguments file, one line per option.
-        args.addAll(Arrays.asList(readArgsFile(option.substring(1))));
-      } else {
-        // The default expectation is a test class.
-        testClasses.add(option);
-      }
-    }
-
-    return Iterators.concat(
-        testClasses.iterator(),
-        stdInput != null ? stdInput : Collections.<String>emptyList().iterator());
   }
 
   /**
@@ -273,24 +255,6 @@ public class SlaveMain {
       reader.close();
     }
     return lines.toArray(new String [lines.size()]);
-  }
-
-  /**
-   * Establish communication channel based on the JVM type.
-   */
-  private static EventChannelType establishCommunicationChannel() {
-    String vmName = System.getProperty("java.vm.name");
-    // Default event channel: stderr. stdout is used for vm crash info.
-    EventChannelType eventChannel = EventChannelType.STDERR;
-    if (vmName != null) {
-      // These use stderr in case of jvm crash.
-      if (vmName.contains("JRockit")) {
-        return BootstrapEvent.EventChannelType.STDOUT;
-      } else if (vmName.contains("J9")) {
-        return BootstrapEvent.EventChannelType.STDOUT;
-      }
-    }
-    return eventChannel;
   }
 
   /**

@@ -8,30 +8,14 @@ import java.util.TreeMap;
  * Initial message sent from the slave to the master (if forked locally).
  */
 public class BootstrapEvent extends AbstractEvent {
-  /**
-   * Communication channel for events.
-   */
-  public static enum EventChannelType {
-    STDOUT,
-    STDERR;
-    // SOCKET (?)
-  }
-
-  private EventChannelType eventChannel;
   private String defaultCharset;
   private Map<String, String> systemProperties;
 
-  /** No-args constructor for serialization. */
-  private BootstrapEvent() {
-    super(EventType.BOOTSTRAP);
-  }
-
   /** Preinitialization with local machine's configuration. */
-  public BootstrapEvent(EventChannelType channelType) {
-    this();
+  public BootstrapEvent() {
+    super(EventType.BOOTSTRAP);
 
     this.defaultCharset = Charset.defaultCharset().name();
-    this.eventChannel = channelType;
 
     this.systemProperties = new TreeMap<String, String>();
     for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
@@ -47,15 +31,6 @@ public class BootstrapEvent extends AbstractEvent {
         Long.toString(Runtime.getRuntime().totalMemory()));
     systemProperties.put("junit4.processors", 
         Long.toString(Runtime.getRuntime().availableProcessors()));
-  }
-
-  /**
-   * Which channel will be used for communication? We need multiple options
-   * because various jvms send crash info to various channels. We will pick
-   * accordingly to the slave jvm's capabilities. 
-   */
-  public EventChannelType getEventChannel() {
-    return eventChannel;
   }
 
   /**

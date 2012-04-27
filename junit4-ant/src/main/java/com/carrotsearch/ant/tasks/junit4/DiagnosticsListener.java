@@ -27,8 +27,7 @@ public class DiagnosticsListener {
   @Subscribe
   public void receiveBootstrap(BootstrapEvent e) {
     slave.start = System.currentTimeMillis();
-    task.log("Communication channel: " + e.getEventChannel() + ", " +
-        "Default encoding: " + e.getDefaultCharsetName(), Project.MSG_VERBOSE);
+    task.log("Default encoding: " + e.getDefaultCharsetName(), Project.MSG_VERBOSE);
     slave.setBootstrapEvent(e);
   }
 
