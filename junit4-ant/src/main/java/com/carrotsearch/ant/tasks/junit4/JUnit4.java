@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
@@ -30,6 +31,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
@@ -94,7 +96,22 @@ public class JUnit4 extends Task {
 
   /** Default value of {@link #setDynamicAssignmentRatio(float)} */
   public static final float DEFAULT_DYNAMIC_ASSIGNMENT_RATIO = .25f;
-  
+
+  /** What to do on JVM output? */
+  public static enum JvmOutputAction {
+    PIPE,
+    IGNORE,
+    FAIL,
+    WARN
+  }
+
+  /**
+   * @see #setJvmOutputAction(String)
+   */
+  public EnumSet<JvmOutputAction> jvmOutputAction = EnumSet.of(
+      JvmOutputAction.PIPE,
+      JvmOutputAction.WARN);
+
   /**
    * Slave VM command line.
    */
@@ -205,6 +222,25 @@ public class JUnit4 extends Task {
   public JUnit4() {
     resources = new Resources();
     // resources.setCache(true);  // ANT 1.8.x+
+  }
+
+  /**
+   * What should be done on unexpected JVM output? JVM may write directly to the 
+   * original descriptors, bypassing redirections of System.out and System.err. Typically,
+   * these messages will be important and should fail the build (permgen space exceeded,
+   * compiler errors, crash dumps). However, certain legitimate logs (gc activity, class loading
+   * logs) are also printed to these streams so sometimes the output can be ignored.
+   * 
+   * <p>Allowed values (any comma-delimited combination of): {@link JvmOutputAction} 
+   * constants.
+   */
+  public void setJvmOutputAction(String jvmOutputActions) {
+    EnumSet<JvmOutputAction> actions = EnumSet.noneOf(JvmOutputAction.class); 
+    for (String s : jvmOutputActions.split("[\\,\\ ]+")) {
+      s = s.trim().toUpperCase(Locale.ENGLISH);
+      actions.add(JvmOutputAction.valueOf(s));
+    }
+    this.jvmOutputAction = actions;
   }
 
   /**
@@ -899,12 +935,16 @@ public class JUnit4 extends Task {
   private void executeSlave(final SlaveInfo slave, final EventBus aggregatedBus)
     throws Exception
   {
-    final File classNamesFile = File.createTempFile(
-        "junit4-slave-" + slave.id, ".suites", getTempDir());
+    final String uniqueSeed = 
+        new SimpleDateFormat("HHmmssSSS").format(new Date()) + 
+        Long.toHexString(new Random().nextInt() & 0xffffffffL);
+
+    final File classNamesFile = tempFile(uniqueSeed,
+        "junit4-J" + slave.id, ".suites", getTempDir());
     temporaryFiles.add(classNamesFile);
 
-    final File classNamesDynamic = new File(
-        classNamesFile.getPath().replace(".suites", "-dynamic.suites"));
+    final File classNamesDynamic = tempFile(uniqueSeed,
+        "junit4-J" + slave.id, ".dynamic-suites", getTempDir());
 
     // Dump all test class names to a temporary file.
     String testClassPerLine = Joiner.on("\n").join(slave.testSuites);
@@ -921,9 +961,15 @@ public class JUnit4 extends Task {
       commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
     }
 
+    // Set up full output files.
+    File sysoutFile = tempFile(uniqueSeed,
+        "junit4-J" + slave.id, ".sysout", getTempDir());
+    File syserrFile = tempFile(uniqueSeed,
+        "junit4-J" + slave.id, ".syserr", getTempDir());
+
     // Set up communication channel.
-    File eventFile = File.createTempFile(
-        "junit4-slave-" + slave.id, ".events", getTempDir());
+    File eventFile = tempFile(uniqueSeed,
+        "junit4-J" + slave.id, ".events", getTempDir());
     commandline.createArgument().setValue(SlaveMain.OPTION_EVENTSFILE);
     commandline.createArgument().setFile(eventFile);
     InputStream eventStream = new TailInputStream(eventFile);
@@ -964,13 +1010,19 @@ public class JUnit4 extends Task {
       }
     });
 
+    OutputStream sysout = new BufferedOutputStream(new FileOutputStream(sysoutFile));
+    OutputStream syserr = new BufferedOutputStream(new FileOutputStream(syserrFile));
+    Exception error = null;
     try {
-      forkProcess(slave, eventBus, commandline, eventStream);
+      forkProcess(slave, eventBus, commandline, eventStream, sysout, syserr);
+    } catch (Exception e) {
+      error = e;
     } finally {
-      Closeables.closeQuietly(w);
       Closeables.closeQuietly(eventStream);
-      Files.copy(classNamesDynamic,
-          Files.newOutputStreamSupplier(classNamesFile, true));
+      Closeables.closeQuietly(w);
+      Closeables.closeQuietly(sysout);
+      Closeables.closeQuietly(syserr);
+      Files.copy(classNamesDynamic, Files.newOutputStreamSupplier(classNamesFile, true));
       classNamesDynamic.delete();
 
       if (!leaveTemporary) {
@@ -978,9 +1030,63 @@ public class JUnit4 extends Task {
       }
     }
 
-    if (!diagnosticsListener.quitReceived()) {
-      throw new BuildException("Quit event not received from a slave process?");
+    // Check sysout/syserr lengths.
+    checkJvmOutput(sysoutFile, slave, "stdout");
+    checkJvmOutput(syserrFile, slave, "stderr");
+
+    if (error != null) {
+      throw error;
     }
+
+    if (!diagnosticsListener.quitReceived()) {
+      throw new BuildException("Quit event not received from a slave process? This may indicate JVM crash or runner" +
+      		" bugs. Inspect full output file(s): " +
+            sysoutFile + 
+            (sysoutFile.equals(syserrFile) ? "" : ", and: " + syserrFile));
+    }
+  }
+
+  private void checkJvmOutput(File file, SlaveInfo slave, String fileName) {
+    if (file.length() > 0) {
+      String message = "JVM J" + slave.id + ": " + fileName + " was not empty, see: " + file;
+      if (jvmOutputAction.contains(JvmOutputAction.WARN)) {
+        log(message, Project.MSG_WARN);
+      }
+      if (jvmOutputAction.contains(JvmOutputAction.PIPE)) {
+        log(">>> JVM J" + slave.id + ": " + fileName + " (verbatim) ----", Project.MSG_INFO);
+        try {
+          // If file > 10 mb, stream directly. Otherwise use the logger.
+          if (file.length() < 10 * (1024 * 1024)) {
+            // Append to logger.
+            log(Files.toString(file, slave.getCharset()), Project.MSG_INFO);
+          } else {
+            // Stream directly.
+            CharStreams.copy(Files.newReader(file, slave.getCharset()), System.out);
+          }
+        } catch (IOException e) {
+          log("Couldn't pipe file " + file + ": " + e.toString(), Project.MSG_INFO);
+        }
+        log("<<< JVM J" + slave.id + ": EOF ----", Project.MSG_INFO);
+      }
+      if (jvmOutputAction.contains(JvmOutputAction.IGNORE)) {
+        file.delete();
+      }
+      if (jvmOutputAction.contains(JvmOutputAction.FAIL)) {
+        throw new BuildException(message);
+      }
+      return;
+    }
+
+    file.delete();
+  }
+
+  private File tempFile(String uniqueSeed, String base, String suffix, File tempDir) throws IOException {
+    File finalName = new File(tempDir, base + "-" + uniqueSeed + suffix);
+    if (!finalName.createNewFile()) {
+      throw new IOException("Congratulations, you're very lucky to encounter a file with a random" +
+      		" seed. This seems less likely than you being a Martian.");
+    }
+    return finalName;
   }
 
   /**
@@ -1007,10 +1113,13 @@ public class JUnit4 extends Task {
   /**
    * Execute a slave process. Pump events to the given event bus.
    */
-  private void forkProcess(SlaveInfo slaveInfo, EventBus eventBus, CommandlineJava commandline, InputStream eventStream) {
+  private void forkProcess(SlaveInfo slaveInfo, EventBus eventBus, 
+      CommandlineJava commandline, 
+      InputStream eventStream, OutputStream sysout, OutputStream syserr) {
     try {
       final LocalSlaveStreamHandler streamHandler = 
-          new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err, eventStream);
+          new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err, eventStream, 
+              sysout, syserr);
 
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
@@ -1025,20 +1134,6 @@ public class JUnit4 extends Task {
       int exitStatus = execute.execute();
       log("Forked JVM J" + slaveInfo.id + " finished with exit code: " 
           + exitStatus, Project.MSG_DEBUG);
-
-      if (streamHandler.isErrorStreamNonEmpty()) {
-        log(">>> error stream from forked JVM (verbatim) ----", Project.MSG_ERR);
-        log(streamHandler.getErrorStreamAsString(), Project.MSG_ERR);
-        log("<<< EOF ----", Project.MSG_ERR);
-
-        // Anything on the altErr will cause a build failure.
-        String msg = "Unexpected output from forked JVM. This" +
-            " most likely indicates JVM crash. Inspect the logs above and look for crash" +
-            " dumps in: " + getProject().getBaseDir().getAbsolutePath();
-        log(msg, Project.MSG_ERR);
-        throw new BuildException("Unexpected output from forked JVM. This" +
-            " most likely indicates JVM crash.");
-      }
 
       if (execute.isFailure()) {
         if (exitStatus == SlaveMain.ERR_NO_JUNIT) {
@@ -1059,7 +1154,7 @@ public class JUnit4 extends Task {
     File baseDir = (dir == null ? getProject().getBaseDir() : dir);
     final File slaveDir;
     if (isolateWorkingDirectories) {
-      slaveDir = new File(baseDir, "S" + slaveInfo.id);
+      slaveDir = new File(baseDir, "J" + slaveInfo.id);
       slaveDir.mkdirs();
       temporaryFiles.add(slaveDir);
     } else {

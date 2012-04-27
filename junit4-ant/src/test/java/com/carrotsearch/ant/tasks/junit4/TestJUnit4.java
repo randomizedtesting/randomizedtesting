@@ -154,7 +154,7 @@ public class TestJUnit4 extends AntBuildFileTestBase {
 
   @Test
   public void jvmcrash() {
-    expectBuildExceptionContaining("jvmcrash", "Unexpected output from forked JVM.");
+    expectBuildExceptionContaining("jvmcrash", "was not empty, see:");
     File cwd = getProject().getBaseDir();
     for (File crashDump : cwd.listFiles()) {
       if (crashDump.isFile() && 

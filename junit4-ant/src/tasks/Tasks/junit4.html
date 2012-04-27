@@ -276,6 +276,20 @@ that make little sense have been deprecated and are ignored. Attributes specific
     </td>
     <td align="center" valign="top">No; default is 'false'.</td>
   </tr>
+  
+  <tr class="junit4">
+    <td valign="top">jvmOutputAction</td>
+    <td valign="top">
+      What should be done on unexpected JVM output? JVM may write directly to the 
+      original descriptors, bypassing redirections of System.out and System.err. Typically,
+      these messages will be important and should fail the build (permgen space exceeded,
+      compiler errors, crash dumps). However, certain legitimate logs (gc activity, class loading
+      logs) are also printed to these streams so sometimes the output can be ignored.
+
+      <p>Allowed values (any comma-delimited combination of): ignore, pipe, fail, warn.</p>
+    </td>
+    <td align="center" valign="top">No; default is 'pipe,warn'.</td>
+  </tr>  
 </table>
 
 

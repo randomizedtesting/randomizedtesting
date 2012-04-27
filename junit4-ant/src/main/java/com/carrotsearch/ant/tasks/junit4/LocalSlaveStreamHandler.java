@@ -1,6 +1,10 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -8,8 +12,8 @@ import java.util.List;
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
 import org.apache.tools.ant.taskdefs.StreamPumper;
 
-import com.carrotsearch.ant.tasks.junit4.events.*;
-import com.google.common.base.Charsets;
+import com.carrotsearch.ant.tasks.junit4.events.Deserializer;
+import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 
@@ -19,7 +23,6 @@ import com.google.common.eventbus.EventBus;
 public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private final EventBus eventBus;
   private final ClassLoader refLoader;
-  private volatile BootstrapEvent bootstrapPacket;
 
   private InputStream stdout;
   private InputStream stderr;
@@ -29,15 +32,20 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   
   private volatile boolean stopping;
 
-  private ByteArrayOutputStream stderrBuffered = new ByteArrayOutputStream();
   private List<Thread> pumpers = Lists.newArrayList();
 
+  private final OutputStream sysout;
+  private final OutputStream syserr;
+
   public LocalSlaveStreamHandler(
-      EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, InputStream eventStream) {
+      EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, InputStream eventStream,
+      OutputStream sysout, OutputStream syserr) {
     this.eventBus = eventBus;
     this.warnStream = warnStream;
     this.refLoader = classLoader;
     this.eventStream = eventStream;
+    this.sysout = sysout;
+    this.syserr = syserr;
   }
 
   @Override
@@ -58,8 +66,8 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   
   @Override
   public void start() throws IOException {
-    pumpers.add(new Thread(new StreamPumper(stderr, stderrBuffered), "pumper-stderr"));
-    pumpers.add(new Thread(new StreamPumper(stdout, stderrBuffered), "pumper-stdout"));
+    pumpers.add(new Thread(new StreamPumper(stdout, sysout), "pumper-stdout"));
+    pumpers.add(new Thread(new StreamPumper(stderr, syserr), "pumper-stderr"));
     pumpers.add(new Thread(new Runnable() {
       public void run() {
         pumpEvents(eventStream);
@@ -82,27 +90,6 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   }
 
   /**
-   * Size of the error stream.
-   */
-  public boolean isErrorStreamNonEmpty() {
-    return stderrBuffered.size() > 0;
-  }
-
-  /**
-   * "error" stream from the forked process.
-   */
-  public String getErrorStreamAsString() {
-    try {
-      if (bootstrapPacket != null) {
-        return new String(stderrBuffered.toByteArray(), bootstrapPacket.getDefaultCharsetName());
-      }
-    } catch (UnsupportedEncodingException e) {
-      // Ignore.
-    }
-    return new String(stderrBuffered.toByteArray(), Charsets.US_ASCII);
-  }
-
-  /**
    * Pump events from event stream.
    */
   void pumpEvents(InputStream eventStream) {
@@ -119,11 +106,6 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
 
             case IDLE:
               eventBus.post(new SlaveIdle(stdin));
-              break;
-
-            case BOOTSTRAP:
-              bootstrapPacket = (BootstrapEvent) event;
-              eventBus.post(event);
               break;
 
             default:

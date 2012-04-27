@@ -63,7 +63,11 @@ public final class SlaveInfo {
    * Return the {@link Charset} used to encode stream bytes from the slave.
    */
   public Charset getCharset() {
-    return Charset.forName(bootstrapEvent.getDefaultCharsetName());
+    if (bootstrapEvent != null) {
+      return Charset.forName(bootstrapEvent.getDefaultCharsetName());
+    } else {
+      return Charset.defaultCharset();
+    }
   }
 
   /**

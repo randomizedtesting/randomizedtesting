@@ -48,6 +48,16 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
   /** Owning task (logging). */
   private JUnit4 owner;
 
+  /** @see #setVerbose(boolean) */
+  private boolean verbose;
+
+  /**
+   * Be verbose about estimated times etc.
+   */
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+  }
+  
   /**
    * Adds a resource collection with execution hints.
    */
@@ -103,7 +113,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
 
       assignments.put(hint.suiteName, new Assignment(slave.id, (int) hint.cost));
     }
-    
+
     // Dump estimated execution times.
     TreeMap<Integer, SlaveLoad> ordered = new TreeMap<Integer, SlaveLoad>();
     while (!pq.isEmpty()) {
@@ -115,7 +125,8 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
       owner.log(String.format(Locale.ENGLISH, 
           "Expected execution time on JVM J%d: %8.2fs",
           slave.id,
-          slave.estimatedFinish / 1000.0f), Project.MSG_INFO);
+          slave.estimatedFinish / 1000.0f), 
+          verbose ? Project.MSG_INFO : Project.MSG_DEBUG);
     }
 
     return assignments;

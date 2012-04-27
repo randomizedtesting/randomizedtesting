@@ -139,7 +139,7 @@
 		<fail message="Expected marker file to appear at ${basedir}/empty/S0/touch.me">
 			<condition>
 				<not>
-					<available file="empty/S0/touch.me" type="file" />
+					<available file="empty/J0/touch.me" type="file" />
 				</not>
 			</condition>
 		</fail>
@@ -235,7 +235,7 @@
 
 	<target name="jvmcrash">
 		<echo>${native.libs}</echo>
-		<junit4.preconf>
+		<junit4.preconf jvmOutputAction="pipe,fail">
 			<jvmarg value="-Djava.library.path=${native.libs}" />
 
 			<fileset dir="${basedir}">
@@ -411,7 +411,7 @@
 	</target>
 
 	<target name="balancing">
-		<delete file="${basedir}/hints.log" />
+		<delete dir="${basedir}" includes="hints*.log" excludes="hints-fixed.log" />
 		<junit4.preconf parallelism="2">
 			<fileset dir="${basedir}">
 				<include name="**/tests/sub2/Test*.class" />
@@ -667,7 +667,8 @@
 		<junit4:junit4 haltonfailure="false">
 			<classpath refid="tests.classpath" />
 
-			<jvmarg value="-verbose" />
+			<jvmarg value="-verbose:class" />
+			<jvmarg value="-verbose:gc" />
 
 			<fileset dir="${basedir}">
 				<include name="**/TestStatuses.class" />

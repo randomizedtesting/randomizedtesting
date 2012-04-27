@@ -9,7 +9,6 @@ import org.junit.*;
  * Check JVM logging settings. Thet seem to use process descriptors not
  * {@link System} streams.
  */
-@Ignore("https://github.com/carrotsearch/randomizedtesting/issues/87")
 public class TestJvmLogging extends AntBuildFileTestBase {
   @Before
   public void setUp() throws Exception {
@@ -20,5 +19,6 @@ public class TestJvmLogging extends AntBuildFileTestBase {
   @Test
   public void jvmverbose() {
     executeTarget("jvmverbose");
+    assertLogContains("was not empty, see");
   }
 }
