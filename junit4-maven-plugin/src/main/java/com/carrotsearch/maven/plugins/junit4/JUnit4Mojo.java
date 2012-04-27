@@ -282,6 +282,19 @@ public class JUnit4Mojo extends AbstractMojo {
   private String junitArtifactName;
 
   /**
+   * What should be done on unexpected JVM output? JVM may write directly to the 
+   * original descriptors, bypassing redirections of System.out and System.err. Typically,
+   * these messages will be important and should fail the build (permgen space exceeded,
+   * compiler errors, crash dumps). However, certain legitimate logs (gc activity, class loading
+   * logs) are also printed to these streams so sometimes the output can be ignored.
+   * 
+   * <p>Allowed values (any comma-delimited combination of): ignore, pipe, warn, fail.
+   *
+   * @parameter expression="${jvmOutputAction}" default-value="pipe,warn"
+   */
+  private String jvmOutputAction;
+  
+  /**
    * Raw listeners configuration. Same XML as for ANT.
    *
    * @parameter
@@ -489,6 +502,7 @@ public class JUnit4Mojo extends AbstractMojo {
     if (seed != null) junit4.addAttribute("seed", seed);
     if (jvm != null) junit4.addAttribute("jvm", jvm);
     if (maxMemory != null) junit4.addAttribute("maxMemory", maxMemory);
+    if (jvmOutputAction != null) junit4.addAttribute("jvmOutputAction", jvmOutputAction);
     junit4.addAttribute("shuffleOnSlave", Boolean.toString(shuffleOnSlave));
     junit4.addAttribute("printSummary", Boolean.toString(printSummary));
     junit4.addAttribute("isolateWorkingDirectories", Boolean.toString(isolateWorkingDirectories));

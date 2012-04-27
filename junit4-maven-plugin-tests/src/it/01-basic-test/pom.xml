@@ -48,6 +48,7 @@
               <goal>junit4</goal>
             </goals>
             <configuration>
+              <jvmOutputAction>pipe,ignore</jvmOutputAction>
               <leaveTemporary>true</leaveTemporary>
               <classpathDependencyExcludes>
                 <dependency>org.simpleframework:simple-xml</dependency>
