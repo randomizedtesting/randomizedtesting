@@ -46,6 +46,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
@@ -1400,14 +1401,61 @@ public final class RandomizedRunner extends Runner implements Filterable {
     for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext(); ) {
       final TestCandidate candidate = i.next();
       for (Filter f : testFilters) {
-        if (!f.shouldRun(Description.createTestDescription(
-            candidate.getTestClass(), candidate.method.getName()))) {
+        // Inquire for both full description (possibly with parameters and seed)
+        // and simplified description (just method name).
+        if (!f.shouldRun(candidate.description) ||
+            !f.shouldRun(Description.createTestDescription(
+              candidate.getTestClass(), candidate.method.getName()))) {
           i.remove();
           break;
         }
       }
     }
+
+    // GH-89.
+    if (testCandidates.size() > 0 && filtered.isEmpty() && 
+        candidatesWithRandomSeeds(testCandidates) &&
+        filtersIncludeSeed(testFilters)) {
+      Logger.getAnonymousLogger().warning(
+          "Empty set of tests for suite class " + suiteClass.getSimpleName() +
+          " after filters applied. This can be caused by an attempt to filter tests with a random" +
+          " seed. Use constant seed (-Dtests.seed=deadbeef) to get a reproducible (and filterable)" +
+          " set of tests.");
+    }
+    
     return filtered;
+  }
+
+  /**
+   * Check if any of the filters includes a description that would suggest it's looking
+   * for a filter with seed. 
+   */
+  private boolean filtersIncludeSeed(List<Filter> filters) {
+    for (Filter f : filters) {
+      if (hasSeedPattern(f.describe()))
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check if this string has a pattern of containing seed.
+   */
+  private boolean hasSeedPattern(String description) {
+    Pattern p = Pattern.compile("seed=\\[");
+    return p.matcher(description).find();
+  }
+
+  /**
+   * Check if the set of test candidates contains tests with seeds. 
+   */
+  private boolean candidatesWithRandomSeeds(List<TestCandidate> testCandidates) {
+    for (TestCandidate tc : testCandidates) {
+      if (hasSeedPattern(tc.description.getMethodName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
