@@ -35,6 +35,12 @@ public class SlaveMain {
   public static final String OPTION_FREQUENT_FLUSH = "-flush";
 
   /**
+   * Multiplex sysout and syserr to original streams (aside from
+   * pumping them to event stream).
+   */
+  public static final String OPTION_SYSOUTS = "-sysouts";
+
+  /**
    * Read class names from standard input.
    */
   public static final String OPTION_STDIN = "-stdin";
@@ -55,6 +61,12 @@ public class SlaveMain {
 
   /** Flush serialization stream frequently. */
   private boolean flushFrequently = false;
+  
+  /** 
+   * Multiplex calls to System streams to both event stream
+   * and the original streams?
+   */
+  private static boolean multiplexStdStreams = false;
 
   /**
    * Base for redirected streams. 
@@ -176,6 +188,8 @@ public class SlaveMain {
           flushFrequently = true;
         } else if (option.equals(OPTION_STDIN)) {
           suitesOnStdin = true;
+        } else if (option.equals(OPTION_SYSOUTS)) {
+          multiplexStdStreams = true;
         } else if (option.equals(OPTION_EVENTSFILE)) {
           eventsFile = new File(args.pop());
           if (eventsFile.isFile() && eventsFile.length() > 0) {
@@ -261,9 +275,15 @@ public class SlaveMain {
    * Redirect standard streams so that the output can be passed to listeners.
    */
   private static void redirectStreams(final Serializer serializer) {
+    final PrintStream origSysOut = System.out;
+    final PrintStream origSysErr = System.err;
+
     System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
       @Override
       public void write(byte[] b, int off, int len) throws IOException {
+        if (multiplexStdStreams) {
+          origSysOut.write(b, off, len);
+        }
         serializer.serialize(new AppendStdOutEvent(b, off, len));
       }
     })));
@@ -271,6 +291,9 @@ public class SlaveMain {
     System.setErr(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
       @Override
       public void write(byte[] b, int off, int len) throws IOException {
+        if (multiplexStdStreams) {
+          origSysErr.write(b, off, len);
+        }
         serializer.serialize(new AppendStdErrEvent(b, off, len));
       }
     })));

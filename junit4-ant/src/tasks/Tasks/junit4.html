@@ -289,7 +289,23 @@ that make little sense have been deprecated and are ignored. Attributes specific
       <p>Allowed values (any comma-delimited combination of): ignore, pipe, fail, warn.</p>
     </td>
     <td align="center" valign="top">No; default is 'pipe,warn'.</td>
+  </tr>
+  
+  <tr class="junit4">
+    <td valign="top">sysouts</td>
+    <td valign="top">
+      If set to true, any sysout and syserr calls will be written to original
+      output and error streams (and in effect will appear as "jvm output". By default
+      sysout and syserrs are captured and proxied to the event stream to be synchronized
+      with other test events (and properly handled by reports) but occasionally
+      one may want to synchronize them with direct JVM output (to synchronize 
+      with compiler output or GC output for example).
+
+      <p>See examples below on examples of capturing full JVM output.</p>
+    </td>
+    <td align="center" valign="top">No; default is 'false'.</td>
   </tr>  
+
 </table>
 
 
@@ -528,6 +544,47 @@ statistics (for example precomputed statistics and previous local runs):</p>
 ');
 </script></pre>
 
+
+<h3>Capturing original JVM output</h3>
+
+<p>JUnit4 has been designed to run reports and aggregation of test events on the master
+JVM, not on the forked JVMs. This slightly complicates things when diagnostic JVM messages
+are used because these messages are printed directly to original stream descriptors
+by the JVM, bypassing System.out or System.err substitutions.</p>
+
+<p>In those rare cases when the original JVM output streams are needed (possibly
+mixed with what the tests have printed), junit4 can be configured to leave the original
+streams on disk or pipe them to ANT's output. An example is shown below:</p> 
+
+<pre id="snippet-8" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-8", '\
+<junit4 sysouts="true" jvmoutputaction="pipe,ignore"> \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+</junit4>                                                             \n\
+');
+</script></pre>
+
+<p>Should one need to preserve the original output files (in case they are large, for example),
+the configuration would then look as follows:</p>
+
+<pre id="snippet-9" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-9", '\
+<junit4 sysouts="true" jvmoutputaction="warn"> \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+</junit4>                                                             \n\
+');
+</script></pre>
+
+<p>This would result in the following message being printed to ANT (note
+the output file name contains an execution-unique element to avoid clashing with other
+forked JVMs or builds).</p>  
+
+<pre>
+[junit4:junit4] JVM J0: stdout was not empty, see: /home/[...]/junit4-J0-1058309761ea5fafd.sysout
+[junit4:junit4] JVM J0: stderr was not empty, see: /home/[...]/junit4-J0-1058309761ea5fafd.syserr
+</pre>
 
 </body>
 </html>

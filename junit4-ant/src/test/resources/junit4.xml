@@ -690,6 +690,18 @@
 		</junit4:junit4>
 	</target>
 
+    <target name="sysouts">
+        <junit4:junit4 sysouts="true" jvmoutputaction="pipe,ignore">
+            <classpath refid="tests.classpath" />
+
+            <jvmarg value="-verbose:class" />
+
+            <fileset dir="${basedir}">
+                <include name="**/TestSysstreams.class" />
+            </fileset>
+        </junit4:junit4>
+    </target>
+
 	<target name="weirdclasses">
 		<junit haltonfailure="false" haltonerror="false" printsummary="false" showoutput="false"
 			 filtertrace="false">

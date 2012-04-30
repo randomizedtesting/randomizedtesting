@@ -97,6 +97,9 @@ public class JUnit4 extends Task {
   /** Default value of {@link #setDynamicAssignmentRatio(float)} */
   public static final float DEFAULT_DYNAMIC_ASSIGNMENT_RATIO = .25f;
 
+  /** Default value of {@link #setSysouts}. */
+  public static final boolean DEFAULT_SYSOUTS = false;
+  
   /** What to do on JVM output? */
   public static enum JvmOutputAction {
     PIPE,
@@ -112,6 +115,11 @@ public class JUnit4 extends Task {
       JvmOutputAction.PIPE,
       JvmOutputAction.WARN);
 
+  /**
+   * @see #setSysouts
+   */
+  private boolean sysouts = DEFAULT_SYSOUTS; 
+  
   /**
    * Slave VM command line.
    */
@@ -241,6 +249,17 @@ public class JUnit4 extends Task {
       actions.add(JvmOutputAction.valueOf(s));
     }
     this.jvmOutputAction = actions;
+  }
+
+  /**
+   * If set to true, any sysout and syserr calls will be written to original
+   * output and error streams (and in effect will appear as "jvm output". By default
+   * sysout and syserrs are captured and proxied to the event stream to be synchronized
+   * with other test events but occasionally one may want to synchronize them with direct 
+   * JVM output (to synchronize with compiler output or GC output for example). 
+   */
+  public void setSysouts(boolean sysouts) {
+    this.sysouts = sysouts;
   }
 
   /**
@@ -972,6 +991,11 @@ public class JUnit4 extends Task {
         "junit4-J" + slave.id, ".events", getTempDir());
     commandline.createArgument().setValue(SlaveMain.OPTION_EVENTSFILE);
     commandline.createArgument().setFile(eventFile);
+    
+    if (sysouts) {
+      commandline.createArgument().setValue(SlaveMain.OPTION_SYSOUTS);
+    }
+
     InputStream eventStream = new TailInputStream(eventFile);
 
     // Set up input suites file.

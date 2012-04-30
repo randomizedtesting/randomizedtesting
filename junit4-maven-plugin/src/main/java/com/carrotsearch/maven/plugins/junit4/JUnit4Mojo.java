@@ -160,6 +160,17 @@ public class JUnit4Mojo extends AbstractMojo {
   private boolean isolateWorkingDirectories = JUnit4.DEFAULT_ISOLATE_WORKING_DIRECTORIES;
 
   /**
+   * If set to true, any sysout and syserr calls will be written to original
+   * output and error streams (and in effect will appear as "jvm output". By default
+   * sysout and syserrs are captured and proxied to the event stream to be synchronized
+   * with other test events but occasionally one may want to synchronize them with direct 
+   * JVM output (to synchronize with compiler output or GC output for example).
+   *  
+   * @parameter default-value="false"
+   */
+  private boolean sysouts = JUnit4.DEFAULT_SYSOUTS;
+  
+  /**
    * Specifies the ratio of suites moved to dynamic assignment list. A dynamic
    * assignment list dispatches suites to the first idle slave JVM. Theoretically
    * this is an optimal strategy, but it is usually better to have some static assignments
@@ -509,6 +520,7 @@ public class JUnit4Mojo extends AbstractMojo {
     junit4.addAttribute("haltOnFailure", Boolean.toString(haltOnFailure));
     junit4.addAttribute("leaveTemporary", Boolean.toString(leaveTemporary));
     junit4.addAttribute("dynamicAssignmentRatio", Float.toString(dynamicAssignmentRatio));
+    junit4.addAttribute("sysouts", Boolean.toString(sysouts));
 
     // JVM args.
     for (String jvmArg : Objects.firstNonNull(jvmArgs, EMPTY_STRING_ARRAY)) {

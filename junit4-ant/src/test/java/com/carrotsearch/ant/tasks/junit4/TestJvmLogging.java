@@ -21,4 +21,11 @@ public class TestJvmLogging extends AntBuildFileTestBase {
     executeTarget("jvmverbose");
     assertLogContains("was not empty, see");
   }
+  
+  @Test
+  public void sysouts() {
+    executeTarget("sysouts");
+    assertLogContains("syserr-syserr-contd.");
+    assertLogContains("sysout-sysout-contd.");
+  }
 }
