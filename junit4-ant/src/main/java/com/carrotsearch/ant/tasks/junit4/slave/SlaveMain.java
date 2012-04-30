@@ -279,7 +279,7 @@ public class SlaveMain {
   /**
    * Warning emitter. Uses whatever alternative non-event communication channel is.
    */
-  private static void warn(String string, Throwable t) {
+  public static void warn(String string, Throwable t) {
     try {
       PrintStream w = (warnings == null ? System.err : warnings);
   

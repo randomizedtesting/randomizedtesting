@@ -16,9 +16,9 @@ public class Deserializer {
   
   public Deserializer(InputStream is, ClassLoader refLoader) throws IOException {
     input = new JsonReader(new InputStreamReader(is, Charsets.UTF_8));
-    gson = Serializer.createGSon(refLoader);
+    input.setLenient(true);
 
-    input.beginArray();
+    gson = Serializer.createGSon(refLoader);
   }
 
   public IEvent deserialize() throws IOException {

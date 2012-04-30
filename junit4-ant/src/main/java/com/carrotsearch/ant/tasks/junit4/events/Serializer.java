@@ -1,14 +1,13 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.lang.annotation.Annotation;
 
 import org.junit.runner.Description;
 
 import com.carrotsearch.ant.tasks.junit4.events.json.*;
+import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
+import com.carrotsearch.randomizedtesting.Rethrow;
 import com.google.common.base.Charsets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,34 +23,46 @@ public class Serializer implements Closeable {
    */
   private final Object lock = new Object();
 
-  private JsonWriter writer;
+  private Writer writer2;
   private Gson gson;
 
   public Serializer(OutputStream os) throws IOException {
-    this.writer = new JsonWriter(new OutputStreamWriter(os, Charsets.UTF_8));
-    this.writer.setIndent("  ");
-    this.writer.beginArray();
-
+    this.writer2 = new OutputStreamWriter(os, Charsets.UTF_8);
     this.gson = createGSon(Thread.currentThread().getContextClassLoader());
   }
 
   public Serializer serialize(IEvent event) throws IOException {
     synchronized (lock) {
-      if (writer == null) {
+      if (writer2 == null) {
         throw new IOException("Serializer already closed.");
       }
-      writer.beginArray();
-      writer.value(event.getType().name());
-      gson.toJson(event, event.getClass(), writer);
-      writer.endArray();
+      
+      // Attempt to serialize event atomically to a top-level value.
+      // See GH-92 for more info.
+      final StringWriter sw = new StringWriter();
+      try {
+        final JsonWriter jsonWriter = new JsonWriter(sw);
+        jsonWriter.setIndent("  ");
+        jsonWriter.beginArray();
+        jsonWriter.value(event.getType().name());
+        gson.toJson(event, event.getClass(), jsonWriter);
+        jsonWriter.endArray();
+        jsonWriter.close();
+      } catch (Throwable t) {
+        SlaveMain.warn("Unhandled exception in event serialization.", t);
+        Rethrow.rethrow(t); // or skip?
+      }
+
+      writer2.write(sw.toString());
+      writer2.write("\n\n");
       return this;
     }
   }
 
   public Serializer flush() throws IOException {
     synchronized (lock) {
-      if (writer != null) {
-        writer.flush();
+      if (writer2 != null) {
+        writer2.flush();
       }
       return this;
     }
@@ -59,11 +70,10 @@ public class Serializer implements Closeable {
 
   public void close() throws IOException {
     synchronized (lock) {
-      if (writer != null) {
+      if (writer2 != null) {
         serialize(new QuitEvent());
-        writer.endArray();
-        writer.close();
-        writer = null;
+        writer2.close();
+        writer2 = null;
       }
     }
   }
