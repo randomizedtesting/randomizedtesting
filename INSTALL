@@ -5,4 +5,4 @@ is a parent aggregator for everything else.
 mvn clean package
 
 # Deploy a snapshot or stage a release
-mvn -Psonatype-oss-release clean deploy
+mvn -Psonatype-oss-release,release clean deploy
