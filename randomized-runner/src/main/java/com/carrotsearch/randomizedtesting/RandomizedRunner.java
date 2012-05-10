@@ -358,8 +358,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
         info.getResource().close();
       } catch (Throwable t) {
         ResourceDisposalError e = new ResourceDisposalError(
-            info.getScope().name() + " scope resource could not be closed properly. Resource's" 
-                + " registered from thread " + info.getThread().getName() 
+            "Resource in scope " +
+            info.getScope().name() + " failed to close. Resource was" 
+                + " registered from thread " + info.getThreadName() 
                 + ", registration stack trace below.", t);
         e.setStackTrace(info.getAllocationStack());
         notifier.fireTestFailure(new Failure(description, e));
@@ -533,8 +534,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           "-SuiteThreadGroup-" + suiteClass.getName());
 
     final Thread runner = new Thread(runnerThreadGroup,
-        RandomizedRunner.class.getSimpleName() +
-          "-SuiteThread-" + suiteClass.getName() + 
+        "TEST-SuiteScope-" + suiteClass.getName() + 
           "-seed#" + SeedUtils.formatSeedChain(runnerRandomness)) {
       public void run() {
         try {
@@ -683,11 +683,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
           // This is also the place where we, theoretically at least, could spawn
           // multi-threaded tests. Simply by using executor service to run testRunners
 
+          final String testThreadName = "TEST-TestScope-" + suiteClass.getName() +
+              "." + c.method.getName() + 
+              "-seed#" + SeedUtils.formatSeedChain(runnerRandomness);
+
           final int timeout = determineTimeout(c);
           if (timeout == 0) {
-            testRunner.run();
+            final String restoreName = Thread.currentThread().getName();
+            Thread.currentThread().setName(testThreadName);
+            try {
+              testRunner.run();
+            } finally {
+              Thread.currentThread().setName(restoreName);
+            }
           } else {
-            runAndWait(notifier, c, testRunner, timeout);
+            runAndWait(notifier, c, testRunner, timeout, testThreadName);
           }
 
           notifier.fireTestFinished(c.description);
@@ -767,11 +777,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * thread and wait for it to either complete execution or terminate
    * it prematurely if timeout expires, logging an exception.
    */
-  private void runAndWait(RunNotifier notifier, TestCandidate c, Runnable runnable, int timeout) {
-    Thread t = new Thread(runnable,
-        RandomizedRunner.class.getSimpleName() +
-              "-TestThread-" + suiteClass.getName() +
-              "-seed#" + SeedUtils.formatSeedChain(runnerRandomness));
+  private void runAndWait(RunNotifier notifier, TestCandidate c, 
+      Runnable runnable, int timeout, String testThreadName) {
+    Thread t = new Thread(runnable, testThreadName);
     try {
       t.start();
       t.join(timeout);

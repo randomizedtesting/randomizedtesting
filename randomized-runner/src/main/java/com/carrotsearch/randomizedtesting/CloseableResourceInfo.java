@@ -9,12 +9,12 @@ import java.io.Closeable;
 final class CloseableResourceInfo {
   private final Closeable resource;
   private final LifecycleScope scope;
-  private final Thread thread;
   private final StackTraceElement[] allocationStack;
+  private final String threadName;
   
   public CloseableResourceInfo(Closeable resource, LifecycleScope scope, Thread t, StackTraceElement[] allocationStack) {
     this.resource = resource;
-    this.thread = t;
+    this.threadName = t.getName();
     this.allocationStack = allocationStack;
     this.scope = scope;
   }
@@ -23,15 +23,18 @@ final class CloseableResourceInfo {
     return resource;
   }
 
-  public Thread getThread() {
-    return thread;
-  }
-  
   public StackTraceElement[] getAllocationStack() {
     return allocationStack;
   }
   
   public LifecycleScope getScope() {
     return scope;
+  }
+
+  /**
+   * Return the allocating thread's name at the time of creating this resource info.
+   */
+  public String getThreadName() {
+    return threadName;
   }
 }
