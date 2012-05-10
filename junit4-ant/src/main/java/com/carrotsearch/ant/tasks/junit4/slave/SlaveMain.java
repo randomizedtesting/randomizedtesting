@@ -6,8 +6,7 @@ import java.util.*;
 import org.junit.runner.*;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
+import org.junit.runner.notification.*;
 
 import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
@@ -93,8 +92,12 @@ public class SlaveMain {
    * Execute tests.
    */
   private void execute(Iterator<String> classNames) {
-    final JUnitCore core = new JUnitCore();
-    core.addListener(
+    final RunNotifier fNotifier = new OrderedRunNotifier();
+    final Result result = new Result();
+
+    fNotifier.addListener(result.createListener());
+
+    fNotifier.addListener(
         new StreamFlusherDecorator(
             new NoExceptionRunListenerDecorator(new RunListenerEmitter(serializer)) {
               @Override
@@ -103,7 +106,7 @@ public class SlaveMain {
               }
             }));
 
-    core.addListener(new RunListener() {
+    fNotifier.addListener(new RunListener() {
       public void testRunFinished(Result result) throws Exception {
         serializer.flush();
       }
@@ -137,7 +140,10 @@ public class SlaveMain {
       try {
         Runner runner = request.getRunner();
         methodFilter.apply(runner);
-        core.run(runner);        
+
+        fNotifier.fireTestRunStarted(runner.getDescription());
+        runner.run(fNotifier);
+        fNotifier.fireTestRunFinished(result);
       } catch (NoTestsRemainException e) {
         // Don't complain if all methods have been filtered out. 
         // I don't understand the reason why this exception has been

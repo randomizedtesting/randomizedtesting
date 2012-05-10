@@ -45,5 +45,13 @@ public class TestTextReport extends AntBuildFileTestBase {
     assertLogContains("@DisabledGroup");
     assertLogContains("> Cause: Annotated @Ignore");
     assertLogContains("(Ignored method.)");
+  }
+
+  @Test 
+  public void listeners() {
+    super.executeTarget("listeners");
+    assertLogContains("testStarted: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
+    assertLogContains("testFinished: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
+    // System.out.println(getLog());
   }  
 }
