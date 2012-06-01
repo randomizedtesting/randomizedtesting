@@ -10,7 +10,7 @@ import com.carrotsearch.randomizedtesting.annotations.Nightly;
  * Running tests on a developer machine is often a pain, in particular when
  * certain tests are long and repetitive. If you have a dedicated continuous
  * integration environment like <a href="http://jenkins-ci.org/">Jenkins</a> or
- * <a href="http://www.atlassian.com/software/jira">Attlasian JIRA</a> then it
+ * <a href="http://www.atlassian.com/software/jira">Attlasian Bamboo</a> then it
  * is nice to be able to "stress" your tests a bit more during nightly or server
  * runs compared to normal developer runs.
  * 
