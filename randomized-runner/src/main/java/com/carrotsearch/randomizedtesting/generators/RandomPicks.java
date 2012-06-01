@@ -31,7 +31,10 @@ public final class RandomPicks {
    * Pick a random object from the collection. Requires linear scanning.
    */
   public static <T> T randomFrom(Random r, Collection<T> collection) {
-    int pick = r.nextInt(collection.size());
+    final int size = collection.size();
+    if (size == 0)
+      throw new IllegalArgumentException("Can't pick a random object from an empty collection.");
+    int pick = r.nextInt(size);
     T value = null;
     for (Iterator<T> i = collection.iterator();; pick--) {
       value = i.next();
