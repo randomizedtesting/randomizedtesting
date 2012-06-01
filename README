@@ -14,3 +14,14 @@ junit4-maven - A Maven plugin and mojos for running tests in multiple
 
 examples - A mini-tutorial which shows how to use randomized runner using
     increasingly more complex examples.
+
+
+Documentation
+=============
+
+See http://labs.carrotsearch.com/randomizedtesting.html for some documentation
+(and feel free to provide patches to improve it!). 
+
+A simple walk-through RandomizedRunner features is given as a set of classes
+under: examples/maven/src/main/java/com/carrotsearch/examples/randomizedrunner/
+
