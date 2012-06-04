@@ -2,45 +2,17 @@ package com.carrotsearch.ant.tasks.junit4;
 
 
 import java.io.File;
-import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.junit.*;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.Assert;
+import org.junit.Test;
 
 import com.carrotsearch.ant.tasks.junit4.tests.TestAfterClassError;
 import com.carrotsearch.ant.tasks.junit4.tests.TestBeforeClassError;
 
 
-public class TestJUnit4 extends AntBuildFileTestBase {
-
-  @Rule
-  public TestRule dumpLogOnError = new TestRule() {
-    @Override
-    public Statement apply(final Statement base, Description description) {
-      return new Statement() {
-        @Override
-        public void evaluate() throws Throwable {
-          try {
-            base.evaluate();
-          } catch (Throwable e) {
-            System.out.println("Ant log: " + getLog());
-            throw e;
-          }
-        }
-      };
-    }
-  };
-  
-  @Before
-  public void setUp() throws Exception {
-    URL resource = getClass().getClassLoader().getResource("junit4.xml");
-    super.setupProject(new File(resource.getFile()));
-  }
-
+public class TestJUnit4 extends JUnit4XmlTestBase {
   @Test
   public void sysstreams() {
     executeTarget("sysstreams");

@@ -2,20 +2,14 @@ package com.carrotsearch.ant.tasks.junit4;
 
 
 import java.io.File;
-import java.net.URL;
 
 import org.apache.tools.ant.types.Path;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Test;
 
 
-public class TestAltJavaVendors extends AntBuildFileTestBase {
-
-  @Before
-  public void setUp() throws Exception {
-    URL resource = getClass().getClassLoader().getResource("junit4.xml");
-    super.setupProject(new File(resource.getFile()));
-  }
-
+public class TestAltJavaVendors extends JUnit4XmlTestBase {
   @Test
   public void altVendors() {
     String altVendors = System.getProperty("alt.jvms");

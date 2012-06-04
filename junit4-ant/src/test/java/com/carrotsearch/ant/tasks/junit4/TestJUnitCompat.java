@@ -1,21 +1,10 @@
 package com.carrotsearch.ant.tasks.junit4;
 
 
-import java.io.File;
-import java.net.URL;
-
-import org.junit.Before;
 import org.junit.Test;
 
 
-public class TestJUnitCompat extends AntBuildFileTestBase {
-
-  @Before
-  public void setUp() throws Exception {
-    URL resource = getClass().getClassLoader().getResource("junit4.xml");
-    super.setupProject(new File(resource.getFile()));
-  }
-
+public class TestJUnitCompat extends JUnit4XmlTestBase {
   @Test
   public void junitcompat1() {
       super.expectBuildExceptionContaining(
