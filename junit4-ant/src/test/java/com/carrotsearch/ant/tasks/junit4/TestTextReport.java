@@ -9,6 +9,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import com.carrotsearch.ant.tasks.junit4.tests.FailInAfterClass;
+import com.carrotsearch.ant.tasks.junit4.tests.ReasonForAssumptionIgnored;
 
 /**
  * Test report-text listener.
@@ -25,18 +26,21 @@ public class TestTextReport extends AntBuildFileTestBase {
   public void suiteerror() {
     super.executeTarget("suiteerror");
     
-    String output = super.getLog();
+    int count = countPattern(getLog(), FailInAfterClass.MESSAGE);
+    Assert.assertEquals(1, count);
+  }
+
+  private int countPattern(String output, String substr) {
     int count = 0;
     for (int i = 0; i < output.length();) {
-      int index = output.indexOf(FailInAfterClass.MESSAGE, i);
+      int index = output.indexOf(substr, i);
       if (index < 0) {
         break;
       }
       count++;
       i = index + 1;
     }
-    
-    Assert.assertEquals(1, count);
+    return count;
   }
 
   @Test 
@@ -46,6 +50,14 @@ public class TestTextReport extends AntBuildFileTestBase {
     assertLogContains("> Cause: Annotated @Ignore");
     assertLogContains("(Ignored method.)");
   }
+
+	@Test 
+	public void reasonForSuiteAssumptionIgnored() {
+	  super.executeTarget("reasonForSuiteAssumptionIgnored");
+
+	  int count = countPattern(getLog(), ReasonForAssumptionIgnored.MESSAGE);
+    Assert.assertEquals(2, count);
+	}
 
   @Test 
   public void listeners() {

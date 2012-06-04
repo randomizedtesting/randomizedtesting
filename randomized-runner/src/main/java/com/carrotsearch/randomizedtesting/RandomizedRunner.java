@@ -605,12 +605,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
             s.evaluate();
           } catch (Throwable t) {
             if (t instanceof AssumptionViolatedException) {
+              // Fire assumption failure before method ignores. (GH-103).
+              notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
+
               // Class level assumptions cause all tests to be ignored.
               // see Rants#RANT_3
               for (final TestCandidate c : filtered) {
                 notifier.fireTestIgnored(c.description);
               }
-              notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
             } else {
               fireTestFailure(notifier, suiteDescription, t);
             }

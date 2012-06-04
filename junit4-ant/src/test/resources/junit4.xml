@@ -587,6 +587,23 @@
         </junit4:junit4>
     </target>
 
+    <target name="reasonForSuiteAssumptionIgnored">
+        <junit4:junit4>
+            <classpath refid="tests.classpath" />
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/ReasonForAssumptionIgnored$*.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+            </listeners>
+        </junit4:junit4>
+    </target>
+
     <target name="reasonForIgnored">
         <junit4:junit4>
             <classpath refid="tests.classpath" />

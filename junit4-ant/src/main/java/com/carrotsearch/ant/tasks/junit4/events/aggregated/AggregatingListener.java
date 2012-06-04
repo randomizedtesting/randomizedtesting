@@ -99,7 +99,15 @@ public class AggregatingListener {
   }
 
   @Subscribe
-  public void receiveTestFailure(TestIgnoredAssumptionEvent e) {
+  public void receiveTestAssumptionIgnored(TestIgnoredAssumptionEvent e) {
+    Description description = e.getDescription();
+    if (description.getMethodName() == null) {
+      // Don't record suite-level assumptions. They result in ignored
+      // tests that RandomizedRunner reports and JUnit runner ignores
+      // as if a suite didn't have any tests.
+      return;
+    }
+
     assert e.getDescription().equals(tests.peek().getDescription());
     tests.peek().addFailure(e.getFailure());
   }
