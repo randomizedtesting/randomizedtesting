@@ -682,4 +682,22 @@
             </listeners>
         </junit4:junit4>
     </target>
+  
+    <target name="syspropertyset">
+        <junit4:junit4 haltonfailure="false">
+            <classpath refid="tests.classpath" />
+    
+            <fileset dir="${basedir}">
+                <include name="**/SysPropertySets.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+            </listeners>
+            
+            <syspropertyset>
+                <propertyref prefix="prefix" />
+            </syspropertyset>
+        </junit4:junit4>
+    </target>  
 </project>
