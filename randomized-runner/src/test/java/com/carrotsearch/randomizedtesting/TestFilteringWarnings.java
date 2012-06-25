@@ -107,6 +107,21 @@ public class TestFilteringWarnings extends WithNestedTestClass {
     }
   }
 
+
+  /**
+   * Filter contains a seed but random seed will generate unique repetitions.
+   */
+  @Test
+  public void testNoIters() {
+    System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), "method");
+    System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), "deadbeef");
+    Result result = JUnitCore.runClasses(Nested.class);
+    if (result.getIgnoreCount() == 0) {
+      Assert.assertTrue(result.getFailures().isEmpty());
+      Assert.assertTrue(getOutput().isEmpty());
+    }
+  }
+
   private String getOutput() {
     return buffer.toString();
   }
