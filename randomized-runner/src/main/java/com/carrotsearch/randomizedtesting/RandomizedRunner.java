@@ -1424,16 +1424,39 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // GH-89.
-    if (testCandidates.size() > 0 && filtered.isEmpty() && 
-        candidatesWithRandomSeeds(testCandidates) &&
-        filtersIncludeSeed(testFilters)) {
-      Logger.getAnonymousLogger().warning(
-          "Empty set of tests for suite class " + suiteClass.getSimpleName() +
-          " after filters applied. This can be caused by an attempt to filter tests with a random" +
-          " seed. Use constant seed (-Dtests.seed=deadbeef) to get a reproducible (and filterable)" +
-          " set of tests.");
+    if (testCandidates.size() > 0 && filtered.isEmpty()) {
+      final boolean expandedCandidates = candidatesWithRandomSeeds(testCandidates); 
+      final boolean filtersIncludeSeed = filtersIncludeSeed(testFilters);
+
+      if (expandedCandidates && filtersIncludeSeed) {
+          Logger.getAnonymousLogger().warning(
+              "Empty set of tests for suite class " + suiteClass.getSimpleName() +
+              " after filters applied. This can be caused by an attempt to filter tests with a random" +
+              " or fixed seed different than the filter's. Use the same constant seed " +
+              "(-Dtests.seed=deadbeef) to get a reproducible (and filterable)" +
+              " set of tests.");
+      }
+
+      if (expandedCandidates && !filtersIncludeSeed) {
+        String warningMessage = "Empty set of tests for suite class " + 
+            suiteClass.getSimpleName() +
+            " after filters applied.";
+
+        if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD())) != null) {
+          warningMessage += " Your method filter property should be a glob pattern to cater for" +
+          		" the random seed appended to each expanded test repetition. Use -D" +
+              SysGlobals.SYSPROP_TESTMETHOD() + "=" +
+              System.getProperty(SYSPROP_TESTMETHOD()) + "*";
+        } else {
+          warningMessage += " This can be caused by an attempt to filter tests by fixed method name" +
+          		" when their repetitions are expanded with a random seed to make their names unique. Use" +
+          		" a globbing pattern in your filters to ignore anything after the method name, for example:" +
+          		" -D" + SysGlobals.SYSPROP_TESTMETHOD() + "=method*";
+        }
+        Logger.getAnonymousLogger().warning(warningMessage);
+      }      
     }
-    
+
     return filtered;
   }
 

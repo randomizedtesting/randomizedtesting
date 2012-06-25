@@ -40,6 +40,8 @@ public abstract class GlobFilter extends Filter {
         case '.':
         case '$':
         case '-':
+        case '{':
+        case '}':
           pattern.append("\\");
           pattern.append(c);
           break;
