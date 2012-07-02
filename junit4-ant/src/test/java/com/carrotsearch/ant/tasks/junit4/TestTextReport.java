@@ -41,6 +41,5 @@ public class TestTextReport extends JUnit4XmlTestBase {
     super.executeTarget("listeners");
     assertLogContains("testStarted: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
     assertLogContains("testFinished: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
-    // System.out.println(getLog());
   }  
 }

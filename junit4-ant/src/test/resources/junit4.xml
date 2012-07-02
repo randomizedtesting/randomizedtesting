@@ -756,6 +756,9 @@
                   </fileset>
       
                   <listeners>
+                      <!-- Always in UTF-8 -->
+                      <junit4:report-text showOutputStream="true" file="${log.file}" append="true" />
+                      <!-- Console output, environment-specific but show nonetheless. -->
                       <junit4:report-text showOutputStream="true" />
                   </listeners>
       
@@ -763,7 +766,9 @@
               </junit4:junit4>
            </sequential>
         </macrodef>
-        
+
+        <property name="log.file" location="fileencodings.log" />
+        <delete file="${log.file}" failonerror="true" />
         <check.encoding encoding="US-ASCII" />
         <check.encoding encoding="iso8859-1" />
         <check.encoding encoding="UTF-8" />

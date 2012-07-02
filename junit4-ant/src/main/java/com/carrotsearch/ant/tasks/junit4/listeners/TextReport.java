@@ -1,8 +1,11 @@
 package com.carrotsearch.ant.tasks.junit4.listeners;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
 import org.junit.runner.Description;
 
 import com.carrotsearch.ant.tasks.junit4.*;
@@ -92,6 +95,16 @@ public class TextReport implements AggregatedEventListener {
    */
   private boolean useSimpleNames = false;
 
+  /**
+   * {@link #output} file name.
+   */
+  private File outputFile;
+
+  /**
+   * Append to {@link #outputFile} if specified.
+   */
+  private boolean append;
+
   public void setShowStatusError(boolean showStatusError)     { this.showStatusError = showStatusError;   }
   public void setShowStatusFailure(boolean showStatusFailure) { this.showStatusFailure = showStatusFailure; }
   public void setShowStatusIgnored(boolean showStatusIgnored) { this.showStatusIgnored = showStatusIgnored; }
@@ -157,15 +170,21 @@ public class TextReport implements AggregatedEventListener {
   }
 
   /**
-   * Set an external file to write to.
+   * Set an external file to write to. That file will always be in UTF-8.
    */
   public void setFile(File outputFile) throws IOException {
     if (!outputFile.getName().isEmpty()) {
-      Files.createParentDirs(outputFile);
-      this.output = Files.newWriter(outputFile, Charsets.UTF_8);
+      this.outputFile = outputFile;
     }
   }
 
+  /**
+   * Append if {@link #setFile(File)} is also specified. 
+   */
+  public void setAppend(boolean append) {
+    this.append = append;
+  }
+  
   /*
    * 
    */
@@ -459,14 +478,32 @@ public class TextReport implements AggregatedEventListener {
     return String.format(Locale.ENGLISH, "%4." + precision + "fs", timeMillis / 1000.0);
   }
 
+  private static Set<String> UNICODE_ENCODINGS = new HashSet<String>(Arrays.asList(
+      "UTF-8", "UTF-16LE", "UTF-16", "UTF-16BE", "UTF-32"));
+
   @Override
   public void setOuter(JUnit4 junit) {
     this.task = junit;
 
+    if (outputFile != null) {
+      try {
+        Files.createParentDirs(outputFile);
+        this.output = Files.newWriterSupplier(outputFile, Charsets.UTF_8, append).getOutput();
+      } catch (IOException e) {
+        throw new BuildException(e);
+      }
+    }
+    
     this.displayStatus.put(TestStatus.ERROR, showStatusError);
     this.displayStatus.put(TestStatus.FAILURE, showStatusFailure);
     this.displayStatus.put(TestStatus.IGNORED, showStatusIgnored);
     this.displayStatus.put(TestStatus.IGNORED_ASSUMPTION, showStatusIgnored);
     this.displayStatus.put(TestStatus.OK, showStatusOk);
+
+    if (output == null && !UNICODE_ENCODINGS.contains(Charset.defaultCharset().name())) {
+        task.log("Your console's encoding may not display certain" +
+        		" unicode glyphs: " + Charset.defaultCharset().name(), 
+        		Project.MSG_INFO);
+    }
   }
 }
