@@ -37,4 +37,17 @@ public class JUnit4XmlTestBase extends AntBuildFileTestBase {
     URL resource = getClass().getClassLoader().getResource("junit4.xml");
     super.setupProject(new File(resource.getFile()));
   }
+  
+  protected static int countPattern(String output, String substr) {
+    int count = 0;
+    for (int i = 0; i < output.length();) {
+      int index = output.indexOf(substr, i);
+      if (index < 0) {
+        break;
+      }
+      count++;
+      i = index + 1;
+    }
+    return count;
+  }  
 }

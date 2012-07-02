@@ -20,19 +20,6 @@ public class TestTextReport extends JUnit4XmlTestBase {
     Assert.assertEquals(1, count);
   }
 
-  private int countPattern(String output, String substr) {
-    int count = 0;
-    for (int i = 0; i < output.length();) {
-      int index = output.indexOf(substr, i);
-      if (index < 0) {
-        break;
-      }
-      count++;
-      i = index + 1;
-    }
-    return count;
-  }
-
   @Test 
   public void reasonForIgnored() {
     super.executeTarget("reasonForIgnored");
