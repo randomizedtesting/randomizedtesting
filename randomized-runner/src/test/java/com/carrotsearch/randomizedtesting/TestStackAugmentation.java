@@ -2,7 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import static org.junit.Assert.*;
 
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
@@ -31,11 +31,8 @@ public class TestStackAugmentation extends WithNestedTestClass {
     }
   }
 
-  /**
-   * Check if methods get the same seed on every run with a fixed runner's seed.
-   */
   @Test
-  public void testSameMethodRandomnessWithFixedRunner() {
+  public void testMethodLevel() {
     Result result = JUnitCore.runClasses(Nested.class);
     assertEquals(1, result.getFailureCount());
 
@@ -44,4 +41,54 @@ public class TestStackAugmentation extends WithNestedTestClass {
     assertNotNull(seedFromThrowable);
     assertTrue("[DEADBEEF:CAFEBABE]".compareToIgnoreCase(seedFromThrowable) == 0);
   }
+
+  @RunWith(RandomizedRunner.class)
+  @Seed("deadbeef")
+  public static class Nested2 {
+    @BeforeClass
+    public static void beforeClass() {
+      assumeRunningNested();
+      throw new Error("beforeclass.");
+    }
+
+    @Test @Seed("cafebabe")
+    public void testMethod1() {
+    }
+  }
+
+  @Test
+  public void testBeforeClass() {
+    Result result = JUnitCore.runClasses(Nested2.class);
+    assertEquals(1, result.getFailureCount());
+
+    Failure f = result.getFailures().get(0);
+    String seedFromThrowable = RandomizedRunner.seedFromThrowable(f.getException());
+    assertNotNull(seedFromThrowable);
+    assertTrue(f.getTrace(), "[DEADBEEF]".compareToIgnoreCase(seedFromThrowable) == 0);
+  }
+  
+  @RunWith(RandomizedRunner.class)
+  @Seed("deadbeef")
+  public static class Nested3 {
+    @AfterClass
+    public static void afterClass() {
+      assumeRunningNested();
+      throw new Error("afterclass.");
+    }
+
+    @Test @Seed("cafebabe")
+    public void testMethod1() {
+    }
+  }
+
+  @Test
+  public void testAfterClass() {
+    Result result = JUnitCore.runClasses(Nested3.class);
+    assertEquals(1, result.getFailureCount());
+
+    Failure f = result.getFailures().get(0);
+    String seedFromThrowable = RandomizedRunner.seedFromThrowable(f.getException());
+    assertNotNull(seedFromThrowable);
+    assertTrue(f.getTrace(), "[DEADBEEF]".compareToIgnoreCase(seedFromThrowable) == 0);
+  }  
 }

@@ -2125,14 +2125,20 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Augment stack trace of the given exception with seed infos.
    */
   private static <T extends Throwable> T augmentStackTraceNoContext(T e, Randomness... seeds) {
+    final String seedChain = SeedUtils.formatSeedChain(seeds);
+
+    final String existingSeed = seedFromThrowable(e);  
+    if (existingSeed != null && existingSeed.equals(seedChain)) {
+      return e;
+    }
+
     List<StackTraceElement> stack = new ArrayList<StackTraceElement>(
         Arrays.asList(e.getStackTrace()));
   
     stack.add(0,  new StackTraceElement(AUGMENTED_SEED_PACKAGE + ".SeedInfo", 
-        "seed", SeedUtils.formatSeedChain(seeds), 0));
-  
+        "seed", seedChain, 0));
+
     e.setStackTrace(stack.toArray(new StackTraceElement [stack.size()]));
-  
     return e;
   }
 
