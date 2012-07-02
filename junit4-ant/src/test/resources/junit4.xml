@@ -699,5 +699,48 @@
                 <propertyref prefix="prefix" />
             </syspropertyset>
         </junit4:junit4>
+    </target>
+  
+    <target name="randomsysproperty">
+        <!-- Fix the master seed in advance to allow repeatable selection of attributes. -->
+        <local name="tests.seed" />
+        <junit4:pickseed property="tests.seed" />
+
+        <junit4:pickfromlist property="prefix.dummy1" allowundefined="false" seed="${tests.seed}">
+            <value>UTF-8</value>
+            <value>UTF-16</value>
+            <value>US-ASCII</value>
+            <value>iso8859-1</value>
+        </junit4:pickfromlist>
+
+        <junit4:pickfromlist property="prefix.dummy2" allowundefined="false" seed="${tests.seed}">
+            <value>UTF-8</value>
+            <value><!-- Empty for ignored property. --></value>
+        </junit4:pickfromlist>
+
+        <junit4:junit4 haltonfailure="false" seed="${tests.seed}">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/RandomSysProperty.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text showOutputStream="true" />
+            </listeners>
+
+            <sysproperty key="prefix.dummy1" value="${prefix.dummy1}" ignoreEmpty="true" />
+            <sysproperty key="prefix.dummy2" value="${prefix.dummy2}" ignoreEmpty="true" />
+
+            <!--
+            It'd be nicest to use local refs but they're not working due to: 
+            https://issues.apache.org/bugzilla/show_bug.cgi?id=50179
+            -->
+
+            <syspropertyset ignoreEmpty="true">
+                <propertyref prefix="prefix." />
+                <mapper type="glob" from="prefix.*" to="replaced.*" />
+            </syspropertyset>
+        </junit4:junit4>
     </target>  
 </project>

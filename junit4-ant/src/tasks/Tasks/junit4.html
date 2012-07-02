@@ -369,23 +369,44 @@ properties required by the tests. These properties will be made available
 to the forked JVMs during their execution. The attributes for this element are the same 
 as for <a href="http://ant.apache.org/manual/Tasks/exec.html#env">environment variables</a>.</p>
 
+<p>An extended attribute <code>&lt;ignoreEmpty&gt;</code> is supported which, if defined,
+causes the property NOT to be defined in the forked JVM (as opposed to passing an empty property
+value).</p>
+
 <pre id="snippet-3" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-3", '\
 <junit4> \n\
   <sysproperty key="project-basedir" value="${basedir}" />\n\
+  <!-- This property will not be passed to the forked JVM. -->\n\
+  <sysproperty key="my.property" value="" ignoreEmpty="true" />\n\
 </junit4>\n\
 ');
 </script></pre>
 
 <p>would run the test in ANT's VM and make the project's <code>basedir</code> property
-available to the test (note the current working directory of a forked JVM will not be the basedir typically).</p>
+available to the test (note the current working directory of a forked JVM will not be the
+ basedir typically).</p>
 
 
 
 <h4>syspropertyset</h4>
 
-<p>You can specify a set of properties to be used as system properties
-with <a href="http://ant.apache.org/manual/Types/propertyset.html">syspropertyset</a>s.</p>
+<p>You can specify a set of properties to be passed to the target JVM as system properties
+with <a href="http://ant.apache.org/manual/Types/propertyset.html">syspropertyset</a>s.
+This target behaves much like the default in ANT but allows a dynamic set of (remapped)
+properties to be resolved at runtime. Similar to <code>sysproperty</code>, this
+tag also supports <code>ignoreEmpty</code> attribute to work around 
+<a href="https://issues.apache.org/bugzilla/show_bug.cgi?id=50179">bugs 
+with local properties in ANT.</a></p>
 
+<pre id="snippet-10" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-10", '\
+<junit4> \n\
+  <syspropertyset ignoreEmpty="true">\n\
+    <propertyref prefix="propertyprefix." />\n\
+    <mapper type="glob" from="propertyprefix.*" to="replaced.*" />\n\
+  </syspropertyset>\n\
+</junit4>\n\
+');
+</script></pre>
 
 
 <h4>env</h4>

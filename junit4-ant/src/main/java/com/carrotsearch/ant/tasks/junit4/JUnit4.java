@@ -439,19 +439,69 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Adds a system property to any forked JVM.
+   * A {@link org.apache.tools.ant.types.Environment.Variable} with an additional
+   * attribute specifying whether or not empty values should be propagated or ignored.  
    */
-  public void addConfiguredSysproperty(Environment.Variable sysp) {
-    getCommandline().addSysproperty(sysp);
+  public static class ExtendedVariable extends Environment.Variable {
+    private boolean ignoreEmptyValue = false;
+
+    public void setIgnoreEmpty(boolean ignoreEmptyValue) {
+      this.ignoreEmptyValue = ignoreEmptyValue;
+    }
+
+    public boolean shouldIgnore() {
+      return ignoreEmptyValue && Strings.isNullOrEmpty(getValue());
+    }
+
+    @Override
+    public String toString() {
+      return getContent() + " (ignoreEmpty=" + ignoreEmptyValue + ")";
+    }
   }
   
+  /**
+   * Adds a system property to any forked JVM.
+   */
+  public void addConfiguredSysproperty(ExtendedVariable sysp) {
+    if (!sysp.shouldIgnore()) {
+      getCommandline().addSysproperty(sysp);
+    }
+  }
+  
+  /**
+   * A {@link PropertySet} with an additional
+   * attribute specifying whether or not empty values should be propagated or ignored.
+   */
+  public static class ExtendedPropertySet extends PropertySet {
+    private boolean ignoreEmptyValue = false;
+
+    public void setIgnoreEmpty(boolean ignoreEmptyValue) {
+      this.ignoreEmptyValue = ignoreEmptyValue;
+    }
+
+    @Override
+    public Properties getProperties() {
+      Properties properties = super.getProperties();
+      Properties clone = new Properties();
+      for (String s : properties.stringPropertyNames()) {
+        String value = (String) properties.get(s);
+        if (ignoreEmptyValue && Strings.isNullOrEmpty(value)) {
+          continue;
+        } else {
+          clone.setProperty(s, value);
+        }
+      }
+      return clone;
+    }
+  }
+
   /**
    * Adds a set of properties that will be used as system properties that tests
    * can access.
    * 
-   * This might be useful to tranfer Ant properties to the testcases.
+   * This might be useful to transfer Ant properties to the testcases.
    */
-  public void addSyspropertyset(PropertySet sysp) {
+  public void addConfiguredSyspropertyset(ExtendedPropertySet sysp) {
     getCommandline().addSyspropertyset(sysp);
   }
   
@@ -479,7 +529,7 @@ public class JUnit4 extends Task {
   /**
    * Adds an environment variable; used when forking.
    */
-  public void addEnv(Environment.Variable var) {
+  public void addEnv(ExtendedVariable var) {
     env.addVariable(var);
   }
 

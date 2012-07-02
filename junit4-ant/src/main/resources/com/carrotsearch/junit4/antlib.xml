@@ -11,6 +11,14 @@
         name="tophints" 
         classname="com.carrotsearch.ant.tasks.junit4.balancers.TopHints" />
 
+    <taskdef 
+        name="pickseed" 
+        classname="com.carrotsearch.ant.tasks.junit4.PickSeedTask" />
+    
+    <taskdef 
+        name="pickfromlist" 
+        classname="com.carrotsearch.ant.tasks.junit4.PickFromListTask" />
+
     <!-- TestBalancers -->
 
     <typedef
