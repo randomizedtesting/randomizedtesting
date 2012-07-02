@@ -61,15 +61,29 @@ public class JUnit4 extends Task {
    * Welcome messages.
    */
   private static String [] WELCOME_MESSAGES = {
-    "hello!",
-    "hi!",
-    "g'day!",
-    "¡Hola!",
-    "jolly good day!",
-    "aloha!",
-    "cześć."
+    "hello!",               // en
+    "hi!",                  // en
+    "g'day!",               // en, australia
+    "¡Hola!",               // es
+    "jolly good day!",      // monty python
+    "aloha!",               // en, hawaii
+    "cześć!",               // pl
+    "مرحبا!",               // arabic (modern)
+    "kaixo!",               // basque
+    "Привет!",              // bulgarian, russian
+    "你好!",                 // cn, traditional
+    "ahoj!",                // czech
+    "salut!",               // french
+    "hallo!",               // german
+    "שלום!",                // hebrew
+    "नमस्ते!",                // hindi
+    "ᐊᐃ!",                  // inuktitut
+    "ciao!",                // italian
+    "今日は!",               // japanese
+    "olá!",                 // portuguese
+    // add more if your country/ place is not on the list ;)
   };
-  
+
   /** Name of the antlib resource inside JUnit4 JAR. */
   public static final String ANTLIB_RESOURCE_NAME = "com/carrotsearch/junit4/antlib.xml";
 
@@ -229,7 +243,6 @@ public class JUnit4 extends Task {
    */
   public JUnit4() {
     resources = new Resources();
-    // resources.setCache(true);  // ANT 1.8.x+
   }
 
   /**
