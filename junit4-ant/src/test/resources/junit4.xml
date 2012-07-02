@@ -742,5 +742,33 @@
                 <mapper type="glob" from="prefix.*" to="replaced.*" />
             </syspropertyset>
         </junit4:junit4>
-    </target>  
+    </target>
+    
+    <target name="fileencodings">
+        <macrodef name="check.encoding">
+           <attribute name="encoding" />
+           <sequential>
+              <junit4:junit4>
+                  <classpath refid="tests.classpath" />
+      
+                  <fileset dir="${basedir}">
+                      <include name="**/FileEncoding.class" />
+                  </fileset>
+      
+                  <listeners>
+                      <junit4:report-text showOutputStream="true" />
+                  </listeners>
+      
+                  <sysproperty key="file.encoding" value="@{encoding}" />
+              </junit4:junit4>
+           </sequential>
+        </macrodef>
+        
+        <check.encoding encoding="US-ASCII" />
+        <check.encoding encoding="iso8859-1" />
+        <check.encoding encoding="UTF-8" />
+        <check.encoding encoding="UTF-16" />
+        <check.encoding encoding="UTF-16LE" />
+        <check.encoding encoding="UTF-32" />
+    </target>
 </project>
