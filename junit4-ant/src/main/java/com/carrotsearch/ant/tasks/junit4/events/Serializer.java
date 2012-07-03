@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.events;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
+import java.util.ArrayDeque;
 
 import org.junit.runner.Description;
 
@@ -9,6 +10,7 @@ import com.carrotsearch.ant.tasks.junit4.events.json.*;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.randomizedtesting.Rethrow;
 import com.google.common.base.Charsets;
+import com.google.common.io.Closeables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.LongSerializationPolicy;
@@ -23,46 +25,64 @@ public class Serializer implements Closeable {
    */
   private final Object lock = new Object();
 
-  private Writer writer2;
+  private JsonWriter jsonWriter; 
+  private Writer writer;
   private Gson gson;
 
+  private final ArrayDeque<IEvent> events = new ArrayDeque<IEvent>();
+
   public Serializer(OutputStream os) throws IOException {
-    this.writer2 = new OutputStreamWriter(os, Charsets.UTF_8);
+    this.writer = new OutputStreamWriter(os, Charsets.UTF_8);
     this.gson = createGSon(Thread.currentThread().getContextClassLoader());
+    
+    jsonWriter = new JsonWriter(writer);
+    jsonWriter.setIndent("  ");
   }
 
   public Serializer serialize(IEvent event) throws IOException {
     synchronized (lock) {
-      if (writer2 == null) {
+      if (writer == null) {
         throw new IOException("Serializer already closed.");
       }
+
+      // An alternative way of solving GH-92 and GH-110. Instead of buffering
+      // serialized json we emit directly. If a recursive call occurs to serialize()
+      // we enqueue the event and continue, serializing them in order.
       
-      // Attempt to serialize event atomically to a top-level value.
-      // See GH-92 for more info.
-      final StringWriter sw = new StringWriter();
-      try {
-        final JsonWriter jsonWriter = new JsonWriter(sw);
-        jsonWriter.setIndent("  ");
-        jsonWriter.beginArray();
-        jsonWriter.value(event.getType().name());
-        gson.toJson(event, event.getClass(), jsonWriter);
-        jsonWriter.endArray();
-        jsonWriter.close();
-      } catch (Throwable t) {
-        SlaveMain.warn("Unhandled exception in event serialization.", t);
-        Rethrow.rethrow(t); // or skip?
+      events.addLast(event);
+      if (events.size() > 1) {
+        return this;
       }
 
-      writer2.write(sw.toString());
-      writer2.write("\n\n");
+      do {
+        event = events.peekFirst();
+
+        try {
+          jsonWriter.beginArray();
+          jsonWriter.value(event.getType().name());
+          gson.toJson(event, event.getClass(), jsonWriter);
+          jsonWriter.endArray();
+        } catch (Throwable t) {
+          Closeables.closeQuietly(writer);
+          writer = null;
+          jsonWriter = null;
+
+          SlaveMain.warn("Unhandled exception in event serialization.", t);
+          Rethrow.rethrow(t); // or skip?
+        }
+
+        events.removeFirst();
+        writer.write("\n\n");
+      } while (writer != null && !events.isEmpty());
+
       return this;
     }
   }
 
   public Serializer flush() throws IOException {
     synchronized (lock) {
-      if (writer2 != null) {
-        writer2.flush();
+      if (writer != null) {
+        writer.flush();
       }
       return this;
     }
@@ -70,10 +90,12 @@ public class Serializer implements Closeable {
 
   public void close() throws IOException {
     synchronized (lock) {
-      if (writer2 != null) {
-        serialize(new QuitEvent());
-        writer2.close();
-        writer2 = null;
+      if (writer != null) {
+        if (events.isEmpty()) {
+          serialize(new QuitEvent());
+        }
+        writer.close();
+        writer = null;
       }
     }
   }
