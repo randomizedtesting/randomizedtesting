@@ -111,10 +111,18 @@ public class SlaveMain {
         serializer.flush();
       }
 
+      @Override
+      public void testRunStarted(Description description) throws Exception {
+        serializer.flush();
+      }
+      
+      @Override
+      public void testStarted(Description description) throws Exception {
+        serializer.flush();
+      }
+      
       public void testFinished(Description description) throws Exception {
-        if (flushFrequently) {
-          serializer.flush();
-        }
+        serializer.flush();
       }
     });
 

@@ -40,6 +40,7 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
+import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -327,6 +328,18 @@ public class JUnit4Mojo extends AbstractMojo {
   private PlexusConfiguration balancers;
 
   /**
+   * Sets the heartbeat used to detect inactive/ hung forked tests (JVMs) to the given
+   * number of seconds. The heartbeat detects
+   * no-event intervals and will report them to listeners. Notably, {@link TextReport} report will
+   * emit heartbeat information (to a file or console).
+   * 
+   * <p>Setting the heartbeat to zero means no detection.
+   * 
+   * @parameter default-value="0"
+   */
+  private long heartbeat;
+
+  /**
    * Set this to "true" to skip running tests, but still compile them. Its use
    * is NOT RECOMMENDED, but quite convenient on occasion.
    * 
@@ -514,6 +527,7 @@ public class JUnit4Mojo extends AbstractMojo {
     if (jvm != null) junit4.addAttribute("jvm", jvm);
     if (maxMemory != null) junit4.addAttribute("maxMemory", maxMemory);
     if (jvmOutputAction != null) junit4.addAttribute("jvmOutputAction", jvmOutputAction);
+    if (heartbeat != 0) junit4.addAttribute("heartbeat", Long.toString(heartbeat));
     junit4.addAttribute("shuffleOnSlave", Boolean.toString(shuffleOnSlave));
     junit4.addAttribute("printSummary", Boolean.toString(printSummary));
     junit4.addAttribute("isolateWorkingDirectories", Boolean.toString(isolateWorkingDirectories));

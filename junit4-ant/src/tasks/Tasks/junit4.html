@@ -306,6 +306,15 @@ that make little sense have been deprecated and are ignored. Attributes specific
     <td align="center" valign="top">No; default is 'false'.</td>
   </tr>  
 
+  <tr class="junit4">
+    <td valign="top">heartbeat</td>
+    <td valign="top">
+      A duration (in seconds) before an event is dispatched about forked JVM inactivity.
+      This can be useful to report hung or very long tests. Heartbeat information will
+      include an approximate location inside the non-responding JVM (suite or test case).
+    </td>
+    <td align="center" valign="top">No; default is '0'.</td>
+  </tr>
 </table>
 
 

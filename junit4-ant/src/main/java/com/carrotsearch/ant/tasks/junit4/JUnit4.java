@@ -21,6 +21,7 @@ import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
 import com.carrotsearch.ant.tasks.junit4.balancers.SuiteHint;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
+import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.*;
@@ -238,6 +239,11 @@ public class JUnit4 extends Task {
    */
   private boolean shuffleOnSlave = DEFAULT_SHUFFLE_ON_SLAVE;
 
+  /**
+   * @see #setHeartbeat
+   */
+  private long heartbeat; 
+  
   /**
    * 
    */
@@ -664,6 +670,17 @@ public class JUnit4 extends Task {
     log("The '" + attName + "' attribute is not supported by <junit4>.", Project.MSG_WARN);
   }
 
+  /**
+   * Sets the heartbeat used to detect inactive/ hung forked tests (JVMs) to the given
+   * number of seconds. The heartbeat detects
+   * no-event intervals and will report them to listeners. Notably, {@link TextReport} report will
+   * emit heartbeat information (to a file or console).
+   * 
+   * <p>Setting the heartbeat to zero means no detection.
+   */
+  public void setHeartbeat(long heartbeat) {
+    this.heartbeat = heartbeat;
+  }
   
   @SuppressWarnings("deprecation")
   @Override
@@ -1206,7 +1223,7 @@ public class JUnit4 extends Task {
     try {
       final LocalSlaveStreamHandler streamHandler = 
           new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err, eventStream, 
-              sysout, syserr);
+              sysout, syserr, heartbeat);
 
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());

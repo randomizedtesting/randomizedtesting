@@ -48,6 +48,7 @@
               <goal>junit4</goal>
             </goals>
             <configuration>
+              <heartbeat>10</heartbeat>
               <jvmOutputAction>pipe,ignore</jvmOutputAction>
               <leaveTemporary>true</leaveTemporary>
               <classpathDependencyExcludes>

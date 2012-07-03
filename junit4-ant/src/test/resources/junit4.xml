@@ -776,4 +776,18 @@
         <check.encoding encoding="UTF-16LE" />
         <check.encoding encoding="UTF-32" />
     </target>
+    
+    <target name="testHeartbeat">
+        <junit4:junit4 heartbeat="1">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/HeartbeatSlow.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text showOutputStream="true" />
+            </listeners>
+        </junit4:junit4>
+    </target>    
 </project>

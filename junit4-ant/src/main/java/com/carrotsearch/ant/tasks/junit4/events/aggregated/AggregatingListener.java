@@ -8,15 +8,7 @@ import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
 
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
-import com.carrotsearch.ant.tasks.junit4.events.IEvent;
-import com.carrotsearch.ant.tasks.junit4.events.SuiteCompletedEvent;
-import com.carrotsearch.ant.tasks.junit4.events.SuiteFailureEvent;
-import com.carrotsearch.ant.tasks.junit4.events.SuiteStartedEvent;
-import com.carrotsearch.ant.tasks.junit4.events.TestFailureEvent;
-import com.carrotsearch.ant.tasks.junit4.events.TestFinishedEvent;
-import com.carrotsearch.ant.tasks.junit4.events.TestIgnoredAssumptionEvent;
-import com.carrotsearch.ant.tasks.junit4.events.TestIgnoredEvent;
-import com.carrotsearch.ant.tasks.junit4.events.TestStartedEvent;
+import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
@@ -61,6 +53,26 @@ public class AggregatingListener {
           eventStream.add(e);
       }
     }
+  }
+  
+  /**
+   * Detect slow heartbeat (long time without any events) from the forked JVM.
+   */
+  @Subscribe
+  public void slowHeartBeat(LowLevelHeartBeatEvent e) {
+    Description current = null;
+    if (tests != null && !tests.isEmpty()) {
+      current = tests.peek().getDescription();
+    } else {
+      current = lastSuite; // may be null.
+    }
+
+    target.post(new HeartBeatEvent(
+        slave,
+        current,
+        e.lastActivity,
+        e.currentTime
+    ));
   }
 
   @Subscribe

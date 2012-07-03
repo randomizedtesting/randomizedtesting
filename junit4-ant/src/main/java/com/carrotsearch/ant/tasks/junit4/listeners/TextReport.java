@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.listeners;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.apache.tools.ant.BuildException;
@@ -359,28 +360,14 @@ public class TextReport implements AggregatedEventListener {
 
     StringBuilder line = new StringBuilder();
     line.append(Strings.padEnd(statusNames.get(status), 8, ' '));
-    line.append(formatTime(timeMillis));
+    line.append(formatDurationInSeconds(timeMillis));
     if (slave.slaves > 1) {
       final int digits = 1 + (int) Math.floor(Math.log10(slave.slaves));
       line.append(String.format(" J%-" + digits + "d", slave.id));
     }    
     line.append(" | ");
 
-    String className = description.getClassName();
-    if (className != null) {
-      String [] components = className.split("[\\.]");
-      className = components[components.length - 1];
-      line.append(className);
-      if (description.getMethodName() != null) { 
-        line.append(".").append(description.getMethodName());
-      } else {
-        line.append(" (suite)");
-      }
-    } else {
-      if (description.getMethodName() != null) {
-        line.append(description.getMethodName());
-      }
-    }
+    line.append(formatDescription(description));
     line.append("\n");
 
     if (showThrowable) {
@@ -437,6 +424,25 @@ public class TextReport implements AggregatedEventListener {
 
     log(line.toString().trim());
   }
+  public String formatDescription(Description description) {
+    StringBuilder buffer = new StringBuilder();
+    String className = description.getClassName();
+    if (className != null) {
+      String [] components = className.split("[\\.]");
+      className = components[components.length - 1];
+      buffer.append(className);
+      if (description.getMethodName() != null) { 
+        buffer.append(".").append(description.getMethodName());
+      } else {
+        buffer.append(" (suite)");
+      }
+    } else {
+      if (description.getMethodName() != null) {
+        buffer.append(description.getMethodName());
+      }
+    }
+    return buffer.toString();
+  }
 
   /**
    * Decode stream events, indent, format. 
@@ -450,12 +456,24 @@ public class TextReport implements AggregatedEventListener {
   }
 
   @Subscribe
+  public void onHeartbeat(HeartBeatEvent e) {
+    log("HEARTBEAT J" + e.getSlave().id + ": " +
+        formatTime(e.getCurrentTime()) + ", no events in: " +
+        formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
+        formatDescription(e.getDescription()));
+  }
+  
+  @Subscribe
   public void onQuit(AggregatedQuitEvent e) {
     if (output != null) {
       Closeables.closeQuietly(output);
     }
   }
 
+  private static String formatTime(long timestamp) {
+    return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH).format(new Date(timestamp));
+  }
+  
   /*
    * 
    */
@@ -466,7 +484,7 @@ public class TextReport implements AggregatedEventListener {
   /*
    * 
    */
-  private static Object formatTime(int timeMillis) {
+  private static String formatDurationInSeconds(long timeMillis) {
     final int precision;
     if (timeMillis >= 100 * 1000) {
       precision = 0;
