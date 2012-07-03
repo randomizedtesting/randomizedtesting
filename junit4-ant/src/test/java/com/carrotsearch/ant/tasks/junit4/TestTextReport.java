@@ -1,6 +1,8 @@
 package com.carrotsearch.ant.tasks.junit4;
 
 
+import java.util.regex.Pattern;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -41,5 +43,12 @@ public class TestTextReport extends JUnit4XmlTestBase {
     super.executeTarget("listeners");
     assertLogContains("testStarted: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
     assertLogContains("testFinished: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
-  }  
+  }
+
+  @Test 
+  public void timestamps() {
+    super.executeTarget("timestamps");
+    Assert.assertTrue(getLog(),
+        Pattern.compile("\\[([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{3})\\]").matcher(getLog()).find());
+  }    
 }

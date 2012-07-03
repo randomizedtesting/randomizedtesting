@@ -97,6 +97,11 @@ public class TextReport implements AggregatedEventListener {
   private boolean useSimpleNames = false;
 
   /**
+   * Display timestamps and durations for tests/ suites.
+   */
+  private boolean timestamps = false;
+
+  /**
    * {@link #output} file name.
    */
   private File outputFile;
@@ -123,6 +128,13 @@ public class TextReport implements AggregatedEventListener {
    */
   public void setUseSimpleNames(boolean useSimpleNames) {
     this.useSimpleNames = useSimpleNames;
+  }
+  
+  /**
+   * Show duration timestamps for tests and suites.
+   */
+  public void setTimestamps(boolean timestamps) {
+    this.timestamps = timestamps;
   }
   
   /**
@@ -219,7 +231,8 @@ public class TextReport implements AggregatedEventListener {
           suiteName = suiteName.substring(suiteName.lastIndexOf('.') + 1);
         }
       }
-      log("Suite: " + padTo(maxClassNameColumns, suiteName, "[...]"));
+      log(shortTimestamp(e.getStartTimestamp()) +
+          "Suite: " + padTo(maxClassNameColumns, suiteName, "[...]"));
 
       // Static context output.
       if (shouldShowSuiteLevelOutput(e)) {
@@ -253,7 +266,8 @@ public class TextReport implements AggregatedEventListener {
 
     if (showSuiteSummary) {
       StringBuilder b = new StringBuilder();
-      b.append(String.format(Locale.ENGLISH, "Completed%s in %.2fs, ",
+      b.append(String.format(Locale.ENGLISH, "%sCompleted%s in %.2fs, ",
+          shortTimestamp(e.getStartTimestamp() + e.getExecutionTime()),
           e.getSlave().slaves > 1 ? " on J" + e.getSlave().id : "",
           e.getExecutionTime() / 1000.0d));
       b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));
@@ -274,6 +288,17 @@ public class TextReport implements AggregatedEventListener {
       }
       b.append("\n "); // trailing space here intentional. 
       log(b.toString());
+    }
+  }
+
+  /**
+   * Format a timestamp.
+   */
+  private String shortTimestamp(long ts) {
+    if (timestamps) {
+      return "[" + new SimpleDateFormat("HH:mm:ss.SSS", Locale.US).format(new Date(ts)) + "] ";
+    } else {
+      return "";
     }
   }
 
@@ -349,7 +374,7 @@ public class TextReport implements AggregatedEventListener {
   /*
    * 
    */
-  private void format(AggregatedResultEvent result, TestStatus status, int timeMillis) {
+  private void format(AggregatedResultEvent result, TestStatus status, long timeMillis) {
     if (!isStatusShown(status)) {
       return;
     }
@@ -359,6 +384,7 @@ public class TextReport implements AggregatedEventListener {
     List<FailureMirror> failures = result.getFailures();
 
     StringBuilder line = new StringBuilder();
+    line.append(shortTimestamp(result.getStartTimestamp()));
     line.append(Strings.padEnd(statusNames.get(status), 8, ' '));
     line.append(formatDurationInSeconds(timeMillis));
     if (slave.slaves > 1) {

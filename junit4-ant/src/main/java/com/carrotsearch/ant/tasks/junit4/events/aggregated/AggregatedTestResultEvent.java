@@ -67,7 +67,7 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   /**
    * Execution time in millis.
    */
-  public int getExecutionTime() {
+  public long getExecutionTime() {
     return executionTime;
   }
 
