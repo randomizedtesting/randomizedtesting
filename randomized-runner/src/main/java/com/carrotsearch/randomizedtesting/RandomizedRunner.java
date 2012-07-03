@@ -825,9 +825,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       boolean isKilled = runnerThreadGroup.isKilled(Thread.currentThread());
 
       // Check if it's the runner trying to kill the thread. If so,
-      // there is no point in reporting such an exception back. Also,
-      // if the thread's been killed, we will not run any hooks (this is
-      // pretty much a situation in which the world ends).
+      // there is no point in reporting such an exception back.
       if (isKilled && e instanceof ThreadDeath) {
         // TODO: System.exit() wouldn't run any post-cleanup on hooks. A better
         // way to resolve this would be to mark a global condition to ignore
