@@ -25,7 +25,6 @@ public class Serializer implements Closeable {
    */
   private final Object lock = new Object();
 
-  private JsonWriter jsonWriter; 
   private Writer writer;
   private Gson gson;
 
@@ -34,9 +33,6 @@ public class Serializer implements Closeable {
   public Serializer(OutputStream os) throws IOException {
     this.writer = new OutputStreamWriter(os, Charsets.UTF_8);
     this.gson = createGSon(Thread.currentThread().getContextClassLoader());
-    
-    jsonWriter = new JsonWriter(writer);
-    jsonWriter.setIndent("  ");
   }
 
   public Serializer serialize(IEvent event) throws IOException {
@@ -58,6 +54,8 @@ public class Serializer implements Closeable {
         event = events.peekFirst();
 
         try {
+          JsonWriter jsonWriter = new JsonWriter(writer);
+          jsonWriter.setIndent("  ");
           jsonWriter.beginArray();
           jsonWriter.value(event.getType().name());
           gson.toJson(event, event.getClass(), jsonWriter);
@@ -65,7 +63,6 @@ public class Serializer implements Closeable {
         } catch (Throwable t) {
           Closeables.closeQuietly(writer);
           writer = null;
-          jsonWriter = null;
 
           SlaveMain.warn("Unhandled exception in event serialization.", t);
           Rethrow.rethrow(t); // or skip?
