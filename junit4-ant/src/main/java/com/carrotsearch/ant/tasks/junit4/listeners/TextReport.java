@@ -483,10 +483,11 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onHeartbeat(HeartBeatEvent e) {
-    log("HEARTBEAT J" + e.getSlave().id + ": " +
-        formatTime(e.getCurrentTime()) + ", no events in: " +
-        formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
-        e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription()));
+    String msg = "HEARTBEAT J" + e.getSlave().id + ": " +
+            formatTime(e.getCurrentTime()) + ", no events in: " +
+            formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
+            (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription()));
+    log(msg);
   }
   
   @Subscribe
