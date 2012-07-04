@@ -787,6 +787,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       t.join(timeout);
 
       if (t.isAlive()) {
+        runnerThreadGroup.markAsBeingTerminated(t);
+
         ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
         terminateAndFireFailure(t, notifier, c.description, tl.stackSamples(), "Test case thread timed out ");
         if (t.isAlive()) {

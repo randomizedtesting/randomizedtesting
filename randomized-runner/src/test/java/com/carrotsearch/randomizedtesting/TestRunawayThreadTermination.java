@@ -1,13 +1,20 @@
 package com.carrotsearch.randomizedtesting;
 
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLATTEMPTS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLWAIT;
+
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
-import static com.carrotsearch.randomizedtesting.SysGlobals.*;
+import com.carrotsearch.randomizedtesting.rules.SystemPropertiesRestoreRule;
 
 public class TestRunawayThreadTermination extends WithNestedTestClass {
+  @Rule
+  public SystemPropertiesRestoreRule restoreProps = new SystemPropertiesRestoreRule(); 
+
   public static class Nested2 extends RandomizedTest {
     @Test
     public void leaveSpinningBehind() throws Exception{

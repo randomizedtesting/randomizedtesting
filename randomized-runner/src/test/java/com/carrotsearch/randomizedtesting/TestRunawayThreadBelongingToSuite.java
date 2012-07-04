@@ -6,6 +6,8 @@ import org.junit.*;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+import com.carrotsearch.randomizedtesting.rules.SystemPropertiesRestoreRule;
+
 import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 public class TestRunawayThreadBelongingToSuite extends WithNestedTestClass {
@@ -63,11 +65,13 @@ public class TestRunawayThreadBelongingToSuite extends WithNestedTestClass {
     }
   }
   
+  @Rule
+  public SystemPropertiesRestoreRule restoreProps = new SystemPropertiesRestoreRule(); 
+
   @Test
   public void leftOverZombie() throws Throwable {
     System.setProperty(SYSPROP_KILLWAIT(), "100");
     Result r = JUnitCore.runClasses(Nested2.class);
-    System.clearProperty(SYSPROP_KILLWAIT());
 
     Assert.assertEquals(1, r.getFailureCount());
   }
