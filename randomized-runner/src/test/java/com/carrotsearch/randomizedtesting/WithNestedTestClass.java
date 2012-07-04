@@ -1,5 +1,8 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -12,7 +15,8 @@ public class WithNestedTestClass {
 
   @Rule
   public static SystemPropertiesInvariantRule noLeftOverProperties =
-    new SystemPropertiesInvariantRule();
+    new SystemPropertiesInvariantRule(new HashSet<String>(Arrays.asList(
+        "user.timezone")));
 
   @BeforeClass
   public static final void setupNested() {
