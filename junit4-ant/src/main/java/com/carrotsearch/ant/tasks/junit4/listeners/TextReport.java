@@ -486,7 +486,7 @@ public class TextReport implements AggregatedEventListener {
     log("HEARTBEAT J" + e.getSlave().id + ": " +
         formatTime(e.getCurrentTime()) + ", no events in: " +
         formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
-        formatDescription(e.getDescription()));
+        e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription()));
   }
   
   @Subscribe
