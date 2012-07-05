@@ -21,8 +21,15 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private final ClassLoader refLoader;
 
   private InputStream stdout;
+
   private InputStream stderr;
-  private OutputStreamWriter stdin;
+
+  /** raw input stream to the client. */
+  private OutputStream stdin;
+
+  /** character-wrapped input stream to the client. */
+  private OutputStreamWriter stdinWriter;
+
   private final PrintStream warnStream;
   private final InputStream eventStream;
   
@@ -58,8 +65,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
 
   @Override
   public void setProcessInputStream(OutputStream os) throws IOException {
-    this.stdin = new OutputStreamWriter(
-        os, Charset.defaultCharset());
+    this.stdin = os;
   }
 
   /**
@@ -71,6 +77,11 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
    * Watchdog thread if heartbeat is to be measured.
    */
   private Thread watchdog;
+  
+  /**
+   * Client charset extracted from {@link BootstrapEvent}.
+   */
+  private Charset clientCharset;
 
   @Override
   public void start() throws IOException {
@@ -151,9 +162,14 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
               return;
 
             case IDLE:
-              eventBus.post(new SlaveIdle(stdin));
+              eventBus.post(new SlaveIdle(stdinWriter));
               break;
 
+            case BOOTSTRAP:
+              clientCharset = Charset.forName(((BootstrapEvent) event).getDefaultCharsetName());
+              stdinWriter = new OutputStreamWriter(stdin, clientCharset);
+
+              // fall through.
             default:
               eventBus.post(event);
           }

@@ -5,6 +5,8 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.output.TeeOutputStream;
@@ -19,6 +21,8 @@ import org.objectweb.asm.ClassReader;
 import com.carrotsearch.ant.tasks.junit4.SuiteBalancer.Assignment;
 import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
 import com.carrotsearch.ant.tasks.junit4.balancers.SuiteHint;
+import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
+import com.carrotsearch.ant.tasks.junit4.events.IdleEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
@@ -825,8 +829,10 @@ public class JUnit4 extends Task {
       SlaveInfo slaveInError = null;
       for (SlaveInfo i : slaveInfos) {
         if (i.executionError != null) {
-          log("ERROR: Forked JVM execution exception: " + 
-              i.id + ", execution line: " + i.getCommandLine(), i.executionError, Project.MSG_ERR);
+          log("ERROR: JVM J" + i.id + " threw an exception, cmd line: " +
+              i.getCommandLine(), Project.MSG_ERR);
+          log("ERROR: JVM J" + i.id + " exception: " + i.executionError.getMessage(), 
+              i.executionError, Project.MSG_ERR);
           if (slaveInError == null) {
             slaveInError = i;
           }
@@ -1092,8 +1098,10 @@ public class JUnit4 extends Task {
     final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, this);
     eventBus.register(diagnosticsListener);
     eventBus.register(new AggregatingListener(aggregatedBus, slave));
-    
-    final PrintWriter w = new PrintWriter(Files.newWriter(classNamesDynamic, Charset.defaultCharset()));
+
+    final AtomicReference<Charset> clientCharset = new AtomicReference<Charset>();
+    final AtomicBoolean clientWithLimitedCharset = new AtomicBoolean(); 
+    final PrintWriter w = new PrintWriter(Files.newWriter(classNamesDynamic, Charsets.UTF_8));
     eventBus.register(new Object() {
       @SuppressWarnings("unused")
       @Subscribe
@@ -1106,11 +1114,28 @@ public class JUnit4 extends Task {
 
           @Override
           public void newSuite(String suiteName) {
+            if (!clientCharset.get().newEncoder().canEncode(suiteName)) {
+              clientWithLimitedCharset.set(true);
+              log("Forked JVM J" + slave.id + " skipped suite (cannot encode suite name in charset " +
+                  clientCharset.get() + "): " + suiteName, Project.MSG_WARN);
+              return;
+            }
+
             log("Forked JVM J" + slave.id + " stole suite: " + suiteName, Project.MSG_VERBOSE);
             w.println(suiteName);
             idleSlave.newSuite(suiteName);
           }
         });
+      }
+
+      /**
+       * Verify client charset once on {@link IdleEvent}.
+       */
+      @SuppressWarnings("unused")
+      @Subscribe
+      public void onBootstrap(final BootstrapEvent e) {
+        Charset cs = Charset.forName(((BootstrapEvent) e).getDefaultCharsetName());
+        clientCharset.set(cs);
       }
     });
 
@@ -1147,6 +1172,12 @@ public class JUnit4 extends Task {
       		" bugs. Inspect full output file(s): " +
             sysoutFile + 
             (sysoutFile.equals(syserrFile) ? "" : ", and: " + syserrFile));
+    }
+    
+    if (clientWithLimitedCharset.get() && dynamicAssignmentRatio > 0) {
+      throw new BuildException("Forked JVM J" + slave.id + " will not be able to decode class names with" +
+          " charset: " + clientCharset + ". Do not use " +
+          "dynamic suite balancing to work around the problem (-DdynamicAssignmentRatio=0).");
     }
   }
 
