@@ -78,6 +78,8 @@ import org.junit.runners.model.TestClass;
 
 import com.carrotsearch.randomizedtesting.annotations.*;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
+import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
+import com.carrotsearch.randomizedtesting.rules.TestRuleAdapter;
 
 /**
  * A {@link Runner} implementation for running randomized test cases with 
@@ -340,33 +342,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     IDEA,
     UNKNOWN
   }
-  
-  /**
-   * Resource disposal snippet.
-   */
-  private static class ResourceDisposal implements ObjectProcedure<CloseableResourceInfo> {
-    private RunNotifier notifier;
-    private Description description;
-
-    public ResourceDisposal(RunNotifier notifier, Description description) {
-      this.notifier = notifier;
-      this.description = description;
-    }
-
-    public void apply(CloseableResourceInfo info) {
-      try {
-        info.getResource().close();
-      } catch (Throwable t) {
-        ResourceDisposalError e = new ResourceDisposalError(
-            "Resource in scope " +
-            info.getScope().name() + " failed to close. Resource was" 
-                + " registered from thread " + info.getThreadName() 
-                + ", registration stack trace below.", t);
-        e.setStackTrace(info.getAllocationStack());
-        notifier.fireTestFailure(new Failure(description, e));
-      }
-    }
-  };
 
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
@@ -601,6 +576,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           s = withClassBefores(notifier, s);
           s = withClassAfters(notifier, s);
           s = withClassRules(notifier, s);
+          s = withCloseContextResources(s, LifecycleScope.SUITE);
           try {
             s.evaluate();
           } catch (Throwable t) {
@@ -616,10 +592,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
             } else {
               fireTestFailure(notifier, suiteDescription, t);
             }
-          } finally {
-            // Dispose of resources at suite scope.
-            RandomizedContext.current().closeResources(
-                new ResourceDisposal(notifier, suiteDescription), LifecycleScope.SUITE);
           }
         }
       }
@@ -644,6 +616,34 @@ public final class RandomizedRunner extends Runner implements Filterable {
       unsubscribeListeners(notifier);
       context.popAndDestroy();
     }    
+  }
+
+  /**
+   * Wrap with a rule to close context resources. 
+   */
+  private static Statement withCloseContextResources(final Statement s, final LifecycleScope scope) {
+    return new StatementAdapter(s) {
+      @Override
+      protected void afterAlways(final List<Throwable> errors) throws Throwable {
+        final ObjectProcedure<CloseableResourceInfo> disposer = new ObjectProcedure<CloseableResourceInfo>() {
+          public void apply(CloseableResourceInfo info) {
+            try {
+              info.getResource().close();
+            } catch (Throwable t) {
+              ResourceDisposalError e = new ResourceDisposalError(
+                  "Resource in scope " +
+                  info.getScope().name() + " failed to close. Resource was" 
+                      + " registered from thread " + info.getThreadName() 
+                      + ", registration stack trace below.", t);
+              e.setStackTrace(info.getAllocationStack());
+              errors.add(e);
+            }
+          }
+        };
+
+        RandomizedContext.current().closeResources(disposer, scope);          
+      }
+    }; 
   }
 
   private Statement runTestsStatement(final RunNotifier notifier, final List<TestCandidate> filtered) {
@@ -822,6 +822,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       s = wrapExpectedExceptions(s, c, instance);
       s = wrapBeforeAndAfters(s, c, instance, notifier);
       s = wrapMethodRules(s, c, instance);
+      s = withCloseContextResources(s, LifecycleScope.TEST);
       s.evaluate();
     } catch (Throwable e) {
       boolean isKilled = runnerThreadGroup.isKilled(Thread.currentThread());
@@ -846,10 +847,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
       }
     }
-
-    // Dispose of resources at test scope.
-    RandomizedContext.current().closeResources(
-        new ResourceDisposal(notifier, c.description), LifecycleScope.TEST);
 
     // Check for run-away threads at the test level.
     ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
