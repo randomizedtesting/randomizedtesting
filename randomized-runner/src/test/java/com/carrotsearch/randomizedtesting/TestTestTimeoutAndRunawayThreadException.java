@@ -1,7 +1,5 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.util.TreeSet;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -48,7 +46,7 @@ public class TestTestTimeoutAndRunawayThreadException extends WithNestedTestClas
     
     @AfterClass
     public static void checkLeakedThread() {
-      if (t.isAlive()) {
+      if (t != null && t.isAlive()) {
         throw new RuntimeException(LEAKED_THREAD_MSG);
       }
     }
