@@ -1075,6 +1075,7 @@ public class JUnit4 extends Task {
     // Set up communication channel.
     File eventFile = tempFile(uniqueSeed,
         "junit4-J" + slave.id, ".events", getTempDir());
+    temporaryFiles.add(eventFile);
     commandline.createArgument().setValue(SlaveMain.OPTION_EVENTSFILE);
     commandline.createArgument().setFile(eventFile);
     
@@ -1153,10 +1154,6 @@ public class JUnit4 extends Task {
       Closeables.closeQuietly(syserr);
       Files.copy(classNamesDynamic, Files.newOutputStreamSupplier(classNamesFile, true));
       classNamesDynamic.delete();
-
-      if (!leaveTemporary) {
-        eventFile.delete();
-      }
     }
 
     // Check sysout/syserr lengths.
