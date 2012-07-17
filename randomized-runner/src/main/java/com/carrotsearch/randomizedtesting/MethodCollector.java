@@ -1,9 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
-import static java.lang.reflect.Modifier.isPrivate;
-import static java.lang.reflect.Modifier.isProtected;
-import static java.lang.reflect.Modifier.isPublic;
-import static java.lang.reflect.Modifier.isStatic;
+import static java.lang.reflect.Modifier.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -13,8 +10,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
+import com.carrotsearch.randomizedtesting.annotations.Timeout;
 
 /**
  * Method collection and filtering utilities (using reflection).
@@ -215,13 +224,53 @@ public final class MethodCollector {
     for (List<Method> classMethods : methods) {
       ArrayList<Method> subList = new ArrayList<Method>();
       for (Method m : classMethods) {
-        if (m.isAnnotationPresent(annotation))
+        if (isAnnotationPresent(m, annotation))
           subList.add(m);
       }
       if (!subList.isEmpty())
         result.add(Collections.unmodifiableList(subList));
     }
     return Collections.unmodifiableList(result);
+  }
+
+  /** JUnit compat. hack. */
+  public static boolean isAnnotationPresent(Method m, Class<? extends Annotation> annotation) {
+    return getAnnotation(m, annotation) != null;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Set<Class<? extends Annotation>> inheritable = new HashSet<Class<? extends Annotation>>(
+      Arrays.asList(
+          Seed.class,
+          Seeds.class,
+          ThreadLeakLingering.class,
+          Timeout.class,
+          Repeat.class,
+          Test.class,
+          Before.class,
+          After.class
+      ));
+
+  /** JUnit compat. hack. */
+  public static <T extends Annotation> T getAnnotation(Method m, Class<T> annotationClass) {
+    if (inheritable.contains(annotationClass)) {
+      for (Class<?> c = m.getDeclaringClass(); c != null; c = c.getSuperclass()) {
+        try {
+          Method superMethod = c.getDeclaredMethod(m.getName(), m.getParameterTypes());
+          m = superMethod;
+        } catch (NoSuchMethodException e) {
+          continue;
+        }
+
+        T ann = m.getAnnotation(annotationClass);
+        if (ann != null) {
+          return ann;
+        }
+      }
+      return null;
+    } else {
+      return m.getAnnotation(annotationClass);
+    }
   }
 
   /**

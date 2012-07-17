@@ -10,7 +10,10 @@ public class TestInstantiationTime extends RandomizedTest {
   
   private static String constant;
 
-  // instance initializer.
+  /**
+   * Instance initializer. Will result in an NPE if 
+   * {@link #prepare()} is not invoked before.
+   */
   public String copyOfStatic = constant.toUpperCase();
   
   @BeforeClass

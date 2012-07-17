@@ -2,6 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import static org.junit.Assert.assertEquals;
 
+import org.fest.assertions.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +23,8 @@ public class TestSeedFixing {
   @Seed("cafebabe")
   @Test
   public void dummy() {
-    assertEquals(0xcafebabeL, RandomizedContext.current().getRandomness().getSeed());
+    Assertions
+      .assertThat(Long.toHexString(RandomizedContext.current().getRandomness().getSeed()))
+      .isEqualTo("cafebabe");
   }
 }

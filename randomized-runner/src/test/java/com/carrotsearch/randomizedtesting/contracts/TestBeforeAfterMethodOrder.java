@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.contracts;
 
 import static org.junit.Assert.assertEquals;
 
@@ -22,11 +22,14 @@ import org.junit.runner.Result;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import com.carrotsearch.randomizedtesting.RandomizedContext;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 
 /**
- * Before and after hooks order with a class hierarchy.
+ * Hooks ordering with respect to class hierarchies.
  */
 @SuppressWarnings("deprecation")
 public class TestBeforeAfterMethodOrder extends WithNestedTestClass {

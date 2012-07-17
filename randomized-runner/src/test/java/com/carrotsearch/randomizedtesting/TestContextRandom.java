@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 
@@ -29,11 +30,43 @@ public class TestContextRandom extends WithNestedTestClass {
   public static class Nested2 extends RandomizedTest {
     @Test
     public void testMethod() {
+      numbers.clear();
       for (int i = 0; i < 10; i++) {
-        numbers.clear();
         numbers.add(randomInt());
       }
     }
+  }
+
+  public static class Nested3 extends RandomizedTest {
+    @Seed("deadbeef") // Fix the seed to get a repeatable result even if subthreads use randomness.
+    @Test
+    public void testMethod() throws Exception {
+      Thread t = new Thread() {
+        @Override
+        public void run() {
+          numbers.clear();
+          for (int i = 0; i < 10; i++) {
+            numbers.add(randomInt());
+          }
+        }
+      };
+      t.start();
+      t.join();
+    }
+  }
+
+  /**
+   * Check that subthreads get the same randomness for {@link Seed}
+   * annotation on a method.
+   */
+  @Test
+  @Ignore("Forked threads get the master seed (by-design).")
+  public void testFixedSeedSubthreads() {
+    JUnitCore.runClasses(Nested3.class);
+    List<Integer> run1 = new ArrayList<Integer>(numbers);
+    JUnitCore.runClasses(Nested3.class);
+    List<Integer> run2 = new ArrayList<Integer>(numbers);
+    Assert.assertEquals(run1, run2);
   }
 
   @Test

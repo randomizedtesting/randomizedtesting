@@ -4,13 +4,15 @@ import java.util.concurrent.*;
 
 import junit.framework.Assert;
 
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies;
 
 /**
  * In many cases the creation of background threads lies beyond our control (and
@@ -19,28 +21,30 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
  * {@link ThreadFactory} is not published if not given explicitly. 
  * To handle such situations {@link RandomizedRunner} needs to know if it should
  * await background thread to complete (and for how long) or if it should allow
- * them to "leak" safely and not complain. All this can be declared with
- * {@link ThreadLeaks} annotation.
+ * them to "leak" safely and not complain. All this can be declared with a set
+ * of annotations starting with <code>ThreadLeak*</code> prefix.
  * 
- * <p>We can use {@link ThreadLeaks#linger()} attribute instead of explicitly using 
+ * <p>We can use {@link ThreadLeakLingering} annotation instead of explicitly using 
  * {@link Thread#join()} sometimes. For example, {@link Test009ThreadLeaks#leftOverThread()}
  * can be rewritten as shown in {@link #lingerForLeftOverThread()}.
  * 
- * <p>The same attribute can be used to wait for background threads 
+ * <p>The same annotation can be used to wait for background threads 
  * which we don't have any control on, but we know they will eventually terminate.
  * For example, a terminated {@link Executor} does not wait (join) with its slave
  * threads so lingering here is required. This is shown in method {@link #executorLeak()}. This
  * method will fail (from time to time, it isn't guaranteed) if no lingering time is given.
  * 
- * <p>{@link ThreadLeaks} annotations has several other instructive attributes to allow
- * threads to "leak" to the static suite scope (they still need to be terminated in 
- * {@link AfterClass} hooks!) or to leak-and-forget such threads.
+ * <p>There are other annotations for advanced control of thread leaks and their outcomes, check out
+ * the javadocs in the links below. 
  * 
- * @see ThreadLeaks
+ * @see ThreadLeakScope
+ * @see ThreadLeakLingering
+ * @see ThreadLeakAction
+ * @see ThreadLeakZombies
  */
 public class Test010Lingering extends RandomizedTest {
   
-  @Test @ThreadLeaks(linger = 2000)
+  @Test @ThreadLeakLingering(linger = 2000)
   public void lingerForLeftOverThread() throws Exception {
     final CountDownLatch go = new CountDownLatch(1);
     

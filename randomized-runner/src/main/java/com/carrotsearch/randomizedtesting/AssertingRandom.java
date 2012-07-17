@@ -133,7 +133,7 @@ public final class AssertingRandom extends Random {
       		"is probably used out of its allowed context (test or suite).");
     }
     if (Thread.currentThread() != owner) {
-      Throwable allocationEx = new NotAnException("Original allocation stack for this Random (" +
+      Throwable allocationEx = new StackTraceHolder("Original allocation stack for this Random (" +
           "allocated by " + ownerName + ")");
       allocationEx.setStackTrace(allocationStack);
       throw new IllegalStateException(

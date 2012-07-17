@@ -1,8 +1,6 @@
 package com.carrotsearch.randomizedtesting.validators;
 
-import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
-import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
-import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
+import static com.carrotsearch.randomizedtesting.MethodCollector.*;
 import static java.lang.reflect.Modifier.isPublic;
 import static java.lang.reflect.Modifier.isStatic;
 
@@ -28,7 +26,7 @@ public class NoJUnit3TestMethods implements ClassValidator {
     for (Method m : flatten(removeOverrides(all))) {
       int modifiers = m.getModifiers();
       if (isPublic(modifiers) && !isStatic(modifiers)) {
-        if (m.getName().startsWith("test") && !m.isAnnotationPresent(Test.class)) {
+        if (m.getName().startsWith("test") && !isAnnotationPresent(m, Test.class)) {
           throw new RuntimeException("Class " +
               clazz.getName() + " has a public instance method starting with 'test' that " +
               "is not annotated with @Test, possibly a dead JUnit3 test case: " +

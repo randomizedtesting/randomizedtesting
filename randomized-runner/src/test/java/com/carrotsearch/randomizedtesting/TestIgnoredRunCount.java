@@ -6,7 +6,6 @@ import org.junit.runner.*;
 /**
  * Test {@link Result}'s run count for ignored tests.
  */
-@Ignore // This is a deliberate decision to have start/end events fired for listeners even around ignored tests.
 public class TestIgnoredRunCount extends WithNestedTestClass {
   public static class Nested {
     @Test @Ignore

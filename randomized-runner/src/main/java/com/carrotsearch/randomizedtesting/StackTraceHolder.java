@@ -5,8 +5,8 @@ package com.carrotsearch.randomizedtesting;
  * for informational purposes.
  */
 @SuppressWarnings("serial")
-final class NotAnException extends Throwable {
-  public NotAnException(String message) {
+final class StackTraceHolder extends Throwable {
+  public StackTraceHolder(String message) {
     super(message);
   }
 }

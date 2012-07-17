@@ -1,22 +1,27 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.timeouts;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import junit.framework.Assert;
 
+import org.fest.assertions.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
+import com.carrotsearch.randomizedtesting.RandomizedTest;
+import com.carrotsearch.randomizedtesting.Utils;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.*;
 
+import static org.fest.assertions.data.MapEntry.*;
 
 /**
  * Check {@link Seeds}.
  */
-public class TestSeedsAnnotation extends WithNestedTestClass {
-  final static ArrayList<Long> seeds = new ArrayList<Long>();
+public class Test008SeedsAnnotation extends WithNestedTestClass {
+  final static ArrayList<String> seeds = new ArrayList<String>();
 
   public static class Nested extends RandomizedTest {
     @Seeds({
@@ -28,20 +33,20 @@ public class TestSeedsAnnotation extends WithNestedTestClass {
     @Repeat(iterations = 2, useConstantSeed = true)
     public void testMe() {
       assumeRunningNested();
-      seeds.add(getContext().getRandomness().getSeed());
+      seeds.add(Long.toHexString(Utils.getSeed(getContext().getRandomness())));
     }
   }
 
   @Test
   public void checkSeeds() {
-    HashMap<Long, Long> counts = new HashMap<Long, Long>();
+    HashMap<String, Long> counts = new HashMap<String, Long>();
     int N = 4;
     for (int i = 0; i < N; i++) {
       seeds.clear();
       Result result = JUnitCore.runClasses(Nested.class);
       Assert.assertEquals(3 * 2, result.getRunCount());
       Assert.assertEquals(0, result.getFailureCount());
-      for (Long s : seeds) {
+      for (String s : seeds) {
         if (!counts.containsKey(s))
           counts.put(s, 1L);
         else
@@ -49,10 +54,10 @@ public class TestSeedsAnnotation extends WithNestedTestClass {
       }
     }
 
-    Assert.assertEquals(N * 2L, (long) counts.get(0xdeadbeefL));
-    Assert.assertEquals(N * 2L, (long) counts.get(0xcafebabeL));
-    counts.remove(0xdeadbeefL);
-    counts.remove(0xcafebabeL);
+    Assertions.assertThat(counts).contains(entry("deadbeef", N * 2L));
+    Assertions.assertThat(counts).contains(entry("cafebabe", N * 2L));
+    counts.remove("deadbeef");
+    counts.remove("cafebabe");
 
     // Allow for a single collision.
     Assert.assertTrue(counts.size() >= N - 1);

@@ -14,7 +14,7 @@ final class CloseableResourceInfo {
   
   public CloseableResourceInfo(Closeable resource, LifecycleScope scope, Thread t, StackTraceElement[] allocationStack) {
     this.resource = resource;
-    this.threadName = t.getName();
+    this.threadName = Threads.threadName(t);
     this.allocationStack = allocationStack;
     this.scope = scope;
   }

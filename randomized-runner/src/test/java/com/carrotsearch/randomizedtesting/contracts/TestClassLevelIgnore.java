@@ -1,8 +1,11 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.contracts;
 
 import org.junit.*;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+
+import com.carrotsearch.randomizedtesting.RandomizedTest;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 
 /**
  * Class-level {@link Ignore}.

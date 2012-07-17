@@ -12,7 +12,6 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
 public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
-
   public static class Nested1 extends RandomizedTest {
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -114,13 +113,12 @@ public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
     Assert.assertEquals("[foobar1, foobar2, foobar3]", 
         Arrays.toString(foobars.toArray()));
   }
-  
+
   @Test
-  public void testExceptionWithinBefore() {
+  public void testExceptionWithinBeforeFailsTheTest() {
     Result runClasses = JUnitCore.runClasses(Nested3.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertEquals(1, runClasses.getRunCount());
     Assert.assertTrue(runClasses.getFailures().get(0).getTrace().contains("foobar"));
-  }  
-  
+  }
 }

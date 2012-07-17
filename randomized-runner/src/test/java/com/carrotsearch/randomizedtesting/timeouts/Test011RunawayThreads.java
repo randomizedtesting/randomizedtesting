@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.timeouts;
 
 import java.util.concurrent.*;
 
@@ -8,10 +8,15 @@ import org.junit.Test;
 import org.junit.runner.*;
 import org.junit.runner.notification.Failure;
 
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeaks;
+import com.carrotsearch.randomizedtesting.RandomizedContext;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.RandomizedTest;
+import com.carrotsearch.randomizedtesting.Utils;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
 
 @RunWith(RandomizedRunner.class)
-public class TestRunawayThreads extends WithNestedTestClass {
+public class Test011RunawayThreads extends WithNestedTestClass {
   private abstract static class ThreadWithException extends Thread {
     public volatile Throwable throwable;
     
@@ -40,25 +45,25 @@ public class TestRunawayThreads extends WithNestedTestClass {
 
   @Test
   public void subThreadContextPropagation() throws Throwable {
-    final long seed = RandomizedContext.current().getRunnerSeed();
+    final long seed = Utils.getRunnerSeed();
     new ThreadWithException() {
       protected void runWrapped() {
         RandomizedContext ctx = RandomizedContext.current();
-        Assert.assertEquals(seed, ctx.getRandomness().getSeed());
+        Assert.assertEquals(seed, Utils.getSeed(ctx.getRandomness()));
       }
     }.startAndJoin();
   }
 
-  @ThreadLeaks(linger = 2000)
+  @ThreadLeakLingering(linger = 2000)
   @Test
   public void ExecutorServiceContextPropagation() throws Throwable {
-    final long seed = RandomizedContext.current().getRunnerSeed();
+    final long seed = Utils.getRunnerSeed();
     final ExecutorService executor = Executors.newCachedThreadPool();
     try {
       executor.submit(new Runnable() {
         public void run() {
           RandomizedContext ctx = RandomizedContext.current();
-          Assert.assertEquals(seed, ctx.getRandomness().getSeed());
+          Assert.assertEquals(seed, Utils.getSeed(ctx.getRandomness()));
         }
       }).get();
     } catch (ExecutionException e) {
@@ -80,7 +85,7 @@ public class TestRunawayThreads extends WithNestedTestClass {
       this.withJoin = withJoin;
     }
 
-    @Test @ThreadLeaks(stackSamples = 0)
+    @Test
     public void spinoffAndThrow() throws Exception{
       assumeRunningNested();
       Thread t = new Thread() {

@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.contracts;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,8 +15,11 @@ import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
+import com.carrotsearch.randomizedtesting.RandomizedTest;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
+
 /**
- * Check assumptions on suite level.
+ * Check assumptions at suite level (in {@link BeforeClass}).
  */
 public class TestAssumptionsAtClassLevel extends WithNestedTestClass {
   static final List<String> callOrder = new ArrayList<String>();

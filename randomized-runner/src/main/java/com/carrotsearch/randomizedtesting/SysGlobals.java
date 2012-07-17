@@ -46,6 +46,7 @@ public final class SysGlobals {
   private final String SYSPROP_KILLATTEMPTS;
   private final String SYSPROP_KILLWAIT;
   private final String SYSPROP_TIMEOUT;
+  private final String SYSPROP_TIMEOUT_SUITE;
   private final String SYSPROP_APPEND_SEED;
 
   // Singleton constructor.
@@ -60,6 +61,7 @@ public final class SysGlobals {
     this.SYSPROP_KILLATTEMPTS   = prefixWith(prefix, "killattempts");
     this.SYSPROP_KILLWAIT       = prefixWith(prefix, "killwait");
     this.SYSPROP_TIMEOUT        = prefixWith(prefix, "timeout");
+    this.SYSPROP_TIMEOUT_SUITE  = prefixWith(prefix, "timeoutSuite");
     this.SYSPROP_APPEND_SEED    = prefixWith(prefix, "appendseed");    
   }
 
@@ -172,7 +174,8 @@ public final class SysGlobals {
   /**
    * Global override for a single test case's maximum execution time after which
    * it is considered out of control and an attempt to interrupt it is executed.
-   * The timeout value should be in milliseconds. If the value is trailed by a 
+   * 
+   * <p>The timeout value should be in milliseconds. If the value is trailed by a 
    * "!" then the timeout value takes precedence over annotations, otherwise annotations
    * take precedence over the default timeout. This is useful for running debugging
    * sessions, for example, when default timeouts may be too short.
@@ -180,6 +183,19 @@ public final class SysGlobals {
    * @see RandomizedRunner#DEFAULT_TIMEOUT
    */
   public static String SYSPROP_TIMEOUT() { return singleton().SYSPROP_TIMEOUT; }
+
+  /**
+   * Global override for entire suite's maximum execution time after which
+   * it is considered out of control. 
+   * 
+   * <p>The timeout value should be in milliseconds. If the value is trailed by a 
+   * "!" then the timeout value takes precedence over annotations, otherwise annotations
+   * take precedence over the default timeout. This is useful for running debugging
+   * sessions, for example, when default timeouts may be too short.
+   * 
+   * @see RandomizedRunner#DEFAULT_TIMEOUT_SUITE
+   */
+  public static String SYSPROP_TIMEOUT_SUITE() { return singleton().SYSPROP_TIMEOUT_SUITE; }
 
   /**
    * If <code>true</code>, append seed parameter to all methods. Methods that are for some

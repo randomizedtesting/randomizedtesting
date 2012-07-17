@@ -1,6 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
 import java.io.Closeable;
+import java.lang.Thread.State;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
@@ -85,7 +86,7 @@ public final class RandomizedContext {
 
   /** Source of randomness for the context's thread. */
   public Randomness getRandomness() {
-    return getPerThread().randomnesses.peek();
+    return getPerThread().randomnesses.peekFirst();
   }
 
   /**
@@ -171,14 +172,14 @@ public final class RandomizedContext {
   static RandomizedContext context(Thread thread) {
     final ThreadGroup currentGroup = thread.getThreadGroup();
     if (currentGroup == null) {
-      throw new IllegalStateException("No context for a terminated thread: " + thread.getName());
+      throw new IllegalStateException("No context for a terminated thread: " + Threads.threadName(thread));
     }
 
     synchronized (_globalLock) {
       RandomizedContext context = contexts.get(currentGroup);
       if (context == null) {
         throw new IllegalStateException("No context information for thread: " +
-            thread.getName() + " (" + thread.getThreadGroup() + "). " +
+            Threads.threadName(thread) + ". " +
             "Is this thread running under a " +
             RandomizedRunner.class + " runner? Add @RunWith(" + RandomizedRunner.class + ".class)" +
                 " to your test class. ");
@@ -188,7 +189,7 @@ public final class RandomizedContext {
         if (!context.perThreadResources.containsKey(thread)) {
           PerThreadResources perThreadResources = new PerThreadResources();
           perThreadResources.randomnesses.push(
-              new Randomness(thread, context.getRunnerSeed()));
+              context.runner.runnerRandomness.clone(thread));
           context.perThreadResources.put(thread, perThreadResources);
         }
       }
@@ -263,6 +264,49 @@ public final class RandomizedContext {
    */
   HashMap<Class<? extends Annotation>,RuntimeTestGroup> getTestGroups() {
     return runner.testGroups;
+  }
+
+  /**
+   * Share context information between the current thread and another thread.
+   * This is for internal use only to propagate context information when forking.
+   */
+  static void shareWith(Thread t) {
+    if (t.getState() != State.NEW) {
+      throw new IllegalStateException("The thread to share context with is not in NEW state: " + t);
+    }
+    
+    final ThreadGroup tGroup = t.getThreadGroup();
+    if (tGroup == null) {
+      throw new IllegalStateException("No thread group for thread: " + t);
+    }
+
+    Thread me = Thread.currentThread();
+    if (me.getThreadGroup() != tGroup) {
+      throw new IllegalArgumentException("Both threads must share the thread group.");
+    }
+
+    synchronized (_globalLock) {
+      RandomizedContext context = contexts.get(tGroup);
+      if (context == null) {
+        throw new IllegalStateException("No context information for thread: " + t);
+      }
+
+      synchronized (context._contextLock) {
+        if (context.perThreadResources.containsKey(t)) {
+          throw new IllegalStateException("Context already initialized for thread: " + t);
+        }
+        
+        if (!context.perThreadResources.containsKey(me)) {
+          throw new IllegalStateException("Context not initialized for thread: " + me);
+        }
+
+        PerThreadResources perThreadResources = new PerThreadResources();
+        for (Randomness r : context.perThreadResources.get(me).randomnesses) {
+          perThreadResources.randomnesses.addLast(r.clone(t));          
+        }
+        context.perThreadResources.put(t, perThreadResources);
+      }
+    }
   }
 }
 

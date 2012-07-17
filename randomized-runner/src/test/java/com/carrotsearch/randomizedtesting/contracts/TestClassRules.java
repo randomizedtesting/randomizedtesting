@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.contracts;
 
 import java.util.List;
 
@@ -14,6 +14,8 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runners.model.Statement;
 
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.google.common.collect.Lists;
 
 /**

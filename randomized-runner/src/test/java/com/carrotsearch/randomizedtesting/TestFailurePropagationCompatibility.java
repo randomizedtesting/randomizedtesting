@@ -105,9 +105,9 @@ public class TestFailurePropagationCompatibility extends WithNestedTestClass {
   @Test
   public void testRunEquals() throws Exception {
     Random rnd = new Random(); // initial.
-    for (int f = 1; f < 20; f += 2) {
+    for (int f = 1; f < 10; f += 2) {
       frequency = f;
-      for (int i = 0; i < 100; i++) {
+      for (int i = 0; i < 25; i++) {
         final long seed = rnd.nextLong() + i;
         random = new Random(seed);
         Result junit4 = new JUnitCore().run(FailRandomly2.class);

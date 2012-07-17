@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.timeouts;
 
 import junit.framework.Assert;
 
@@ -7,12 +7,15 @@ import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
+import com.carrotsearch.randomizedtesting.RandomizedTest;
+import com.carrotsearch.randomizedtesting.SysGlobals;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 
 /**
  * Test global timeout override (-Dtests.timeout=1000!).
  */
-public class TestTimeoutOverride extends WithNestedTestClass {
+public class Test015TimeoutOverride extends WithNestedTestClass {
   public static class Nested extends RandomizedTest {
     @Test
     @Timeout(millis = 5000)

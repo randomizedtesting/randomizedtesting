@@ -1,48 +1,15 @@
 package com.carrotsearch.randomizedtesting;
 
 
-import static com.carrotsearch.randomizedtesting.MethodCollector.allDeclaredMethods;
-import static com.carrotsearch.randomizedtesting.MethodCollector.annotatedWith;
-import static com.carrotsearch.randomizedtesting.MethodCollector.flatten;
-import static com.carrotsearch.randomizedtesting.MethodCollector.immutableCopy;
-import static com.carrotsearch.randomizedtesting.MethodCollector.mutableCopy2;
-import static com.carrotsearch.randomizedtesting.MethodCollector.removeOverrides;
-import static com.carrotsearch.randomizedtesting.MethodCollector.removeShadowed;
-import static com.carrotsearch.randomizedtesting.MethodCollector.sort;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_APPEND_SEED;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_ITERATIONS;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLATTEMPTS;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLWAIT;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_RANDOM_SEED;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_STACKFILTERING;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTCLASS;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTMETHOD;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TIMEOUT;
+import static com.carrotsearch.randomizedtesting.MethodCollector.*;
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
-import java.lang.Thread.State;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.CountDownLatch;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,36 +17,16 @@ import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runner.Result;
-import org.junit.runner.Runner;
-import org.junit.runner.manipulation.Filter;
-import org.junit.runner.manipulation.Filterable;
-import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
-import org.junit.runner.notification.RunNotifier;
-import org.junit.runners.model.FrameworkField;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.InitializationError;
-import org.junit.runners.model.MultipleFailureException;
-import org.junit.runners.model.Statement;
-import org.junit.runners.model.TestClass;
+import org.junit.runner.*;
+import org.junit.runner.manipulation.*;
+import org.junit.runner.notification.*;
+import org.junit.runners.model.*;
 
 import com.carrotsearch.randomizedtesting.annotations.*;
-import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
-import com.carrotsearch.randomizedtesting.rules.TestRuleAdapter;
 
 /**
  * A {@link Runner} implementation for running randomized test cases with 
@@ -133,18 +80,13 @@ import com.carrotsearch.randomizedtesting.rules.TestRuleAdapter;
 @SuppressWarnings("javadoc")
 public final class RandomizedRunner extends Runner implements Filterable {
   /** A dummy class serving as the source of defaults for annotations. */
-  @ThreadLeaks  @Nightly
-  private static class Dummy {}
-
-  /**
-   * Default instance of {@link ThreadLeaks} annotation. 
-   */
-  private static final ThreadLeaks defaultThreadLeaks = Dummy.class.getAnnotation(ThreadLeaks.class); 
+  @Nightly
+  private static class DefaultAnnotationValues {}
 
   /**
    * Default instance of {@link Nightly} annotation. 
    */
-  private static final Nightly defaultNightly = Dummy.class.getAnnotation(Nightly.class); 
+  private static final Nightly defaultNightly = DefaultAnnotationValues.class.getAnnotation(Nightly.class); 
 
   /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
@@ -165,6 +107,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public static final int DEFAULT_TIMEOUT = 0;
 
   /**
+   * Default timeout for an entire suite. By default
+   * the timeout is <b>disabled</b>. Use the global system property
+   * {@link SysGlobals#SYSPROP_TIMEOUT_SUITE} or an annotation {@link TimeoutSuite} 
+   * if you need to set
+   * timeouts or expect some tests (hooks) may hang.
+   *
+   * @see SysGlobals#SYSPROP_TIMEOUT_SUITE() 
+   */
+  public static final int DEFAULT_TIMEOUT_SUITE = 0;
+
+  /**
    * The default number of first interrupts, then Thread.stop attempts.
    */
   public static final int DEFAULT_KILLATTEMPTS = 5;
@@ -175,14 +128,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public static final int DEFAULT_KILLWAIT = 500;
 
   /**
-   * The default number of iterations.
+   * The default number of test repeat iterations.
    */
   public static final int DEFAULT_ITERATIONS = 1;
 
   /**
    * Test candidate (model).
    */
-  private static class TestCandidate {
+  static class TestCandidate {
     public final long seed;
     public final Description description;
     public final Method method;
@@ -193,14 +146,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
       this.description = description;
       this.method = method;
       this.instanceProvider = provider;
-    }
-
-    /**
-     * TODO: can this be anything else, really? I mean: even with factory methods we're 
-     * still creating instances of suiteClass.
-     */
-    public Class<?> getTestClass() {
-      return instanceProvider.getTestClass();
     }
   }
 
@@ -249,19 +194,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private final Integer iterationsOverride;
 
-  /**
-   * Default test case timeout in millis.
-   * 
-   * @see #SYSPROP_TIMEOUT
-   */
-  private final int timeoutOverride;
-  
-  /**
-   * Should {@link #timeoutOverride} take precedence over annotations?
-   */
-  private boolean globalTimeoutFirst;
-
-
   /** All test candidates, processed (seeds assigned) and flattened. */
   private List<TestCandidate> testCandidates;
 
@@ -276,22 +208,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /** Applies filters to test cases. */
   private List<Filter> testFilters = new ArrayList<Filter>();
-
-  /** 
-   * How many attempts to interrupt and then kill a runaway thread before giving up?
-   */
-  private final int killAttempts;
-  
-  /**
-   * How long to wait between attempts to kill a runaway thread (millis). 
-   */
-  private final int killWait;
-
-  /**
-   * A set of threads which we could not terminate or kill no matter how hard we tried. Even by
-   * driving sharpened silver pencils through their binary cyberhearts.
-   */
-  private final Set<Thread> bulletProofZombies = new HashSet<Thread>();
 
   /**
    * All tests are executed under a specified thread group so that we can have some control
@@ -311,19 +227,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private boolean appendSeedParameter;
 
   /**
-   * We simply report to syserr. There should be no threads out of runner's control.
-   * This can also be validated with aspects.
-   */
-  private UncaughtExceptionHandler defaultExceptionHandler = new UncaughtExceptionHandler() {
-    public void uncaughtException(Thread t, Throwable e) {
-      logger.severe("A non-test thread threw an uncaught exception. This" +
-      		" should never happen in normal circumstances: report to " +
-          RandomizedRunner.class.getName() + " developers. Thread: " +
-      		t + ", exception: " + traces.formatThrowable(e));
-    }
-  };
-
-  /**
    * Stack trace filtering/ dumping.
    */
   private final TraceFormatting traces;
@@ -332,7 +235,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * The container we're running in.
    */
   private RunnerContainer containerRunner;
-  
+
+  /**
+   * {@link UncaughtExceptionHandler} for capturing uncaught exceptions
+   * from the test group and globally.
+   */
+  QueueUncaughtExceptionsHandler handler;
+
+  /**
+   * A marker for flagging zombie threads (leaked threads that couldn't be killed).
+   */
+  static AtomicBoolean zombieMarker = new AtomicBoolean(false);
+
   /**
    * What kind of container are we in? Unfortunately we need to adjust
    * to some "assumptions" containers make about runners.
@@ -411,24 +325,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     } else {
       this.iterationsOverride = null;
     }
-
-    this.killAttempts = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLATTEMPTS(), DEFAULT_KILLATTEMPTS);
-    this.killWait = RandomizedTest.systemPropertyAsInt(SYSPROP_KILLWAIT(), DEFAULT_KILLWAIT);
     
-    // Determine default timeout value.
-    String timeoutValue = System.getProperty(SYSPROP_TIMEOUT());
-    if (timeoutValue == null || timeoutValue.trim().length() == 0) {
-      timeoutValue = null;
-    }
-    if (timeoutValue != null) {
-      // Check for timeout precedence.
-      globalTimeoutFirst = timeoutValue.matches("[0-9]+\\!");
-      timeoutValue = timeoutValue.replaceAll("\\!", "");
-    } else {
-      timeoutValue = Integer.toString(DEFAULT_TIMEOUT);
-    }
-    this.timeoutOverride = Integer.parseInt(timeoutValue);
-
     // Fail fast if suiteClass is inconsistent or selected "standard" JUnit rules are somehow broken.
     try {
       validateTarget();
@@ -496,21 +393,84 @@ public final class RandomizedRunner extends Runner implements Filterable {
     runSuite(notifier);
   }
 
+  static class UncaughtException {
+    final Thread thread;
+    final String threadName;
+    final Throwable error;
+
+    UncaughtException(Thread t, Throwable error) {
+      this.threadName = Threads.threadName(t);
+      this.thread = t;
+      this.error = error;
+    }
+  }
+
+  /**
+   * Queue uncaught exceptions.
+   */
+  static class QueueUncaughtExceptionsHandler implements UncaughtExceptionHandler {
+    private final ArrayList<UncaughtException> uncaughtExceptions = new ArrayList<UncaughtException>();
+    private boolean reporting = true;
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+      synchronized (this) {
+        if (!reporting) {
+          return;
+        }
+        uncaughtExceptions.add(new UncaughtException(t, e));
+      }
+
+      Logger.getLogger(RunnerThreadGroup.class.getSimpleName()).log(
+          Level.WARNING,
+          "Uncaught exception in thread: " + t, e);
+    }
+
+    /**
+     * Stop reporting uncaught exceptions.
+     */
+    void stopReporting() {
+      synchronized (this) {
+        reporting = false;
+      }
+    }
+
+    /**
+     * Resume uncaught exception reporting.
+     */
+    void resumeReporting() {
+      synchronized (this) {
+        reporting = true;
+      }
+    }
+
+    /**
+     * Return the current list of uncaught exceptions and clear it.
+     */
+    public List<UncaughtException> getUncaughtAndClear() {
+      synchronized (this) {
+        final ArrayList<UncaughtException> copy = new ArrayList<UncaughtException>(uncaughtExceptions);
+        uncaughtExceptions.clear();
+        return copy;
+      }
+    }
+  }
+
   /**
    * Test execution logic for the entire suite. 
    */
   private void runSuite(final RunNotifier notifier) {
-    if (Thread.getDefaultUncaughtExceptionHandler() == null) {
-      Thread.setDefaultUncaughtExceptionHandler(defaultExceptionHandler);
-    }
+    handler = new QueueUncaughtExceptionsHandler();
+
+    // TODO: this effectively means we can't run concurrent randomized runners.
+    final UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
+    Thread.setDefaultUncaughtExceptionHandler(handler);
 
     this.runnerThreadGroup = new RunnerThreadGroup(
-        RandomizedRunner.class.getSimpleName() +
-          "-SuiteThreadGroup-" + suiteClass.getName());
+        "TGRP-" + Classes.simpleName(suiteClass), handler);
 
     final Thread runner = new Thread(runnerThreadGroup,
-        "TEST-SuiteScope-" + suiteClass.getName() + 
-          "-seed#" + SeedUtils.formatSeedChain(runnerRandomness)) {
+        "SUITE-" + Classes.simpleName(suiteClass) + "-seed#" + SeedUtils.formatSeedChain(runnerRandomness)) {
       public void run() {
         try {
           // Make sure static initializers are invoked and that they are invoked outside of
@@ -539,7 +499,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
           new RuntimeException("Interrupted while waiting for the suite runner? Weird.", e)));
     }
 
-    runnerThreadGroup = null;    
+    if (Thread.getDefaultUncaughtExceptionHandler() != handler) {
+      notifier.fireTestFailure(new Failure(suiteDescription, 
+          new RuntimeException("Suite replaced Thread.defaultUncaughtExceptionHandler. " +
+          		"It's better not to touch it. Or at least revert it to what it was before. Current: " + 
+              Thread.getDefaultUncaughtExceptionHandler().getClass())));
+    }
+
+    Thread.setDefaultUncaughtExceptionHandler(previous);
+    runnerThreadGroup = null;
+    handler = null;
   }
 
   /**
@@ -572,14 +541,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
         // don't bother running class hooks.
         final List<TestCandidate> filtered = getFilteredTestCandidates();
         if (!filtered.isEmpty()) {
-          Statement s = runTestsStatement(notifier, filtered);
-          s = withClassBefores(notifier, s);
-          s = withClassAfters(notifier, s);
-          s = withClassRules(notifier, s);
+          ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
+          Statement s = runTestsStatement(threadLeakControl.notifier(), filtered, threadLeakControl);
+          s = withClassBefores(s);
+          s = withClassAfters(s);
+          s = withClassRules(s);
           s = withCloseContextResources(s, LifecycleScope.SUITE);
+          s = threadLeakControl.forSuite(s, suiteDescription);
           try {
             s.evaluate();
           } catch (Throwable t) {
+            t = augmentStackTrace(t, runnerRandomness);
             if (t instanceof AssumptionViolatedException) {
               // Fire assumption failure before method ignores. (GH-103).
               notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
@@ -597,25 +569,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     } catch (Throwable t) {
       notifier.fireTestFailure(new Failure(suiteDescription, t));
-    } finally {
-      // Clean up any threads left by hooks methods, but don't try to kill the zombies. 
-      ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, suiteClass);
-      checkLeftOverThreads(notifier, LifecycleScope.SUITE, tl, suiteDescription, bulletProofZombies);
+    }
 
-      // Fire a synthetic "suite ended" event and unsubscribe listeners.
-      for (RunListener r : autoListeners) {
-        try {
-          r.testRunFinished(result);
-        } catch (Throwable e) {
-          logger.log(Level.SEVERE, "Panic: RunListener hook shouldn't throw exceptions.", e);
-        }
+    // Fire a synthetic "suite ended" event and unsubscribe listeners.
+    for (RunListener r : autoListeners) {
+      try {
+        r.testRunFinished(result);
+      } catch (Throwable e) {
+        logger.log(Level.SEVERE, "Panic: RunListener hook shouldn't throw exceptions.", e);
       }
+    }
 
-      // Final cleanup.
-      notifier.removeListener(accounting);
-      unsubscribeListeners(notifier);
-      context.popAndDestroy();
-    }    
+    // Final cleanup.
+    notifier.removeListener(accounting);
+    unsubscribeListeners(notifier);
+    context.popAndDestroy();    
   }
 
   /**
@@ -646,8 +614,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }; 
   }
 
-  private Statement runTestsStatement(final RunNotifier notifier, final List<TestCandidate> filtered) {
-    Statement s = new Statement() {
+  private Statement runTestsStatement(
+      final RunNotifier notifier, 
+      final List<TestCandidate> filtered, 
+      final ThreadLeakControl threadLeakControl) {
+    return new Statement() {
       public void evaluate() throws Throwable {
         for (final TestCandidate c : filtered) {
           // Check for @Ignore on method early on, like JUnit.
@@ -661,52 +632,24 @@ public final class RandomizedRunner extends Runner implements Filterable {
             continue;
           }
 
-          final Runnable testRunner = new Runnable() {
-            public void run() {
-              // This has a side effect of setting up a nested context for the test thread.
-              // Do not remove.
-              RandomizedContext current = RandomizedContext.current();
-              try {
-                current.push(new Randomness(c.seed));
-                runSingleTest(notifier, c);
-              } catch (Throwable t) {
-                Rethrow.rethrow(augmentStackTrace(t));                    
-              } finally {
-                current.popAndDestroy();
-              }
-            }
-          };
+          // Run the test.
+          final String testThreadName = "TEST-" + Classes.simpleName(suiteClass) +
+              "." + c.method.getName() + "-seed#" + SeedUtils.formatSeedChain(runnerRandomness);
 
-          // If the timeout is zero we'll need to wait for the test to terminate
-          // anyway, so we just run it from the current thread. Otherwise we spawn
-          // a child so that we can either kill it or abandon it. This is a bit harsh
-          // on jvm resources, but will do for now.
-
-          // This is also the place where we, theoretically at least, could spawn
-          // multi-threaded tests. Simply by using executor service to run testRunners
-
-          final String testThreadName = "TEST-TestScope-" + suiteClass.getName() +
-              "." + c.method.getName() + 
-              "-seed#" + SeedUtils.formatSeedChain(runnerRandomness);
-
-          final int timeout = determineTimeout(c);
-          if (timeout == 0) {
-            final String restoreName = Thread.currentThread().getName();
+          // This has a side effect of setting up a nested context for the test thread.
+          final String restoreName = Thread.currentThread().getName();
+          final RandomizedContext current = RandomizedContext.current();
+          try {
             Thread.currentThread().setName(testThreadName);
-            try {
-              testRunner.run();
-            } finally {
-              Thread.currentThread().setName(restoreName);
-            }
-          } else {
-            runAndWait(notifier, c, testRunner, timeout, testThreadName);
+            current.push(new Randomness(c.seed));
+            runSingleTest(notifier, c, threadLeakControl);
+          } finally {
+            Thread.currentThread().setName(restoreName);
+            current.popAndDestroy();
           }
-
-          notifier.fireTestFinished(c.description);
         }              
       }
     };
-    return s;
   }
 
   private void fireTestFailure(RunNotifier notifier, Description description, Throwable t) {
@@ -722,7 +665,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Decorate a {@link Statement} with {@link BeforeClass} hooks.
    */
-  private Statement withClassBefores(RunNotifier notifier, final Statement s) {
+  private Statement withClassBefores(final Statement s) {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -731,14 +674,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
             invoke(method, null);
           }
         } catch (Throwable t) {
-          throw augmentStackTraceNoContext(t, runnerRandomness);
+          throw augmentStackTrace(t, runnerRandomness);
         }
         s.evaluate();
       }
     };
   }
 
-  private Statement withClassAfters(final RunNotifier notifier, final Statement s) {
+  private Statement withClassAfters(final Statement s) {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -746,14 +689,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
         try {
           s.evaluate();
         } catch (Throwable t) {
-          errors.add(augmentStackTraceNoContext(t, runnerRandomness));
+          errors.add(augmentStackTrace(t, runnerRandomness));
         }
 
         for (Method method : getTargetMethods(AfterClass.class)) {
           try {
             invoke(method, null);
           } catch (Throwable t) {
-            errors.add(augmentStackTraceNoContext(t, runnerRandomness));
+            errors.add(augmentStackTrace(t, runnerRandomness));
           }
         }
 
@@ -765,9 +708,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Wrap with {@link ClassRule}s.
    */
-  private Statement withClassRules(RunNotifier notifier, Statement s) {
-    List<TestRule> classRules = 
-        getAnnotatedFieldValues(null, ClassRule.class, TestRule.class);
+  private Statement withClassRules(Statement s) {
+    List<TestRule> classRules = getAnnotatedFieldValues(null, ClassRule.class, TestRule.class);
     for (TestRule rule : classRules) {
       s = rule.apply(s, suiteDescription);
     }
@@ -775,38 +717,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Run the provided <code>runnable</code> in a separate spawned
-   * thread and wait for it to either complete execution or terminate
-   * it prematurely if timeout expires, logging an exception.
+   * Runs a single test in the "master" test thread.
    */
-  private void runAndWait(RunNotifier notifier, TestCandidate c, 
-      Runnable runnable, int timeout, String testThreadName) {
-    Thread t = new Thread(runnable, testThreadName);
-    try {
-      t.start();
-      t.join(timeout);
-
-      if (t.isAlive()) {
-        runnerThreadGroup.markAsBeingTerminated(t);
-
-        ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
-        terminateAndFireFailure(t, notifier, c.description, tl.stackSamples(), "Test case thread timed out ");
-        if (t.isAlive()) {
-          bulletProofZombies.add(t);
-        }
-      }
-    } catch (InterruptedException e) {
-      throw new RuntimeException("Interrupted while waiting for worker? Weird.", e);
-    }
-  }
-
-  /**
-   * Runs a single test.
-   */
-  private void runSingleTest(final RunNotifier notifier, final TestCandidate c) {
+  void runSingleTest(final RunNotifier notifier, final TestCandidate c, 
+      final ThreadLeakControl threadLeakControl) {
     notifier.fireTestStarted(c.description);
 
-    Set<Thread> beforeTestSnapshot = threadsSnapshot();
     final Object instance;
     try {
       // Get the test instance.
@@ -819,48 +735,28 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
       };
 
-      s = wrapExpectedExceptions(s, c, instance);
-      s = wrapBeforeAndAfters(s, c, instance, notifier);
+      s = wrapExpectedExceptions(s, c);
+      s = wrapBeforeAndAfters(s, c, instance);
       s = wrapMethodRules(s, c, instance);
       s = withCloseContextResources(s, LifecycleScope.TEST);
+      s = threadLeakControl.forTest(s, c);
       s.evaluate();
     } catch (Throwable e) {
-      boolean isKilled = runnerThreadGroup.isKilled(Thread.currentThread());
-
-      // Check if it's the runner trying to kill the thread. If so,
-      // there is no point in reporting such an exception back.
-      if (isKilled && e instanceof ThreadDeath) {
-        // TODO: System.exit() wouldn't run any post-cleanup on hooks. A better
-        // way to resolve this would be to mark a global condition to ignore
-        // all the remaining tests (fail with an assumption exception saying
-        // there's a boogieman around or something).
-        return;
+      e = augmentStackTrace(e);
+      if (e instanceof AssumptionViolatedException) {
+        notifier.fireTestAssumptionFailed(new Failure(c.description, e));
+      } else {
+        fireTestFailure(notifier, c.description, e);
       }
-
-      if (!isKilled) {
-        // Augment stack trace and inject a fake stack entry with seed information.
-        e = augmentStackTrace(e);
-        if (e instanceof AssumptionViolatedException) {
-          notifier.fireTestAssumptionFailed(new Failure(c.description, e));
-        } else {
-          fireTestFailure(notifier, c.description, e);
-        }
-      }
+    } finally {
+      notifier.fireTestFinished(c.description);
     }
-
-    // Check for run-away threads at the test level.
-    ThreadLeaks tl = onElement(ThreadLeaks.class, defaultThreadLeaks, c.method, suiteClass);
-    checkLeftOverThreads(notifier, LifecycleScope.TEST, tl, c.description, beforeTestSnapshot);
-    
-    // Process uncaught exceptions, if any.
-    runnerThreadGroup.processUncaught(notifier, c.description);
   }
 
   /**
    * Wrap before and after hooks.
-   * @param notifier 
    */
-  private Statement wrapBeforeAndAfters(Statement s, final TestCandidate c, final Object instance, final RunNotifier notifier) {
+  private Statement wrapBeforeAndAfters(Statement s, final TestCandidate c, final Object instance) {
     // Process @Before hooks. The first @Before to fail will immediately stop processing any other @Befores.
     final List<Method> befores = getTargetMethods(Before.class);
     if (!befores.isEmpty()) {
@@ -922,7 +818,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Wrap the given statement into another catching the expected exception, if declared.
    */
-  private Statement wrapExpectedExceptions(final Statement s, TestCandidate c, Object instance) {
+  private Statement wrapExpectedExceptions(final Statement s, TestCandidate c) {
     Test ann = c.method.getAnnotation(Test.class);
 
     if (ann == null) {
@@ -1045,298 +941,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Attempt to terminate a given thread and log appropriate messages.
-   */
-  private void terminateAndFireFailure(Thread t, RunNotifier notifier, Description d, int stackSamples, String msg) {
-    // The initial early probe.
-    StackTraceElement[] stackTrace = t.getStackTrace();
-
-    RandomizedContext ctx = null; 
-    try {
-      ctx = RandomizedContext.context(t);
-    } catch (IllegalStateException e) {
-      if (t.getThreadGroup() != null)
-        logger.severe("No context information for this thread?: " + t + ", " + e.getMessage());
-    }
-
-    // Collect stack probes, if requested.
-    List<StackTraceElement[]> stackProbes = new ArrayList<StackTraceElement[]>();
-    Random r = new Random(ctx != null ? ctx.getRunnerSeed() : 0xDEADBEEF);
-    for (int i = Math.max(0, stackSamples); i > 0 && t.isAlive(); i--) {
-      try { 
-        Thread.sleep(RandomInts.randomIntBetween(r, 10, 100));
-      } catch (InterruptedException e) {
-        break;
-      }
-      StackTraceElement[] sample = t.getStackTrace();
-      if (sample.length > 0)
-        stackProbes.add(sample);
-    }
-    if (stackProbes.size() > 0) {
-      reportStackProbes(stackProbes);
-    }
-
-    // Finally, try to terminate the thread.
-    tryToTerminate(t);
-
-    State s = t.getState();
-    String message = 
-        msg +
-        (s != State.TERMINATED ? " (and NOT TERMINATED, left in state " + s  + ")": " (and terminated)") +
-        ": " + t.toString() +
-        " (stack trace is a snapshot location of the thread at the moment of killing, " +
-        "see the system logger for probes and more information).";
-
-    ThreadingError ex = new ThreadingError(message);
-    ex.setStackTrace(stackTrace);
-    if (ctx != null) {
-      ex = augmentStackTrace(ex);
-    }
-    notifier.fireTestFailure(new Failure(d, ex));    
-  }
-
-  /**
-   * Analyze the given stacks and try to find the "divergence point" (common root) at which
-   * the thread was all the time during probing. 
-   */
-  private void reportStackProbes(List<StackTraceElement[]> stackProbes) {
-    if (stackProbes.size() == 0)
-      return;
-
-    Iterator<StackTraceElement[]> i = stackProbes.iterator();
-    List<StackTraceElement> commonRoot = new ArrayList<StackTraceElement>();
-    commonRoot.addAll(Arrays.asList(i.next()));
-    Collections.reverse(commonRoot);
-    while (i.hasNext()) {
-      List<StackTraceElement> sample = new ArrayList<StackTraceElement>(Arrays.asList(i.next()));
-      Collections.reverse(sample);
-      int k = 0;
-      for (; k < Math.min(commonRoot.size(), sample.size()); k++) {
-        if (!commonRoot.get(k).equals(sample.get(k)))
-          break;
-      }
-      commonRoot.subList(k, commonRoot.size()).clear();
-    }
-    Collections.reverse(commonRoot);
-    
-    StringBuilder b = new StringBuilder();
-    b.append(stackProbes.size())
-     .append(" stack trace probe(s) taken and the constant root was:\n    ...\n");
-    traces.formatStackTrace(b, commonRoot);
-    b.append("\nDiverging stack paths from individual probes (if different than the common root):\n");
-    
-    int reported = 0;
-    for (int j = 0; j < stackProbes.size(); j++) {
-      StackTraceElement[] sample = stackProbes.get(j);
-      List<StackTraceElement> divergent = 
-          Arrays.asList(sample).subList(0, sample.length - commonRoot.size());
-      if (divergent.size() > 0) {
-        b.append("Probe #" + (j + 1) + "\n");
-        traces.formatStackTrace(b, divergent);
-        b.append("    ...\n");
-        reported++;
-      }
-    }
-    
-    if (reported == 0) {
-      b.append("(all stacks constant.)\n");
-    }
-
-    logger.warning(b.toString());
-  }
-
-  /**
-   * Try to terminate a given thread.
-   */
-  @SuppressWarnings("deprecation")
-  private void tryToTerminate(Thread t) {
-    if (!t.isAlive()) return;
-  
-    String tname = t.getName() + "(#" + System.identityHashCode(t) + ")";
-  
-    // We mark the thread as being killed because once we start calling
-    // interrupt or stop weird things can happen. Any logged exceptions should
-    // make it clear the thread is being killed.
-    runnerThreadGroup.markAsBeingTerminated(t);
-
-    logger.warning("Attempting to terminate thread: " + tname + ", currently at:\n"
-        + traces.formatStackTrace(t.getStackTrace()));
-  
-    // Try to interrupt first.
-    int interruptAttempts = this.killAttempts;
-    int interruptWait = this.killWait;
-    do {
-      try {
-        t.interrupt();
-        t.join(interruptWait);
-      } catch (InterruptedException e) { /* ignore */ }
-  
-      if (!t.isAlive()) break;
-      logger.fine("Trying to interrupt thread: " + tname 
-          + ", retries: " + interruptAttempts + ", currently at: "
-          + traces.formatStackTrace(t.getStackTrace()));
-    } while (--interruptAttempts >= 0);
-  
-    if (!t.isAlive()) {
-      logger.warning("Interrupted a runaway thread: " + tname);
-    }
-  
-    if (t.isAlive()) {
-      logger.warning("Does not respond to interrupt(), trying to stop(): " + tname);
-  
-      // Try to sent ThreadDeath up its stack if interrupt is not working.
-      int killAttempts = this.killAttempts;
-      int killWait = this.killWait;
-      do {
-        try {
-          t.stop();
-          t.join(killWait);
-        } catch (InterruptedException e) { /* ignore */ }
-        if (!t.isAlive()) break;
-        logger.fine("Trying to stop a runaway thread: " + tname 
-            + ", retries: " + killAttempts + ", currently at: "
-            + traces.formatStackTrace(t.getStackTrace()));
-      } while (--killAttempts >= 0);
-  
-      if (!t.isAlive()) {
-          logger.warning("Stopped a runaway thread: " + tname);
-      }      
-    }
-
-    if (t.isAlive()) {
-      logger.severe("Could not interrupt or stop thread: " + tname);
-    }
-  }
-
-  /**
-   * Check for any left-over threads compared to expected state, notify
-   * the runner about left-over threads and return the difference.
-   */
-  private void checkLeftOverThreads(RunNotifier notifier,
-      LifecycleScope scope, ThreadLeaks threadLeaks, 
-      Description description, Set<Thread> expectedState) {
-    int lingerTime = threadLeaks.linger();
-    Set<Thread> now;
-    if (lingerTime > 0) {
-      final long deadline = System.currentTimeMillis() + lingerTime;
-      try {
-        do {
-          now = threadsSnapshot();
-          now.removeAll(expectedState);
-          filterJreDaemonThreads(now);
-          if (now.isEmpty() || System.currentTimeMillis() > deadline) 
-            break;
-          Thread.sleep(/* off the top of my head */ 100);
-        } while (true);
-      } catch (InterruptedException e) {
-        logger.severe("Panic: lingering interrupted?");
-      }
-    }
-
-    now = threadsSnapshot();
-    now.removeAll(expectedState);
-    filterJreDaemonThreads(now);
-
-    if (!now.isEmpty()) {
-      if (scope == LifecycleScope.TEST && threadLeaks.leakedThreadsBelongToSuite()) {
-        /*
-         * Do nothing. Left-over threads will be re-evaluated at suite level again.
-         */
-      } else {
-        if (threadLeaks.failTestIfLeaking()) {
-          now = terminateAndFireFailureForAll(now, notifier, description, threadLeaks);
-        }
-        bulletProofZombies.addAll(now);        
-      }
-    }
-  }
-
-  /**
-   * Attempts to terminate all threads at once.
-   * @return Returns the set of threads that couldn't be terminated properly.
-   */
-  private Set<Thread> terminateAndFireFailureForAll(Set<Thread> now, 
-      final RunNotifier notifier, 
-      final Description description,
-      final ThreadLeaks threadLeaks) {
-    
-    // TODO: this routine could be done from a single thread by it would make the code
-    // much more complex so we go with the easy (although resource-consuming) way now.
-    final CountDownLatch latch = new CountDownLatch(1);
-    List<Thread> rickDeckards = new ArrayList<Thread>(now.size()); 
-    for (final Thread t : now) {
-      rickDeckards.add(new Thread() {
-        @Override
-        public void run() {
-          try {
-            latch.await();
-            terminateAndFireFailure(
-                t, notifier, description, 
-                threadLeaks.stackSamples(), 
-                "Left-over thread detected ");
-          } catch (Throwable x) {
-            logger.log(Level.SEVERE, "Rick Deckard exception?", x);
-          }
-        }
-      });
-    }
-    
-    for (Thread t : rickDeckards) {
-      t.setPriority(Thread.MAX_PRIORITY);
-      t.start();
-    }
-    latch.countDown();
-
-    for (Thread t : rickDeckards) {
-      while (true) {
-        try {
-          t.join();
-          break;
-        } catch (InterruptedException e) {
-          continue;
-        }
-      }
-    }
-
-    Set<Thread> s = new HashSet<Thread>();
-    for (Thread t : now) {
-      if (t.isAlive()) {
-        s.add(t);
-      }
-    }
-    return s;
-  }
-
-  /**
-   * There are certain threads that are spawned by the standard library and over which
-   * we have no direct control. Just ignore them. 
-   */
-  private void filterJreDaemonThreads(Set<Thread> now) {
-    Iterator<Thread> i = now.iterator();
-    while (i.hasNext()) {
-      if (isJreDaemonThread(i.next()))
-        i.remove();
-    }
-  }
-
-  /**
-   * Check against daemon threads.
-   */
-  private boolean isJreDaemonThread(Thread t) {
-    List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
-    Collections.reverse(stack);
-
-    // Check for TokenPoller (MessageDigest spawns it).
-    if ((stack.size() >= 2 && 
-         stack.get(1).getClassName().startsWith("sun.security.pkcs11.SunPKCS11$TokenPoller")) ||
-       t.getName().contains("Poller SunPKCS11")) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
    * Run any {@link Validators} declared on the suite.
    */
   private boolean runCustomValidators(RunNotifier notifier) {
@@ -1413,7 +1017,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         // and simplified description (just method name).
         if (!f.shouldRun(candidate.description) ||
             !f.shouldRun(Description.createTestDescription(
-              candidate.getTestClass(), candidate.method.getName()))) {
+              candidate.instanceProvider.getTestClass(), candidate.method.getName()))) {
           i.remove();
           break;
         }
@@ -1813,9 +1417,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
     HashSet<Class<?>> clazzes = new HashSet<Class<?>>();
     HashSet<Annotation> annotations = new HashSet<Annotation>();
     for (TestCandidate c : testCandidates) {
-      if (!clazzes.contains(c.getTestClass())) {
-        clazzes.add(c.getTestClass());
-        annotations.addAll(Arrays.asList(c.getTestClass().getAnnotations()));
+      final Class<?> testClass = c.instanceProvider.getTestClass();
+      if (!clazzes.contains(testClass)) {
+        clazzes.add(testClass);
+        annotations.addAll(Arrays.asList(testClass.getAnnotations()));
       }
       annotations.addAll(Arrays.asList(c.method.getAnnotations()));
     }
@@ -1903,7 +1508,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Check a number of seeds on a single method.
-    if (method.isAnnotationPresent(Seeds.class)) {
+    if (isAnnotationPresent(method, Seeds.class)) {
       for (Seed s : method.getAnnotation(Seeds.class).value()) {
         if (s.value().equals("random"))
           seeds.add(randomSeed);
@@ -1937,39 +1542,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
       result[i++] = s;
     }
     return result;
-  }
-
-  /**
-   * Determine timeout for a given test candidate.
-   */
-  private int determineTimeout(TestCandidate c) {
-    // initial value
-    int timeout = this.timeoutOverride;
-    
-    // GH-75: take into account the need to override timeouts for debugging sessions.
-    if (globalTimeoutFirst) {
-      return timeout;
-    }
-
-    // Class-override.
-    Timeout timeoutAnn = c.method.getDeclaringClass().getAnnotation(Timeout.class);
-    if (timeoutAnn != null) {
-      timeout = timeoutAnn.millis();
-    }
-
-    // @Test annotation timeout value.
-    Test testAnn = c.method.getAnnotation(Test.class);
-    if (testAnn != null && testAnn.timeout() > 0) {
-      timeout = (int) Math.min(Integer.MAX_VALUE, testAnn.timeout());
-    }
-
-    // Method-override.
-    timeoutAnn = c.method.getAnnotation(Timeout.class);
-    if (timeoutAnn != null) {
-      timeout = timeoutAnn.millis();
-    }
-
-    return timeout;
   }
 
   /**
@@ -2020,15 +1592,15 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
       // No @Test(timeout=...) and @Timeout at the same time.
       Test testAnn = method.getAnnotation(Test.class);
-      if (testAnn != null && testAnn.timeout() > 0 && method.isAnnotationPresent(Timeout.class)) {
+      if (testAnn != null && testAnn.timeout() > 0 && isAnnotationPresent(method, Timeout.class)) {
         throw new IllegalArgumentException("Conflicting @Test(timeout=...) and @Timeout " +
             "annotations in: " + suiteClass.getName() + "#" + method.getName());
       }
 
       // @Seed annotation on test methods must have at most 1 seed value.
-      if (method.isAnnotationPresent(Seed.class)) {
+      if (isAnnotationPresent(method, Seed.class)) {
         try {
-          String seedChain = method.getAnnotation(Seed.class).value();
+          String seedChain = getAnnotation(method, Seed.class).value();
           if (!seedChain.equals("random")) {
             long[] chain = SeedUtils.parseSeedChain(seedChain);
             if (chain.length > 1) {
@@ -2121,9 +1693,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Augment stack trace of the given exception with seed infos.
    */
-  private static <T extends Throwable> T augmentStackTraceNoContext(T e, Randomness... seeds) {
-    final String seedChain = SeedUtils.formatSeedChain(seeds);
+  static <T extends Throwable> T augmentStackTrace(T e, Randomness... seeds) {
+    if (seeds.length == 0) {
+      seeds = RandomizedContext.current().getRandomnesses();
+    }
 
+    final String seedChain = SeedUtils.formatSeedChain(seeds);
     final String existingSeed = seedFromThrowable(e);  
     if (existingSeed != null && existingSeed.equals(seedChain)) {
       return e;
@@ -2137,38 +1712,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     e.setStackTrace(stack.toArray(new StackTraceElement [stack.size()]));
     return e;
-  }
-
-  /**
-   * Augment stack trace of the given exception with seed infos from the
-   * current thread's randomized context.
-   */
-  static <T extends Throwable> T augmentStackTrace(T e) {
-    RandomizedContext context = RandomizedContext.current();
-    return augmentStackTraceNoContext(e, context.getRandomnesses());
-  }
-
-  /**
-   * Return an estimated set of current thread group's 
-   * live threads, excluding the current thread.
-   */
-  private static Set<Thread> threadsSnapshot() {
-    final Thread current = Thread.currentThread();
-    final ThreadGroup tg = current.getThreadGroup();
-  
-    Thread [] list;
-    do {
-      list = new Thread [tg.activeCount() + /* padding to detect overflow */ 5];
-      tg.enumerate(list);
-    } while (list[list.length - 1] != null);
-  
-    final HashSet<Thread> result = new HashSet<Thread>();
-    for (Thread t : list) {
-      if (t != null && t != current) 
-        result.add(t);
-    }
-  
-    return result;
   }
 
   /**
@@ -2193,18 +1736,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     Collections.reverse(anns);
     return anns;
-  }
-
-  /**
-   * Returns an annotation's instance declared on any annotated element (first one wins)
-   * or the default value if not present on any of them.
-   */
-  private static <T extends Annotation> T onElement(Class<T> clazz, T defaultValue, AnnotatedElement... elements) {
-    for (AnnotatedElement element : elements) {
-      T ann = element.getAnnotation(clazz);
-      if (ann != null) return ann;
-    }
-    return defaultValue;
   }
 
   /**
@@ -2258,5 +1789,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   public static String methodName(Description description) {
     return description.getMethodName().replaceAll("\\s?\\{.+\\}", "");
+  }
+
+  /**
+   * Check on zombie threads status.
+   */
+  static void checkZombies() throws AssumptionViolatedException {
+    if (zombieMarker.get()) {
+      throw new AssumptionViolatedException("Leaked background threads present (zombies).");
+    }
   }
 }

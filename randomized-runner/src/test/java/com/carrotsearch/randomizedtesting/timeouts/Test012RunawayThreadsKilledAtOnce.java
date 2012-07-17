@@ -1,4 +1,4 @@
-package com.carrotsearch.randomizedtesting;
+package com.carrotsearch.randomizedtesting.timeouts;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -6,8 +6,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.*;
 
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
+
 @RunWith(RandomizedRunner.class)
-public class TestRunawayThreadsKilledAtOnce extends WithNestedTestClass {
+public class Test012RunawayThreadsKilledAtOnce extends WithNestedTestClass {
   @RunWith(RandomizedRunner.class)
   public static class NestedClass {
     @Test
@@ -22,12 +25,10 @@ public class TestRunawayThreadsKilledAtOnce extends WithNestedTestClass {
           public void run() {
             latch.countDown();
 
-            while (true) {
-              try {
-                Thread.sleep(1);
-              } catch (InterruptedException e) {
-                // Ignore
-              }
+            try {
+              Thread.sleep(20000);
+            } catch (InterruptedException e) {
+              // Ignore
             }
           }
         };
@@ -45,7 +46,7 @@ public class TestRunawayThreadsKilledAtOnce extends WithNestedTestClass {
     Result result = JUnitCore.runClasses(NestedClass.class);
     long end = System.currentTimeMillis();
 
-    Assert.assertEquals(50, result.getFailureCount());
+    Assert.assertEquals(1, result.getFailureCount());
     Assert.assertTrue((end - start) + " msec?", (end - start) < 1000 * 10);
   }
 }

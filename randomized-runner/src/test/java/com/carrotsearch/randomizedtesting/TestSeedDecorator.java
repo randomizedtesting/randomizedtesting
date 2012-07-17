@@ -2,6 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import java.util.*;
 
+import org.fest.assertions.api.Assertions;
 import org.junit.*;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.RunWith;
@@ -55,16 +56,20 @@ public class TestSeedDecorator extends WithNestedTestClass {
     String masterSeed = SeedUtils.formatSeed(new Random().nextLong());
     System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), masterSeed);
 
-    // These should get a different seed (perturbed by decorator).
+    // These classes should get a different master seed (perturbed by decorator).
     JUnitCore.runClasses(Nested1.class, Nested2.class, Nested3.class, Nested4.class);
 
+    // All four classes get the same initial "runner" seed.
     Assert.assertEquals(4, runnerSeeds.size());
     Assert.assertEquals(1, new HashSet<String>(runnerSeeds).toArray().length);
-    
-    // We should also check strings generated in @BeforeClass.
-    Assert.assertEquals(strings.get(0), strings.get(1));
-    Assert.assertFalse(strings.get(0).equals(strings.get(2)));
-    Assert.assertFalse(strings.get(0).equals(strings.get(3)));
-    Assert.assertFalse(strings.get(2).equals(strings.get(3)));
+
+    // @BeforeClass scope strings for Nested1 and Nested2 should be the same
+    // because these classes share identical master seed.
+    Assertions.assertThat(strings.get(1)).isEqualTo(strings.get(0));
+    // but Nested3 and Nested4 have a seed decorator so strings there
+    // should be different.
+    Assertions.assertThat(strings.get(2)).isNotEqualTo(strings.get(0));
+    Assertions.assertThat(strings.get(3)).isNotEqualTo(strings.get(0));
+    Assertions.assertThat(strings.get(2)).isNotEqualTo(strings.get(3));
   }
 }
