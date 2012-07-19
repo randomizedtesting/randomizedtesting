@@ -862,7 +862,9 @@ public class JUnit4 extends Task {
     if (!leaveTemporary) {
       for (File f : temporaryFiles) {
         try {
-          Files.deleteRecursively(f);
+          if (f != null) {
+            Files.deleteRecursively(f);
+          }
         } catch (IOException e) {
           log("Could not remove temporary path: " + f.getAbsolutePath(), Project.MSG_WARN);
         }

@@ -350,7 +350,7 @@ class ThreadLeakControl {
    * A {@link Statement} for wrapping suite-level execution. 
    */
   Statement forSuite(final Statement s, final Description suiteDescription) {
-    final Class<?> suiteClass = suiteDescription.getTestClass();
+    final Class<?> suiteClass = RandomizedContext.current().getTargetClass();
     final int timeout = determineTimeout(suiteClass);
 
     return new Statement() {
