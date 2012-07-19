@@ -625,7 +625,7 @@ class ThreadLeakControl {
       }
       b.append("^^==============================================\n");
       return b.toString();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       // Ignore, perhaps not available.
     }
     return threadStacks(getAllStackTraces());
