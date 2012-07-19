@@ -154,7 +154,16 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
 
       IEvent event = null;
       while ((event = deserializer.deserialize()) != null) {
-        lastActivity = System.currentTimeMillis();
+        switch (event.getType()) {
+          case APPEND_STDERR:
+          case APPEND_STDOUT:
+            // Ignore these two on activity heartbeats. GH-117
+            break;
+          default:
+            lastActivity = System.currentTimeMillis();
+            break;
+        }
+
         try {
           switch (event.getType()) {
             case QUIT:
