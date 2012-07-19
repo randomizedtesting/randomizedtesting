@@ -293,7 +293,6 @@ class ThreadLeakControl {
       // Explicit check for GC$Daemon
       if (stack.size() >= 1 && 
           stack.get(0).getClassName().startsWith("sun.misc.GC$Daemon")) {
-        System.out.println(t.getName());
         return true;
       }
       
@@ -527,7 +526,7 @@ class ThreadLeakControl {
       final long deadline = System.currentTimeMillis() + lingerTime;
       try {
         do {
-          // Check every 100 milliseconds until deadline occurs. We want to break out
+          // Check every few hundred milliseconds until deadline occurs. We want to break out
           // sooner than the maximum lingerTime but there is no explicit even that
           // would wake us up, so poll periodically.
           Thread.sleep(250);

@@ -1,7 +1,6 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.fest.assertions.api.Assertions;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
