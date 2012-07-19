@@ -274,6 +274,12 @@ class ThreadLeakControl {
   private static class KnownSystemThread implements ThreadFilter {
     @Override
     public boolean reject(Thread t) {
+      // Explicit check for system group.
+      ThreadGroup tgroup = t.getThreadGroup();
+      if (tgroup != null && "system".equals(tgroup.getName()) && tgroup.getParent() == null) {
+        return true;
+      }
+
       List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
       Collections.reverse(stack);
 
@@ -287,12 +293,7 @@ class ThreadLeakControl {
       // Explicit check for GC$Daemon
       if (stack.size() >= 1 && 
           stack.get(0).getClassName().startsWith("sun.misc.GC$Daemon")) {
-        return true;
-      }
-      
-      // Explicit check for system group.
-      ThreadGroup tgroup = t.getThreadGroup();
-      if (tgroup != null && "system".equals(tgroup.getName()) && tgroup.getParent() == null) {
+        System.out.println(t.getName());
         return true;
       }
       

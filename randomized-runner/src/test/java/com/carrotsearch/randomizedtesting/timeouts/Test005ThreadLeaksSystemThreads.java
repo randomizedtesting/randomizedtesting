@@ -13,7 +13,8 @@ import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
-import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakGroup;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakGroup.Group;
 
 /**
  * Checks if known demon threads spawned by certain library methods are properly
@@ -21,6 +22,7 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
  */
 public class Test005ThreadLeaksSystemThreads extends WithNestedTestClass {
 
+  @ThreadLeakGroup(Group.MAIN)
   public static class Nested extends RandomizedTest {
     @Test
     public void tokenPoller() throws Exception {
@@ -34,7 +36,6 @@ public class Test005ThreadLeaksSystemThreads extends WithNestedTestClass {
       }
     }
     
-    @Repeat(iterations = 10)
     @Test
     public void gcDaemon() throws Exception {
       assumeRunningNested();
