@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.fest.assertions.api.Assertions;
@@ -75,8 +76,22 @@ public class Utils {
    * Assert no threads with the given substring are present.
    */
   public static void assertNoLiveThreadsContaining(String substring) {
-    for (Thread t : Thread.getAllStackTraces().keySet()) {
-      Assertions.assertThat(t.getName()).doesNotContain(substring);
+    for (Thread t : getAllThreads()) {
+      Assertions.assertThat(t.getName()).as("Unexpected live thread").doesNotContain(substring);
     }
   }
+
+  /**
+   * Expose to non-package scope. 
+   */
+  public static Set<Thread> getAllThreads() {
+    return Threads.getAllThreads();
+  }
+  
+  /**
+   * Expose to non-package scope. 
+   */
+  public static ThreadGroup getTopThreadGroup() {
+    return Threads.getTopThreadGroup();
+  }  
 }

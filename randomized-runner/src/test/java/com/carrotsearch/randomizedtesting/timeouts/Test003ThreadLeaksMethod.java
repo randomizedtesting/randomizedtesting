@@ -55,7 +55,7 @@ public class Test003ThreadLeaksMethod extends WithNestedTestClass {
     Assert.assertEquals(1, r.getFailureCount());
     Utils.assertFailuresContainSeeds(r);
 
-    for (Thread t : Thread.getAllStackTraces().keySet()) {
+    for (Thread t : Utils.getAllThreads()) {
       if (t.getName().startsWith("foobar")) {
         Assert.fail("Leaked alive foobar threads!");
       }

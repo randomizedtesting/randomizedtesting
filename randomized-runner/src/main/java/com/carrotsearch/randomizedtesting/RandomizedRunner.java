@@ -214,7 +214,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * over how many threads have been started/ stopped. System daemons shouldn't be under
    * this group.
    */
-  private RunnerThreadGroup runnerThreadGroup;
+  RunnerThreadGroup runnerThreadGroup;
 
   /** 
    * @see #subscribeListeners(RunNotifier) 
@@ -248,6 +248,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   static AtomicBoolean zombieMarker = new AtomicBoolean(false);
 
   /**
+   * The "main" thread group we will be tracking (including subgroups).
+   */
+  final static ThreadGroup mainThreadGroup = Thread.currentThread().getThreadGroup();
+
+  /**
    * What kind of container are we in? Unfortunately we need to adjust
    * to some "assumptions" containers make about runners.
    */
@@ -260,7 +265,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     appendSeedParameter = RandomizedTest.systemPropertyAsBoolean(SYSPROP_APPEND_SEED(), false);
-
+    
     if (RandomizedTest.systemPropertyAsBoolean(SYSPROP_STACKFILTERING(), true)) {
       this.traces = new TraceFormatting(DEFAULT_STACK_FILTERS);
     } else {

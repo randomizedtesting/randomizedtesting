@@ -4,7 +4,10 @@ import java.lang.Thread.State;
 import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Set;
 
 final class Threads {
   private Threads() {}
@@ -89,5 +92,32 @@ final class Threads {
       }
     }
     b.append("\n");
+  }
+
+  public static Set<Thread> getAllThreads() {
+    ThreadGroup tg = getTopThreadGroup();
+    return getThreads(tg);
+  }
+
+  public static Set<Thread> getThreads(ThreadGroup tg) {
+    Thread [] threads = new Thread [2];
+    int maxIndex;
+    while ((maxIndex = tg.enumerate(threads, true)) == threads.length) {
+      threads = new Thread [threads.length * 2];
+    }
+    return new HashSet<Thread>(Arrays.asList(threads).subList(0, maxIndex));
+  }
+
+  public static ThreadGroup getTopThreadGroup() {
+    // a lame workaround so that J9 works.
+    ThreadGroup tg = Thread.currentThread().getThreadGroup(); 
+    while (tg != null && tg.getParent() != null) {
+      tg = tg.getParent();
+    }
+
+    if (tg == null) {
+      throw new RuntimeException("No root ThreadGroup for thread: " + Thread.currentThread());
+    }
+    return tg;
   }
 }

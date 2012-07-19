@@ -1,8 +1,14 @@
 package com.carrotsearch.randomizedtesting;
 
-import static com.carrotsearch.randomizedtesting.RandomizedRunner.*;
-import static com.carrotsearch.randomizedtesting.RandomizedTest.*;
-import static com.carrotsearch.randomizedtesting.SysGlobals.*;
+import static com.carrotsearch.randomizedtesting.RandomizedRunner.DEFAULT_KILLATTEMPTS;
+import static com.carrotsearch.randomizedtesting.RandomizedRunner.DEFAULT_KILLWAIT;
+import static com.carrotsearch.randomizedtesting.RandomizedRunner.DEFAULT_TIMEOUT;
+import static com.carrotsearch.randomizedtesting.RandomizedRunner.DEFAULT_TIMEOUT_SUITE;
+import static com.carrotsearch.randomizedtesting.RandomizedTest.systemPropertyAsInt;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLATTEMPTS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_KILLWAIT;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TIMEOUT;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TIMEOUT_SUITE;
 
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
@@ -39,9 +45,10 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner.UncaughtException;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction.Action;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakFilters;
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope.Scope;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakGroup;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope.Scope;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
@@ -57,6 +64,7 @@ class ThreadLeakControl {
   @ThreadLeakLingering
   @ThreadLeakZombies
   @ThreadLeakFilters
+  @ThreadLeakGroup
   private static class DefaultAnnotationValues {}
 
   /**
@@ -123,6 +131,11 @@ class ThreadLeakControl {
    * Suite timeout.
    */
   private AtomicBoolean suiteTimedOut = new AtomicBoolean();
+
+  /**
+   * Thread leak detection group.
+   */
+  ThreadLeakGroup threadLeakGroup;
 
   /**
    * Sub-notifier that controls passing events back in case of timeouts.
@@ -256,13 +269,6 @@ class ThreadLeakControl {
       }
     };
   }
-  
-  private static ThreadFilter none = new ThreadFilter() {
-    @Override
-    public boolean reject(Thread t) {
-      return false;
-    }
-  };
 
   /** */
   private static class KnownSystemThread implements ThreadFilter {
@@ -312,7 +318,7 @@ class ThreadLeakControl {
            new KnownSystemThread());
 
     // Determine a set of expected threads up front (unfiltered).
-    expectedSuiteState = Collections.unmodifiableSet(threadsSnapshot(none).keySet());
+    expectedSuiteState = Collections.unmodifiableSet(Threads.getAllThreads());
   }
 
   /**
@@ -352,6 +358,7 @@ class ThreadLeakControl {
       public void evaluate() throws Throwable {
         RandomizedRunner.checkZombies();
 
+        threadLeakGroup = firstAnnotated(ThreadLeakGroup.class, suiteClass, DefaultAnnotationValues.class);
         final List<Throwable> errors = new ArrayList<Throwable>();
         suiteFilters = instantiateFilters(errors, suiteClass);
         MultipleFailureException.assertEmpty(errors);
@@ -390,7 +397,6 @@ class ThreadLeakControl {
             refilter(expectedSuiteState, suiteFilters), threadLeakErrors, LifecycleScope.SUITE, suiteDescription, chain);
         processUncaught(errors, runner.handler.getUncaughtAndClear());
 
-        suiteFilters = null;
         MultipleFailureException.assertEmpty(errors);
       }
     };
@@ -622,7 +628,33 @@ class ThreadLeakControl {
     } catch (Exception e) {
       // Ignore, perhaps not available.
     }
-    return threadStacks(Thread.getAllStackTraces());
+    return threadStacks(getAllStackTraces());
+  }
+
+  /**
+   * Get all stack traces for analysis.
+   */
+  private Map<Thread,StackTraceElement[]> getAllStackTraces() {
+    Set<Thread> threads;
+    switch (threadLeakGroup.value()) {
+      case ALL:
+        threads = Thread.getAllStackTraces().keySet();
+        break;
+      case MAIN:
+        threads = Threads.getThreads(RandomizedRunner.mainThreadGroup);
+        break;
+      case TESTGROUP:
+        threads = Threads.getThreads(runner.runnerThreadGroup);
+        break;
+      default:
+        throw new RuntimeException();
+    }
+    
+    HashMap<Thread,StackTraceElement[]> r = new HashMap<Thread,StackTraceElement[]>();
+    for (Thread t : threads) {
+      r.put(t, t.getStackTrace());
+    }
+    return r;
   }
 
   /**
@@ -761,9 +793,9 @@ class ThreadLeakControl {
    * Return a set of active live threads, with their stack traces, 
    * possibly filtered.
    */
-  private static HashMap<Thread, StackTraceElement[]> threadsSnapshot(ThreadFilter filter) {
+  private HashMap<Thread, StackTraceElement[]> threadsSnapshot(ThreadFilter filter) {
     final HashMap<Thread,StackTraceElement[]> all = 
-        new HashMap<Thread, StackTraceElement[]>(Thread.getAllStackTraces());
+        new HashMap<Thread, StackTraceElement[]>(getAllStackTraces());
 
     for (Iterator<Thread> i = all.keySet().iterator(); i.hasNext();) {
       Thread t = i.next();

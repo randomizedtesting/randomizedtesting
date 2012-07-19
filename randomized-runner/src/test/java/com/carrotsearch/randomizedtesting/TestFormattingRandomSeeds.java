@@ -25,7 +25,7 @@ public class TestFormattingRandomSeeds {
 
   /** Heck, why not use ourselves here? ;) */
   @Test
-  @Repeat(iterations = 100)
+  @Repeat(iterations = 1000)
   public void noise() {
     check(RandomizedContext.current().getRandom().nextLong());
   }

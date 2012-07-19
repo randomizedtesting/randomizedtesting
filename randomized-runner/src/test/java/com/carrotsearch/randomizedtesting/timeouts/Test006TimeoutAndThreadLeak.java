@@ -44,7 +44,7 @@ public class Test006TimeoutAndThreadLeak extends WithNestedTestClass {
     Utils.assertFailureWithMessage(r, "Suite timeout exceeded");
     Utils.assertFailuresContainSeeds(r);
 
-    for (Thread t : Thread.getAllStackTraces().keySet()) {
+    for (Thread t : Utils.getAllThreads()) {
       if (t.getName().startsWith("foobar")) {
         Assert.fail("Leaked alive foobar threads!");
       }
