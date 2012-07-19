@@ -45,12 +45,7 @@ public class Test004ThreadLeaksSuite extends WithNestedTestClass {
     Utils.assertFailureWithMessage(r, "1 thread leaked from SUITE scope at");
     Assert.assertEquals(1, r.getFailureCount());
     Utils.assertFailuresContainSeeds(r);
-
-    for (Thread t : Utils.getAllThreads()) {
-      if (t.getName().startsWith("foobar")) {
-        Assert.fail("Leaked alive foobar threads!");
-      }
-    }
+    Utils.assertNoLiveThreadsContaining("foobar");
     
     Assertions.assertThat(getLoggingMessages())
       .doesNotContain("Uncaught exception");    

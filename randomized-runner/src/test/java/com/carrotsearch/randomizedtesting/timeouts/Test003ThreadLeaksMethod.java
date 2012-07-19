@@ -54,12 +54,7 @@ public class Test003ThreadLeaksMethod extends WithNestedTestClass {
     Utils.assertFailureWithMessage(r, "1 thread leaked from " + scope.toString() + " scope at");
     Assert.assertEquals(1, r.getFailureCount());
     Utils.assertFailuresContainSeeds(r);
-
-    for (Thread t : Utils.getAllThreads()) {
-      if (t.getName().startsWith("foobar")) {
-        Assert.fail("Leaked alive foobar threads!");
-      }
-    }
+    Utils.assertNoLiveThreadsContaining("foobar");
 
     Assertions.assertThat(getLoggingMessages())
       .doesNotContain("Uncaught exception");

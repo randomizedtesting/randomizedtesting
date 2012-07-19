@@ -43,12 +43,7 @@ public class Test006TimeoutAndThreadLeak extends WithNestedTestClass {
     Result r = JUnitCore.runClasses(Nested.class);
     Utils.assertFailureWithMessage(r, "Suite timeout exceeded");
     Utils.assertFailuresContainSeeds(r);
-
-    for (Thread t : Utils.getAllThreads()) {
-      if (t.getName().startsWith("foobar")) {
-        Assert.fail("Leaked alive foobar threads!");
-      }
-    }
+    Utils.assertNoLiveThreadsContaining("foobar");
 
     Assertions.assertThat(getLoggingMessages())
       .doesNotContain("Uncaught exception");

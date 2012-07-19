@@ -77,7 +77,10 @@ public class Utils {
    */
   public static void assertNoLiveThreadsContaining(String substring) {
     for (Thread t : getAllThreads()) {
-      Assertions.assertThat(t.getName()).as("Unexpected live thread").doesNotContain(substring);
+      if (t.isAlive()) {
+        Assertions.assertThat(t.getName())
+          .as("Unexpected live thread").doesNotContain(substring);
+      }
     }
   }
 
