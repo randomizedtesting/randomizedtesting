@@ -14,7 +14,7 @@ public class Test006TimeoutAndThreadLeak extends WithNestedTestClass {
   /**
    * Nested test suite class with {@link TimeoutSuite}.
    */
-  @TimeoutSuite(millis = 25)
+  @TimeoutSuite(millis = 500)
   public static class Nested extends ApplyAtPlace {}
 
   @Test public void testClassRule() { check(Place.CLASS_RULE); }
