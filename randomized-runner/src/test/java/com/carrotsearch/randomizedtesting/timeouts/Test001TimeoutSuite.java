@@ -16,7 +16,7 @@ public class Test001TimeoutSuite extends WithNestedTestClass {
    * Nested test suite class with {@link TimeoutSuite}.
    */
   @TimeoutSuite(millis = 500)
-  @Timeout(millis = 500)
+  @Timeout(millis = 5000)
   public static class Nested extends ApplyAtPlace {}
 
   @Test public void testClassRule() { check(Place.CLASS_RULE); }
@@ -36,7 +36,7 @@ public class Test001TimeoutSuite extends WithNestedTestClass {
     ApplyAtPlace.runnable = new Runnable() {
       @Override
       public void run() {
-        while (true) RandomizedTest.sleep(5000);
+        while (true) RandomizedTest.sleep(10000);
       }
     };
 
