@@ -271,16 +271,22 @@ class ThreadLeakControl {
       List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
       Collections.reverse(stack);
 
-      // Check for TokenPoller (MessageDigest spawns it).
+      // Explicit check for TokenPoller (MessageDigest spawns it).
       if ((stack.size() >= 2 && 
            stack.get(1).getClassName().startsWith("sun.security.pkcs11.SunPKCS11$TokenPoller")) ||
          t.getName().contains("Poller SunPKCS11")) {
         return true;
       }
 
-      // Check for GC$Daemon
+      // Explicit check for GC$Daemon
       if (stack.size() >= 1 && 
           stack.get(0).getClassName().startsWith("sun.misc.GC$Daemon")) {
+        return true;
+      }
+      
+      // Explicit check for system group.
+      ThreadGroup tgroup = t.getThreadGroup();
+      if (tgroup != null && "system".equals(tgroup.getName()) && tgroup.getParent() == null) {
         return true;
       }
       
@@ -581,8 +587,12 @@ class ThreadLeakControl {
     final Formatter f = new Formatter(message);
     for (Map.Entry<Thread,StackTraceElement[]> e : threads.entrySet()) {
       f.format(Locale.ENGLISH, "\n  %2d) %s", cnt++, Threads.threadName(e.getKey())).flush();
-      for (StackTraceElement ste : e.getValue()) {
-        message.append("\n        at ").append(ste);
+      if (e.getValue().length == 0) {
+        message.append("\n        at (empty stack)");
+      } else {
+        for (StackTraceElement ste : e.getValue()) {
+          message.append("\n        at ").append(ste);
+        }
       }
     }
     return message.toString();
@@ -756,7 +766,8 @@ class ThreadLeakControl {
         new HashMap<Thread, StackTraceElement[]>(Thread.getAllStackTraces());
 
     for (Iterator<Thread> i = all.keySet().iterator(); i.hasNext();) {
-      if (filter.reject(i.next())) {
+      Thread t = i.next();
+      if (!t.isAlive() || filter.reject(t)) {
         i.remove();
       }
     }

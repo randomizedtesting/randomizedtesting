@@ -45,7 +45,7 @@ public class Test008SeedsAnnotation extends WithNestedTestClass {
       seeds.clear();
       Result result = JUnitCore.runClasses(Nested.class);
       Assert.assertEquals(3 * 2, result.getRunCount());
-      Assert.assertEquals(0, result.getFailureCount());
+      Assertions.assertThat(result.getFailures()).isEmpty();
       for (String s : seeds) {
         if (!counts.containsKey(s))
           counts.put(s, 1L);

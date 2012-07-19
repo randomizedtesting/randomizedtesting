@@ -13,6 +13,7 @@ import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
 /**
  * Checks if known demon threads spawned by certain library methods are properly
@@ -33,6 +34,7 @@ public class Test005ThreadLeaksSystemThreads extends WithNestedTestClass {
       }
     }
     
+    @Repeat(iterations = 10)
     @Test
     public void gcDaemon() throws Exception {
       assumeRunningNested();

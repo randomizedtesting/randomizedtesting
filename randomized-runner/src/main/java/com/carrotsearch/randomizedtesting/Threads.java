@@ -17,8 +17,16 @@ final class Threads {
         "id=" + t.getId() +
         ", name=" + t.getName() +
         ", state=" + t.getState() +
-        ", group=" + t.getThreadGroup().getName() +
+        ", group=" + groupName(t.getThreadGroup()) +
         "]";
+  }
+
+  private static String groupName(ThreadGroup threadGroup) {
+    if (threadGroup == null) {
+      return "{null group}";
+    } else {
+      return threadGroup.getName();
+    }
   }
 
   private final static EnumMap<State,String> lockInfoStrings;
