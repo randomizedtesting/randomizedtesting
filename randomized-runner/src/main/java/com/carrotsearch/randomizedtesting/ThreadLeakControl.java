@@ -728,12 +728,14 @@ class ThreadLeakControl {
   boolean forkTimeoutingTask(StatementRunner r, int timeout, List<Throwable> errors) 
       throws InterruptedException
   {
-    // TODO: add no-forking for timeout = 0.
-    // TODO: add proper thread naming.
-    Thread t = new Thread(r, Thread.currentThread().getName() + "-worker");
-    RandomizedContext.shareWith(t);
-    t.start();
-    t.join(timeout);
+    if (timeout == 0) {
+      r.run();
+    } else {
+      Thread t = new Thread(r, Thread.currentThread().getName() + "-worker");
+      RandomizedContext.cloneFor(t);
+      t.start();
+      t.join(timeout);
+    }
 
     final boolean timedOut = !r.completed;
     if (r.error != null) errors.add(r.error);

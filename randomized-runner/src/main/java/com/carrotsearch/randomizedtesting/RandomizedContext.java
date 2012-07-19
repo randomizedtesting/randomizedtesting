@@ -267,10 +267,10 @@ public final class RandomizedContext {
   }
 
   /**
-   * Share context information between the current thread and another thread.
+   * Clone context information between the current thread and another thread.
    * This is for internal use only to propagate context information when forking.
    */
-  static void shareWith(Thread t) {
+  static void cloneFor(Thread t) {
     if (t.getState() != State.NEW) {
       throw new IllegalStateException("The thread to share context with is not in NEW state: " + t);
     }
