@@ -94,12 +94,12 @@ final class Threads {
     b.append("\n");
   }
 
-  public static Set<Thread> getAllThreads() {
+  public static HashSet<Thread> getAllThreads() {
     ThreadGroup tg = getTopThreadGroup();
     return getThreads(tg);
   }
 
-  public static Set<Thread> getThreads(ThreadGroup tg) {
+  public static HashSet<Thread> getThreads(ThreadGroup tg) {
     Thread [] threads = new Thread [2];
     int maxIndex;
     while ((maxIndex = tg.enumerate(threads, true)) == threads.length) {

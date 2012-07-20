@@ -371,7 +371,7 @@ class ThreadLeakControl {
             // Mark as timed out so that we don't do any checks in any currently running test
             suiteTimedOut.set(true);
             // Emit a warning.
-            logger.warning("Suite execution timed out: " + suiteDescription + threadStacksFull());
+            logger.warning("Suite execution timed out: " + suiteDescription + formatThreadStacksFull());
             // mark subNotifier as dead (no longer passing events).
             subNotifier.pleaseStop();
           }
@@ -415,7 +415,7 @@ class ThreadLeakControl {
 
         final StatementRunner sr = new StatementRunner(s);
         final List<Throwable> errors = new ArrayList<Throwable>();
-        final Set<Thread> beforeTestState = threadsSnapshot(suiteFilters).keySet();
+        final Set<Thread> beforeTestState = getThreads(suiteFilters);
         final boolean timedOut = forkTimeoutingTask(sr, timeout, errors);
 
         if (suiteTimedOut.get()) {
@@ -423,7 +423,7 @@ class ThreadLeakControl {
         }
 
         if (timedOut) {
-          logger.warning("Test execution timed out: " + c.description + threadStacksFull());
+          logger.warning("Test execution timed out: " + c.description + formatThreadStacksFull());
         }
 
         if (timedOut) {
@@ -519,8 +519,8 @@ class ThreadLeakControl {
 
     // Check for the set of live threads, with optional lingering. 
     int lingerTime = firstAnnotated(ThreadLeakLingering.class, annotationChain).linger();
-    HashMap<Thread, StackTraceElement[]> threads = threadsSnapshot(suiteFilters);
-    threads.keySet().removeAll(expectedState);
+    HashSet<Thread> threads = getThreads(suiteFilters);
+    threads.removeAll(expectedState);
 
     if (lingerTime > 0 && !threads.isEmpty()) {
       final long deadline = System.currentTimeMillis() + lingerTime;
@@ -531,8 +531,8 @@ class ThreadLeakControl {
           // would wake us up, so poll periodically.
           Thread.sleep(250);
 
-          threads = threadsSnapshot(suiteFilters);
-          threads.keySet().removeAll(expectedState);
+          threads = getThreads(suiteFilters);
+          threads.removeAll(expectedState);
           if (threads.isEmpty() || System.currentTimeMillis() > deadline) 
             break;
         } while (true);
@@ -544,13 +544,20 @@ class ThreadLeakControl {
     if (threads.isEmpty()) {
       return;
     }
+    
+    // Take one more snapshot, this time including stack traces (costly).
+    HashMap<Thread,StackTraceElement[]> withTraces = getThreadsWithTraces(suiteFilters);
+    withTraces.keySet().removeAll(expectedState);
+    if (withTraces.isEmpty()) {
+      return;
+    }
 
     // Build up failure message (include stack traces of leaked threads).
     StringBuilder message = new StringBuilder(threads.size() + " thread" +
         (threads.size() == 1 ? "" : "s") +
         " leaked from " +
         scope + " scope at " + description + ": ");
-    message.append(threadStacks(threads));
+    message.append(formatThreadStacks(withTraces));
 
     // The first exception is leaked threads error.
     errors.add(RandomizedRunner.augmentStackTrace(new ThreadLeakError(message.toString())));
@@ -565,7 +572,7 @@ class ThreadLeakControl {
 
     Set<Thread> zombies = Collections.emptySet();
     if (actions.contains(Action.INTERRUPT)) {
-      zombies = tryToInterruptAll(errors, threads.keySet());
+      zombies = tryToInterruptAll(errors, withTraces.keySet());
     }
 
     // Process zombie thread check consequences here.
@@ -587,7 +594,7 @@ class ThreadLeakControl {
   /**
    * Dump threads and their current stack trace.
    */
-  private String threadStacks(Map<Thread,StackTraceElement[]> threads) {
+  private String formatThreadStacks(Map<Thread,StackTraceElement[]> threads) {
     StringBuilder message = new StringBuilder();
     int cnt = 1;
     final Formatter f = new Formatter(message);
@@ -616,7 +623,7 @@ class ThreadLeakControl {
   }
 
   /** Dump thread state. */
-  private String threadStacksFull() {
+  private String formatThreadStacksFull() {
     try {
       StringBuilder b = new StringBuilder();
       b.append("\n==== jstack at approximately timeout time ====\n");
@@ -628,17 +635,30 @@ class ThreadLeakControl {
     } catch (Throwable e) {
       // Ignore, perhaps not available.
     }
-    return threadStacks(getAllStackTraces());
+    return formatThreadStacks(getThreadsWithTraces());
   }
 
   /**
-   * Get all stack traces for analysis.
+   * Returns all {@link ThreadLeakGroup} applicable threads, with stack
+   * traces, for analysis.
    */
-  private Map<Thread,StackTraceElement[]> getAllStackTraces() {
-    Set<Thread> threads;
+  private HashMap<Thread,StackTraceElement[]> getThreadsWithTraces(ThreadFilter... filters) {
+    final Set<Thread> threads = getThreads(filters);
+    final HashMap<Thread,StackTraceElement[]> r = new HashMap<Thread,StackTraceElement[]>();
+    for (Thread t : threads) {
+        r.put(t, t.getStackTrace());
+    }
+    return r;
+  }
+
+  /**
+   * Returns all {@link ThreadLeakGroup} threads for analysis.
+   */
+  private HashSet<Thread> getThreads(ThreadFilter... filters) {
+    HashSet<Thread> threads;
     switch (threadLeakGroup.value()) {
       case ALL:
-        threads = Thread.getAllStackTraces().keySet();
+        threads = Threads.getAllThreads();
         break;
       case MAIN:
         threads = Threads.getThreads(RandomizedRunner.mainThreadGroup);
@@ -649,12 +669,16 @@ class ThreadLeakControl {
       default:
         throw new RuntimeException();
     }
-    
-    HashMap<Thread,StackTraceElement[]> r = new HashMap<Thread,StackTraceElement[]>();
-    for (Thread t : threads) {
-      r.put(t, t.getStackTrace());
+
+    final ThreadFilter filter = or(filters);
+    for (Iterator<Thread> i = threads.iterator(); i.hasNext();) {
+      Thread t = i.next();
+      if (!t.isAlive() || filter.reject(t)) {
+        i.remove();
+      }
     }
-    return r;
+
+    return threads;
   }
 
   /**
@@ -711,7 +735,7 @@ class ThreadLeakControl {
       if (zombies.isEmpty()) {
         logger.info("All leaked threads terminated.");
       } else {
-        String message = "There are still zombie threads that couldn't be terminated:" + threadStacks(zombies);
+        String message = "There are still zombie threads that couldn't be terminated:" + formatThreadStacks(zombies);
         logger.severe(message);
         errors.add(RandomizedRunner.augmentStackTrace(new ThreadLeakError(message.toString())));
       }
@@ -790,24 +814,6 @@ class ThreadLeakControl {
 
     return testTimeout.getTimeout(timeout);
   }  
-
-  /**
-   * Return a set of active live threads, with their stack traces, 
-   * possibly filtered.
-   */
-  private HashMap<Thread, StackTraceElement[]> threadsSnapshot(ThreadFilter filter) {
-    final HashMap<Thread,StackTraceElement[]> all = 
-        new HashMap<Thread, StackTraceElement[]>(getAllStackTraces());
-
-    for (Iterator<Thread> i = all.keySet().iterator(); i.hasNext();) {
-      Thread t = i.next();
-      if (!t.isAlive() || filter.reject(t)) {
-        i.remove();
-      }
-    }
-
-    return all;
-  }
 
   /**
    * Returns an annotation's instance declared on any annotated element (first one wins)
