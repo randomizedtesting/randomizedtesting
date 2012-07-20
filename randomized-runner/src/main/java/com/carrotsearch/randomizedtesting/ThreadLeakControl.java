@@ -491,8 +491,8 @@ class ThreadLeakControl {
    */
   protected void processUncaught(List<Throwable> errors, List<UncaughtException> uncaughtList) {
     for (UncaughtException e : uncaughtList) {
-      errors.add(new UncaughtExceptionError(
-          "Captured an uncaught exception in thread: " + e.threadName, e.error));
+      errors.add(emptyStack(new UncaughtExceptionError(
+          "Captured an uncaught exception in thread: " + e.threadName, e.error)));
     }
   }
 
@@ -560,7 +560,8 @@ class ThreadLeakControl {
     message.append(formatThreadStacks(withTraces));
 
     // The first exception is leaked threads error.
-    errors.add(RandomizedRunner.augmentStackTrace(new ThreadLeakError(message.toString())));
+    errors.add(RandomizedRunner.augmentStackTrace(
+        emptyStack(new ThreadLeakError(message.toString()))));
 
     // Perform actions on leaked threads.
     final EnumSet<Action> actions = EnumSet.noneOf(Action.class);
@@ -737,7 +738,8 @@ class ThreadLeakControl {
       } else {
         String message = "There are still zombie threads that couldn't be terminated:" + formatThreadStacks(zombies);
         logger.severe(message);
-        errors.add(RandomizedRunner.augmentStackTrace(new ThreadLeakError(message.toString())));
+        errors.add(RandomizedRunner.augmentStackTrace(
+            emptyStack(new ThreadLeakError(message.toString()))));
       }
 
       return zombies.keySet();

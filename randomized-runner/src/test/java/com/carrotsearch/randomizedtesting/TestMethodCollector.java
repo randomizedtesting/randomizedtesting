@@ -41,7 +41,7 @@ public class TestMethodCollector {
               static void staticPackageMethod() {}
     private   static void staticPrivateMethod() {}
   }
-
+  
   @Test
   public void checkOverrideRemoval() throws Exception {
     List<List<Method>> methods = 

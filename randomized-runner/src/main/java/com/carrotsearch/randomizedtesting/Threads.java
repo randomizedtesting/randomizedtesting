@@ -7,7 +7,6 @@ import java.lang.management.ThreadInfo;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
-import java.util.Set;
 
 final class Threads {
   private Threads() {}
