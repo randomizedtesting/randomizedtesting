@@ -13,7 +13,7 @@ import com.google.common.collect.Lists;
 /**
  * {@link Rule} and {@link MethodRule} support.
  */
-@SuppressWarnings({"deprecation"})
+@SuppressWarnings({"deprecation", "javadoc"})
 public class TestRules extends WithNestedTestClass {
   static List<String> order;
 

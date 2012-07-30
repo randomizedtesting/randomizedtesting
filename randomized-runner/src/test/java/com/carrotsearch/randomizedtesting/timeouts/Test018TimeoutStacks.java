@@ -30,8 +30,7 @@ public class Test018TimeoutStacks extends WithNestedTestClass {
   @Test
   public void testExceptionInFilter() throws Throwable {
     new JUnitCore().run(new RandomizedRunner(Nested1.class));
-    Assertions.assertThat(getLoggingMessages())
-    .contains("sleepForever(");
-    sysout.println(getLoggingMessages());
+    Assertions.assertThat(getLoggingMessages()).contains("sleepForever(");
+    // sysout.println(getLoggingMessages());
   }    
 }

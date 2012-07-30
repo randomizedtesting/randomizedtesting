@@ -5,7 +5,6 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
@@ -33,9 +32,7 @@ public class Test014Timeout extends WithNestedTestClass {
   @Test
   public void testTimeoutInTestAnnotation() {
     Result result = JUnitCore.runClasses(Nested.class);
-    for (Failure f : result.getFailures()) {
-      sysout.println("## " + f.getTrace());
-    }
+
     Assert.assertEquals(0, result.getIgnoreCount());
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(2, result.getFailureCount());
