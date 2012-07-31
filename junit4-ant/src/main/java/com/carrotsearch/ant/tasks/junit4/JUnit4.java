@@ -1167,12 +1167,9 @@ public class JUnit4 extends Task {
     }
 
     if (!diagnosticsListener.quitReceived()) {
-      throw new BuildException("Quit event not received from a slave process? This may indicate JVM crash or runner" +
-      		" bugs. Inspect full output file(s): " +
-            sysoutFile + 
-            (sysoutFile.equals(syserrFile) ? "" : ", and: " + syserrFile));
+      throw new BuildException("Quit event not received from a slave process? This may indicate JVM crash or runner bugs.");
     }
-    
+
     if (clientWithLimitedCharset.get() && dynamicAssignmentRatio > 0) {
       throw new BuildException("Forked JVM J" + slave.id + " will not be able to decode class names with" +
           " charset: " + clientCharset + ". Do not use " +
