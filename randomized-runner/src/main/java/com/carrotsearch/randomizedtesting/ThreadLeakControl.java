@@ -279,8 +279,13 @@ class ThreadLeakControl {
       if (tgroup != null && "system".equals(tgroup.getName()) && tgroup.getParent() == null) {
         return true;
       }
+      
+      // Explicit check for java flight recorder (jfr) threads.
+      if (t.getName().equals("JFR request timer")) {
+        return true;
+      }
 
-      List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
+      final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
       Collections.reverse(stack);
 
       // Explicit check for TokenPoller (MessageDigest spawns it).
