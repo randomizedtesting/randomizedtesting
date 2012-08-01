@@ -716,6 +716,8 @@
         <junit4:pickfromlist property="prefix.dummy2" allowundefined="false" seed="${tests.seed}">
             <value>UTF-8</value>
             <value><!-- Empty for ignored property. --></value>
+            <value><!-- Empty for ignored property. --></value>
+            <value><!-- Empty for ignored property. --></value>
         </junit4:pickfromlist>
 
         <junit4:junit4 haltonfailure="false" seed="${tests.seed}">
