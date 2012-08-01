@@ -535,6 +535,7 @@ class ThreadLeakControl {
     if (lingerTime > 0 && !threads.isEmpty()) {
       final long deadline = System.currentTimeMillis() + lingerTime;
       try {
+        logger.warning("Will linger awaiting termination of " + threads.size() + " leaked thread(s).");
         do {
           // Check every few hundred milliseconds until deadline occurs. We want to break out
           // sooner than the maximum lingerTime but there is no explicit even that
