@@ -205,7 +205,7 @@ public class TextReport implements AggregatedEventListener {
   public void onTestResult(AggregatedTestResultEvent e) {
     // If we're aggregating over suites, wait.
     if (!showSuiteSummary) {
-      format(e, e.getStatus(), e.getExecutionTime());
+      maybeLog(e, e.getStatus(), e.getExecutionTime(), shouldShowTestOutput(e));
     }
   }
 
@@ -235,7 +235,8 @@ public class TextReport implements AggregatedEventListener {
           "Suite: " + padTo(maxClassNameColumns, suiteName, "[...]"));
 
       // Static context output.
-      if (shouldShowSuiteLevelOutput(e)) {
+      final boolean showSuiteLevelOutput = shouldShowSuiteLevelOutput(e);
+      if (showSuiteLevelOutput) {
         String decoded = decodeStreamEvents(
             e.getSlave(), eventsBeforeFirstTest(e.getEventStream())).toString();
         if (!decoded.isEmpty()) {
@@ -246,11 +247,16 @@ public class TextReport implements AggregatedEventListener {
 
       // Tests.
       for (AggregatedTestResultEvent test : e.getTests()) {
-        format(test, test.getStatus(), test.getExecutionTime());
+        final boolean showOutput = showSuiteLevelOutput || shouldShowTestOutput(test);
+        if (showSuiteLevelOutput) {
+          alwaysLog(test, test.getStatus(), test.getExecutionTime(), showOutput);
+        } else {
+          maybeLog(test, test.getStatus(), test.getExecutionTime(), showOutput);
+        }
       }
 
       // Trailing static context output.
-      if (shouldShowSuiteLevelOutput(e)) {
+      if (showSuiteLevelOutput) {
         String decoded = decodeStreamEvents(
             e.getSlave(), eventsAfterLastTest(e.getEventStream())).toString();
         if (!decoded.isEmpty()) {
@@ -261,7 +267,7 @@ public class TextReport implements AggregatedEventListener {
     }
 
     if (!e.getFailures().isEmpty()) {
-      format(e, TestStatus.ERROR, 0);
+      maybeLog(e, TestStatus.ERROR, 0, false);
     }
 
     if (showSuiteSummary) {
@@ -308,6 +314,13 @@ public class TextReport implements AggregatedEventListener {
   private boolean shouldShowSuiteLevelOutput(AggregatedSuiteResultEvent e) {
     return (showOutputStream || showErrorStream) &&
            (showStatusOk || !e.isSuccessful());
+  }
+
+  /**
+   * Should the given event display sysouts? 
+   */
+  private boolean shouldShowTestOutput(AggregatedTestResultEvent e) {
+    return showOutputStream || showErrorStream;
   }
 
   /**
@@ -374,11 +387,17 @@ public class TextReport implements AggregatedEventListener {
   /*
    * 
    */
-  private void format(AggregatedResultEvent result, TestStatus status, long timeMillis) {
-    if (!isStatusShown(status)) {
-      return;
+  private void maybeLog(AggregatedResultEvent result, TestStatus status, long timeMillis, boolean displayOutput) {
+    if (isStatusShown(status)) {
+      alwaysLog(result, status, timeMillis, displayOutput);
     }
+  }
 
+  /*
+   * 
+   */
+  private void alwaysLog(AggregatedResultEvent result, TestStatus status, long timeMillis,
+      boolean displayOutput) {
     SlaveInfo slave = result.getSlave();
     Description description = result.getDescription();
     List<FailureMirror> failures = result.getFailures();
@@ -438,18 +457,17 @@ public class TextReport implements AggregatedEventListener {
       }
     }
 
-    if (showOutputStream || showErrorStream) {
-      if (!(result instanceof AggregatedSuiteResultEvent)) {
-        CharSequence out = decodeStreamEvents(slave, result.getEventStream());
-        if (out.length() > 0) {
-          line.append(out);
-          line.append("\n");
-        }
+    if (displayOutput) {
+      CharSequence out = decodeStreamEvents(slave, result.getEventStream());
+      if (out.length() > 0) {
+        line.append(out);
+        line.append("\n");
       }
     }
 
     log(line.toString().trim());
   }
+
   public String formatDescription(Description description) {
     StringBuilder buffer = new StringBuilder();
     String className = description.getClassName();

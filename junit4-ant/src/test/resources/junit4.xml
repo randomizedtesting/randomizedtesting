@@ -818,4 +818,27 @@
             </listeners>
         </junit4:junit4>
     </target>
+
+    <target name="sysoutsOnSuiteFailure">
+        <junit4:junit4 haltonfailure="false">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/SysoutsOnSuiteFailure.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutputStream="true" 
+                    showErrorStream="true" 
+                    showStatusOk="false" 
+                    showStatusError="true" 
+                    showStatusFailure="true" 
+                    showStatusIgnored="true" 
+                    showSuiteSummary="true" />
+            </listeners>
+        </junit4:junit4>
+    </target>
 </project>

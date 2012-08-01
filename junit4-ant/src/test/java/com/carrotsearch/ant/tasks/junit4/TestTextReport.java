@@ -50,5 +50,14 @@ public class TestTextReport extends JUnit4XmlTestBase {
     super.executeTarget("timestamps");
     Assert.assertTrue(getLog(),
         Pattern.compile("\\[([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{3})\\]").matcher(getLog()).find());
-  }    
+  }
+  
+  @Test 
+  public void sysoutsOnSuiteFailure() {
+    super.executeTarget("sysoutsOnSuiteFailure");
+    assertLogContains("ignored-sysout");
+    assertLogContains("success-sysout");
+    assertLogContains("afterclass-sysout");
+    assertLogContains("beforeclass-sysout");
+  }      
 }
