@@ -375,6 +375,10 @@ class ThreadLeakControl {
           if (timedOut) {
             // Mark as timed out so that we don't do any checks in any currently running test
             suiteTimedOut.set(true);
+            // Flush streams so that we don't get warning outputs before sysout buffers.
+            System.out.flush();
+            System.err.flush();
+
             // Emit a warning.
             logger.warning("Suite execution timed out: " + suiteDescription + formatThreadStacksFull());
             // mark subNotifier as dead (no longer passing events).
@@ -389,6 +393,7 @@ class ThreadLeakControl {
                 new Failure(subNotifier.testInProgress,
                 RandomizedRunner.augmentStackTrace(
                     emptyStack(new Exception("Test abandoned because suite timeout was reached.")))));
+            targetNotifier.fireTestFinished(subNotifier.testInProgress);
           }
 
           // throw suite failure (timeout).

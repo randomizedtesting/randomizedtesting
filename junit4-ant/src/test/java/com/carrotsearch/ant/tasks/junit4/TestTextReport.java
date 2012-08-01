@@ -3,8 +3,7 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.util.regex.Pattern;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.carrotsearch.ant.tasks.junit4.tests.FailInAfterClass;
@@ -59,5 +58,16 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogContains("success-sysout");
     assertLogContains("afterclass-sysout");
     assertLogContains("beforeclass-sysout");
-  }      
+  }
+  
+  @Test 
+  public void sysoutsOnSuiteTimeout() {
+    super.executeTarget("sysoutsOnSuiteTimeout");
+    assertLogContains("beforeclass-sysout");
+    assertLogContains("test-sysout");
+    String log = getLog();
+    Assert.assertTrue(
+        log.indexOf("1> test-sysout") <
+        log.indexOf("Suite execution timed out:"));
+  }        
 }
