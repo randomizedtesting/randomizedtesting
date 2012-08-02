@@ -88,7 +88,7 @@ public class StaticFieldsInvariantRule implements TestRule {
 
         ArrayList<Entry> fields = new ArrayList<Entry>();
         long ramEnd = 0;
-        for (Class<?> c = d.getTestClass(); countSuperclasses && c.getSuperclass() != null; c = c.getSuperclass()) {
+        for (Class<?> c = testClass; countSuperclasses && c.getSuperclass() != null; c = c.getSuperclass()) {
           for (Field field : c.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers()) && 
                 !field.getType().isPrimitive() &&
