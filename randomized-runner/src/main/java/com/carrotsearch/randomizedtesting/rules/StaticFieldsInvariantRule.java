@@ -14,6 +14,8 @@ import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import com.carrotsearch.randomizedtesting.RandomizedContext;
+
 /**
  * A {@link TestRule} that ensures static, reference fields of the suite class
  * (and optionally its superclasses) are cleaned up after a suite is completed.
@@ -64,6 +66,26 @@ public class StaticFieldsInvariantRule implements TestRule {
     return new StatementAdapter(s) {
       @Override
       protected void afterAlways(List<Throwable> errors) throws Throwable {
+        // Try to get the target class from the context, if available.
+        Class<?> testClass = null;
+        try {
+          testClass = RandomizedContext.current().getTargetClass();
+        } catch (Throwable t) {
+          // Ignore.
+        }
+
+        if (testClass == null) {
+          // This is JUnit's ugly way that attempts Class.forName and may use a different
+          // classloader... let's use it as a last resort option.
+          testClass = d.getTestClass();
+        }
+        
+        // No test class? Weird.
+        if (testClass == null) {
+          throw new RuntimeException("Test class could not be acquired from the randomized " +
+          		"context or the Description object.");
+        }
+
         ArrayList<Entry> fields = new ArrayList<Entry>();
         long ramEnd = 0;
         for (Class<?> c = d.getTestClass(); countSuperclasses && c.getSuperclass() != null; c = c.getSuperclass()) {
