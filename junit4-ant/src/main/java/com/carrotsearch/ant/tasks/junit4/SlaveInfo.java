@@ -120,13 +120,13 @@ public final class SlaveInfo {
         switch (evt.getType()) {
           case APPEND_STDOUT:
             if (sysout != null) {
-              stdout.write(((AppendStdOutEvent) evt).getChunk());
+              BufferUtils.copyTo(((AppendStdOutEvent) evt).getChunk(), stdout);
             }
             break;
 
           case APPEND_STDERR:
             if (syserr != null) {
-              stderr.write(((AppendStdErrEvent) evt).getChunk());
+              BufferUtils.copyTo(((AppendStdErrEvent) evt).getChunk(), stderr);
             }
             break;
         }

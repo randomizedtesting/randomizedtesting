@@ -1,5 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
+import java.nio.ByteBuffer;
+
 public class AppendStdErrEvent extends AbstractEvent implements IStreamEvent {
   private byte[] chunk;
 
@@ -13,7 +15,7 @@ public class AppendStdErrEvent extends AbstractEvent implements IStreamEvent {
     System.arraycopy(b, off, chunk, 0, len);
   }
 
-  public byte[] getChunk() {
-    return chunk;
+  public ByteBuffer getChunk() {
+    return ByteBuffer.wrap(chunk);
   }
 }

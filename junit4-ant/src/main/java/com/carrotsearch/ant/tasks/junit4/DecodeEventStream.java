@@ -36,7 +36,7 @@ public class DecodeEventStream {
         case APPEND_STDERR:
         case APPEND_STDOUT:
           evt = (IStreamEvent) gson.fromJson(reader, type.eventClass);
-          System.out.write(evt.getChunk());
+          BufferUtils.copyTo(evt.getChunk(), System.out);
           break;
         default:
           System.out.println("\n\n## " + type);
