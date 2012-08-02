@@ -21,7 +21,6 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private final ClassLoader refLoader;
 
   private InputStream stdout;
-
   private InputStream stderr;
 
   /** raw input stream to the client. */
