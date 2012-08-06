@@ -69,7 +69,7 @@ public class TestAnnotationInheritance extends WithNestedTestClass {
   
   public static class Nested2 extends Nested1 {
     public static void beforeClass() {
-      order.add("inherited-before-class");
+      order.add("shadowed-before-class");
     }
 
     @Override

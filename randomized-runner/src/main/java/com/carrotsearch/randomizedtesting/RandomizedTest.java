@@ -21,13 +21,11 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
-import com.carrotsearch.randomizedtesting.annotations.Validators;
 import com.carrotsearch.randomizedtesting.generators.*;
 
 /**
  * Common scaffolding for subclassing randomized tests.
  * 
- * @see Validators
  * @see Listeners
  * @see RandomizedContext
  */
