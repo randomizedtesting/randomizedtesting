@@ -8,7 +8,7 @@ public class AppendStdErrEvent extends AbstractEvent implements IStreamEvent {
   public AppendStdErrEvent() {
     super(EventType.APPEND_STDERR);
   }
-  
+
   public AppendStdErrEvent(byte[] b, int off, int len) {
     this();
     chunk = new byte [len];

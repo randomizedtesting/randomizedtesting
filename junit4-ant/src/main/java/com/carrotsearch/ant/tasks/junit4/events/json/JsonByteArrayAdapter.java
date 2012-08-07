@@ -1,28 +1,39 @@
 package com.carrotsearch.ant.tasks.junit4.events.json;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Type;
 
 import com.google.gson.*;
 
 /**
- * Byte array as hexadecimal ASCII byte dump.
+ * Serialize byte array to portable ASCII. This is used primarily to carry system streams
+ * and since the encoding (or correctness) of these is generally not known we encode them
+ * as binary to recover them faithfully. 
  */
 public class JsonByteArrayAdapter 
   implements JsonSerializer<byte[]>,
              JsonDeserializer<byte[]>
 {
   private final static char [] HEX = "0123456789ABCDEF".toCharArray();
+  private final StringBuilder bb = new StringBuilder();
+  private final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
   @Override
   public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
-    return new JsonPrimitive(toHex(src));
+    return new JsonPrimitive(toAscii(src));
   }
 
-  private String toHex(byte[] src) {
-    StringBuilder bb = new StringBuilder(src.length * 2);
+  private String toAscii(byte[] src) {
+    bb.setLength(0);
     for (byte b : src) {
-      bb.append(HEX[(b >> 4) & 0x0f]);
-      bb.append(HEX[(b     ) & 0x0f]);
+      // Pass simple ASCII range.
+      if (b >= 32 && b <= 126 && b != '%') {
+        bb.append((char) b);
+      } else {
+        bb.append('%');
+        bb.append(HEX[(b >> 4) & 0x0f]);
+        bb.append(HEX[(b     ) & 0x0f]);
+      }
     }
     return bb.toString();
   }
@@ -42,12 +53,16 @@ public class JsonByteArrayAdapter
     if (typeOfT.equals(byte[].class))
       throw new JsonParseException("Not a byte[]: " + typeOfT);
     String input = json.getAsString();
-    byte [] output = new byte [input.length() / 2];
-    for (int i = 0, j = 0; i < input.length(); i += 2, j++) {
-      output[j] = (byte) (
-               hexValue(input.charAt(i)) << 4 |
-               hexValue(input.charAt(i + 1)));
+    baos.reset();
+    for (int i = 0; i < input.length(); i++) {
+      char chr = input.charAt(i);
+      if (chr != '%') {
+        baos.write(chr);
+      } else {
+        baos.write((hexValue(input.charAt(++i)) << 4) |
+                    hexValue(input.charAt(++i)));
+      }
     }
-    return output;
+    return baos.toByteArray();
   }
 }
