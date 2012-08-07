@@ -103,11 +103,11 @@
 
           <configuration>
             <basedir>${project.build.directory}/test-classes</basedir>
+            <!-- only include non-integration tests. -->
             <excludes>
               <exclude>**/tests/**</exclude>
+              <exclude>**/it/**</exclude>
             </excludes>
-            <!-- Skip regular testing phase. -->
-            <skip>true</skip>
           </configuration>
 
           <!-- Run in the integration tests phase only. -->
@@ -119,8 +119,13 @@
                 <goal>test</goal>
               </goals>
               <configuration>
+                <includes>
+                   <include>**/it/Test*.java</include>
+                </includes>
+                <excludes>
+                  <exclude>**/tests/**</exclude>
+                </excludes>
                 <classesDirectory>${project.build.directory}/dontinclude</classesDirectory>
-                <skip>false</skip>
                 <classpathDependencyExcludes>
                     <!--
                     Leave in for tests.

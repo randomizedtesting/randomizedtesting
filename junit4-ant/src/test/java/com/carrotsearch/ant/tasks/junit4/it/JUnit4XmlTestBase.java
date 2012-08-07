@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4;
+package com.carrotsearch.ant.tasks.junit4.it;
 
 import java.io.File;
 import java.net.URL;

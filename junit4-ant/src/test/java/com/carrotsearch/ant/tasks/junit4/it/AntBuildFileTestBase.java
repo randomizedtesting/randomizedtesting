@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4;
+package com.carrotsearch.ant.tasks.junit4.it;
 
 import static org.junit.matchers.JUnitMatchers.containsString;
 

@@ -4,7 +4,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.carrotsearch.ant.tasks.junit4.TestTextReport;
+import com.carrotsearch.ant.tasks.junit4.it.TestTextReport;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 

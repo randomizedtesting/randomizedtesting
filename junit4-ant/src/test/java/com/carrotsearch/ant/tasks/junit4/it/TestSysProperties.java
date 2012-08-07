@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4;
+package com.carrotsearch.ant.tasks.junit4.it;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
