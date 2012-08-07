@@ -3,7 +3,7 @@ package com.carrotsearch.ant.tasks.junit4.events;
 import java.nio.ByteBuffer;
 
 public class AppendStdOutEvent extends AbstractEvent implements IStreamEvent {
-  private byte[] chunk;
+  public byte[] chunk;
 
   protected AppendStdOutEvent() {
     super(EventType.APPEND_STDOUT);

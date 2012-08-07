@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.*;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

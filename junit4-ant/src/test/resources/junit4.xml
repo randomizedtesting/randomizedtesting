@@ -868,5 +868,21 @@
                     showSuiteSummary="true" />
             </listeners>
         </junit4:junit4>
-    </target>
+   </target>
+    
+   <target name="sysoutoom">
+      <junit4:junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true">
+          <classpath refid="tests.classpath" />
+
+          <fileset dir="${basedir}">
+              <include name="**/SysoutOom.class" />
+          </fileset>
+
+          <!-- 
+          <listeners>
+              <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+          </listeners>
+           -->
+      </junit4:junit4>
+   </target>
 </project>
