@@ -42,13 +42,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
-    <dependency>
-      <groupId>com.carrotsearch</groupId>
-      <artifactId>java-sizeof</artifactId>
-      <version>0.0.3</version>
-      <scope>test</scope>
-    </dependency>
 
     <!-- Embedded into standalone JAR. -->
 

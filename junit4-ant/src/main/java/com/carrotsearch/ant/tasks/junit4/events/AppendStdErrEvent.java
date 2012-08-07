@@ -3,9 +3,9 @@ package com.carrotsearch.ant.tasks.junit4.events;
 import java.nio.ByteBuffer;
 
 public class AppendStdErrEvent extends AbstractEvent implements IStreamEvent {
-  public byte[] chunk;
+  private byte[] chunk;
 
-  protected AppendStdErrEvent() {
+  public AppendStdErrEvent() {
     super(EventType.APPEND_STDERR);
   }
 
