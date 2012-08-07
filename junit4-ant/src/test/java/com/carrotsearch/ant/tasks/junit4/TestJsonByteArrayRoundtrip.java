@@ -14,13 +14,13 @@ import com.carrotsearch.ant.tasks.junit4.events.Serializer;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
-public class JsonByteArrayRoundtrip extends RandomizedTest {
+public class TestJsonByteArrayRoundtrip extends RandomizedTest {
   @Test
   @Repeat(iterations = 100)
   public void testRoundTrip() throws Exception {
-    byte[] bytes = new byte[randomIntBetween(0, 20)];
+    byte[] bytes = new byte[randomIntBetween(0, 1024)];
     getRandom().nextBytes(bytes);
-    
+
     check(bytes);
   }
 
@@ -35,8 +35,6 @@ public class JsonByteArrayRoundtrip extends RandomizedTest {
     Serializer s = new Serializer(baos);
     s.serialize(new AppendStdErrEvent(bytes, 0, bytes.length));
     s.flush();
-    
-    System.out.println(new String(baos.toByteArray(), "UTF-8"));
     
     Deserializer deserializer = new Deserializer(new ByteArrayInputStream(baos.toByteArray()),
         Thread.currentThread().getContextClassLoader());
