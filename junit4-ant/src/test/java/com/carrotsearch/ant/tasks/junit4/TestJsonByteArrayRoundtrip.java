@@ -43,7 +43,7 @@ public class TestJsonByteArrayRoundtrip extends RandomizedTest {
     Assert.assertTrue(deserialize instanceof AppendStdErrEvent);
     AppendStdErrEvent e = ((AppendStdErrEvent) deserialize);
     baos.reset();
-    BufferUtils.copyTo(e.getChunk(), baos);
+    e.copyTo(baos);
     Assert.assertTrue(
         "Exp: " + Arrays.toString(bytes) + "\n" +
         "was: " + Arrays.toString(baos.toByteArray()),

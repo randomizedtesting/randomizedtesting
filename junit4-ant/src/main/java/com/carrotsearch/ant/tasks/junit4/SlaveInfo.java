@@ -9,10 +9,9 @@ import java.util.Map;
 
 import org.apache.commons.io.output.WriterOutputStream;
 
-import com.carrotsearch.ant.tasks.junit4.events.AppendStdErrEvent;
-import com.carrotsearch.ant.tasks.junit4.events.AppendStdOutEvent;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
+import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 
 /**
  * Static slave information.
@@ -120,13 +119,13 @@ public final class SlaveInfo {
         switch (evt.getType()) {
           case APPEND_STDOUT:
             if (sysout != null) {
-              BufferUtils.copyTo(((AppendStdOutEvent) evt).getChunk(), stdout);
+              ((IStreamEvent) evt).copyTo(stdout);
             }
             break;
 
           case APPEND_STDERR:
             if (syserr != null) {
-              BufferUtils.copyTo(((AppendStdErrEvent) evt).getChunk(), stderr);
+              ((IStreamEvent) evt).copyTo(stderr);
             }
             break;
         }

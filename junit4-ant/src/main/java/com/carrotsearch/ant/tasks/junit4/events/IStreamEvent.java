@@ -1,7 +1,8 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-import java.nio.ByteBuffer;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public interface IStreamEvent {
-  public ByteBuffer getChunk();
+  public void copyTo(OutputStream os) throws IOException;
 }

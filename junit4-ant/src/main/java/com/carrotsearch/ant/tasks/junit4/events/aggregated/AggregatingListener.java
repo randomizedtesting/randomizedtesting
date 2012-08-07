@@ -1,6 +1,5 @@
 package com.carrotsearch.ant.tasks.junit4.events.aggregated;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +10,6 @@ import org.junit.runner.JUnitCore;
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
-import com.carrotsearch.sizeof.RamUsageEstimator;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -149,10 +147,12 @@ public class AggregatingListener {
 
   @Subscribe
   public void receiveSuiteEnd(SuiteCompletedEvent e) {
+    /*
     System.out.println("Heap memory usage: " +
         ManagementFactory.getMemoryMXBean().getHeapMemoryUsage());
     System.out.println("Event list: " +
         RamUsageEstimator.humanSizeOf(tests));
+    */
 
     target.post(new AggregatedSuiteResultEvent(
         slave, e.getDescription(), suiteFailures, 

@@ -7,7 +7,6 @@ import java.util.Date;
 
 import org.apache.commons.io.output.WriterOutputStream;
 
-import com.carrotsearch.ant.tasks.junit4.BufferUtils;
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
@@ -68,12 +67,12 @@ public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<Agg
 
           case APPEND_STDOUT:
             flush(APPEND_STDERR, output, stderr, err);
-            BufferUtils.copyTo(((IStreamEvent) evt).getChunk(), stdout);
+            ((IStreamEvent) evt).copyTo(stdout);
             break;
 
           case APPEND_STDERR:
             flush(APPEND_STDOUT, output, stdout, out);
-            BufferUtils.copyTo(((IStreamEvent) evt).getChunk(), stderr);
+            ((IStreamEvent) evt).copyTo(stderr);
             break;
         }
       } catch (IOException ex) {
