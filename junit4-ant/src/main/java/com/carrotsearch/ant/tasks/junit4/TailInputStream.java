@@ -54,9 +54,9 @@ class TailInputStream extends InputStream {
 
     try {
       int bytesRead = 0;
-      for (; len > 0; len--, bytesRead++) {
-        int c = raf.read();
-        if (c == -1) {
+      for (; len > 0;) {
+        int rafRead = raf.read(b, off, len);
+        if (rafRead == -1) {
           if (bytesRead == 0) {
             // If nothing in the buffer, wait.
             do {
@@ -65,14 +65,16 @@ class TailInputStream extends InputStream {
               } catch (InterruptedException e) {
                 throw new IOException(e);
               }
-            } while ((c = raf.read()) == -1);
+            } while ((rafRead = raf.read(b, off, len)) == -1);
           } else {
             // otherwise return what's been read so far without blocking.
             return bytesRead;
           }
         }
   
-        b[off++] = (byte) c;
+        bytesRead += rafRead;
+        off += bytesRead;
+        len -= bytesRead;
       }
       return bytesRead;
     } catch (IOException e) {
