@@ -2,7 +2,6 @@ package com.carrotsearch.randomizedtesting;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Responsible for providing individual test instances and their descriptions. Also
@@ -16,14 +15,12 @@ public interface TestMethodProvider {
    * 
    * @param suiteClass
    *          The suite class.
-   * @param methods
-   *          A list of precomputed method candidates including static and
-   *          instance methods with removed shadowed and overridden methods. This
-   *          is for performance only.
+   * @param suiteClassModel
+   *          A precomputed model of the suite class including method annotations and
+   *          class hierarchy walking utilities. This is made available for performance
+   *          reasons only.
    * @return Return a set of methods which should be invoked by the runner as
    *         tests.
-   *        
-   * @see MethodCollector
    */
-  Collection<Method> getTestMethods(Class<?> suiteClass, List<List<Method>> methods);
+  Collection<Method> getTestMethods(Class<?> suiteClass, ClassModel suiteClassModel);
 }

@@ -1,5 +1,11 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.lang.reflect.Method;
+
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
 /**
  * Rants about blocker limitations of JUnit...
  */
@@ -38,5 +44,16 @@ final class Rants {
   /**
    * TODO: Why is failed assumption propagated as a Failure? This is weird an unnatural.
    */
-  public static RantType RANT_3 = RantType.DAMN_TERRIBLE;    
+  public static RantType RANT_3 = RantType.DAMN_TERRIBLE;
+
+  /**
+   * JUnit is inconsistent in how it treats annotations on methods. Some of them are "inherited" and
+   * some require presence on the exact same {@link Method} as the one used for testing. This has awkward
+   * side effects, for example {@link Ignore} and {@link Test} must co-exist on the same method, not
+   * on virtual method hierarchy. You cannot make {@link Test} methods protected and publish them in 
+   * subclasses. Shadowing of {@link BeforeClass} methods is inconsistent (non-annotated shadowed method
+   * will not be called, shadowed method annotated with {@link BeforeClass} prevents the shadowed method 
+   * from being called), etc.
+   */
+  public static RantType RANT_4 = RantType.DAMN_TERRIBLE;
 }

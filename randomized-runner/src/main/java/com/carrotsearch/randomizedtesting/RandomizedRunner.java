@@ -1,7 +1,5 @@
 package com.carrotsearch.randomizedtesting;
 
-
-import static com.carrotsearch.randomizedtesting.MethodCollector.*;
 import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -171,13 +169,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** The class with test methods (suite). */
   private final Class<?> suiteClass;
 
-  /** 
-   * All methods of the {@link #suiteClass} class, unfiltered (including overrides and shadowed
-   * methods). Sorted at class level to the order: class..super, and at method level (within
-   * each class) alphabetically.
-   */
-  private List<List<Method>> allTargetMethods;
-
   /** The runner's seed (master). */
   final Randomness runnerRandomness;
 
@@ -243,6 +234,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
   QueueUncaughtExceptionsHandler handler;
 
   /**
+   * Class model.
+   */
+  private ClassModel classModel;
+
+  /**
+   * Methods cache.
+   */
+  private Map<Class<? extends Annotation>,List<Method>> shuffledMethodsCache = new HashMap<Class<? extends Annotation>,List<Method>>();
+
+  /**
    * A marker for flagging zombie threads (leaked threads that couldn't be killed).
    */
   static AtomicBoolean zombieMarker = new AtomicBoolean(false);
@@ -273,8 +274,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     this.suiteClass = testClass;
-    this.allTargetMethods = immutableCopy(sort(allDeclaredMethods(suiteClass)));
-    
+    this.classModel = new ClassModel(testClass);
+
     // Try to detect the container.
     {
       this.containerRunner = detectContainer();
@@ -331,8 +332,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       this.iterationsOverride = null;
     }
     
-    // Fail fast if suiteClass is inconsistent or selected "standard" JUnit rules are somehow broken.
     try {
+      // Fail fast if suiteClass is inconsistent or selected "standard" JUnit rules are somehow broken.
       validateTarget();
   
       // Collect all test candidates, regardless if they will be executed or not.
@@ -540,35 +541,32 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
       }
 
-      // Validate suiteClass with custom validators.
-      if (runCustomValidators(notifier)) {
-        // Filter out test candidates to see if there's anything left. If not,
-        // don't bother running class hooks.
-        final List<TestCandidate> filtered = getFilteredTestCandidates();
-        if (!filtered.isEmpty()) {
-          ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
-          Statement s = runTestsStatement(threadLeakControl.notifier(), filtered, threadLeakControl);
-          s = withClassBefores(s);
-          s = withClassAfters(s);
-          s = withClassRules(s);
-          s = withCloseContextResources(s, LifecycleScope.SUITE);
-          s = threadLeakControl.forSuite(s, suiteDescription);
-          try {
-            s.evaluate();
-          } catch (Throwable t) {
-            t = augmentStackTrace(t, runnerRandomness);
-            if (t instanceof AssumptionViolatedException) {
-              // Fire assumption failure before method ignores. (GH-103).
-              notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
+      // Filter out test candidates to see if there's anything left. If not,
+      // don't bother running class hooks.
+      final List<TestCandidate> filtered = getFilteredTestCandidates();
+      if (!filtered.isEmpty()) {
+        ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
+        Statement s = runTestsStatement(threadLeakControl.notifier(), filtered, threadLeakControl);
+        s = withClassBefores(s);
+        s = withClassAfters(s);
+        s = withClassRules(s);
+        s = withCloseContextResources(s, LifecycleScope.SUITE);
+        s = threadLeakControl.forSuite(s, suiteDescription);
+        try {
+          s.evaluate();
+        } catch (Throwable t) {
+          t = augmentStackTrace(t, runnerRandomness);
+          if (t instanceof AssumptionViolatedException) {
+            // Fire assumption failure before method ignores. (GH-103).
+            notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
 
-              // Class level assumptions cause all tests to be ignored.
-              // see Rants#RANT_3
-              for (final TestCandidate c : filtered) {
-                notifier.fireTestIgnored(c.description);
-              }
-            } else {
-              fireTestFailure(notifier, suiteDescription, t);
+            // Class level assumptions cause all tests to be ignored.
+            // see Rants#RANT_3
+            for (final TestCandidate c : filtered) {
+              notifier.fireTestIgnored(c.description);
             }
+          } else {
+            fireTestFailure(notifier, suiteDescription, t);
           }
         }
       }
@@ -675,7 +673,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       @Override
       public void evaluate() throws Throwable {
         try {
-          for (Method method : getTargetMethods(BeforeClass.class)) {
+          for (Method method : getShuffledMethods(BeforeClass.class)) {
             invoke(method, null);
           }
         } catch (Throwable t) {
@@ -697,7 +695,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           errors.add(augmentStackTrace(t, runnerRandomness));
         }
 
-        for (Method method : getTargetMethods(AfterClass.class)) {
+        for (Method method : getShuffledMethods(AfterClass.class)) {
           try {
             invoke(method, null);
           } catch (Throwable t) {
@@ -763,7 +761,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private Statement wrapBeforeAndAfters(Statement s, final TestCandidate c, final Object instance) {
     // Process @Before hooks. The first @Before to fail will immediately stop processing any other @Befores.
-    final List<Method> befores = getTargetMethods(Before.class);
+    final List<Method> befores = getShuffledMethods(Before.class);
     if (!befores.isEmpty()) {
       final Statement afterBefores = s;
       s = new Statement() {
@@ -778,7 +776,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Process @After hooks. All @After hooks are processed, regardless of their own exceptions.
-    final List<Method> afters = getTargetMethods(After.class);
+    final List<Method> afters = getShuffledMethods(After.class);
     if (!afters.isEmpty()) {
       final Statement afterAfters = s;
       s = new Statement() {
@@ -943,34 +941,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private RandomizedContext createContext(ThreadGroup tg) {
     return RandomizedContext.create(tg, suiteClass, this);
-  }
-
-  /**
-   * Run any {@link Validators} declared on the suite.
-   */
-  private boolean runCustomValidators(RunNotifier notifier) {
-    for (Validators ann : getAnnotationsFromClassHierarchy(suiteClass, Validators.class)) {
-      List<ClassValidator> validators = new ArrayList<ClassValidator>();
-      try {
-        for (Class<? extends ClassValidator> validatorClass : ann.value()) {
-          try {
-            validators.add(validatorClass.newInstance());
-          } catch (Throwable t) {
-            throw new RuntimeException("Could not initialize suite class: "
-                + suiteClass.getName() + " because its @ClassValidators contains non-instantiable: "
-                + validatorClass.getName(), t); 
-          }
-        }
-  
-        for (ClassValidator v : validators) {
-            v.validate(suiteClass);
-        }
-      } catch (Throwable t) {
-        notifier.fireTestFailure(new Failure(suiteDescription, t));
-        return false;
-      }
-    }
-    return true;
   }
 
   /** Subscribe annotation listeners to the notifier. */
@@ -1148,22 +1118,36 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Construct a list of ordered framework methods. Minor tweaks are done depending
    * on the annotation (reversing order, etc.). 
    */
-  private List<Method> getTargetMethods(Class<? extends Annotation> ann) {
-    List<List<Method>> list = mutableCopy2(
-        removeShadowed(removeOverrides(annotatedWith(allTargetMethods, ann))));
+  private List<Method> getShuffledMethods(Class<? extends Annotation> ann) {
+    List<Method> methods = shuffledMethodsCache.get(ann);
+    if (methods != null) {
+      return methods;
+    }
+
+    methods = new ArrayList<Method>(classModel.getAnnotatedLeafMethods(ann).keySet());
+
+    // Shuffle sub-ranges using class level randomness.
+    Random rnd = new Random(runnerRandomness.getSeed());
+    for (int i = 0, j = 0; i < methods.size(); i = j) {
+      final Method m = methods.get(i);
+      j = i + 1;
+      while (j < methods.size() && m.getDeclaringClass() == methods.get(j).getDeclaringClass()) {
+        j++;
+      }
+
+      if (j - i > 1) {
+        Collections.shuffle(methods.subList(i, j), rnd);
+      }
+    }
 
     // Reverse processing order to super...clazz for befores
     if (ann == Before.class || ann == BeforeClass.class) {
-      Collections.reverse(list);
+      Collections.reverse(methods);
     }
 
-    // Shuffle at class level.
-    Random rnd = new Random(runnerRandomness.getSeed());
-    for (List<Method> clazzLevel : list) {
-      Collections.shuffle(clazzLevel, rnd);
-    }
-
-    return flatten(list);
+    methods = Collections.unmodifiableList(methods);
+    shuffledMethodsCache.put(ann, methods);
+    return methods;
   }
 
   /**
@@ -1202,17 +1186,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Get test methods from providers.
-    final Set<Method> allTestMethods = new TreeSet<Method>(new Comparator<Method>() {
+    final Set<Method> allTestMethods = new HashSet<Method>();
+    for (TestMethodProvider provider : providers) {
+      Collection<Method> testMethods = provider.getTestMethods(suiteClass, classModel);
+      allTestMethods.addAll(testMethods);
+    }
+
+    List<Method> testMethods = new ArrayList<Method>(allTestMethods);
+    Collections.sort(testMethods, new Comparator<Method>() {
       @Override
       public int compare(Method m1, Method m2) {
-        return m1.getName().compareTo(m2.getName());
+        return m1.toGenericString().compareTo(m2.toGenericString());
       }
     });
-    List<List<Method>> candidates = removeShadowed(removeOverrides(allTargetMethods));
-    for (TestMethodProvider provider : providers) {
-      allTestMethods.addAll(provider.getTestMethods(suiteClass, immutableCopy(candidates)));
-    }
-    List<Method> testMethods = new ArrayList<Method>(allTestMethods);
 
     // Perform candidate method validation.
     validateTestMethods(testMethods);
@@ -1380,8 +1366,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   public ArrayList<Object[]> collectFactoryParameters() {
     ArrayList<Object[]> parameters = new ArrayList<Object[]>();
 
-    for (Method m : flatten(removeShadowed(annotatedWith(allTargetMethods, ParametersFactory.class)))) {
-      Validation.checkThat(m).isStatic().isPublic();
+    for (Method m : classModel.getAnnotatedLeafMethods(ParametersFactory.class).keySet()) {
+      Validation.checkThat(m)
+        .isStatic()
+        .isPublic();
+
       if (!Iterable.class.isAssignableFrom(m.getReturnType())) {
         throw new RuntimeException("@" + ParametersFactory.class.getSimpleName() + " annotated " +
         		"methods must be public, static and returning Iterable<Object[]>:" + m);
@@ -1513,8 +1502,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Check a number of seeds on a single method.
-    if (isAnnotationPresent(method, Seeds.class)) {
-      for (Seed s : method.getAnnotation(Seeds.class).value()) {
+    Seeds seedsValue = classModel.getAnnotation(method, Seeds.class, true);
+    if (seedsValue != null) {
+      for (Seed s : seedsValue.value()) {
         if (s.value().equals("random"))
           seeds.add(randomSeed);
         else {
@@ -1588,7 +1578,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
             method.getName());
       }
 
-      // public * method()
+      // * method()
       Validation.checkThat(method)
         .describedAs("Test method " + suiteClass.getName() + "#" + method.getName())
         .isPublic()
@@ -1596,16 +1586,17 @@ public final class RandomizedRunner extends Runner implements Filterable {
         .hasArgsCount(0);
 
       // No @Test(timeout=...) and @Timeout at the same time.
-      Test testAnn = method.getAnnotation(Test.class);
-      if (testAnn != null && testAnn.timeout() > 0 && isAnnotationPresent(method, Timeout.class)) {
+      Test testAnn = classModel.getAnnotation(method, Test.class, true);
+      if (testAnn != null && testAnn.timeout() > 0 && classModel.isAnnotationPresent(method, Timeout.class, true)) {
         throw new IllegalArgumentException("Conflicting @Test(timeout=...) and @Timeout " +
             "annotations in: " + suiteClass.getName() + "#" + method.getName());
       }
 
       // @Seed annotation on test methods must have at most 1 seed value.
-      if (isAnnotationPresent(method, Seed.class)) {
+      Seed seed = classModel.getAnnotation(method, Seed.class, true);
+      if (seed != null) {
         try {
-          String seedChain = getAnnotation(method, Seed.class).value();
+          String seedChain = seed.value();
           if (!seedChain.equals("random")) {
             long[] chain = SeedUtils.parseSeedChain(seedChain);
             if (chain.length > 1) {
@@ -1620,7 +1611,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
   }
-  
+
   /**
    * Validate methods and hooks in the suiteClass. Follows "standard" JUnit rules,
    * with some exceptions on return values and more rigorous checking of shadowed
@@ -1643,51 +1634,51 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // If there is a parameterized constructor, look for a static method that privides parameters.
     if (constructors[0].getParameterTypes().length > 0) {
-      List<Method> factories = flatten(removeShadowed(annotatedWith(allTargetMethods, ParametersFactory.class)));
+      Collection<Method> factories = classModel.getAnnotatedLeafMethods(ParametersFactory.class).keySet();
       if (factories.isEmpty()) {
         throw new RuntimeException("A test class with a parameterized constructor is expected "
             + " to have a static @" + ParametersFactory.class 
             + "-annotated method: " + suiteClass.getName());
       }
-      
+
       for (Method m : factories) {
-        Validation.checkThat(m).isStatic().isPublic().hasArgsCount(0)
+        Validation.checkThat(m)
+          .describedAs("@ParametersFactory method " + suiteClass.getName() + "#" + m.getName())
+          .isStatic()
+          .isPublic()
+          .hasArgsCount(0)
           .hasReturnType(Iterable.class);
       }
     }
 
     // @BeforeClass
-    for (Method method : flatten(annotatedWith(allTargetMethods, BeforeClass.class))) {
+    for (Method method : classModel.getAnnotatedLeafMethods(BeforeClass.class).keySet()) {
       Validation.checkThat(method)
         .describedAs("@BeforeClass method " + suiteClass.getName() + "#" + method.getName())
-        // .isPublic() // Intentional, you can hide it from subclasses.
         .isStatic()
         .hasArgsCount(0);
     }
 
     // @AfterClass
-    for (Method method : flatten(annotatedWith(allTargetMethods, AfterClass.class))) {
+    for (Method method : classModel.getAnnotatedLeafMethods(AfterClass.class).keySet()) {
       Validation.checkThat(method)
         .describedAs("@AfterClass method " + suiteClass.getName() + "#" + method.getName())
-        // .isPublic() // Intentional, you can hide it from subclasses.
         .isStatic()
         .hasArgsCount(0);
     }
 
     // @Before
-    for (Method method : flatten(annotatedWith(allTargetMethods, Before.class))) {
+    for (Method method : classModel.getAnnotatedLeafMethods(Before.class).keySet()) {
       Validation.checkThat(method)
         .describedAs("@Before method " + suiteClass.getName() + "#" + method.getName())
-        // .isPublic()  // Intentional, you can hide it from subclasses.
         .isNotStatic()
         .hasArgsCount(0);
     }
 
     // @After
-    for (Method method : flatten(annotatedWith(allTargetMethods, After.class))) {
+    for (Method method : classModel.getAnnotatedLeafMethods(After.class).keySet()) {
       Validation.checkThat(method)
         .describedAs("@After method " + suiteClass.getName() + "#" + method.getName())
-        // .isPublic()  // Intentional, you can hide it from subclasses.
         .isNotStatic()
         .hasArgsCount(0);
     }

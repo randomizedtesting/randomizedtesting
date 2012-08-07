@@ -187,7 +187,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
         }
       }
       lastActivity = null;
-    } catch (IOException e) {
+    } catch (Throwable e) {
       if (!stopping) {
         warnStream.println("Event stream error: " + e.toString());
         e.printStackTrace(warnStream);
