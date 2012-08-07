@@ -1042,9 +1042,7 @@ public class JUnit4 extends Task {
   private void executeSlave(final SlaveInfo slave, final EventBus aggregatedBus)
     throws Exception
   {
-    final String uniqueSeed = 
-        new SimpleDateFormat("HHmmssSSS").format(new Date()) + 
-        Long.toHexString(new Random().nextInt() & 0xffffffffL);
+    final String uniqueSeed = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date());
 
     final File classNamesFile = tempFile(uniqueSeed,
         "junit4-J" + slave.id, ".suites", getTempDir());
@@ -1212,11 +1210,15 @@ public class JUnit4 extends Task {
   }
 
   private File tempFile(String uniqueSeed, String base, String suffix, File tempDir) throws IOException {
-    File finalName = new File(tempDir, base + "-" + uniqueSeed + suffix);
-    if (!finalName.createNewFile()) {
-      throw new IOException("Congratulations, you're very lucky to encounter a file with a random" +
-      		" seed. This seems less likely than you being a Martian.");
-    }
+    int retry = 0;
+    File finalName;
+    do {
+      if (retry > 0) {
+        finalName = new File(tempDir, base + "-" + uniqueSeed + "_retry" + retry + suffix);
+      } else {
+        finalName = new File(tempDir, base + "-" + uniqueSeed + suffix);
+      }
+    } while (!finalName.createNewFile() && retry++ < 5);
     return finalName;
   }
 
