@@ -15,7 +15,7 @@ import com.google.gson.stream.JsonToken;
 public class Deserializer {
   private JsonReader input;
   private Gson gson;
-  
+
   public Deserializer(InputStream is, ClassLoader refLoader) throws IOException {
     input = new JsonReader(new InputStreamReader(is, Charsets.UTF_8));
     input.setLenient(true);

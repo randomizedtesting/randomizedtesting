@@ -39,10 +39,12 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private final OutputStream sysout;
   private final OutputStream syserr;
   private final long heartbeat;
+  private final RandomAccessFile streamsBuffer;
+  private final OutputStream streamsBufferWrapper;
 
   public LocalSlaveStreamHandler(
       EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, InputStream eventStream,
-      OutputStream sysout, OutputStream syserr, long heartbeat) {
+      OutputStream sysout, OutputStream syserr, long heartbeat, final RandomAccessFile streamsBuffer) {
     this.eventBus = eventBus;
     this.warnStream = warnStream;
     this.refLoader = classLoader;
@@ -50,6 +52,23 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
     this.sysout = sysout;
     this.syserr = syserr;
     this.heartbeat = heartbeat;
+    this.streamsBuffer = streamsBuffer;
+    this.streamsBufferWrapper = new OutputStream() {
+      @Override
+      public void write(int b) throws IOException {
+        streamsBuffer.write(b);
+      }
+
+      @Override
+      public void write(byte[] b) throws IOException {
+        streamsBuffer.write(b, 0, b.length);
+      }
+
+      @Override
+      public void write(byte[] b, int off, int len) throws IOException {
+        streamsBuffer.write(b, off, len);
+      }
+    };
   }
 
   @Override
@@ -144,6 +163,42 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
     }
   }
 
+  private static class OnDiskStreamEvent implements IEvent, IStreamEvent {
+    private final RandomAccessFile bufferFile;
+    private long start;
+    private long end;
+    private EventType type;
+
+    public OnDiskStreamEvent(EventType type, RandomAccessFile streamsBuffer, long start, long end) {
+      this.bufferFile = streamsBuffer;
+      this.start = start;
+      this.end = end;
+      this.type = type;
+    }
+
+    @Override
+    public EventType getType() {
+      return type;
+    }
+
+    @Override
+    public void copyTo(OutputStream os) throws IOException {
+      final long restorePosition = bufferFile.getFilePointer();
+      bufferFile.seek(start);
+      try {
+        long length = end - start;
+        final byte [] buffer = new byte [(int) Math.min(length, 1024 * 4)];
+        while (length > 0) {
+          int bytes = bufferFile.read(buffer, 0, (int) Math.min(length, buffer.length));
+          os.write(buffer, 0, bytes);
+          length -= bytes;
+        }
+      } finally {
+        bufferFile.seek(restorePosition);
+      }
+    }
+  }
+
   /**
    * Pump events from event stream.
    */
@@ -176,8 +231,21 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
             case BOOTSTRAP:
               clientCharset = Charset.forName(((BootstrapEvent) event).getDefaultCharsetName());
               stdinWriter = new OutputStreamWriter(stdin, clientCharset);
+              eventBus.post(event);
+              break;
 
-              // fall through.
+            case APPEND_STDERR:
+            case APPEND_STDOUT:
+              assert streamsBuffer.getFilePointer() == streamsBuffer.length();
+              final long bufferStart = streamsBuffer.getFilePointer();
+              IStreamEvent streamEvent = (IStreamEvent) event;
+              streamEvent.copyTo(streamsBufferWrapper);
+              final long bufferEnd = streamsBuffer.getFilePointer();
+
+              event = new OnDiskStreamEvent(event.getType(), streamsBuffer, bufferStart, bufferEnd);
+              eventBus.post(event);
+              break;
+              
             default:
               eventBus.post(event);
           }

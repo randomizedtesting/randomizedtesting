@@ -878,11 +878,11 @@
               <include name="**/SysoutOom.class" />
           </fileset>
 
-          <!-- 
           <listeners>
-              <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+              <junit4:report-text 
+                  showOutputStream="true" 
+                  showErrorStream="true" />
           </listeners>
-           -->
       </junit4:junit4>
    </target>
 </project>

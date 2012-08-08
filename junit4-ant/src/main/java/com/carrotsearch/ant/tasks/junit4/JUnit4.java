@@ -1051,6 +1051,9 @@ public class JUnit4 extends Task {
     final File classNamesDynamic = tempFile(uniqueSeed,
         "junit4-J" + slave.id, ".dynamic-suites", getTempDir());
 
+    final File streamsBufferFile = tempFile(uniqueSeed,
+        "junit4-J" + slave.id, ".spill", getTempDir());
+
     // Dump all test class names to a temporary file.
     String testClassPerLine = Joiner.on("\n").join(slave.testSuites);
     log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
@@ -1143,8 +1146,9 @@ public class JUnit4 extends Task {
     OutputStream sysout = new BufferedOutputStream(new FileOutputStream(sysoutFile));
     OutputStream syserr = new BufferedOutputStream(new FileOutputStream(syserrFile));
     Exception error = null;
+    RandomAccessFile streamsBuffer = new RandomAccessFile(streamsBufferFile, "rw");
     try {
-      forkProcess(slave, eventBus, commandline, eventStream, sysout, syserr);
+      forkProcess(slave, eventBus, commandline, eventStream, sysout, syserr, streamsBuffer);
     } catch (Exception e) {
       error = e;
     } finally {
@@ -1152,8 +1156,10 @@ public class JUnit4 extends Task {
       Closeables.closeQuietly(w);
       Closeables.closeQuietly(sysout);
       Closeables.closeQuietly(syserr);
+      Closeables.closeQuietly(streamsBuffer);
       Files.copy(classNamesDynamic, Files.newOutputStreamSupplier(classNamesFile, true));
       classNamesDynamic.delete();
+      streamsBufferFile.delete();
     }
 
     // Check sysout/syserr lengths.
@@ -1248,11 +1254,12 @@ public class JUnit4 extends Task {
    */
   private void forkProcess(SlaveInfo slaveInfo, EventBus eventBus, 
       CommandlineJava commandline, 
-      InputStream eventStream, OutputStream sysout, OutputStream syserr) {
+      InputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {
     try {
       final LocalSlaveStreamHandler streamHandler = 
-          new LocalSlaveStreamHandler(eventBus, testsClassLoader, System.err, eventStream, 
-              sysout, syserr, heartbeat);
+          new LocalSlaveStreamHandler(
+              eventBus, testsClassLoader, System.err, eventStream, 
+              sysout, syserr, heartbeat, streamsBuffer);
 
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
