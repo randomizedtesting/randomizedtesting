@@ -45,7 +45,7 @@ class PrefixedWriter extends Writer {
 
   @Override
   public void flush() throws IOException {
-    sink.flush();
+    // don't pass flushes.
   }
 
   @Override
