@@ -258,7 +258,7 @@ public class TextReport implements AggregatedEventListener {
             maybeLog(test, test.getStatus(), test.getExecutionTime(), showOutput);
           }
         }
-  
+
         // Trailing static context output.
         if (showSuiteLevelOutput) {
           decodeStreamEvents(e.getSlave(), eventsAfterLastTest(e.getEventStream()));
