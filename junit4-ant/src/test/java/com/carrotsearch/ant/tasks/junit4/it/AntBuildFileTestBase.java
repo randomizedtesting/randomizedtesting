@@ -16,6 +16,7 @@ import org.apache.tools.ant.launch.Launcher;
 import org.apache.tools.ant.taskdefs.Java;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.LoaderUtils;
+import org.junit.After;
 import org.junit.Assert;
 
 /**
@@ -25,17 +26,25 @@ public class AntBuildFileTestBase {
   private Project project;
   private ByteArrayOutputStream output;
   private DefaultLogger listener;
-  
+
+  private PrintStream restoreSysout;
+  private PrintStream restoreSyserr;
+
   protected void setupProject(File projectFile) {
-    project = new Project();
-    project.init();
-
-    project.setUserProperty(MagicNames.ANT_FILE, projectFile.getAbsolutePath());
-    ProjectHelper.configureProject(project, projectFile);
-
-    output = new ByteArrayOutputStream();
     try {
+      restoreSysout = System.out;
+      restoreSyserr = System.err;
+      output = new ByteArrayOutputStream();
       PrintStream ps = new PrintStream(output, true, "UTF-8");
+      System.setOut(ps);
+      System.setErr(ps);
+
+      project = new Project();
+      project.init();
+
+      project.setUserProperty(MagicNames.ANT_FILE, projectFile.getAbsolutePath());
+      ProjectHelper.configureProject(project, projectFile);
+
       listener = new DefaultLogger();
       listener.setMessageOutputLevel(Project.MSG_DEBUG);
       listener.setErrorPrintStream(ps);
@@ -44,12 +53,18 @@ public class AntBuildFileTestBase {
 
       DefaultLogger console = new DefaultLogger();
       console.setMessageOutputLevel(Project.MSG_INFO);
-      console.setErrorPrintStream(System.err);
-      console.setOutputPrintStream(System.out);
+      console.setErrorPrintStream(restoreSyserr);
+      console.setOutputPrintStream(restoreSysout);
       getProject().addBuildListener(console);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  @After
+  public void restoreSysouts() {
+    if (restoreSysout != null) System.setOut(restoreSysout);
+    if (restoreSyserr != null) System.setErr(restoreSyserr);
   }
 
   protected final Project getProject() {
@@ -86,7 +101,7 @@ public class AntBuildFileTestBase {
   protected final void executeTarget(String target) {
     getProject().executeTarget(target);
   }
-  
+
   protected final void executeForkedTarget(String target) {
     Path antPath = new Path(getProject());
     antPath.createPathElement().setLocation(sourceOf(Project.class));

@@ -3,35 +3,36 @@ package com.carrotsearch.ant.tasks.junit4.listeners;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.apache.tools.ant.util.LineOrientedOutputStream;
-
 /**
- * Implements {@link LineOrientedOutputStream} which prefixes every new line
- * with a given byte [], synchronizing multiple streams to emit consistent lines.
+ * Prefixes every new line with a given byte [], synchronizing multiple streams to emit consistent lines.
  */
 class PrefixedWriter extends Writer {
   private final static char LF = '\n';
   private final Writer sink;
   private final String prefix;
-  private boolean atStart;
+  private final StringBuilder lineBuffer = new StringBuilder();
+  private final int maxLineLength;
 
-  public PrefixedWriter(String prefix, Writer sink) {
+  public PrefixedWriter(String prefix, Writer sink, int maxLineLength) {
     super(sink);
     this.sink = sink;
     this.prefix = prefix;
-    this.atStart = true;
+    this.maxLineLength = maxLineLength;
   }
 
   @Override
   public void write(int c) throws IOException {
-    if (atStart) {
+    if (lineBuffer.length() == maxLineLength || c == LF) {
       sink.write(prefix);
-      atStart = false;
-    }
-    
-    sink.write(c);
-    if (c == LF) {
-      sink.write(prefix);
+      sink.write(lineBuffer.toString());
+      sink.write(LF);
+
+      lineBuffer.setLength(0);
+      if (c != LF) { 
+        lineBuffer.append((char) c);
+      }
+    } else {
+      lineBuffer.append((char) c);
     }
   }
 
@@ -49,6 +50,15 @@ class PrefixedWriter extends Writer {
 
   @Override
   public void close() throws IOException {
-    sink.close();
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Complete the current line.
+   */
+  public void completeLine() throws IOException {
+    if (lineBuffer.length() > 0) {
+      write(LF);
+    }
   }
 }

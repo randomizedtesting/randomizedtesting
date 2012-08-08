@@ -1,6 +1,5 @@
 package com.carrotsearch.ant.tasks.junit4.events.aggregated;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -148,9 +147,6 @@ public class AggregatingListener {
 
   @Subscribe
   public void receiveSuiteEnd(SuiteCompletedEvent e) {
-    System.out.println("Heap memory usage: " +
-        ManagementFactory.getMemoryMXBean().getHeapMemoryUsage());
-
     target.post(new AggregatedSuiteResultEvent(
         slave, e.getDescription(), suiteFailures, 
         Lists.newArrayList(tests.descendingIterator()), eventStream,

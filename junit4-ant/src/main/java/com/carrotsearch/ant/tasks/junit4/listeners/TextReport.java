@@ -33,6 +33,9 @@ public class TextReport implements AggregatedEventListener {
   private static final String stdoutIndent = "  1> ";
   private static final String stderrIndent = "  2> ";
 
+  // 16kb for max. line width buffer.
+  private static final int DEFAULT_MAX_LINE_WIDTH = 1024 * 16;
+
   /**
    * Status names column.
    */
@@ -82,7 +85,7 @@ public class TextReport implements AggregatedEventListener {
   private JUnit4 task;
 
   /**
-   * A {@link Writer} if external file is used.
+   * A {@link Writer} for writing output messages.
    */
   private Writer output; 
 
@@ -110,6 +113,11 @@ public class TextReport implements AggregatedEventListener {
    * Append to {@link #outputFile} if specified.
    */
   private boolean append;
+
+  /**
+   * Monitor used for coordinating outputs. 
+   */
+  private Object streamLock;
 
   public void setShowStatusError(boolean showStatusError)     { this.showStatusError = showStatusError;   }
   public void setShowStatusFailure(boolean showStatusFailure) { this.showStatusFailure = showStatusFailure; }
@@ -202,7 +210,7 @@ public class TextReport implements AggregatedEventListener {
    * 
    */
   @Subscribe
-  public void onTestResult(AggregatedTestResultEvent e) {
+  public void onTestResult(AggregatedTestResultEvent e) throws IOException {
     // If we're aggregating over suites, wait.
     if (!showSuiteSummary) {
       maybeLog(e, e.getStatus(), e.getExecutionTime(), shouldShowTestOutput(e));
@@ -218,82 +226,74 @@ public class TextReport implements AggregatedEventListener {
     text = ellipsis + text.substring(text.length() - (columns - ellipsis.length()));
     return text;
   }
-  
+
   /*
    * 
    */
   @Subscribe
-  public void onSuiteResult(AggregatedSuiteResultEvent e) {
-    if (showSuiteSummary) {
-      String suiteName = e.getDescription().getDisplayName();
-      if (useSimpleNames) {
-        if (suiteName.lastIndexOf('.') >= 0) {
-          suiteName = suiteName.substring(suiteName.lastIndexOf('.') + 1);
+  public void onSuiteResult(AggregatedSuiteResultEvent e) throws IOException {
+    synchronized (streamLock) {
+      if (showSuiteSummary) {
+        String suiteName = e.getDescription().getDisplayName();
+        if (useSimpleNames) {
+          if (suiteName.lastIndexOf('.') >= 0) {
+            suiteName = suiteName.substring(suiteName.lastIndexOf('.') + 1);
+          }
         }
-      }
-      log(shortTimestamp(e.getStartTimestamp()) +
-          "Suite: " + padTo(maxClassNameColumns, suiteName, "[...]"));
-
-      // Static context output.
-      final boolean showSuiteLevelOutput = shouldShowSuiteLevelOutput(e);
-      if (showSuiteLevelOutput) {
-        String decoded = decodeStreamEvents(
-            e.getSlave(), eventsBeforeFirstTest(e.getEventStream())).toString();
-        if (!decoded.isEmpty()) {
-          log(indent + "(@BeforeClass output)");
-          log(decoded);
-        }
-      }
-
-      // Tests.
-      for (AggregatedTestResultEvent test : e.getTests()) {
-        final boolean showOutput = showSuiteLevelOutput || shouldShowTestOutput(test);
+        logShort(shortTimestamp(e.getStartTimestamp()) +
+            "Suite: " + padTo(maxClassNameColumns, suiteName, "[...]"));
+  
+        // Static context output.
+        final boolean showSuiteLevelOutput = shouldShowSuiteLevelOutput(e);
         if (showSuiteLevelOutput) {
-          alwaysLog(test, test.getStatus(), test.getExecutionTime(), showOutput);
-        } else {
-          maybeLog(test, test.getStatus(), test.getExecutionTime(), showOutput);
+          decodeStreamEvents(e.getSlave(), eventsBeforeFirstTest(e.getEventStream()));
+        }
+
+        // Tests.
+        for (AggregatedTestResultEvent test : e.getTests()) {
+          final boolean showOutput = showSuiteLevelOutput || shouldShowTestOutput(test);
+          if (showSuiteLevelOutput) {
+            alwaysLog(test, test.getStatus(), test.getExecutionTime(), showOutput);
+          } else {
+            maybeLog(test, test.getStatus(), test.getExecutionTime(), showOutput);
+          }
+        }
+  
+        // Trailing static context output.
+        if (showSuiteLevelOutput) {
+          decodeStreamEvents(e.getSlave(), eventsAfterLastTest(e.getEventStream()));
         }
       }
-
-      // Trailing static context output.
-      if (showSuiteLevelOutput) {
-        String decoded = decodeStreamEvents(
-            e.getSlave(), eventsAfterLastTest(e.getEventStream())).toString();
-        if (!decoded.isEmpty()) {
-          log(indent + "(@AfterClass output)");
-          log(decoded);
+  
+      if (!e.getFailures().isEmpty()) {
+        maybeLog(e, TestStatus.ERROR, 0, false);
+      }
+  
+      if (showSuiteSummary) {
+        StringBuilder b = new StringBuilder();
+        b.append(String.format(Locale.ENGLISH, "%sCompleted%s in %.2fs, ",
+            shortTimestamp(e.getStartTimestamp() + e.getExecutionTime()),
+            e.getSlave().slaves > 1 ? " on J" + e.getSlave().id : "",
+            e.getExecutionTime() / 1000.0d));
+        b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));
+        int failures = e.getFailureCount();
+        if (failures > 0) {
+          b.append(", ").append(failures).append(Pluralize.pluralize(failures, " failure"));
         }
+        int errors = e.getErrorCount();
+        if (errors > 0) {
+          b.append(", ").append(errors).append(Pluralize.pluralize(errors, " error"));
+        }
+        int ignored = e.getIgnoredCount();
+        if (ignored > 0) {
+          b.append(", ").append(ignored).append(" skipped");
+        }
+        if (!e.isSuccessful()) {
+          b.append(" <<< FAILURES!");
+        }
+        b.append("\n "); // trailing space here intentional. 
+        logShort(b.toString());
       }
-    }
-
-    if (!e.getFailures().isEmpty()) {
-      maybeLog(e, TestStatus.ERROR, 0, false);
-    }
-
-    if (showSuiteSummary) {
-      StringBuilder b = new StringBuilder();
-      b.append(String.format(Locale.ENGLISH, "%sCompleted%s in %.2fs, ",
-          shortTimestamp(e.getStartTimestamp() + e.getExecutionTime()),
-          e.getSlave().slaves > 1 ? " on J" + e.getSlave().id : "",
-          e.getExecutionTime() / 1000.0d));
-      b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));
-      int failures = e.getFailureCount();
-      if (failures > 0) {
-        b.append(", ").append(failures).append(Pluralize.pluralize(failures, " failure"));
-      }
-      int errors = e.getErrorCount();
-      if (errors > 0) {
-        b.append(", ").append(errors).append(Pluralize.pluralize(errors, " error"));
-      }
-      int ignored = e.getIgnoredCount();
-      if (ignored > 0) {
-        b.append(", ").append(ignored).append(" skipped");
-      }
-      if (!e.isSuccessful()) {
-        b.append(" <<< FAILURES!");
-      }
-      b.append("\n "); // trailing space here intentional. 
-      log(b.toString());
     }
   }
 
@@ -360,7 +360,7 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onStart(AggregatedStartEvent e) {
-    log("Executing " +
+    logShort("Executing " +
         e.getSuiteCount() + Pluralize.pluralize(e.getSuiteCount(), " suite") +
         " with " + 
         e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".");
@@ -369,15 +369,11 @@ public class TextReport implements AggregatedEventListener {
   /**
    * Log a message to the output.
    */
-  private void log(String message) {
-    if (output == null) {
-      task.log(message);
-    } else {
+  private void logShort(String message) {
+    synchronized (streamLock) {
       try {
         output.write(message);
         output.write("\n");
-        // Flush early for tailing etc.
-        output.flush();
       } catch (IOException e) {
         // Ignore, what to do.
       }
@@ -387,7 +383,8 @@ public class TextReport implements AggregatedEventListener {
   /*
    * 
    */
-  private void maybeLog(AggregatedResultEvent result, TestStatus status, long timeMillis, boolean displayOutput) {
+  private void maybeLog(AggregatedResultEvent result, TestStatus status, long timeMillis, boolean displayOutput) 
+      throws IOException {
     if (isStatusShown(status)) {
       alwaysLog(result, status, timeMillis, displayOutput);
     }
@@ -397,7 +394,7 @@ public class TextReport implements AggregatedEventListener {
    * 
    */
   private void alwaysLog(AggregatedResultEvent result, TestStatus status, long timeMillis,
-      boolean displayOutput) {
+      boolean displayOutput) throws IOException {
     SlaveInfo slave = result.getSlave();
     Description description = result.getDescription();
     List<FailureMirror> failures = result.getFailures();
@@ -420,10 +417,10 @@ public class TextReport implements AggregatedEventListener {
         // GH-82 (cause for ignored tests). 
         if (status == TestStatus.IGNORED && result instanceof AggregatedTestResultEvent) {
           final StringWriter sw = new StringWriter();
-          PrefixedWriter pos = new PrefixedWriter(indent, sw);
+          PrefixedWriter pos = new PrefixedWriter(indent, sw, DEFAULT_MAX_LINE_WIDTH);
           pos.write("Cause: ");
           pos.write(((AggregatedTestResultEvent) result).getCauseForIgnored());
-          pos.flush();
+          pos.completeLine();
 
           line.append(sw.toString());
           line.append("\n");
@@ -431,7 +428,7 @@ public class TextReport implements AggregatedEventListener {
 
         if (!failures.isEmpty()) {
           final StringWriter sw = new StringWriter();
-          PrefixedWriter pos = new PrefixedWriter(indent, sw);
+          PrefixedWriter pos = new PrefixedWriter(indent, sw, DEFAULT_MAX_LINE_WIDTH);
           int count = 0;
           for (FailureMirror fm : failures) {
             count++;
@@ -446,7 +443,7 @@ public class TextReport implements AggregatedEventListener {
                       showStackTraces ? fm.getTrace() : fm.getThrowableString()));
               }
           }
-          pos.flush();
+          pos.completeLine();
           if (sw.getBuffer().length() > 0) {
             line.append(sw.toString());
             line.append("\n");
@@ -457,15 +454,11 @@ public class TextReport implements AggregatedEventListener {
       }
     }
 
-    if (displayOutput) {
-      CharSequence out = decodeStreamEvents(slave, result.getEventStream());
-      if (out.length() > 0) {
-        line.append(out);
-        line.append("\n");
-      }
-    }
+    logShort(line.toString().trim());
 
-    log(line.toString().trim());
+    if (displayOutput) {
+      decodeStreamEvents(slave, result.getEventStream());
+    }
   }
 
   public String formatDescription(Description description) {
@@ -491,12 +484,12 @@ public class TextReport implements AggregatedEventListener {
   /**
    * Decode stream events, indent, format. 
    */
-  private CharSequence decodeStreamEvents(SlaveInfo slave, List<IEvent> eventStream) {
-    StringWriter sw = new StringWriter();
-    Writer stdout = new PrefixedWriter(stdoutIndent, new LineBufferWriter(sw));
-    Writer stderr = new PrefixedWriter(stderrIndent, new LineBufferWriter(sw));
+  private void decodeStreamEvents(SlaveInfo slave, List<IEvent> eventStream) throws IOException {
+    PrefixedWriter stdout = new PrefixedWriter(stdoutIndent, output, DEFAULT_MAX_LINE_WIDTH);
+    PrefixedWriter stderr = new PrefixedWriter(stderrIndent, output, DEFAULT_MAX_LINE_WIDTH);
     slave.decodeStreams(eventStream, stdout, stderr);
-    return sw.getBuffer();
+    stdout.completeLine();
+    stderr.completeLine();
   }
 
   @Subscribe
@@ -505,7 +498,7 @@ public class TextReport implements AggregatedEventListener {
             formatTime(e.getCurrentTime()) + ", no events in: " +
             formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
             (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription()));
-    log(msg);
+    logShort(msg);
   }
   
   @Subscribe
@@ -555,18 +548,26 @@ public class TextReport implements AggregatedEventListener {
       } catch (IOException e) {
         throw new BuildException(e);
       }
+      streamLock = new Object();
+    } else {
+      if (!UNICODE_ENCODINGS.contains(Charset.defaultCharset().name())) {
+        task.log("Your default console's encoding may not display certain" +
+            " unicode glyphs: " + Charset.defaultCharset().name(), 
+            Project.MSG_INFO);
+      }
+      output = new OutputStreamWriter(System.out, Charset.defaultCharset()) {
+        // Don't close the underlying stream.
+        public void close() throws IOException {
+          flush();
+        }
+      };
+      streamLock = System.out;
     }
-    
+
     this.displayStatus.put(TestStatus.ERROR, showStatusError);
     this.displayStatus.put(TestStatus.FAILURE, showStatusFailure);
     this.displayStatus.put(TestStatus.IGNORED, showStatusIgnored);
     this.displayStatus.put(TestStatus.IGNORED_ASSUMPTION, showStatusIgnored);
     this.displayStatus.put(TestStatus.OK, showStatusOk);
-
-    if (output == null && !UNICODE_ENCODINGS.contains(Charset.defaultCharset().name())) {
-        task.log("Your console's encoding may not display certain" +
-        		" unicode glyphs: " + Charset.defaultCharset().name(), 
-        		Project.MSG_INFO);
-    }
   }
 }

@@ -102,7 +102,7 @@ public class AntXmlReport implements AggregatedEventListener {
   /**
    * Build data model for serialization.
    */
-  private TestSuiteModel buildModel(AggregatedSuiteResultEvent e) {
+  private TestSuiteModel buildModel(AggregatedSuiteResultEvent e) throws IOException {
     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     TestSuiteModel suite = new TestSuiteModel();

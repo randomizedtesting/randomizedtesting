@@ -110,27 +110,23 @@ public final class SlaveInfo {
    * into a character streams. If both {@link Writer} arguments are the same object
    * the streams will be combined.  
    */
-  public void decodeStreams(List<IEvent> events, Writer sysout, Writer syserr) {
+  public void decodeStreams(List<IEvent> events, Writer sysout, Writer syserr) throws IOException {
     int lineBuffer = 160; 
     WriterOutputStream stdout = new WriterOutputStream(sysout, getCharset(), lineBuffer, true);
     WriterOutputStream stderr = new WriterOutputStream(syserr, getCharset(), lineBuffer, true);
     for (IEvent evt : events) {
-      try {
-        switch (evt.getType()) {
-          case APPEND_STDOUT:
-            if (sysout != null) {
-              ((IStreamEvent) evt).copyTo(stdout);
-            }
-            break;
+      switch (evt.getType()) {
+        case APPEND_STDOUT:
+          if (sysout != null) {
+            ((IStreamEvent) evt).copyTo(stdout);
+          }
+          break;
 
-          case APPEND_STDERR:
-            if (syserr != null) {
-              ((IStreamEvent) evt).copyTo(stderr);
-            }
-            break;
-        }
-      } catch (IOException e) {
-        // Ignore.
+        case APPEND_STDERR:
+          if (syserr != null) {
+            ((IStreamEvent) evt).copyTo(stderr);
+          }
+          break;
       }
     }
 
