@@ -20,13 +20,13 @@ import com.google.common.collect.Lists;
  */
 public class SlaveMain {
   /** Runtime exception. */
-  public static final int ERR_EXCEPTION = 255;
+  public static final int ERR_EXCEPTION = 240;
 
   /** No JUnit on classpath. */
-  public static final int ERR_NO_JUNIT = 254;
+  public static final int ERR_NO_JUNIT = 239;
 
   /** Old JUnit on classpath. */
-  public static final int ERR_OLD_JUNIT = 253;
+  public static final int ERR_OLD_JUNIT = 238;
 
   /**
    * Frequent event strean flushing.
