@@ -59,8 +59,7 @@
                 <report-text
                     showThrowable="true" 
                     showStackTraces="true" 
-                    showOutputStream="true" 
-                    showErrorStream="true"
+                    showOutput="always" 
 
                     showStatusOk="true"
                     showStatusError="true"

@@ -7,6 +7,7 @@ import org.junit.runner.Description;
 
 import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
+import com.carrotsearch.ant.tasks.junit4.events.TestFinishedEvent;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.google.common.collect.Lists;
 
@@ -22,8 +23,6 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   private List<FailureMirror> failures = Lists.newArrayList();
 
   private List<IEvent> eventStream;
-  private int executionTime;
-  private long startTimestamp;
 
   private boolean hasFailures;
   private boolean hasErrors;
@@ -31,6 +30,9 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
 
   /** If {@link #status} is {@link TestStatus#IGNORED} then this contains the cause. */
   private String ignoreCause;
+  
+  /** Associated {@link TestFinishedEvent}. */
+  private TestFinishedEvent testFinishedEvent;
 
   public AggregatedTestResultEvent(SlaveInfo slave, Description suiteDescription, Description description) {
     this.description = description;
@@ -68,14 +70,14 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
    * Execution time in millis.
    */
   public long getExecutionTime() {
-    return executionTime;
+    return testFinishedEvent.getExecutionTime();
   }
 
   /**
    * Execution start timestamp (on the slave).
    */
   public long getStartTimestamp() {
-    return startTimestamp;
+    return testFinishedEvent.getStartTimestamp();
   }
 
   /**
@@ -113,10 +115,9 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
     hasErrors             |= failure.isErrorViolation();
   }
 
-  void complete(long startTimestamp, int time, List<IEvent> eventStream) {
+  void complete(TestFinishedEvent e, List<IEvent> eventStream) {
     this.eventStream = eventStream;
-    this.executionTime = time;
-    this.startTimestamp = startTimestamp;
+    this.testFinishedEvent = e;
 
     if (hasErrors) {
       status = TestStatus.ERROR;
@@ -125,5 +126,13 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
     } else if (hasIgnoredAssumptions) {
       status = TestStatus.IGNORED_ASSUMPTION;
     }
+  }
+
+  /**
+   * This isn't a nice hack but it allows associating {@link TestFinishedEvent} and
+   * {@link AggregatedTestResultEvent} by identity. = 
+   */
+  public TestFinishedEvent getTestFinishedEvent() {
+    return testFinishedEvent;
   }
 }

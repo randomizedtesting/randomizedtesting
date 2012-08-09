@@ -28,7 +28,18 @@
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+                <junit4:report-text 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutput="always"
+
+                    showStatusOk="true" 
+                    showStatusError="true" 
+                    showStatusFailure="true" 
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="true" 
+                />
             </listeners>
         </junit4:junit4>
     </presetdef>
@@ -522,8 +533,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
-
+                <junit4:report-text />
                 <junit4:report-json file="json/static-scope.json" />
             </listeners>
         </junit4:junit4>
@@ -578,7 +588,7 @@
             <classpath refid="tests.classpath" />
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="false" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+                <junit4:report-text showStatusOk="false" />
             </listeners>
 
             <fileset dir="${basedir}">
@@ -599,7 +609,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+                <junit4:report-text />
             </listeners>
         </junit4:junit4>
     </target>
@@ -616,7 +626,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+                <junit4:report-text />
             </listeners>
         </junit4:junit4>
     </target>
@@ -633,7 +643,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+                <junit4:report-text />
             </listeners>
         </junit4:junit4>
     </target>
@@ -678,7 +688,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+                <junit4:report-text />
             </listeners>
         </junit4:junit4>
     </target>
@@ -692,7 +702,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showThrowable="true" showStackTraces="true" showOutputStream="true" showErrorStream="true" showStatusOk="true" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+                <junit4:report-text />
             </listeners>
             
             <syspropertyset>
@@ -728,7 +738,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showOutputStream="true" />
+                <junit4:report-text />
             </listeners>
 
             <sysproperty key="prefix.dummy1" value="${prefix.dummy1}" ignoreEmpty="true" />
@@ -759,9 +769,9 @@
       
                   <listeners>
                       <!-- Always in UTF-8 -->
-                      <junit4:report-text showOutputStream="true" file="${log.file}" append="true" />
+                      <junit4:report-text file="${log.file}" append="true" />
                       <!-- Console output, environment-specific but show nonetheless. -->
-                      <junit4:report-text showOutputStream="true" />
+                      <junit4:report-text />
                   </listeners>
       
                   <sysproperty key="file.encoding" value="@{encoding}" />
@@ -788,7 +798,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text showOutputStream="true" />
+                <junit4:report-text />
             </listeners>
         </junit4:junit4>
     </target>
@@ -806,17 +816,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text 
-                    showThrowable="true" 
-                    showStackTraces="true" 
-                    showOutputStream="true" 
-                    showErrorStream="true" 
-                    showStatusOk="true" 
-                    showStatusError="true" 
-                    showStatusFailure="true" 
-                    showStatusIgnored="true" 
-                    showSuiteSummary="true" 
-                    timestamps="true" />
+                <junit4:report-text timestamps="true" />
             </listeners>
         </junit4:junit4>
     </target>
@@ -830,16 +830,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text 
-                    showThrowable="true" 
-                    showStackTraces="true" 
-                    showOutputStream="true" 
-                    showErrorStream="true" 
-                    showStatusOk="false" 
-                    showStatusError="true" 
-                    showStatusFailure="true" 
-                    showStatusIgnored="true" 
-                    showSuiteSummary="true" />
+                <junit4:report-text />
             </listeners>
         </junit4:junit4>
     </target>
@@ -856,16 +847,7 @@
             </fileset>
 
             <listeners>
-                <junit4:report-text 
-                    showThrowable="true" 
-                    showStackTraces="true" 
-                    showOutputStream="true" 
-                    showErrorStream="true" 
-                    showStatusOk="false" 
-                    showStatusError="true" 
-                    showStatusFailure="true" 
-                    showStatusIgnored="true" 
-                    showSuiteSummary="true" />
+                <junit4:report-text showStatusOk="false" />
             </listeners>
         </junit4:junit4>
    </target>
@@ -879,9 +861,7 @@
           </fileset>
 
           <listeners>
-              <junit4:report-text file="${basedir}/large.log"
-                  showOutputStream="true" 
-                  showErrorStream="true" />
+              <junit4:report-text file="${basedir}/large.log" />
           </listeners>
       </junit4:junit4>
 

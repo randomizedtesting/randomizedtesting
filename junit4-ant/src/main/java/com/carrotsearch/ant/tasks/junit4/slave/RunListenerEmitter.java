@@ -37,7 +37,7 @@ public class RunListenerEmitter extends RunListener {
     this.suiteDescription = description;
     this.suiteStart = System.currentTimeMillis();
     this.suiteAssumption = null;
-    serializer.serialize(new SuiteStartedEvent(description));
+    serializer.serialize(new SuiteStartedEvent(description, suiteStart));
   }
 
   @Override

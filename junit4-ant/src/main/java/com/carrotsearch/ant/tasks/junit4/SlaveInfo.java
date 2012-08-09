@@ -130,11 +130,7 @@ public final class SlaveInfo {
       }
     }
 
-    try {
-      stdout.flush();
-      stderr.flush();
-    } catch (IOException e) {
-      // Ignore.
-    }
+    stdout.flush();
+    stderr.flush();
   }
 }

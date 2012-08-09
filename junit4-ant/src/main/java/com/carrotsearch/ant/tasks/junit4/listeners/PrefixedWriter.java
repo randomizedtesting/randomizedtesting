@@ -54,7 +54,7 @@ class PrefixedWriter extends Writer {
   }
 
   /**
-   * Complete the current line.
+   * Complete the current line (emit LF if not at the start of the line already).
    */
   public void completeLine() throws IOException {
     if (lineBuffer.length() > 0) {

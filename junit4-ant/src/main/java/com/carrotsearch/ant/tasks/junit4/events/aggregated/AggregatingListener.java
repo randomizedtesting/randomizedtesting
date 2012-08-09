@@ -44,6 +44,8 @@ public class AggregatingListener {
       switch (e.getType()) {
         case APPEND_STDOUT:
         case APPEND_STDERR:
+          target.post(new PartialOutputEvent(slave, e));
+          // fall through.
         case TEST_STARTED:
         case TEST_FINISHED:
         case TEST_FAILURE:
@@ -51,10 +53,11 @@ public class AggregatingListener {
         case TEST_IGNORED_ASSUMPTION:
         case SUITE_FAILURE:
           eventStream.add(e);
+          break;
       }
     }
   }
-  
+
   /**
    * Detect slow heartbeat (long time without any events) from the forked JVM.
    */
@@ -82,6 +85,8 @@ public class AggregatingListener {
     suiteFailures = Lists.newArrayList();
     eventStream = Lists.newArrayList();
     lastSuite = e.getDescription();
+    
+    target.post(new AggregatedSuiteStartedEvent(slave, e));
   }
 
   @Subscribe
@@ -138,10 +143,7 @@ public class AggregatingListener {
   @Subscribe
   public void receiveTestEnd(TestFinishedEvent e) {
     assert e.getDescription().equals(tests.peek().getDescription());
-    tests.peek().complete(
-        e.getStartTimestamp(),
-        e.getExecutionTime(),
-        Lists.newArrayList(eventStream.subList(testStartStreamMarker, eventStream.size())));
+    tests.peek().complete(e, Lists.newArrayList(eventStream.subList(testStartStreamMarker, eventStream.size())));
     target.post(tests.peek());
   }
 
@@ -162,7 +164,7 @@ public class AggregatingListener {
     if (suiteFailures != null) {
       suiteFailures.add(e.getFailure());
     } else {
-      receiveSuiteStart(new SuiteStartedEvent(e.getDescription()));
+      receiveSuiteStart(new SuiteStartedEvent(e.getDescription(), System.currentTimeMillis()));
       suiteFailures.add(e.getFailure());
       receiveSuiteEnd(new SuiteCompletedEvent(e.getDescription(), System.currentTimeMillis(), 0));
     }

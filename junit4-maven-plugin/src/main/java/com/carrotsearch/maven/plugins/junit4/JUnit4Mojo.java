@@ -577,8 +577,7 @@ public class JUnit4Mojo extends AbstractMojo {
         Element consoleReport = listenersElement.addElement("report-text");
         consoleReport.addAttribute("showThrowable",     "true");
         consoleReport.addAttribute("showStackTraces",   "true");
-        consoleReport.addAttribute("showOutputStream",  "false");
-        consoleReport.addAttribute("showErrorStream",   "false");
+        consoleReport.addAttribute("showOutput",  "never");
 
         consoleReport.addAttribute("showStatusOk",      "false");
         consoleReport.addAttribute("showStatusError",   "true");
