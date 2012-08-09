@@ -48,11 +48,10 @@ class LineFlushingWriter extends Writer {
   public Writer append(CharSequence csq) throws IOException {
     throw new UnsupportedOperationException();
   }
-  
+
   @Override
   public Writer append(CharSequence csq, int start, int end) throws IOException {
-    w.append(csq, start, end);
-    return this;
+    throw new UnsupportedOperationException();
   }
 
   @Override

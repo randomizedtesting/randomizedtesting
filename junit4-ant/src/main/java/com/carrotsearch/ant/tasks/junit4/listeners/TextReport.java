@@ -295,7 +295,7 @@ public class TextReport implements AggregatedEventListener {
       logShort("Executing " +
           e.getSuiteCount() + Pluralize.pluralize(e.getSuiteCount(), " suite") +
           " with " + 
-          e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".");
+          e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".\n", false);
     }
 
     forkedJvmCount = e.getSlaveCount();
@@ -308,11 +308,10 @@ public class TextReport implements AggregatedEventListener {
   @Subscribe
   public void onHeartbeat(HeartBeatEvent e) throws IOException {
     synchronized (streamLock) {
-      String msg = "HEARTBEAT J" + e.getSlave().id + ": " +
-              formatTime(e.getCurrentTime()) + ", no events in: " +
-              formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
-              (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription()));
-      logShort(msg);
+      logShort("HEARTBEAT J" + e.getSlave().id + ": " +
+          formatTime(e.getCurrentTime()) + ", no events in: " +
+          formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
+          (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription())));
     }
   }
 
@@ -441,7 +440,8 @@ public class TextReport implements AggregatedEventListener {
       }
     }
     logShort(shortTimestamp(startTimestamp) +
-        "Suite: " + FormattingUtils.padTo(maxClassNameColumns, suiteName, "[...]"));
+          "Suite: " +
+          FormattingUtils.padTo(maxClassNameColumns, suiteName, "[...]"));
   }
 
   /**
@@ -476,8 +476,8 @@ public class TextReport implements AggregatedEventListener {
       b.append(FAILURE_STRING);
     }
 
-    b.append("\n"); 
-    logShort(b.toString());
+    b.append("\n");
+    logShort(b, false);
   }
 
   /**
@@ -509,7 +509,6 @@ public class TextReport implements AggregatedEventListener {
         pos.write(((AggregatedTestResultEvent) result).getCauseForIgnored());
         pos.completeLine();
         line.append(sw.toString());
-        line.append("\n");
       }
 
       final List<FailureMirror> failures = result.getFailures();
@@ -533,21 +532,40 @@ public class TextReport implements AggregatedEventListener {
         pos.completeLine();
         if (sw.getBuffer().length() > 0) {
           line.append(sw.toString());
-          line.append("\n");
         }
       }
     }
 
-    logShort(line.toString().trim());
+    logShort(line);
   }
 
   /**
    * Log a message line to the output.
    */
-  private void logShort(String message) throws IOException {
+  private void logShort(CharSequence message, boolean trim) throws IOException {
     assert Thread.holdsLock(streamLock);
-    output.write(message);
-    output.write("\n");
+
+    int length = message.length();
+    if (trim) {
+      while (length > 0 && Character.isWhitespace(message.charAt(length - 1))) {
+        length--;
+      }
+    }
+
+    char [] chars = new char [length + 1];
+    for (int i = 0; i < length; i++) {
+      chars[i] = message.charAt(i);
+    }
+    chars[length] = '\n';
+
+    output.write(chars);
+  }
+
+  /**
+   * logShort, trim whitespace.
+   */
+  private void logShort(CharSequence message) throws IOException {
+    logShort(message, true);
   }
 
   /**
