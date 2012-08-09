@@ -514,7 +514,8 @@ we highly recommend using the built-in JSON report.</p>
     <!--                                                                                  \n\
     Emit XMLs to tmp/test-results-dir, do not use Maven extensions (marks skipped tests). \n\
     -->                                                                                   \n\
-    <report-ant-xml dir="tmp/test-results-dir" mavenExtensions="false" />                 \n\
+    <report-ant-xml dir="tmp/test-results-dir" mavenExtensions="false"                    \n\
+                    outputStreams="yes"                                />                 \n\
   </listeners>                                                                            \n\
 </junit4>                                                                                 \n\
 ');
@@ -532,7 +533,8 @@ an accompanying HTML5 file for visualizing it:</p>
                                                                       \n\
   <listeners>                                                                             \n\
     <listeners>                                                                           \n\
-      <report-json file="json/output.html" projectName="MyProjectName" />                 \n\
+      <report-json file="json/output.html" projectName="MyProjectName"                    \n\
+                    outputStreams="yes"                                />                 \n\
     </listeners>                                                                          \n\
   </listeners>                                                                            \n\
 </junit4>                                                                                 \n\

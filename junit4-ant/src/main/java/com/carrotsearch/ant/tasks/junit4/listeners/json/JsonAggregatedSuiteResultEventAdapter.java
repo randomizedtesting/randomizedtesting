@@ -18,6 +18,12 @@ import static com.carrotsearch.ant.tasks.junit4.events.EventType.*;
  * Serialization of {@link AggregatedSuiteResultEvent}.
  */
 public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<AggregatedSuiteResultEvent> {
+  private final boolean outputStreams;
+
+  public JsonAggregatedSuiteResultEventAdapter(boolean outputStreams) {
+    this.outputStreams = outputStreams;
+  }
+
   @Override
   public JsonElement serialize(AggregatedSuiteResultEvent e, 
       Type type, JsonSerializationContext context) {
@@ -66,13 +72,17 @@ public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<Agg
           // Flush streams only if there's interwoven output between them.
 
           case APPEND_STDOUT:
-            flush(APPEND_STDERR, output, stderr, err);
-            ((IStreamEvent) evt).copyTo(stdout);
+            if (outputStreams) {
+              flush(APPEND_STDERR, output, stderr, err);
+              ((IStreamEvent) evt).copyTo(stdout);
+            }
             break;
 
           case APPEND_STDERR:
-            flush(APPEND_STDOUT, output, stdout, out);
-            ((IStreamEvent) evt).copyTo(stderr);
+            if (outputStreams) {
+              flush(APPEND_STDOUT, output, stdout, out);
+              ((IStreamEvent) evt).copyTo(stderr);
+            }
             break;
         }
       } catch (IOException ex) {
@@ -83,9 +93,7 @@ public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<Agg
     return output;
   }
 
-  public void flushBoth(JsonArray output, final StringWriter out,
-      final StringWriter err, WriterOutputStream stdout,
-      WriterOutputStream stderr) {
+  public void flushBoth(JsonArray output, final StringWriter out, final StringWriter err, WriterOutputStream stdout, WriterOutputStream stderr) {
     try {
       flush(APPEND_STDOUT, output, stdout, out);
       flush(APPEND_STDERR, output, stderr, err);

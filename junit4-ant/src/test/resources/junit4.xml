@@ -861,12 +861,17 @@
           </fileset>
 
           <listeners>
-              <!-- <junit4:report-text file="${basedir}/large.log" />  -->
-              <junit4:report-text /> 
+              <junit4:report-text file="${basedir}/large.log" />
+              <junit4:report-json file="${basedir}/large.json" outputStreams="no" />
+              <junit4:report-ant-xml dir="${basedir}/large.xml" outputStreams="no" />
           </listeners>
       </junit4:junit4>
 
-      <delete file="${basedir}/large.log" />
+      <delete includeemptydirs="true">
+          <fileset dir="${basedir}">
+              <include name="large.*/**" />
+          </fileset>
+      </delete>
    </target>
    
    <target name="sysouts_passthrough">

@@ -55,6 +55,11 @@ public class JsonReport implements AggregatedEventListener {
   private OutputMethod method;
   
   /**
+   * @see #setOutputStreams(boolean)
+   */
+  private boolean outputStreams = true;
+
+  /**
    * Output file for the report file. The name of the output file
    * will also trigger how the report is written. If the name of the
    * output file ends with ".htm(l)?" then the output file is a HTML
@@ -87,14 +92,21 @@ public class JsonReport implements AggregatedEventListener {
   public void setJsonpMethod(String method) {
     this.jsonpMethod = Strings.emptyToNull(method);
   }
-  
+
   /**
    * Set project name for the output model.
    */
   public void setProjectName(String projectName) {
     this.projectName = projectName;
   }
-  
+
+  /**
+   * Include output streams? Mind that with large outputs the report may OOM.
+   */
+  public void setOutputStreams(boolean outputStreams) {
+    this.outputStreams = outputStreams;
+  }
+
   /*
    * 
    */
@@ -122,7 +134,7 @@ public class JsonReport implements AggregatedEventListener {
 
     final ClassLoader refLoader = Thread.currentThread().getContextClassLoader(); 
     this.gson = new GsonBuilder()
-      .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonAggregatedSuiteResultEventAdapter())
+      .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonAggregatedSuiteResultEventAdapter(outputStreams))
       .registerTypeAdapter(AggregatedTestResultEvent.class, new JsonAggregatedTestResultEventAdapter())
       .registerTypeAdapter(FailureMirror.class, new JsonFailureMirrorAdapter())
       .registerTypeAdapter(SlaveInfo.class, new JsonSlaveInfoAdapter())

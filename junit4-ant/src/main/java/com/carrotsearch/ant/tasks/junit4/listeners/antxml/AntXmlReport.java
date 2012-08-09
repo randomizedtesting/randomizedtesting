@@ -36,10 +36,22 @@ public class AntXmlReport implements AggregatedEventListener {
   private List<TokenFilter> filters = Lists.newArrayList();
 
   /**
+   * @see #setOutputStreams(boolean)
+   */
+  private boolean outputStreams = true;
+  
+  /**
    * Output directory to write reports to.
    */
   public void setDir(File dir) {
     this.dir = dir;
+  }
+  
+  /**
+   * Include output streams? Mind that with large outputs the report may OOM.
+   */
+  public void setOutputStreams(boolean outputStreams) {
+    this.outputStreams = outputStreams;
   }
   
   /**
@@ -146,7 +158,9 @@ public class AntXmlReport implements AggregatedEventListener {
 
     StringWriter sysout = new StringWriter();
     StringWriter syserr = new StringWriter();
-    e.getSlave().decodeStreams(e.getEventStream(), sysout, syserr);
+    if (outputStreams) {
+      e.getSlave().decodeStreams(e.getEventStream(), sysout, syserr);
+    }
     suite.sysout = sysout.toString();
     suite.syserr = syserr.toString();
 
