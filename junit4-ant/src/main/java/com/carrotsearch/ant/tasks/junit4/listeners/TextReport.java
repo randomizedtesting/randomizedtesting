@@ -143,11 +143,6 @@ public class TextReport implements AggregatedEventListener {
   private boolean append;
 
   /**
-   * Monitor used for coordinating outputs. 
-   */
-  private Object streamLock;
-
-  /**
    * Forked concurrent JVM count. 
    */
   private int forkedJvmCount;
@@ -267,7 +262,6 @@ public class TextReport implements AggregatedEventListener {
       } catch (IOException e) {
         throw new BuildException(e);
       }
-      streamLock = new Object();
     } else {
       if (!UNICODE_ENCODINGS.contains(Charset.defaultCharset().name())) {
         task.log("Your default console's encoding may not display certain" +
@@ -281,7 +275,6 @@ public class TextReport implements AggregatedEventListener {
           flush();
         }
       };
-      streamLock = System.out;
     }
   }
 
@@ -291,12 +284,10 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onStart(AggregatedStartEvent e) throws IOException {
-    synchronized (streamLock) {
-      logShort("Executing " +
-          e.getSuiteCount() + Pluralize.pluralize(e.getSuiteCount(), " suite") +
-          " with " + 
-          e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".\n", false);
-    }
+    logShort("Executing " +
+        e.getSuiteCount() + Pluralize.pluralize(e.getSuiteCount(), " suite") +
+        " with " + 
+        e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".\n", false);
 
     forkedJvmCount = e.getSlaveCount();
     jvmIdFormat = " J%-" + (1 + (int) Math.floor(Math.log10(forkedJvmCount))) + "d";
@@ -307,12 +298,10 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onHeartbeat(HeartBeatEvent e) throws IOException {
-    synchronized (streamLock) {
       logShort("HEARTBEAT J" + e.getSlave().id + ": " +
           formatTime(e.getCurrentTime()) + ", no events in: " +
           formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
           (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription())));
-    }
   }
 
   @Subscribe
@@ -329,10 +318,8 @@ public class TextReport implements AggregatedEventListener {
     errStream = new WriterOutputStream(errWriter, charset, DEFAULT_MAX_LINE_WIDTH, true);
 
     if (showSuiteSummary && isPassthrough()) {
-      synchronized (streamLock) {
-        SuiteStartedEvent evt = e.getSuiteStartedEvent();
-        emitSuiteStart(evt.getDescription(), evt.getStartTimestamp());
-      }
+      SuiteStartedEvent evt = e.getSuiteStartedEvent();
+      emitSuiteStart(evt.getDescription(), evt.getStartTimestamp());
     }
   }
 
@@ -354,35 +341,32 @@ public class TextReport implements AggregatedEventListener {
   @Subscribe
   public void onTestResult(AggregatedTestResultEvent e) throws IOException {
     if (isPassthrough() && displayStatus.get(e.getStatus())) {
-      synchronized (streamLock) {
-        flushOutput();
-        emitStatusLine(e, e.getStatus(), e.getExecutionTime());
-      }
+      flushOutput();
+      emitStatusLine(e, e.getStatus(), e.getExecutionTime());
     }
   }
 
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) throws IOException {
-    synchronized (streamLock) {
-      // We must emit buffered test and stream events (in case of failures).
-      if (!isPassthrough()) {
-        if (showSuiteSummary) {
-          emitSuiteStart(e.getDescription(), e.getStartTimestamp());
-        }
-        emitBufferedEvents(e);
-      }
-
-      // Emit a synthetic failure for suite-level errors, if any.
-      if (!e.getFailures().isEmpty() && displayStatus.get(TestStatus.ERROR)) {
-        emitStatusLine(e, TestStatus.ERROR, 0);
-      }
-
-      // Emit suite summary line if requested.
+    // We must emit buffered test and stream events (in case of failures).
+    if (!isPassthrough()) {
       if (showSuiteSummary) {
-        emitSuiteEnd(e);
+        emitSuiteStart(e.getDescription(), e.getStartTimestamp());
       }
+      emitBufferedEvents(e);
+    }
+
+    // Emit a synthetic failure for suite-level errors, if any.
+    if (!e.getFailures().isEmpty() && displayStatus.get(TestStatus.ERROR)) {
+      emitStatusLine(e, TestStatus.ERROR, 0);
+    }
+
+    // Emit suite summary line if requested.
+    if (showSuiteSummary) {
+      emitSuiteEnd(e);
     }
   }
+
   private void emitBufferedEvents(AggregatedSuiteResultEvent e) throws IOException {
     final IdentityHashMap<TestFinishedEvent,AggregatedTestResultEvent> eventMap = Maps.newIdentityHashMap();
     for (AggregatedTestResultEvent tre : e.getTests()) {
@@ -543,8 +527,6 @@ public class TextReport implements AggregatedEventListener {
    * Log a message line to the output.
    */
   private void logShort(CharSequence message, boolean trim) throws IOException {
-    assert Thread.holdsLock(streamLock);
-
     int length = message.length();
     if (trim) {
       while (length > 0 && Character.isWhitespace(message.charAt(length - 1))) {
