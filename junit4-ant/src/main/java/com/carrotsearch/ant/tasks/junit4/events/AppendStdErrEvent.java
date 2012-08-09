@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class AppendStdErrEvent extends AbstractEvent implements IStreamEvent {
-  public byte[] chunk;
+  private byte[] chunk;
 
   protected AppendStdErrEvent() {
     super(EventType.APPEND_STDERR);

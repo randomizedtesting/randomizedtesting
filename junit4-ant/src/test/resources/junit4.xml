@@ -850,6 +850,7 @@
                 <junit4:report-text showStatusOk="false" />
             </listeners>
         </junit4:junit4>
+<<<<<<< HEAD
    </target>
 
    <target name="sysoutoom">
@@ -889,4 +890,7 @@
 
       <delete file="${basedir}/large.log" />
    </target>
+=======
+    </target>
+>>>>>>> master
 </project>

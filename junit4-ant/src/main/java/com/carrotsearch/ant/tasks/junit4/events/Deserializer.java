@@ -1,11 +1,9 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 import com.google.common.base.Charsets;
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 
@@ -32,7 +30,6 @@ public class Deserializer {
     EventType type = EventType.valueOf(input.nextString());
     IEvent event = gson.fromJson(input, type.eventClass);
     input.endArray();
-
     return event;
   }
 }

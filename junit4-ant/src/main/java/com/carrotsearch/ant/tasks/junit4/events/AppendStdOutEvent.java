@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class AppendStdOutEvent extends AbstractEvent implements IStreamEvent {
-  public byte[] chunk;
+  private byte[] chunk;
 
   protected AppendStdOutEvent() {
     super(EventType.APPEND_STDOUT);

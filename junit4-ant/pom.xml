@@ -42,7 +42,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
+
     <!-- Embedded into standalone JAR. -->
 
     <dependency>
