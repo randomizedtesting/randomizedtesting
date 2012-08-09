@@ -30,7 +30,10 @@ class RandomAccessFileOutputStream extends OutputStream {
 
   @Override
   public void flush() throws IOException {
-    raf.getChannel().force(true);
+    // This was causing intermittent channel invalidations on Windows for
+    // no apparent reason. Also, it shouldn't be a problem if we don't sync
+    // with the disk (and use OS cache only)?
+    // raf.getChannel().force(true);
   }
 
   @Override
