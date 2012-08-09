@@ -40,7 +40,8 @@ public class TextReport implements AggregatedEventListener {
   /**
    * Failure marker string.
    */
-  private static final String FAILURE_STRING = " <<< FAILURES!";
+  private static final String FAILURE_MARKER = " <<<";
+  private static final String FAILURE_STRING = FAILURE_MARKER + " FAILURES!";
 
   /**
    * Default 16kb for maximum line width buffer. Otherwise we may get OOMs buffering
@@ -495,7 +496,7 @@ public class TextReport implements AggregatedEventListener {
 
     line.append(formatDescription(result.getDescription()));
     if (!result.isSuccessful()) {
-      line.append(FAILURE_STRING);
+      line.append(FAILURE_MARKER);
     }
     line.append("\n");
 
