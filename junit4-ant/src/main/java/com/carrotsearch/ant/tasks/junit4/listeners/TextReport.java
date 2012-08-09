@@ -273,8 +273,9 @@ public class TextReport implements AggregatedEventListener {
             " unicode glyphs: " + Charset.defaultCharset().name(), 
             Project.MSG_INFO);
       }
-      output = new OutputStreamWriter(System.out, Charset.defaultCharset()) {
-        // Don't close the underlying stream.
+      output = new LineFlushingWriter(new OutputStreamWriter(System.out, Charset.defaultCharset())) {
+        @Override
+        // Don't close the underlying stream, just flush.
         public void close() throws IOException {
           flush();
         }

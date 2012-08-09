@@ -27,7 +27,7 @@ class RandomAccessFileOutputStream extends OutputStream {
   public void write(byte[] b, int off, int len) throws IOException {
     raf.write(b, off, len);
   }
-  
+
   @Override
   public void flush() throws IOException {
     raf.getChannel().force(true);

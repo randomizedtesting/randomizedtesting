@@ -851,7 +851,7 @@
             </listeners>
         </junit4:junit4>
    </target>
-    
+
    <target name="sysoutoom">
       <junit4:junit4 haltonfailure="true" parallelism="2" shuffleOnSlave="true">
           <classpath refid="tests.classpath" />
@@ -861,7 +861,24 @@
           </fileset>
 
           <listeners>
-              <junit4:report-text file="${basedir}/large.log" />
+              <!-- <junit4:report-text file="${basedir}/large.log" />  -->
+              <junit4:report-text /> 
+          </listeners>
+      </junit4:junit4>
+
+      <delete file="${basedir}/large.log" />
+   </target>
+   
+   <target name="sysouts_passthrough">
+      <junit4:junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true">
+          <classpath refid="tests.classpath" />
+
+          <fileset dir="${basedir}">
+              <include name="**/SysoutPassthrough.class" />
+          </fileset>
+
+          <listeners>
+              <junit4:report-text />
           </listeners>
       </junit4:junit4>
 

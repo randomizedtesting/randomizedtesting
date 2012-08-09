@@ -27,8 +27,8 @@ public class AntBuildFileTestBase {
   private ByteArrayOutputStream output;
   private DefaultLogger listener;
 
-  private PrintStream restoreSysout;
-  private PrintStream restoreSyserr;
+  protected PrintStream restoreSysout;
+  protected PrintStream restoreSyserr;
 
   protected void setupProject(File projectFile) {
     try {

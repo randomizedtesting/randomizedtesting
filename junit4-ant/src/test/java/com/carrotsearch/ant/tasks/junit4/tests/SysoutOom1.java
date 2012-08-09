@@ -5,10 +5,13 @@ import org.junit.Test;
 public class SysoutOom1 {
   @Test
   public void writealot() {
-    char [] CHARS = "ABCDEFGHIJKLOMNOPQRSTUVWXY1208941239846926Y932".toCharArray();
+    write("012345678901234567890123456789".toCharArray());
+  }
+
+  protected final void write(char[] charArray) {
     char [] chars = new char [200];
     for (int i = 0; i < chars.length; i++) {
-      chars[i] = CHARS[i % CHARS.length];
+      chars[i] = charArray[i % charArray.length];
     }
 
     int emitChars = 1024 * 1024 * 25;

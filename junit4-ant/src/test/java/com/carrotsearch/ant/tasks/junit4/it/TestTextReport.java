@@ -4,6 +4,7 @@ package com.carrotsearch.ant.tasks.junit4.it;
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.carrotsearch.ant.tasks.junit4.tests.FailInAfterClass;
@@ -69,5 +70,11 @@ public class TestTextReport extends JUnit4XmlTestBase {
     Assert.assertTrue(
         log.indexOf("1> test-sysout") <
         log.indexOf("Suite execution timed out:"));
-  }        
+  }
+
+  @Test 
+  @Ignore
+  public void sysoutsPassthrough() {
+    super.executeTarget("sysouts_passthrough");
+  }  
 }

@@ -191,7 +191,7 @@ public class SlaveMain {
       final ArrayDeque<String> args = new ArrayDeque<String>(Arrays.asList(allArgs));
 
       // Options.
-      Boolean flushFrequently = null;
+      boolean flushFrequently = false;
       File  eventsFile = null;
       boolean suitesOnStdin = false;
       List<String> testClasses = Lists.newArrayList();
@@ -233,9 +233,10 @@ public class SlaveMain {
         .flush();
 
       // Redirect original streams and start running tests.
-      redirectStreams(serializer);
+      redirectStreams(serializer, flushFrequently);
+
       final SlaveMain main = new SlaveMain(serializer);
-      if (flushFrequently != null) main.flushFrequently = flushFrequently;
+      main.flushFrequently = flushFrequently;
 
       final Iterator<String> stdInput;
       if (suitesOnStdin) { 
@@ -288,7 +289,7 @@ public class SlaveMain {
   /**
    * Redirect standard streams so that the output can be passed to listeners.
    */
-  private static void redirectStreams(final Serializer serializer) {
+  private static void redirectStreams(final Serializer serializer, final boolean flushFrequently) {
     final PrintStream origSysOut = System.out;
     final PrintStream origSysErr = System.err;
 
@@ -299,6 +300,7 @@ public class SlaveMain {
           origSysOut.write(b, off, len);
         }
         serializer.serialize(new AppendStdOutEvent(b, off, len));
+        if (flushFrequently) serializer.flush();
       }
     })));
 
@@ -309,6 +311,7 @@ public class SlaveMain {
           origSysErr.write(b, off, len);
         }
         serializer.serialize(new AppendStdErrEvent(b, off, len));
+        if (flushFrequently) serializer.flush();
       }
     })));
   }
