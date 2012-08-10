@@ -829,10 +829,9 @@ public class JUnit4 extends Task {
       SlaveInfo slaveInError = null;
       for (SlaveInfo i : slaveInfos) {
         if (i.executionError != null) {
-          log("ERROR: JVM J" + i.id + " threw an exception, cmd line: " +
-              i.getCommandLine(), Project.MSG_ERR);
-          log("ERROR: JVM J" + i.id + " exception: " + i.executionError.getMessage(), 
-              i.executionError, Project.MSG_ERR);
+          log("ERROR: JVM J" + i.id + " ended with an exception, command line: " + i.getCommandLine());
+          log("ERROR: JVM J" + i.id + " ended with an exception: " + 
+              Throwables.getStackTraceAsString(i.executionError), Project.MSG_ERR);
           if (slaveInError == null) {
             slaveInError = i;
           }

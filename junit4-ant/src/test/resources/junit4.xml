@@ -889,4 +889,12 @@
 
       <delete file="${basedir}/large.log" />
    </target>
+
+    <target name="slavemainfailure">
+        <junit4.preconf haltonfailure="true">
+            <fileset dir="${basedir}">
+                <include name="**/FireUnhandledRunnerException.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
 </project>

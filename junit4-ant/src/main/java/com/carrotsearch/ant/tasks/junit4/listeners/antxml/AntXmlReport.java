@@ -19,6 +19,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
@@ -221,7 +222,8 @@ public class AntXmlReport implements AggregatedEventListener {
     try {
       return CharStreams.toString(in);
     } catch (IOException e) {
-      junit4.log("Could not apply filters to " + methodName + ": " + e, e, Project.MSG_WARN);
+      junit4.log("Could not apply filters to " + methodName + 
+          ": " + Throwables.getStackTraceAsString(e), Project.MSG_WARN);
       return methodName;
     }
   }

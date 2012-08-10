@@ -12,6 +12,7 @@ import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
@@ -49,6 +50,13 @@ public class SlaveMain {
    * to which events should be dumped. The file has to be initially empty!
    */
   public static final String OPTION_EVENTSFILE = "-eventsfile";
+
+  /**
+   * Fire a runner failure after startup to verify messages
+   * are propagated properly. Not really useful in practice...
+   */
+  public static final String SYSPROP_FIRERUNNERFAILURE =
+      SlaveMain.class.getName() + ".fireRunnerFailure";
 
   /**
    * Event sink.
@@ -174,7 +182,7 @@ public class SlaveMain {
         if (flushFrequently)
           serializer.flush();
       } catch (Exception e) {
-        warn("Could not report failure: ", t);
+        warn("Could not report failure back to master.", t);
       }
       return null;
     }
@@ -245,8 +253,13 @@ public class SlaveMain {
         stdInput = Collections.<String>emptyList().iterator();
       }
       main.execute(Iterators.concat(testClasses.iterator(), stdInput));
+
+      // For unhandled exceptions tests.
+      if (System.getProperty(SYSPROP_FIRERUNNERFAILURE) != null) {
+        throw new Exception(System.getProperty(SYSPROP_FIRERUNNERFAILURE));
+      }
     } catch (Throwable t) {
-      warn("Exception at main loop level?", t);
+      warn("Exception at main loop level.", t);
       exitStatus = ERR_EXCEPTION;
     }
 
@@ -255,7 +268,7 @@ public class SlaveMain {
         try {
           serializer.close();
         } catch (Throwable t) {
-          warn("Exception closing serializer?", t);
+          warn("Exception closing serializer.", t);
         }
       }
     } finally {
@@ -293,6 +306,9 @@ public class SlaveMain {
     final PrintStream origSysOut = System.out;
     final PrintStream origSysErr = System.err;
 
+    // Set warnings stream to System.err.
+    warnings = System.err;
+    
     System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
       @Override
       public void write(byte[] b, int off, int len) throws IOException {
@@ -322,11 +338,10 @@ public class SlaveMain {
   public static void warn(String string, Throwable t) {
     try {
       PrintStream w = (warnings == null ? System.err : warnings);
-  
-      w.println("WARN: " + string);
       if (t != null) {
-        w.println("      " + t.toString());
-        t.printStackTrace(w);
+        w.println("WARN: " + string + " -> " + Throwables.getStackTraceAsString(t));
+      } else {
+        w.println("WARN: " + string);
       }
       w.flush();
     } catch (Throwable t2) {

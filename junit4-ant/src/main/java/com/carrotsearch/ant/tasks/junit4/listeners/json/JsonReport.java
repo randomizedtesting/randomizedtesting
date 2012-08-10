@@ -211,7 +211,7 @@ public class JsonReport implements AggregatedEventListener {
     } catch (Exception ex) {
       ex.printStackTrace();
       junit4.log("Error serializing to JSON file: "
-          + ex.toString(), ex, Project.MSG_WARN);
+          + Throwables.getStackTraceAsString(ex), Project.MSG_WARN);
       gson = null;
     }
   }
