@@ -151,6 +151,11 @@ public class JUnit4 extends Task {
   private boolean newEnvironment;
 
   /**
+   * @see #setUniqueSuiteNames
+   */
+  private boolean uniqueSuiteNames = true;
+  
+  /**
    * Environment variables to use in the forked JVM.
    */
   private Environment env = new Environment();
@@ -284,6 +289,15 @@ public class JUnit4 extends Task {
    */
   public void setSysouts(boolean sysouts) {
     this.sysouts = sysouts;
+  }
+  
+  /**
+   * Allow or disallow duplicate suite names in resource collections. By default this option
+   * is <code>true</code> because certain ANT-compatible report types (like XML reports)
+   * will have a problem with duplicate suite names (will overwrite files).
+   */
+  public void setUniqueSuiteNames(boolean uniqueSuiteNames) {
+    this.uniqueSuiteNames = uniqueSuiteNames;
   }
 
   /**
@@ -755,14 +769,22 @@ public class JUnit4 extends Task {
       aggregatedBus.post(new AggregatedQuitEvent());
     } else {
       start = System.currentTimeMillis();
-      
+
+      // Check if we allow duplicate suite names. Some reports (ANT compatible XML
+      // reports) will have a problem with duplicate suite names, for example.
+      if (uniqueSuiteNames) {
+        List<String> unique = Lists.newArrayList(new HashSet<String>(testClassNames));
+        testClassNames.clear();
+        testClassNames.addAll(unique);
+      }
+
       final int slaveCount = determineSlaveCount(testClassNames.size());
       final List<SlaveInfo> slaveInfos = Lists.newArrayList();
       for (int slave = 0; slave < slaveCount; slave++) {
         final SlaveInfo slaveInfo = new SlaveInfo(slave, slaveCount);
         slaveInfos.add(slaveInfo);
       }
-
+      
       // Order test class names identically for balancers.
       Collections.sort(testClassNames);
       
