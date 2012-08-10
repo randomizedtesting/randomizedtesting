@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.Execute;
@@ -1113,7 +1114,12 @@ public class JUnit4 extends Task {
       commandline.createArgument().setValue(SlaveMain.OPTION_SYSOUTS);
     }
 
-    InputStream eventStream = new TailInputStream(eventFile);
+    OutputStream eventFileShadow = new FileOutputStream(tempFile(uniqueSeed, 
+        "junit4-J" + slave.id, ".shadow", getTempDir()));
+    InputStream eventStream =
+        new TeeInputStream(
+            new TailInputStream(eventFile), 
+            eventFileShadow, true);
 
     // Set up input suites file.
     commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
