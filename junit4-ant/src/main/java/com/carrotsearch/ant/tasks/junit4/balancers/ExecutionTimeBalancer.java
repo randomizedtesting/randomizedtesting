@@ -10,7 +10,6 @@ import org.apache.tools.ant.types.ResourceCollection;
 import com.carrotsearch.ant.tasks.junit4.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * A test suite balancer based on past execution times saved using
@@ -18,8 +17,7 @@ import com.google.common.collect.Maps;
  */
 public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBalancer {
   private static class SlaveLoad {
-    public static final Comparator<SlaveLoad> ASCENDING_BY_ESTIMATED_FINISH = 
-        new Comparator<SlaveLoad>() {
+    public static final Comparator<SlaveLoad> ASCENDING_BY_ESTIMATED_FINISH = new Comparator<SlaveLoad>() {
       @Override
       public int compare(SlaveLoad o1, SlaveLoad o2) {
         if (o1.estimatedFinish < o2.estimatedFinish) {
@@ -39,12 +37,12 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
       this.id = id;
     }
   }
-  
+
   /**
    * All included execution time dumps.
    */
   private List<ResourceCollection> resources = Lists.newArrayList();
-  
+
   /** Owning task (logging). */
   private JUnit4 owner;
 
@@ -77,20 +75,22 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
    * a decent average assignment.
    */
   @Override
-  public LinkedHashMap<String,Assignment> assign(Collection<String> suiteNames, int slaves, long seed) {
+  public List<Assignment> assign(Collection<String> suiteNames, int slaves, long seed) {
     // Read hints first.
     final Map<String,List<Long>> hints = ExecutionTimesReport.mergeHints(resources, suiteNames);
 
     // Preprocess and sort costs. Take the median for each suite's measurements as the 
     // weight to avoid extreme measurements from screwing up the average.
     final List<SuiteHint> costs = Lists.newArrayList();
-    for (Map.Entry<String,List<Long>> e : hints.entrySet()) {
-      // Take the median for each suite's measurements as the weight
-      // to avoid extreme measurements from screwing up the average.
-      final List<Long> values = e.getValue();
-      Collections.sort(values);
-      final Long median = values.get(values.size() / 2);
-      costs.add(new SuiteHint(e.getKey(), median));
+    for (String suiteName : suiteNames) {
+      final List<Long> suiteHint = hints.get(suiteName);
+      if (suiteHint != null) {
+        // Take the median for each suite's measurements as the weight
+        // to avoid extreme measurements from screwing up the average.
+        Collections.sort(suiteHint);
+        final Long median = suiteHint.get(suiteHint.size() / 2);
+        costs.add(new SuiteHint(suiteName, median));
+      }
     }
     Collections.sort(costs, SuiteHint.DESCENDING_BY_WEIGHT);
 
@@ -101,7 +101,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
       pq.add(new SlaveLoad(i));
     }
 
-    final LinkedHashMap<String, Assignment> assignments = Maps.newLinkedHashMap();
+    final List<Assignment> assignments = Lists.newArrayList();
     for (SuiteHint hint : costs) {
       SlaveLoad slave = pq.remove();
       slave.estimatedFinish += hint.cost;
@@ -111,7 +111,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
           Duration.toHumanDuration(hint.cost),
           Project.MSG_DEBUG);
 
-      assignments.put(hint.suiteName, new Assignment(slave.id, (int) hint.cost));
+      assignments.add(new Assignment(hint.suiteName, slave.id, (int) hint.cost));
     }
 
     // Dump estimated execution times.

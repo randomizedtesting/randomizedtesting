@@ -436,6 +436,20 @@
         </fail>
     </target>
 
+    <target name="balancing_nohints">
+        <junit4.preconf parallelism="2">
+            <fileset dir="${basedir}">
+                <include name="**/tests/sub2/Test*.class" />
+            </fileset>
+
+            <balancers>
+                <junit4:execution-times>
+                    <fileset dir="${basedir}" includes="nohints*.log" />
+                </junit4:execution-times>
+            </balancers>
+        </junit4.preconf>
+    </target>
+
     <target name="alt-vendor">
         <fail unless="jvm.exec">jvm.exec property must be set.</fail>
         <junit4.preconf parallelism="1" leaveTemporary="true" jvm="${jvm.exec}">
@@ -895,6 +909,27 @@
             <fileset dir="${basedir}">
                 <include name="**/FireUnhandledRunnerException.class" />
             </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="suiteduplicate">
+        <junit4.preconf parallelism="2">
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/TestSuccess.class" />
+            </fileset>
+            <fileset dir="${basedir}">
+                <include name="**/TestSuccess.class" />
+            </fileset>
+
+            <balancers>
+                <junit4:execution-times>
+                    <fileset dir="${basedir}" includes="hints*.log" />
+                </junit4:execution-times>
+            </balancers>
         </junit4.preconf>
     </target>
 </project>

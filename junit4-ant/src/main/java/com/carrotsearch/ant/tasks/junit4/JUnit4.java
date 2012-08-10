@@ -31,9 +31,10 @@ import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.*;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.*;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Multiset;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
@@ -895,49 +896,48 @@ public class JUnit4 extends Task {
     final List<SuiteBalancer> balancersWithFallback = Lists.newArrayList(balancers);
     balancersWithFallback.add(new RoundRobinBalancer());
 
-    // Initialize per-slave lists.
-    for (SlaveInfo si : slaveInfos) {
-      si.testSuites = Lists.newArrayList();
-    }
-
     // Go through all the balancers, the first one to assign a suite wins.
-    final HashMap<String,Assignment> allCosts = Maps.newHashMap();
-    final LinkedHashSet<String> remaining = Sets.newLinkedHashSet(testClassNames);
+    final Multiset<String> remaining = HashMultiset.create(testClassNames);
+    final Map<Integer,List<Assignment>> perJvmAssignments = Maps.newHashMap();
+    for (SlaveInfo si : slaveInfos) {
+      perJvmAssignments.put(si.id, Lists.<Assignment> newArrayList());
+    }
+    final int jvmCount = slaveInfos.size();
     for (SuiteBalancer balancer : balancersWithFallback) {
       balancer.setOwner(this);
+      final List<Assignment> assignments =
+          balancer.assign(
+              Collections.unmodifiableCollection(remaining), jvmCount, masterSeed());
 
-      LinkedHashMap<String, Assignment> assignments = balancer.assign(
-          Collections.unmodifiableCollection(remaining), slaveInfos.size(), masterSeed());
-      for (Map.Entry<String, Assignment> e : assignments.entrySet()) {
-        if (e.getValue() == null) {
-          throw new RuntimeException("Balancer must return non-null JVM ID.");
+      for (Assignment e : assignments) {
+        if (e == null) {
+          throw new RuntimeException("Balancer must return non-null assignments.");
         }
-        if (!remaining.remove(e.getKey())) {
-          throw new RuntimeException("Balancer must return suite name as a key: " + e.getKey());
+        if (!remaining.remove(e.suiteName)) {
+          throw new RuntimeException("Balancer must return suite name as a key: " + e.suiteName);
         }
 
         log(String.format(Locale.ENGLISH,
             "Assignment hint: J%-2d (cost %5d) %s (by %s)",
-            e.getValue().slaveId,
-            e.getValue().estimatedCost,
-            e.getKey(),
+            e.slaveId,
+            e.estimatedCost,
+            e.suiteName,
             balancer.getClass().getSimpleName()), Project.MSG_VERBOSE);
 
-        allCosts.put(e.getKey(), e.getValue());
-        slaveInfos.get(e.getValue().slaveId).testSuites.add(e.getKey());
+        perJvmAssignments.get(e.slaveId).add(e);
       }
     }
 
     if (remaining.size() != 0) {
       throw new RuntimeException("Not all suites assigned?: " + remaining);
-    }    
-
+    }
+    
     if (shuffleOnSlave) {
       // Shuffle suites on slaves so that the result is always the same wrt master seed
       // (sort first, then shuffle with a constant seed).
-      for (SlaveInfo si : slaveInfos) {
-        Collections.sort(si.testSuites);
-        Collections.shuffle(si.testSuites, new Random(this.masterSeed()));
+      for (List<Assignment> assignments : perJvmAssignments.values()) {
+        Collections.sort(assignments);
+        Collections.shuffle(assignments, new Random(this.masterSeed()));
       }
     }
 
@@ -945,18 +945,24 @@ public class JUnit4 extends Task {
     // job-stealing queue.
     List<SuiteHint> stealingQueueWithHints = Lists.newArrayList();
     for (SlaveInfo si : slaveInfos) {
-      ArrayList<String> slaveSuites = si.testSuites;
-      int moveToCommon = (int) (slaveSuites.size() * dynamicAssignmentRatio);
+      final List<Assignment> assignments = perJvmAssignments.get(si.id);
+      int moveToCommon = (int) (assignments.size() * dynamicAssignmentRatio);
+
       if (moveToCommon > 0) {
-        List<String> sublist = 
-            slaveSuites.subList(slaveSuites.size() - moveToCommon, slaveSuites.size());
-        for (String suiteName : sublist) {
-          stealingQueueWithHints.add(new SuiteHint(suiteName, allCosts.get(suiteName).estimatedCost));
+        final List<Assignment> movedToCommon = 
+            assignments.subList(assignments.size() - moveToCommon, assignments.size());
+        for (Assignment a : movedToCommon) {
+          stealingQueueWithHints.add(new SuiteHint(a.suiteName, a.estimatedCost));
         }
-        sublist.clear();
+        movedToCommon.clear();
+      }
+
+      final ArrayList<String> slaveSuites = (si.testSuites = Lists.newArrayList());
+      for (Assignment a : assignments) {
+        slaveSuites.add(a.suiteName);
       }
     }
-    
+
     // Sort stealing queue according to descending cost.
     Collections.sort(stealingQueueWithHints, SuiteHint.DESCENDING_BY_WEIGHT);
 

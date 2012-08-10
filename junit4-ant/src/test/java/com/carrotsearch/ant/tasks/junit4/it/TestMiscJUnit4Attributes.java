@@ -92,6 +92,11 @@ public class TestMiscJUnit4Attributes extends JUnit4XmlTestBase {
   }
 
   @Test
+  public void balancing_nohints() {
+    executeTarget("balancing_nohints");
+  }
+
+  @Test
   public void mergehints() {
     executeTarget("mergehints");
   }
