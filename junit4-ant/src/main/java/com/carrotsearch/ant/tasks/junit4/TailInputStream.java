@@ -53,30 +53,18 @@ class TailInputStream extends InputStream {
     }
 
     try {
-      int bytesRead = 0;
-      for (; len > 0;) {
-        int rafRead = raf.read(b, off, len);
-        if (rafRead == -1) {
-          if (bytesRead == 0) {
-            // If nothing in the buffer, wait.
-            do {
-              try {
-                Thread.sleep(TAIL_CHECK_DELAY);
-              } catch (InterruptedException e) {
-                throw new IOException(e);
-              }
-            } while ((rafRead = raf.read(b, off, len)) == -1);
-          } else {
-            // otherwise return what's been read so far without blocking.
-            return bytesRead;
+      int rafRead = raf.read(b, off, len);
+      if (rafRead == -1) {
+        // If nothing in the buffer, wait.
+        do {
+          try {
+            Thread.sleep(TAIL_CHECK_DELAY);
+          } catch (InterruptedException e) {
+            throw new IOException(e);
           }
-        }
-  
-        bytesRead += rafRead;
-        off += bytesRead;
-        len -= bytesRead;
+        } while ((rafRead = raf.read(b, off, len)) == -1);
       }
-      return bytesRead;
+      return rafRead;
     } catch (IOException e) {
       if (closed) 
         return -1;
