@@ -284,6 +284,11 @@ class ThreadLeakControl {
       if (t.getName().equals("JFR request timer")) {
         return true;
       }
+      
+      // Explicit check for MacOSX AWT-AppKit
+      if (t.getName().equals("AWT-AppKit")) {
+        return true;
+      }
 
       final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
       Collections.reverse(stack);
