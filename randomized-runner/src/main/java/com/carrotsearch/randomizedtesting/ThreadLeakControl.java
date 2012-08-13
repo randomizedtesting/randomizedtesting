@@ -285,20 +285,23 @@ class ThreadLeakControl {
         return true;
       }
       
+      // J9 memory pool thread.
+      if (t.getName().equals("MemoryPoolMXBean notification dispatcher")) {
+        return true;
+      }
+
       // Explicit check for MacOSX AWT-AppKit
       if (t.getName().equals("AWT-AppKit")) {
         return true;
       }
 
-      final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
-      Collections.reverse(stack);
-
       // Explicit check for TokenPoller (MessageDigest spawns it).
-      if ((stack.size() >= 2 && 
-           stack.get(1).getClassName().startsWith("sun.security.pkcs11.SunPKCS11$TokenPoller")) ||
-         t.getName().contains("Poller SunPKCS11")) {
+      if (t.getName().contains("Poller SunPKCS11")) {
         return true;
       }
+
+      final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
+      Collections.reverse(stack);
 
       // Explicit check for GC$Daemon
       if (stack.size() >= 1 && 
