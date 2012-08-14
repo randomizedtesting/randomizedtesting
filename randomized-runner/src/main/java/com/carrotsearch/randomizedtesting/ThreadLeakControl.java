@@ -300,6 +300,11 @@ class ThreadLeakControl {
         return true;
       }
 
+      // forked process reaper on Unixish systems
+      if (t.getName().equals("process reaper")) {
+        return true;
+      }
+
       final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
       Collections.reverse(stack);
 
