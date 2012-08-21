@@ -862,7 +862,7 @@ public class JUnit4 extends Task {
       }
 
       if (slaveInError != null) {
-        throw new BuildException("At least one slave process threw an unexpected exception, first: "
+        throw new BuildException("At least one slave process threw an exception, first: "
             + slaveInError.executionError.getMessage(), slaveInError.executionError);
       }
     }
