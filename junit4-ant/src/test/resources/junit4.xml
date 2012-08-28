@@ -932,4 +932,29 @@
             </balancers>
         </junit4.preconf>
     </target>
+    
+    <target name="truncatedlog">
+        <junit4:junit4 parallelism="1">
+            <classpath refid="tests.classpath" />
+
+            <fileset dir="${basedir}">
+                <include name="**/TruncatedLog.class" />
+            </fileset>
+            
+            <listeners>
+                <junit4:report-text 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutput="never"
+
+                    showStatusOk="true" 
+                    showStatusError="true" 
+                    showStatusFailure="true" 
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="true" 
+                />
+            </listeners>
+        </junit4:junit4>
+    </target>
 </project>
