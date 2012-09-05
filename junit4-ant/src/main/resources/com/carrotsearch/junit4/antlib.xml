@@ -46,4 +46,9 @@
     <typedef
         name="report-execution-times" 
         classname="com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport" />
+
+    <!-- Misc data types -->
+    <typedef
+        name="duplicate"
+        classname="com.carrotsearch.ant.tasks.junit4.DuplicateResources" />
 </antlib> 

@@ -932,4 +932,22 @@
             </balancers>
         </junit4.preconf>
     </target>
+
+    <target name="duplicateresources">
+        <junit4.preconf parallelism="2" uniqueSuiteNames="false">
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+
+            <junit4:duplicate times="10">
+                <fileset dir="${basedir}">
+                    <include name="**/TestSuccess.class" />
+                </fileset>
+            </junit4:duplicate>
+            
+            <listeners>
+                <junit4:report-text />
+            </listeners>           
+        </junit4.preconf>
+    </target>
 </project>
