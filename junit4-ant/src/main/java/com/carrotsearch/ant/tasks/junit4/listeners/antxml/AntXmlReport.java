@@ -1,6 +1,10 @@
 package com.carrotsearch.ant.tasks.junit4.listeners.antxml;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +15,7 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.filters.TokenFilter;
 import org.junit.runner.Description;
 import org.simpleframework.xml.core.Persister;
+import org.simpleframework.xml.transform.RegistryMatcher;
 
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
@@ -104,7 +109,9 @@ public class AntXmlReport implements AggregatedEventListener {
     
     try {
       File reportFile = new File(dir, "TEST-" + displayName + ".xml");
-      Persister persister = new Persister();
+      RegistryMatcher rm = new RegistryMatcher();
+      rm.bind(String.class, new XmlStringTransformer());
+      Persister persister = new Persister(rm);
       persister.write(buildModel(e), reportFile);
     } catch (Exception x) {
       junit4.log("Could not serialize report for suite "
