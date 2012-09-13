@@ -1,5 +1,8 @@
 package com.carrotsearch.randomizedtesting.rules;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.fest.assertions.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -40,7 +43,6 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
   }
 
   public static class Smaller extends Base {
-    
     static byte [] field0; 
     
     @SuppressWarnings("unused")
@@ -64,6 +66,25 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
       field2 = new byte [100];
       field3 = new int [100];
     }
+  }
+
+  public static class MultipleReferences extends Base {
+    static Object ref1, ref2, ref3,
+                  ref4, ref5, ref6;
+
+    static Object ref7 = null;
+    
+    static {
+      Map<String,Object> map = new HashMap<String,Object>();
+      map.put("key", new byte [1024 * 1024 * 2]);
+      ref1 = ref2 = ref3 = ref4 = ref5 = ref6 = map;
+    }
+  }
+
+  @Test
+  public void testReferencesCountedMultipleTimes() {
+    Result runClasses = JUnitCore.runClasses(MultipleReferences.class);
+    Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }
 
   @Test

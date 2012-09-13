@@ -45,12 +45,13 @@ public class StaticFieldsInvariantRule implements TestRule {
   }
   
   static class Entry implements Comparable<Entry> {
-    final long ramUsed;
     final Field field;
+    final Object value;
+    long ramUsed;
     
-    public Entry(Field field, long ramUsed) {
+    public Entry(Field field, Object value) {
       this.field = field;
-      this.ramUsed = ramUsed;
+      this.value = value;
     }
     
     @Override
@@ -86,36 +87,43 @@ public class StaticFieldsInvariantRule implements TestRule {
           		"context or the Description object.");
         }
 
-        ArrayList<Entry> fields = new ArrayList<Entry>();
-        long ramEnd = 0;
+        // Collect all fields first to count references to the same object once.
+        ArrayList<Entry> fieldsAndValues = new ArrayList<Entry>();
+        ArrayList<Object> values = new ArrayList<Object>();
         for (Class<?> c = testClass; countSuperclasses && c.getSuperclass() != null; c = c.getSuperclass()) {
           for (Field field : c.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers()) && 
                 !field.getType().isPrimitive() &&
                 accept(field)) {
               field.setAccessible(true);
-              final long fieldRam = RamUsageEstimator.sizeOf(field.get(null));
-              if (fieldRam > 0) {
-                fields.add(new Entry(field, fieldRam));
-                ramEnd += fieldRam;
+              Object v = field.get(null);
+              if (v != null) {
+                fieldsAndValues.add(new Entry(field, v));
+                values.add(v);
               }
             }
           }
         }
 
-        if (ramEnd > leakThreshold) {
-          Collections.sort(fields);
+        final long ramUsage = RamUsageEstimator.sizeOfAll(values);
+        if (ramUsage > leakThreshold) {
+          // Count per-field information to get the heaviest fields.
+          for (Entry e : fieldsAndValues) {
+            e.ramUsed = RamUsageEstimator.sizeOf(e.value);
+          }
+          Collections.sort(fieldsAndValues);
           
           StringBuilder b = new StringBuilder();
           b.append(String.format(Locale.ENGLISH, "Clean up static fields (in @AfterClass?), "
-              + "your test seems to hang on to approximately %,d bytes (threshold is %,d):",
-              ramEnd, leakThreshold));
-          
-          for (Entry e : fields) {
+              + "your test seems to hang on to approximately %,d bytes (threshold is %,d). " +
+              "Field reference sizes (counted individually):",
+              ramUsage, leakThreshold));
+
+          for (Entry e : fieldsAndValues) {
             b.append(String.format(Locale.ENGLISH, "\n  - %,d bytes, %s", e.ramUsed,
                 e.field.toString()));
           }
-          
+
           errors.add(new AssertionFailedError(b.toString()));
         }
       }
