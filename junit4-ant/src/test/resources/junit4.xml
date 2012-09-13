@@ -266,6 +266,7 @@
                 <include name="**/tests/TestIgnoredSuite.class" />
                 <include name="**/tests/TestBeforeClassError.class" />
                 <include name="**/tests/TestHierarchicalSuiteDescription.class" />
+                <include name="**/tests/TestInvalidUtfCharacter.class" />
             </fileset>
         </junit4:junit4>
     </target>
