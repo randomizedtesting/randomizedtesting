@@ -41,12 +41,20 @@ public final class FormattingUtils {
   }
 
   public static String formatDescription(Description description) {
+    return formatDescription(description, false);
+  }
+
+  public static String formatDescription(Description description, boolean fullNames) {
     StringBuilder buffer = new StringBuilder();
     String className = description.getClassName();
     if (className != null) {
-      String [] components = className.split("[\\.]");
-      className = components[components.length - 1];
-      buffer.append(className);
+      if (fullNames) {
+        buffer.append(className);
+      } else {
+        String [] components = className.split("[\\.]");
+        className = components[components.length - 1];
+        buffer.append(className);
+      }
       if (description.getMethodName() != null) { 
         buffer.append(".").append(description.getMethodName());
       } else {
@@ -58,5 +66,5 @@ public final class FormattingUtils {
       }
     }
     return buffer.toString();
-  }
+  }  
 }

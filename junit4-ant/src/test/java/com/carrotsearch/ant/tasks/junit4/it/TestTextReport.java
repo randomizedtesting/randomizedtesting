@@ -4,7 +4,6 @@ package com.carrotsearch.ant.tasks.junit4.it;
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.carrotsearch.ant.tasks.junit4.tests.FailInAfterClass;
@@ -59,6 +58,7 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogContains("success-sysout");
     assertLogContains("afterclass-sysout");
     assertLogContains("beforeclass-sysout");
+    super.restoreSyserr.println(getLog());
   }
   
   @Test 
@@ -73,8 +73,13 @@ public class TestTextReport extends JUnit4XmlTestBase {
   }
 
   @Test 
-  @Ignore
   public void sysoutsPassthrough() {
     super.executeTarget("sysouts_passthrough");
-  }  
+  }
+
+  @Test 
+  public void failureslist() {
+    super.executeTarget("failureslist");
+    assertLogContains("Tests with failures");
+  }
 }

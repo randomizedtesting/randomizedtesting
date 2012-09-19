@@ -487,11 +487,13 @@ which produces console output (or plain text file). A plain text report configur
     />                                                \n\
                                                       \n\
     <!-- Emit test cases to the console, but filter   \n\
-         out their stdout/stderr streams. -->         \n\
+        out their stdout/stderr streams.              \n\
+        Repeat 5 failed tests at the end of the run.  \n\
     <report-text                                      \n\
         showThrowable="true"                          \n\
         showStackTraces="true"                        \n\
         showOutput="never"                            \n\
+        showNumFailures="5"                           \n\
                                                       \n\
         showStatusOk="true"                           \n\
         showStatusError="true"                        \n\

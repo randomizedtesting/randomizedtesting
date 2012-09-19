@@ -17,6 +17,7 @@ import com.carrotsearch.ant.tasks.junit4.events.TestFinishedEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.google.common.base.*;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Closeables;
@@ -163,6 +164,12 @@ public class TextReport implements AggregatedEventListener {
 
   /** syserr recode stream. */
   private WriterOutputStream errStream;
+  
+  /** Summarize the first N failures at the end. */
+  private int showNumFailuresAtEnd = 3;
+  
+  /** A list of failed tests, if to be displayed at the end. */
+  private List<Description> failedTests = Lists.newArrayList();
 
   public void setShowStatusError(boolean showStatus)   { displayStatus.put(TestStatus.ERROR, showStatus); }
   public void setShowStatusFailure(boolean showStatus) { displayStatus.put(TestStatus.FAILURE, showStatus); }
@@ -220,6 +227,13 @@ public class TextReport implements AggregatedEventListener {
       throw new IllegalArgumentException("showOutput accepts any of: "
           + Arrays.toString(OutputMode.values()) + ", value is not valid: " + mode);
     }
+  }
+
+  /**
+   * Summarize N failures at the end of the report.
+   */
+  public void setShowNumFailures(int num) {
+    this.showNumFailuresAtEnd = num;
   }
 
   /**
@@ -299,13 +313,29 @@ public class TextReport implements AggregatedEventListener {
   @Subscribe
   public void onHeartbeat(HeartBeatEvent e) throws IOException {
       logShort("HEARTBEAT J" + e.getSlave().id + ": " +
-          formatTime(e.getCurrentTime()) + ", no events in: " +
-          formatDurationInSeconds(e.getNoEventDuration()) + ", approx. at: " +
+          formatTime(e.getCurrentTime()) + ", stalled for " +
+          formatDurationInSeconds(e.getNoEventDuration()) + " at: " +
           (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription())));
   }
 
   @Subscribe
-  public void onQuit(AggregatedQuitEvent e) {
+  public void onQuit(AggregatedQuitEvent e) throws IOException {
+    if (showNumFailuresAtEnd > 0 && !failedTests.isEmpty()) {
+      List<Description> sublist = this.failedTests; 
+      StringBuilder b = new StringBuilder();
+      b.append("\nTests with failures");
+      if (sublist.size() > showNumFailuresAtEnd) {
+        sublist = sublist.subList(0, showNumFailuresAtEnd);
+        b.append(" (first " + showNumFailuresAtEnd + " out of " + failedTests.size() + ")");
+      }
+      b.append(":\n");
+      for (Description description : sublist) {
+        b.append("  - ").append(formatDescription(description, true)).append("\n");
+      }
+      b.append("\n");
+      logShort(b, false);
+    }
+
     if (output != null) {
       Closeables.closeQuietly(output);
     }
@@ -344,6 +374,10 @@ public class TextReport implements AggregatedEventListener {
       flushOutput();
       emitStatusLine(e, e.getStatus(), e.getExecutionTime());
     }
+
+    if (!e.isSuccessful() && showNumFailuresAtEnd > 0) {
+      failedTests.add(e.getDescription());
+    }
   }
 
   @Subscribe
@@ -359,6 +393,10 @@ public class TextReport implements AggregatedEventListener {
     // Emit a synthetic failure for suite-level errors, if any.
     if (!e.getFailures().isEmpty() && displayStatus.get(TestStatus.ERROR)) {
       emitStatusLine(e, TestStatus.ERROR, 0);
+    }
+
+    if (!e.getFailures().isEmpty() && showNumFailuresAtEnd > 0) {
+      failedTests.add(e.getDescription());
     }
 
     // Emit suite summary line if requested.

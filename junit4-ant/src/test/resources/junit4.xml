@@ -951,4 +951,22 @@
             </listeners>           
         </junit4.preconf>
     </target>
+    
+   <target name="failureslist">
+      <junit4:junit4 haltonfailure="false" parallelism="2" uniqueSuiteNames="false">
+          <classpath refid="tests.classpath" />
+
+          <junit4:duplicate times="3">
+            <fileset dir="${basedir}">
+                <include name="**/TestStatuses.class" />
+            </fileset>
+          </junit4:duplicate>
+
+          <listeners>
+              <junit4:report-text showNumFailures="3" />
+          </listeners>
+      </junit4:junit4>
+
+      <delete file="${basedir}/large.log" />
+   </target>
 </project>
