@@ -11,6 +11,6 @@ public class TestHeartbeat extends JUnit4XmlTestBase {
   public void testHeartbeat() {
     executeTarget("testHeartbeat");
     assertLogContains("HEARTBEAT J0");
-    assertLogContains("approx. at: HeartbeatSlow.method1");
+    assertLogContains("at: HeartbeatSlow.method1");
   }
 }
