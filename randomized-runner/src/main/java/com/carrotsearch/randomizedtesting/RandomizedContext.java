@@ -170,13 +170,22 @@ public final class RandomizedContext {
   }
 
   static RandomizedContext context(Thread thread) {
-    final ThreadGroup currentGroup = thread.getThreadGroup();
+    ThreadGroup currentGroup = thread.getThreadGroup();
     if (currentGroup == null) {
       throw new IllegalStateException("No context for a terminated thread: " + Threads.threadName(thread));
     }
 
     synchronized (_globalLock) {
-      RandomizedContext context = contexts.get(currentGroup);
+      RandomizedContext context;
+      while (true) {
+        context = contexts.get(currentGroup);
+        if (context == null && currentGroup.getParent() != null) {
+          currentGroup = currentGroup.getParent();
+        } else {
+          break;
+        }
+      }
+
       if (context == null) {
         throw new IllegalStateException("No context information for thread: " +
             Threads.threadName(thread) + ". " +
