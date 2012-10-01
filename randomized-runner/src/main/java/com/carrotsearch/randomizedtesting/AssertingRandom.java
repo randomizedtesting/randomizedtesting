@@ -135,7 +135,7 @@ public final class AssertingRandom extends Random {
     }
 
     final Thread owner = ownerRef.get();
-    if (owner != null && Thread.currentThread() != owner) {
+    if (owner == null || Thread.currentThread() != owner) {
       Throwable allocationEx = new StackTraceHolder("Original allocation stack for this Random (" +
           "allocated by " + ownerName + ")");
       allocationEx.setStackTrace(allocationStack);
