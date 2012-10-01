@@ -35,10 +35,10 @@ public final class RandomizedContext {
     = new IdentityHashMap<ThreadGroup, RandomizedContext>();
 
   /** 
-   * Per thread resources for each context. 
+   * Per thread resources for each context. Allow GCing of threads. 
    */
-  final IdentityHashMap<Thread, PerThreadResources> perThreadResources 
-    = new IdentityHashMap<Thread, PerThreadResources>();
+  final WeakHashMap<Thread, PerThreadResources> perThreadResources 
+    = new WeakHashMap<Thread, PerThreadResources>();
 
   /** A thread group that shares this context. */
   private final ThreadGroup threadGroup;
@@ -222,9 +222,11 @@ public final class RandomizedContext {
 
       // Clean up and invalidate any per-thread published randoms.
       synchronized (_contextLock) {
-        for (PerThreadResources ptr : perThreadResources.values()) {
-          for (Randomness randomness : ptr.randomnesses) {
-            randomness.destroy();
+        for (PerThreadResources ref : perThreadResources.values()) {
+          if (ref != null) {
+            for (Randomness randomness : ref.randomnesses) {
+              randomness.destroy();
+            }
           }
         }
       }

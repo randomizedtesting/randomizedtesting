@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.lang.ref.WeakReference;
 import java.util.Random;
 
 /**
@@ -9,7 +10,7 @@ import java.util.Random;
 @SuppressWarnings("serial")
 public final class AssertingRandom extends Random {
   private final Random delegate;
-  private final Thread owner;
+  private final WeakReference<Thread> ownerRef;
   private final String ownerName;
   private final StackTraceElement[] allocationStack;
 
@@ -28,7 +29,7 @@ public final class AssertingRandom extends Random {
     // Must be here, the only Random constructor. Has side-effects on setSeed, see below.
     super(0);
     this.delegate = delegate;
-    this.owner = owner;
+    this.ownerRef = new WeakReference<Thread>(owner);
     this.ownerName = owner.toString();
     this.allocationStack = Thread.currentThread().getStackTrace();
   }
@@ -132,7 +133,9 @@ public final class AssertingRandom extends Random {
       throw new IllegalStateException("This Random instance has been invalidated and " +
       		"is probably used out of its allowed context (test or suite).");
     }
-    if (Thread.currentThread() != owner) {
+
+    final Thread owner = ownerRef.get();
+    if (owner != null && Thread.currentThread() != owner) {
       Throwable allocationEx = new StackTraceHolder("Original allocation stack for this Random (" +
           "allocated by " + ownerName + ")");
       allocationEx.setStackTrace(allocationStack);
