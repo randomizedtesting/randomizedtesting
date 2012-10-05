@@ -220,7 +220,7 @@ public class JUnit4 extends Task {
   /**
    * A list of temporary files to leave or remove if build passes.
    */
-  private List<File> temporaryFiles = Lists.newArrayList();
+  private List<File> temporaryFiles = Collections.synchronizedList(Lists.<File>newArrayList());
 
   /**
    * @see #setSeed(String)
