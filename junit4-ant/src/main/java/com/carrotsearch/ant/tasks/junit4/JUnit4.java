@@ -1175,7 +1175,37 @@ public class JUnit4 extends Task {
     Exception error = null;
     RandomAccessFile streamsBuffer = new RandomAccessFile(streamsBufferFile, "rw");
     try {
-      forkProcess(slave, eventBus, commandline, eventStream, sysout, syserr, streamsBuffer);
+      Execute execute = forkProcess(slave, eventBus, commandline, eventStream, sysout, syserr, streamsBuffer);
+      log("Forked JVM J" + slave.id + " finished with exit code: " + execute.getExitValue(), Project.MSG_DEBUG);
+
+      if (execute.isFailure()) {
+        final int exitStatus = execute.getExitValue();
+        switch (exitStatus) {
+          case SlaveMain.ERR_NO_JUNIT:
+            throw new BuildException("Forked JVM's classpath must include a junit4 JAR.");
+          case SlaveMain.ERR_OLD_JUNIT:
+            throw new BuildException("Forked JVM's classpath must use JUnit 4.10 or newer.");
+          default:
+            Closeables.closeQuietly(sysout);
+            Closeables.closeQuietly(syserr);
+            StringBuilder message = new StringBuilder();
+            message.append("Forked process returned with error code: ").append(exitStatus);
+            if (sysoutFile.length() > 0 || syserrFile.length() > 0) {
+              message.append(" Very likely a JVM crash. ");
+              if (jvmOutputAction.contains(JvmOutputAction.PIPE)) {
+                message.append(" Process output piped in logs above.");
+              } else if (!jvmOutputAction.contains(JvmOutputAction.IGNORE)) {
+                if (sysoutFile.length() > 0) {
+                  message.append(" See process stdout at: " + sysoutFile.getAbsolutePath());
+                }
+                if (syserrFile.length() > 0) {
+                  message.append(" See process stderr at: " + syserrFile.getAbsolutePath());
+                }
+              }
+            }
+            throw new BuildException(message.toString());
+        }
+      }
     } catch (Exception e) {
       error = e;
     } finally {
@@ -1202,9 +1232,9 @@ public class JUnit4 extends Task {
     }
 
     if (clientWithLimitedCharset.get() && dynamicAssignmentRatio > 0) {
-      throw new BuildException("Forked JVM J" + slave.id + " will not be able to decode class names with" +
+      throw new BuildException("Forked JVM J" + slave.id + " was not be able to decode class names when using" +
           " charset: " + clientCharset + ". Do not use " +
-          "dynamic suite balancing to work around the problem (-DdynamicAssignmentRatio=0).");
+          "dynamic suite balancing to work around this problem (-DdynamicAssignmentRatio=0).");
     }
   }
 
@@ -1238,7 +1268,6 @@ public class JUnit4 extends Task {
       }
       return;
     }
-
     file.delete();
   }
 
@@ -1279,7 +1308,7 @@ public class JUnit4 extends Task {
   /**
    * Execute a slave process. Pump events to the given event bus.
    */
-  private void forkProcess(SlaveInfo slaveInfo, EventBus eventBus, 
+  private Execute forkProcess(SlaveInfo slaveInfo, EventBus eventBus, 
       CommandlineJava commandline, 
       InputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {
     try {
@@ -1298,19 +1327,8 @@ public class JUnit4 extends Task {
       if (env.getVariables() != null)
         execute.setEnvironment(env.getVariables());
       log("Starting JVM J" + slaveInfo.id, Project.MSG_DEBUG);
-      int exitStatus = execute.execute();
-      log("Forked JVM J" + slaveInfo.id + " finished with exit code: " 
-          + exitStatus, Project.MSG_DEBUG);
-
-      if (execute.isFailure()) {
-        if (exitStatus == SlaveMain.ERR_NO_JUNIT) {
-          throw new BuildException("Forked JVM's classpath must include a junit4 JAR.");
-        }
-        if (exitStatus == SlaveMain.ERR_OLD_JUNIT) {
-          throw new BuildException("Forked JVM's classpath must use JUnit 4.10 or newer.");
-        }
-        throw new BuildException("Forked process exited with an error code: " + exitStatus);
-      }
+      execute.execute();
+      return execute;
     } catch (IOException e) {
       throw new BuildException("Could not execute slave process. Run ant with -verbose to get" +
       		" the execution details.", e);
