@@ -127,17 +127,20 @@ public class RandomizedTest extends Assert {
   }
 
   /** 
-   * Returns a random value greater or equal to <code>min</code>. The value
-   * picked is affected by {@link #isNightly()} and {@link #multiplier()}.
+   * Returns a random value between <code>min</code> and <code>min * 3</code>, inclusive.
+   * The value picked is affected by {@link #isNightly()} and {@link #multiplier()}.
+   * 
+   * <p>This method is effectively an alias to:
+   * <pre>
+   * scaledRandomIntBetween(min, (int) Math.min(Integer.MAX_VALUE, (long) min * 3))
+   * </pre>
    * 
    * @see #scaledRandomIntBetween(int, int)
    */
   protected static int atLeast(int min) {
     if (min < 0) throw new IllegalArgumentException("atLeast requires non-negative argument: " + min);
 
-    min = (int) Math.min(min, (isNightly() ? 3 * min : min) * multiplier());
-    int max = (int) Math.min(Integer.MAX_VALUE, (long) min + (min / 2));
-    return randomIntBetween(min, max);
+    return scaledRandomIntBetween(min, (int) Math.min(Integer.MAX_VALUE, (long) min * 3));
   }
 
   /** 
@@ -217,11 +220,11 @@ public class RandomizedTest extends Assert {
   }
 
   /**
-   * Returns a "scaled" random number between min and max (inclusive). The number of 
-   * iterations will fall between [min, max], but the selection will also try to 
-   * achieve the points below: 
+   * Returns a "scaled" random number between min and max (inclusive). The picked number 
+   * will fall between [min, max], but the selection will also try to 
+   * take into account the following:
    * <ul>
-   *   <li>the multiplier can be used to move the number of iterations closer to min
+   *   <li>the {@link #multiplier()} can be used to move the number of iterations closer to min
    *   (if it is smaller than 1) or closer to max (if it is larger than 1). Setting
    *   the multiplier to 0 will always result in picking min.</li>
    *   <li>on normal runs, the number will be closer to min than to max.</li>
