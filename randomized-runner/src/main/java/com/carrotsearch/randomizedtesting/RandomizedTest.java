@@ -73,7 +73,7 @@ public class RandomizedTest extends Assert {
   
   /**
    * Shortcut for {@link RandomizedContext#getRandom()}. Even though this method
-   * is static, it return per-thread {@link Random} instance, so no race conditions
+   * is static, it returns per-thread {@link Random} instance, so no race conditions
    * can occur.
    * 
    * <p>It is recommended that specific methods are used to pick random values.
