@@ -103,6 +103,10 @@ public class AntBuildFileTestBase {
   }
 
   protected final void executeForkedTarget(String target) {
+    executeForkedTarget(target, 10 * 1000L);
+  }
+
+  protected final void executeForkedTarget(String target, long timeout) {
     Path antPath = new Path(getProject());
     antPath.createPathElement().setLocation(sourceOf(Project.class));
     antPath.createPathElement().setLocation(sourceOf(Launcher.class));
@@ -114,7 +118,7 @@ public class AntBuildFileTestBase {
     java.createClasspath().add(antPath);
     java.setFork(true);
     java.setSpawn(false);
-    java.setTimeout(10 * 1000L);
+    java.setTimeout(timeout);
     java.setFailonerror(false);
     java.setOutputproperty("stdout");
     java.setErrorProperty("stderr");

@@ -272,7 +272,7 @@ public class SlaveMain {
         }
       }
     } finally {
-      System.exit(exitStatus);
+      JvmExit.halt(exitStatus);
     }
   }
 
