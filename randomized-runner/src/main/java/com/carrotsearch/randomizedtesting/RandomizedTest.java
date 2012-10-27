@@ -59,7 +59,7 @@ public class RandomizedTest extends Assert {
   /**
    * Shortcut for {@link RandomizedContext#current()}. 
    */
-  protected static RandomizedContext getContext() {
+  public static RandomizedContext getContext() {
     return RandomizedContext.current();
   }
 
@@ -67,7 +67,7 @@ public class RandomizedTest extends Assert {
    * Returns true if we're running nightly tests.
    * @see Nightly
    */
-  protected static boolean isNightly() {
+  public static boolean isNightly() {
     return getContext().isNightly();
   }
   
@@ -78,7 +78,7 @@ public class RandomizedTest extends Assert {
    * 
    * <p>It is recommended that specific methods are used to pick random values.
    */
-  protected static Random getRandom() {
+  public static Random getRandom() {
     return getContext().getRandom();
   }
 
@@ -86,16 +86,16 @@ public class RandomizedTest extends Assert {
   // Random value pickers. Shortcuts to methods in {@link #getRandom()} mostly.
   //
 
-  protected static boolean randomBoolean()  { return getRandom().nextBoolean();  }
-  protected static byte    randomByte()     { return (byte) getRandom().nextInt(); }
-  protected static short   randomShort()    { return (short) getRandom().nextInt(); }
-  protected static int     randomInt()      { return getRandom().nextInt(); }
-  protected static float   randomFloat()    { return getRandom().nextFloat(); }
-  protected static double  randomDouble()   { return getRandom().nextDouble(); }
-  protected static long    randomLong()     { return getRandom().nextLong(); }
+  public static boolean randomBoolean()  { return getRandom().nextBoolean();  }
+  public static byte    randomByte()     { return (byte) getRandom().nextInt(); }
+  public static short   randomShort()    { return (short) getRandom().nextInt(); }
+  public static int     randomInt()      { return getRandom().nextInt(); }
+  public static float   randomFloat()    { return getRandom().nextFloat(); }
+  public static double  randomDouble()   { return getRandom().nextDouble(); }
+  public static long    randomLong()     { return getRandom().nextLong(); }
 
   /** @see Random#nextGaussian() */
-  protected static double  randomGaussian() { return getRandom().nextGaussian(); }
+  public static double  randomGaussian() { return getRandom().nextGaussian(); }
 
   //
   // Delegates to RandomInts.
@@ -104,7 +104,7 @@ public class RandomizedTest extends Assert {
   /** 
    * A random integer from 0..max (inclusive). 
    */
-  protected static int randomInt(int max) { 
+  public static int randomInt(int max) { 
     return RandomInts.randomInt(getRandom(), max); 
   }
 
@@ -113,7 +113,7 @@ public class RandomizedTest extends Assert {
    * 
    * @see #scaledRandomIntBetween(int, int)
    */
-  protected static int randomIntBetween(int min, int max) {
+  public static int randomIntBetween(int min, int max) {
     return RandomInts.randomIntBetween(getRandom(), min, max);
   }
 
@@ -122,7 +122,7 @@ public class RandomizedTest extends Assert {
    * 
    * @see #scaledRandomIntBetween(int, int)
    */
-  protected static int between(int min, int max) {
+  public static int between(int min, int max) {
     return randomIntBetween(min, max);
   }
 
@@ -132,7 +132,7 @@ public class RandomizedTest extends Assert {
    * 
    * @see #scaledRandomIntBetween(int, int)
    */
-  protected static int atLeast(int min) {
+  public static int atLeast(int min) {
     if (min < 0) throw new IllegalArgumentException("atLeast requires non-negative argument: " + min);
 
     min = (int) Math.min(min, (isNightly() ? 3 * min : min) * multiplier());
@@ -151,7 +151,7 @@ public class RandomizedTest extends Assert {
    * 
    * @see #scaledRandomIntBetween(int, int)
    */
-  protected static int atMost(int max) {
+  public static int atMost(int max) {
     if (max < 0) throw new IllegalArgumentException("atMost requires non-negative argument: " + max);
     return scaledRandomIntBetween(0, max);
   }
@@ -160,14 +160,14 @@ public class RandomizedTest extends Assert {
    * Rarely returns <code>true</code> in about 10% of all calls (regardless of the
    * {@link #isNightly()} mode).
    */
-  protected static boolean rarely() {
+  public static boolean rarely() {
     return randomInt(100) >= 90;
   }
 
   /**
    * The exact opposite of {@link #rarely()}.
    */
-  protected static boolean frequently() {
+  public static boolean frequently() {
     return !rarely();
   }
 
@@ -178,14 +178,14 @@ public class RandomizedTest extends Assert {
   /**
    * Pick a random object from the given array. The array must not be empty.
    */
-  protected static <T> T randomFrom(T [] array) {
+  public static <T> T randomFrom(T [] array) {
     return RandomPicks.randomFrom(getRandom(), array);
   }
 
   /**
    * Pick a random object from the given list.
    */
-  protected static <T> T randomFrom(List<T> list) {
+  public static <T> T randomFrom(List<T> list) {
     return RandomPicks.randomFrom(getRandom(), list);
   }
 
@@ -266,7 +266,7 @@ public class RandomizedTest extends Assert {
    * multiple class loaders are used, there may be more global temp dirs, but it
    * shouldn't really be the case in practice.
    */
-  protected static File globalTempDir() {
+  public static File globalTempDir() {
     checkContext();
     synchronized (RandomizedTest.class) {
       if (globalTempDir == null) {
@@ -321,7 +321,7 @@ public class RandomizedTest extends Assert {
    * 
    * @see #globalTempDir()
    */
-  protected File newTempDir() {
+  public File newTempDir() {
     return newTempDir(LifecycleScope.TEST);
   }
 
@@ -329,7 +329,7 @@ public class RandomizedTest extends Assert {
    * Creates a temporary directory, deleted after the given lifecycle phase. 
    * Temporary directory is created relative to a globally picked temporary directory.
    */
-  protected static File newTempDir(LifecycleScope scope) {
+  public static File newTempDir(LifecycleScope scope) {
     checkContext();
     synchronized (RandomizedTest.class) {
       File tempDir = new File(globalTempDir(), nextTempName());
@@ -346,7 +346,7 @@ public class RandomizedTest extends Assert {
    * 
    * @return <code>resource</code> (for call chaining).
    */
-  protected <T extends Closeable> T closeAfterTest(T resource) {
+  public <T extends Closeable> T closeAfterTest(T resource) {
     return getContext().closeAtEnd(resource, LifecycleScope.TEST);
   }
 
@@ -356,38 +356,22 @@ public class RandomizedTest extends Assert {
    * 
    * @return <code>resource</code> (for call chaining).
    */
-  protected static <T extends Closeable> T closeAfterSuite(T resource) {
+  public static <T extends Closeable> T closeAfterSuite(T resource) {
     return getContext().closeAtEnd(resource, LifecycleScope.SUITE);
   }
 
   /**
    * Creates a new temporary file for the {@link LifecycleScope#TEST} duration.
    */
-  protected File newTempFile() {
+  public File newTempFile() {
     return newTempFile(LifecycleScope.TEST);
-  }
-
-  /**
-   * This is an absolutely hacky utility to take a vararg as input and return the array
-   * of arguments as output. The name is a dollar for brevity, idea borrowed from
-   * http://code.google.com/p/junitparams/.
-   */
-  public static Object [] $(Object... objects) {
-    return objects;
-  }
-
-  /**
-   * @see #$
-   */
-  public static Object [][] $$(Object[]... objects) {
-    return objects;
   }
 
   /**
    * Creates a new temporary file deleted after the given lifecycle phase completes.
    * The file is physically created on disk, but is not locked or opened.
    */
-  protected static File newTempFile(LifecycleScope scope) {
+  public static File newTempFile(LifecycleScope scope) {
     checkContext();
     synchronized (RandomizedTest.class) {
       File tempFile = new File(globalTempDir(), nextTempName());
@@ -455,7 +439,7 @@ public class RandomizedTest extends Assert {
    * to jvm execution. It _may_ be different from jvm to jvm and as such, it can render
    * tests execute in a different way.</p>
    */
-  protected static Locale randomLocale() {
+  public static Locale randomLocale() {
     Locale[] availableLocales = Locale.getAvailableLocales();
     Arrays.sort(availableLocales, new Comparator<Locale>() {
       public int compare(Locale o1, Locale o2) {
@@ -472,7 +456,7 @@ public class RandomizedTest extends Assert {
    * to jvm execution. It _may_ be different from jvm to jvm and as such, it can render
    * tests execute in a different way.</p>
    */
-  protected static TimeZone randomTimeZone() {
+  public static TimeZone randomTimeZone() {
     final String[] availableIDs = TimeZone.getAvailableIDs();
     Arrays.sort(availableIDs);
     return TimeZone.getTimeZone(randomFrom(availableIDs));
@@ -483,8 +467,7 @@ public class RandomizedTest extends Assert {
   //
 
   /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
-  public static String randomAsciiOfLengthBetween(int minCodeUnits,
-      int maxCodeUnits) {
+  public static String randomAsciiOfLengthBetween(int minCodeUnits, int maxCodeUnits) {
     return RandomStrings.randomAsciiOfLengthBetween(getRandom(), minCodeUnits,
         maxCodeUnits);
   }
@@ -495,8 +478,7 @@ public class RandomizedTest extends Assert {
   }
   
   /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
-  public static String randomUnicodeOfLengthBetween(int minCodeUnits,
-      int maxCodeUnits) {
+  public static String randomUnicodeOfLengthBetween(int minCodeUnits, int maxCodeUnits) {
     return RandomStrings.randomUnicodeOfLengthBetween(getRandom(),
         minCodeUnits, maxCodeUnits);
   }
@@ -507,8 +489,7 @@ public class RandomizedTest extends Assert {
   }
   
   /** @see StringGenerator#ofCodePointsLength(Random, int, int) */
-  public static String randomUnicodeOfCodepointLengthBetween(int minCodePoints,
-      int maxCodePoints) {
+  public static String randomUnicodeOfCodepointLengthBetween(int minCodePoints, int maxCodePoints) {
     return RandomStrings.randomUnicodeOfCodepointLengthBetween(getRandom(),
         minCodePoints, maxCodePoints);
   }
@@ -520,8 +501,7 @@ public class RandomizedTest extends Assert {
   }
   
   /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
-  public static String randomRealisticUnicodeOfLengthBetween(int minCodeUnits,
-      int maxCodeUnits) {
+  public static String randomRealisticUnicodeOfLengthBetween(int minCodeUnits, int maxCodeUnits) {
     return RandomStrings.randomRealisticUnicodeOfLengthBetween(getRandom(),
         minCodeUnits, maxCodeUnits);
   }
@@ -542,6 +522,22 @@ public class RandomizedTest extends Assert {
   public static String randomRealisticUnicodeOfCodepointLength(int codePoints) {
     return RandomStrings.randomRealisticUnicodeOfCodepointLength(getRandom(),
         codePoints);
+  }
+
+  /**
+   * This is an absolutely hacky utility to take a vararg as input and return the array
+   * of arguments as output. The name is a dollar for brevity, idea borrowed from
+   * http://code.google.com/p/junitparams/.
+   */
+  public static Object [] $(Object... objects) {
+    return objects;
+  }
+
+  /**
+   * @see #$
+   */
+  public static Object [][] $$(Object[]... objects) {
+    return objects;
   }
 
   // 
