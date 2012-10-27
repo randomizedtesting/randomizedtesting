@@ -16,7 +16,7 @@ public class SlaveMainSafe {
 
       System.out.close();
       System.err.close();
-      System.exit(SlaveMain.ERR_EXCEPTION);
+      JvmExit.halt(SlaveMain.ERR_EXCEPTION);
     }
   }
 
@@ -27,10 +27,10 @@ public class SlaveMainSafe {
     try {
       Class<?> clazz = Class.forName("org.junit.runner.Description");
       if (!Serializable.class.isAssignableFrom(clazz)) {
-        System.exit(SlaveMain.ERR_OLD_JUNIT);
+        JvmExit.halt(SlaveMain.ERR_OLD_JUNIT);
       }
     } catch (ClassNotFoundException e) {
-      System.exit(SlaveMain.ERR_NO_JUNIT);
+      JvmExit.halt(SlaveMain.ERR_NO_JUNIT);
     }
   }  
 }

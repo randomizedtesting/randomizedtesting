@@ -969,4 +969,14 @@
 
       <delete file="${basedir}/large.log" />
    </target>
+  
+   <target name="shutdownhook">
+     <junit4.preconf haltonfailure="true">
+       <fileset dir="${basedir}">
+         <include name="**/ShutdownHook.class" />
+       </fileset>
+     </junit4.preconf>
+  
+     <delete file="${basedir}/large.log" />
+   </target>  
 </project>
