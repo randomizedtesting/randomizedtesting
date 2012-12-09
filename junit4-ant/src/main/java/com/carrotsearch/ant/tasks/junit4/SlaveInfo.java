@@ -77,6 +77,14 @@ public final class SlaveInfo {
   }
 
   /**
+   * PID string of the forked JVM. May not be available or may come in an unknown format
+   * (Java 8 will have real PID support, supposedly).
+   */
+  public String getPidString() {
+    return bootstrapEvent.getPidString();
+  }
+
+  /**
    * Command line string used to invoke the slave.
    */
   public String getCommandLine() {
