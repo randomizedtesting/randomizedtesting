@@ -312,7 +312,7 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onHeartbeat(HeartBeatEvent e) throws IOException {
-      logShort("HEARTBEAT J" + e.getSlave().id + ": " +
+      logShort("HEARTBEAT J" + e.getSlave().id + " PID(" + e.getSlave().getPidString() + "): " +
           formatTime(e.getCurrentTime()) + ", stalled for " +
           formatDurationInSeconds(e.getNoEventDuration()) + " at: " +
           (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription())));
