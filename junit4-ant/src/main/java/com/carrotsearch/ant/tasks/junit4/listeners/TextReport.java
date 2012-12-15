@@ -302,12 +302,17 @@ public class TextReport implements AggregatedEventListener {
         e.getSuiteCount() + Pluralize.pluralize(e.getSuiteCount(), " suite") +
         " with " + 
         e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".\n", false);
-
+    
     forkedJvmCount = e.getSlaveCount();
     jvmIdFormat = " J%-" + (1 + (int) Math.floor(Math.log10(forkedJvmCount))) + "d";
-    
+
     outWriter = new PrefixedWriter(stdoutIndent, output, DEFAULT_MAX_LINE_WIDTH);
     errWriter = new PrefixedWriter(stderrIndent, output, DEFAULT_MAX_LINE_WIDTH);        
+  }
+
+  @Subscribe
+  public void onChildBootstrap(ChildBootstrap e) throws IOException {
+      logShort("Started J" + e.getSlave().id + " PID(" + e.getSlave().getPidString() + ").");
   }
 
   @Subscribe
@@ -512,7 +517,7 @@ public class TextReport implements AggregatedEventListener {
     line.append(Strings.padEnd(statusNames.get(status), 8, ' '));
     line.append(formatDurationInSeconds(timeMillis));
     if (forkedJvmCount > 1) {
-      line.append(String.format(jvmIdFormat, result.getSlave().id));
+      line.append(String.format(Locale.ENGLISH, jvmIdFormat, result.getSlave().id));
     }
     line.append(" | ");
 

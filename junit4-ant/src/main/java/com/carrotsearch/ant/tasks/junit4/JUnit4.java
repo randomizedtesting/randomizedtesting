@@ -22,7 +22,7 @@ import com.carrotsearch.ant.tasks.junit4.SuiteBalancer.Assignment;
 import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
 import com.carrotsearch.ant.tasks.junit4.balancers.SuiteHint;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
-import com.carrotsearch.ant.tasks.junit4.events.IdleEvent;
+import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
@@ -1095,7 +1095,7 @@ public class JUnit4 extends Task {
     if (slave.slaves == 1) {
       commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
     }
-
+    
     // Set up full output files.
     File sysoutFile = tempFile(uniqueSeed,
         "junit4-J" + slave.id, ".sysout", getTempDir());
@@ -1159,15 +1159,22 @@ public class JUnit4 extends Task {
         });
       }
 
-      /**
-       * Verify client charset once on {@link IdleEvent}.
-       */
       @SuppressWarnings("unused")
       @Subscribe
       public void onBootstrap(final BootstrapEvent e) {
         Charset cs = Charset.forName(((BootstrapEvent) e).getDefaultCharsetName());
         clientCharset.set(cs);
+
+        slave.start = System.currentTimeMillis();
+        slave.setBootstrapEvent(e);
+        aggregatedBus.post(new ChildBootstrap(slave));
       }
+
+      @SuppressWarnings("unused")
+      @Subscribe
+      public void receiveQuit(QuitEvent e) {
+        slave.end = System.currentTimeMillis();
+      }      
     });
 
     OutputStream sysout = new BufferedOutputStream(new FileOutputStream(sysoutFile));
