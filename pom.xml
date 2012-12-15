@@ -9,6 +9,10 @@
     <version>7</version>
   </parent>
 
+  <prerequisites>
+    <maven>${minimum.maven.version}</maven>
+  </prerequisites>
+
   <!-- Project info. -->
   <groupId>com.carrotsearch.randomizedtesting</groupId>
   <artifactId>randomizedtesting-parent</artifactId>
@@ -34,6 +38,8 @@
   </licenses>  
 
   <properties>
+    <minimum.maven.version>3.0.2</minimum.maven.version>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
@@ -56,6 +62,83 @@
     <module>examples/ant</module>
     <module>packaging</module>
   </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>${ant.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant-junit</artifactId>
+        <version>${ant.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>1.6.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>10.0.1</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>jsr305</artifactId>
+            <groupId>com.google.code.findbugs</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>  
+
+      <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>3.3.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.simpleframework</groupId>
+        <artifactId>simple-xml</artifactId>
+        <version>2.6.2</version>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>hamcrest-core</artifactId>
+            <groupId>org.hamcrest</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      
+      <dependency>
+         <groupId>org.easytesting</groupId>
+         <artifactId>fest-assert-core</artifactId>
+         <version>2.0M6</version>
+         <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.3</version>
+      </dependency>
+    </dependencies>  
+  </dependencyManagement>
 
   <build>
     <pluginManagement>
