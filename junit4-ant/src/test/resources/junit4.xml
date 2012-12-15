@@ -978,5 +978,13 @@
      </junit4.preconf>
   
      <delete file="${basedir}/large.log" />
+   </target>
+  
+   <target name="childvm_sysprops">
+     <junit4.preconf>
+       <fileset dir="${basedir}">
+           <include name="**/tests/ChildVmSysprops.class" />
+       </fileset>
+     </junit4.preconf>
    </target>  
 </project>

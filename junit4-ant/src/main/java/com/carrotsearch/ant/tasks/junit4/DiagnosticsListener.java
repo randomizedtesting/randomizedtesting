@@ -26,15 +26,12 @@ public class DiagnosticsListener {
 
   @Subscribe
   public void receiveBootstrap(BootstrapEvent e) {
-    slave.start = System.currentTimeMillis();
     task.log("Default encoding: " + e.getDefaultCharsetName(), Project.MSG_VERBOSE);
-    slave.setBootstrapEvent(e);
   }
 
   @Subscribe
   public void receiveQuit(QuitEvent e) {
     quitReceived = true;
-    slave.end = System.currentTimeMillis();
   }
 
   boolean quitReceived() {
