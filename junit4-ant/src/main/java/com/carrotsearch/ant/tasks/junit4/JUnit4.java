@@ -13,6 +13,7 @@ import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.types.*;
+import org.apache.tools.ant.types.Environment.Variable;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
@@ -119,6 +120,12 @@ public class JUnit4 extends Task {
 
   /** Default value of {@link #setSysouts}. */
   public static final boolean DEFAULT_SYSOUTS = false;
+
+  /** System property passed to forked VMs: current working directory (absolute). */
+  private static final String CHILDVM_SYSPROP_CWD = "junit4.childvm.cwd";
+
+  /** System property passed to forked VMs: VM ID (integer). */
+  private static final String CHILDVM_SYSPROP_ID = "junit4.childvm.id";
   
   /** What to do on JVM output? */
   public static enum JvmOutputAction {
@@ -1095,7 +1102,7 @@ public class JUnit4 extends Task {
     if (slave.slaves == 1) {
       commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
     }
-    
+
     // Set up full output files.
     File sysoutFile = tempFile(uniqueSeed,
         "junit4-J" + slave.id, ".sysout", getTempDir());
@@ -1324,10 +1331,23 @@ public class JUnit4 extends Task {
               eventBus, testsClassLoader, System.err, eventStream, 
               sysout, syserr, heartbeat, streamsBuffer);
 
+      // Add certain properties to allow identification of the forked JVM from within
+      // the subprocess. This can be used for policy files etc.
+      final File cwd = getWorkingDirectory(slaveInfo);
+
+      Variable v = new Variable();
+      v.setKey(CHILDVM_SYSPROP_CWD);
+      v.setFile(cwd.getAbsoluteFile());
+      commandline.addSysproperty(v);
+
+      v = new Variable();
+      v.setKey(CHILDVM_SYSPROP_ID);
+      v.setValue(Integer.toString(slaveInfo.id));
+      commandline.addSysproperty(v);
+
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
       execute.setVMLauncher(true);
-      File cwd = getWorkingDirectory(slaveInfo);
       execute.setWorkingDirectory(cwd);
       execute.setStreamHandler(streamHandler);
       execute.setNewenvironment(newEnvironment);
