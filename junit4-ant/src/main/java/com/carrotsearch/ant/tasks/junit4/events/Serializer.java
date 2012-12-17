@@ -60,11 +60,13 @@ public class Serializer implements Closeable {
           jsonWriter.value(event.getType().name());
           gson.toJson(event, event.getClass(), jsonWriter);
           jsonWriter.endArray();
+          jsonWriter.flush();
         } catch (Throwable t) {
+          SlaveMain.warn("Unhandled exception in event serialization.", t);
+
           Closeables.closeQuietly(writer);
           writer = null;
 
-          SlaveMain.warn("Unhandled exception in event serialization.", t);
           Rethrow.rethrow(t); // or skip?
         }
 
