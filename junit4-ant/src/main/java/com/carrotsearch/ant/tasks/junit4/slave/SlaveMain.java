@@ -40,7 +40,7 @@ public class SlaveMain {
    * 
    * <p>Approximately 100kb is reserved.
    */
-  static volatile Object lastResortMemory = new byte [1024 * 1024 * 100];
+  static volatile Object lastResortMemory = new byte [1024 * 100];
   
   /**
    * Preallocate and load in advance. 
