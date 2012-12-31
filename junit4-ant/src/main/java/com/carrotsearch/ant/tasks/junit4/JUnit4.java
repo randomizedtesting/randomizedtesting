@@ -1202,10 +1202,19 @@ public class JUnit4 extends Task {
           default:
             Closeables.closeQuietly(sysout);
             Closeables.closeQuietly(syserr);
+            
             StringBuilder message = new StringBuilder();
-            message.append("Forked process returned with error code: ").append(exitStatus);
+            if (exitStatus == SlaveMain.ERR_OOM) {
+              message.append("Forked JVM ran out of memory.");
+            } else {
+              message.append("Forked process returned with error code: ").append(exitStatus).append(".");
+            }
+
             if (sysoutFile.length() > 0 || syserrFile.length() > 0) {
-              message.append(" Very likely a JVM crash. ");
+              if (exitStatus != SlaveMain.ERR_OOM) {
+                message.append(" Very likely a JVM crash. ");
+              }
+
               if (jvmOutputAction.contains(JvmOutputAction.PIPE)) {
                 message.append(" Process output piped in logs above.");
               } else if (!jvmOutputAction.contains(JvmOutputAction.IGNORE)) {

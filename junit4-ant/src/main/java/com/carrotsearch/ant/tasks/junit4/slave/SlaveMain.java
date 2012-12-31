@@ -29,6 +29,24 @@ public class SlaveMain {
   /** Old JUnit on classpath. */
   public static final int ERR_OLD_JUNIT = 238;
 
+  /** OOM */
+  public static final int ERR_OOM = 237;
+
+  /**
+   * Last resort memory pool released under low memory conditions.
+   * This is not a solution, it's a terrible hack. I know this. Everyone knows this.
+   * Even monkeys in Madagaskar know this. If you know a better solution, patches
+   * welcome. 
+   * 
+   * <p>Approximately 100kb is reserved.
+   */
+  static volatile Object lastResortMemory = new byte [1024 * 1024 * 100];
+  
+  /**
+   * Preallocate and load in advance. 
+   */
+  static Class<OutOfMemoryError> oomClass = OutOfMemoryError.class;
+  
   /**
    * Frequent event strean flushing.
    */
@@ -252,6 +270,7 @@ public class SlaveMain {
       } else {
         stdInput = Collections.<String>emptyList().iterator();
       }
+
       main.execute(Iterators.concat(testClasses.iterator(), stdInput));
 
       // For unhandled exceptions tests.
@@ -259,8 +278,16 @@ public class SlaveMain {
         throw new Exception(System.getProperty(SYSPROP_FIRERUNNERFAILURE));
       }
     } catch (Throwable t) {
-      warn("Exception at main loop level.", t);
-      exitStatus = ERR_EXCEPTION;
+      lastResortMemory = null;
+      System.gc(); Thread.yield();  // Not likely to improve anything but hey, we've tried.
+
+      if (t.getClass() == oomClass) {
+        exitStatus = ERR_OOM;
+        warn("JVM out of memory.", t);
+      } else {
+        exitStatus = ERR_EXCEPTION;
+        warn("Exception at main loop level.", t);
+      }
     }
 
     try {
@@ -335,17 +362,31 @@ public class SlaveMain {
   /**
    * Warning emitter. Uses whatever alternative non-event communication channel is.
    */
-  public static void warn(String string, Throwable t) {
+  public static void warn(String message, Throwable t) {
+    PrintStream w = (warnings == null ? System.err : warnings);
     try {
-      PrintStream w = (warnings == null ? System.err : warnings);
+      w.print("WARN: ");
+      w.print(message);
       if (t != null) {
-        w.println("WARN: " + string + " -> " + Throwables.getStackTraceAsString(t));
+        w.print(" -> ");
+        try {
+          w.println(Throwables.getStackTraceAsString(t));
+        } catch (OutOfMemoryError e) {
+          // Ignore, OOM.
+          w.print(t.getClass().getName());
+          w.print(": ");
+          w.print(t.getMessage());
+          w.println(" (stack unavailable; OOM)");
+        }
       } else {
-        w.println("WARN: " + string);
+        w.println();
       }
       w.flush();
+    } catch (OutOfMemoryError t2) {
+      w.println("ERROR: Couldn't even serialize a warning (out of memory).");
     } catch (Throwable t2) {
-      // Can't do anything, really.
+      // Can't do anything, really. Probably an OOM?
+      w.println("ERROR: Couldn't even serialize a warning.");
     }
   }
 }

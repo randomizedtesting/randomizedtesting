@@ -986,5 +986,23 @@
            <include name="**/tests/ChildVmSysprops.class" />
        </fileset>
      </junit4.preconf>
-   </target>  
+   </target>
+
+   <target name="codeoom">
+      <junit4:junit4 haltonfailure="true">
+          <classpath refid="tests.classpath" />
+
+          <fileset dir="${basedir}">
+              <include name="**/CodeOom*.class" />
+          </fileset>
+
+          <listeners>
+              <junit4:report-text 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutput="always"
+              />
+          </listeners>
+      </junit4:junit4>
+   </target>
 </project>
