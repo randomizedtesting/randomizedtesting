@@ -4,7 +4,7 @@ import java.util.LinkedList;
 
 import org.junit.Test;
 
-public class CodeOom {
+public class OomCode {
   static LinkedList<byte[]> ohMy = new LinkedList<byte[]>(); 
 
   @Test

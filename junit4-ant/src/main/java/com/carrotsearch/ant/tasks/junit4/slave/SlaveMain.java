@@ -38,10 +38,11 @@ public class SlaveMain {
    * Even monkeys in Madagaskar know this. If you know a better solution, patches
    * welcome. 
    * 
-   * <p>Approximately 100kb is reserved.
+   * <p>Approximately 5mb is reserved. Really, smaller values don't make any difference
+   * and the JVM fails to even return the status passed to Runtime.halt().
    */
-  static volatile Object lastResortMemory = new byte [1024 * 100];
-  
+  static volatile Object lastResortMemory = new byte [1024 * 1024 * 5];
+
   /**
    * Preallocate and load in advance. 
    */
@@ -279,7 +280,7 @@ public class SlaveMain {
       }
     } catch (Throwable t) {
       lastResortMemory = null;
-      System.gc(); Thread.yield();  // Not likely to improve anything but hey, we've tried.
+      tryWaitingForGC();
 
       if (t.getClass() == oomClass) {
         exitStatus = ERR_OOM;
@@ -300,6 +301,24 @@ public class SlaveMain {
       }
     } finally {
       JvmExit.halt(exitStatus);
+    }
+  }
+
+  /**
+   * Try waiting for a GC to happen. This is a dirty heuristic but if we're
+   * here we're neck deep in sh*t anyway (OOMs all over).
+   */
+  private static void tryWaitingForGC() {
+    // TODO: we could try to preallocate memory mx bean and count collections.
+    // there is no guarantee it doesn't allocate stuff too though. 
+    final long timeout = System.currentTimeMillis() + 2000;
+    while (System.currentTimeMillis() < timeout) {
+      System.gc(); 
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        break;
+      }
     }
   }
 

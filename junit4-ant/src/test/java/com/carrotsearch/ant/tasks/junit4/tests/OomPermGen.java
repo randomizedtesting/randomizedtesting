@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 
-public class TestPermGenExplosion {
+public class OomPermGen {
   abstract class WhoaClassLoader extends ClassLoader {
     public abstract Class<?> defineNewClass(byte [] clazz) throws ClassNotFoundException;
   }
