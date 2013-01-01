@@ -712,6 +712,7 @@ public class JUnit4 extends Task {
   @Override
   public void execute() throws BuildException {
     validateJUnit4();
+    validateArguments();
 
     // Initialize random if not already provided.
     if (random == null) {
@@ -899,6 +900,27 @@ public class JUnit4 extends Task {
         }
       }
     }
+  }
+
+  /**
+   * Validate arguments.
+   */
+  private void validateArguments() {
+    File tempDir = getTempDir();
+
+    if (tempDir == null) {
+      throw new BuildException("Temporary directory cannot be null.");
+    }
+    
+    if (tempDir.exists() && !tempDir.isDirectory()) {
+      throw new BuildException("Temporary directory is not a folder: " + tempDir.getAbsolutePath());
+    }
+
+    if (!tempDir.mkdirs()) {
+      throw new BuildException("Failed to create temporary directory: " + tempDir.getAbsolutePath());
+    }
+    
+    // TODO: we should probably add validation for the entire set of attrs...
   }
 
   /**
