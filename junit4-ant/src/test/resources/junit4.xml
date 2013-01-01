@@ -986,5 +986,45 @@
            <include name="**/tests/ChildVmSysprops.class" />
        </fileset>
      </junit4.preconf>
-   </target>  
+   </target>
+
+   <target name="oomcode">
+      <junit4:junit4 haltonfailure="true">
+          <classpath refid="tests.classpath" />
+
+          <fileset dir="${basedir}">
+              <include name="**/OomCode.class" />
+          </fileset>
+
+          <listeners>
+              <junit4:report-text 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutput="always"
+              />
+          </listeners>
+      </junit4:junit4>
+   </target>
+   
+   <target name="oompermgen">
+      <junit4:junit4 haltonfailure="true">
+          <classpath refid="tests.classpath" />
+          <classpath>
+            <fileset dir=".." includes="dependency/asm*.jar" />
+          </classpath>
+          
+
+          <fileset dir="${basedir}">
+              <include name="**/OomPermGen.class" />
+          </fileset>
+
+          <listeners>
+              <junit4:report-text 
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutput="always"
+              />
+          </listeners>
+      </junit4:junit4>
+   </target>   
 </project>
