@@ -912,12 +912,14 @@ public class JUnit4 extends Task {
       throw new BuildException("Temporary directory cannot be null.");
     }
     
-    if (tempDir.exists() && !tempDir.isDirectory()) {
-      throw new BuildException("Temporary directory is not a folder: " + tempDir.getAbsolutePath());
-    }
-
-    if (!tempDir.mkdirs()) {
-      throw new BuildException("Failed to create temporary directory: " + tempDir.getAbsolutePath());
+    if (tempDir.exists()) {
+      if (!tempDir.isDirectory()) {
+        throw new BuildException("Temporary directory is not a folder: " + tempDir.getAbsolutePath());
+      }
+    } else {
+      if (!tempDir.mkdirs()) {
+        throw new BuildException("Failed to create temporary directory: " + tempDir.getAbsolutePath());
+      }
     }
     
     // TODO: we should probably add validation for the entire set of attrs...
