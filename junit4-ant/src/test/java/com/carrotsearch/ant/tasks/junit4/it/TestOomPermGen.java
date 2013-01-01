@@ -6,6 +6,8 @@ public class TestOomPermGen  extends JUnit4XmlTestBase {
   @Test
   public void oom() {
     super.executeForkedTarget("oompermgen", 30 * 1000L);
-    assertLogContains("java.lang.OutOfMemoryError");
+    if (!getLog().contains("1 ignored (1 assumption)")) {
+      assertLogContains("java.lang.OutOfMemoryError");
+    }
   }
 }
