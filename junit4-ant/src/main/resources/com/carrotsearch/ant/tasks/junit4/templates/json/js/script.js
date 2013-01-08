@@ -809,6 +809,16 @@
     $summary.append($(statusbar(counts.byStatus, counts.global)));
   }
 
+  // Escape a string into HTML.
+  function htmlEscape(str) {
+	    return String(str)
+	            .replace(/&/g, '&amp;')
+	            .replace(/"/g, '&quot;')
+	            .replace(/'/g, '&#39;')
+	            .replace(/</g, '&lt;')
+	            .replace(/>/g, '&gt;');
+  }
+
   // Renders the console output
   function refreshConsole() {
     var html = [];
@@ -872,7 +882,8 @@
 
           case "APPEND_STDOUT":
           case "APPEND_STDERR":
-            html.push("<span class='", evtobj.event == "APPEND_STDOUT" ? "out" : "err", "'>", evtobj.content, "</span>");
+            html.push("<span class='", evtobj.event == "APPEND_STDOUT" ? "out" : "err", "'>", 
+            		htmlEscape(evtobj.content), "</span>");
             emptyOutBoxIndex = undefined;
             break;
 
