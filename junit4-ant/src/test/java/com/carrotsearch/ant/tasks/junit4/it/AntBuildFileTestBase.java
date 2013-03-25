@@ -79,7 +79,12 @@ public class AntBuildFileTestBase {
     Assert.assertTrue("Log did not contain: '" + substring + "'", getLog()
         .contains(substring));
   }
-  
+
+  protected final void assertLogDoesNotContain(String substring) {
+    Assert.assertTrue("Log contained: '" + substring + "'", 
+        !getLog().contains(substring));
+  }
+
   protected final String getLog() {
     try {
       return new String(output.toByteArray(), "UTF-8");

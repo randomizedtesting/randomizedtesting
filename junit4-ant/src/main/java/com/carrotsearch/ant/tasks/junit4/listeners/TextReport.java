@@ -1,29 +1,54 @@
 package com.carrotsearch.ant.tasks.junit4.listeners;
 
-import java.io.*;
+import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatDescription;
+import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatDurationInSeconds;
+import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatTime;
+import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatTimestamp;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.*;
+import com.carrotsearch.ant.tasks.junit4.FormattingUtils;
+import com.carrotsearch.ant.tasks.junit4.JUnit4;
+import com.carrotsearch.ant.tasks.junit4.Pluralize;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 import com.carrotsearch.ant.tasks.junit4.events.SuiteStartedEvent;
 import com.carrotsearch.ant.tasks.junit4.events.TestFinishedEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedResultEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteStartedEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedTestResultEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.ChildBootstrap;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.HeartBeatEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.PartialOutputEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
-import com.google.common.base.*;
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
-
-import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.*;
 
 /**
  * A listener that will subscribe to test execution and dump
@@ -171,6 +196,9 @@ public class TextReport implements AggregatedEventListener {
   /** A list of failed tests, if to be displayed at the end. */
   private List<Description> failedTests = Lists.newArrayList();
 
+  /** Stack trace filters. */
+  private List<StackTraceFilter> stackFilters = Lists.newArrayList();
+
   public void setShowStatusError(boolean showStatus)   { displayStatus.put(TestStatus.ERROR, showStatus); }
   public void setShowStatusFailure(boolean showStatus) { displayStatus.put(TestStatus.FAILURE, showStatus); }
   public void setShowStatusOk(boolean showStatus)      { displayStatus.put(TestStatus.OK, showStatus);  }
@@ -200,6 +228,13 @@ public class TextReport implements AggregatedEventListener {
     this.timestamps = timestamps;
   }
 
+  /**
+   * Filter stack traces from certain frames. 
+   */
+  public void addConfigured(StackTraceFilter sfilter) {
+    this.stackFilters.add(sfilter);
+  }
+  
   /**
    * If enabled, displays extended error information for tests that failed
    * (exception class, message, stack trace, standard streams).
@@ -553,7 +588,7 @@ public class TextReport implements AggregatedEventListener {
                 pos.write(String.format(Locale.ENGLISH, 
                     "Throwable #%d: %s",
                     count,
-                    showStackTraces ? fm.getTrace() : fm.getThrowableString()));
+                    showStackTraces ? filterStackTrace(fm.getTrace()) : fm.getThrowableString()));
             }
         }
         pos.completeLine();
@@ -564,6 +599,16 @@ public class TextReport implements AggregatedEventListener {
     }
 
     logShort(line);
+  }
+
+  /**
+   * Filter stack trace if {@link #addConfigured(StackTraceFilter)}.
+   */
+  private String filterStackTrace(String trace) {
+    for (StackTraceFilter filter : stackFilters) {
+      trace = filter.apply(trace);
+    }
+    return trace;
   }
 
   /**

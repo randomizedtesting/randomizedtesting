@@ -507,6 +507,23 @@ which produces console output (or plain text file). A plain text report configur
 ');
 </script></pre>
 
+<p>This listener supports stack trace filtering to reduce verbosity (console output, for
+example). For production or integration builds, it is recommended to keep the full stacks.
+For developer runs, the default set of filters (enabled by default) can declutter the output
+a bit. An example stack trace filter, with default options and two custom filters, is shown
+below.</p>
+
+<pre id="snippet-4_1" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-4_1", '\
+    <!-- Filter stack traces (with default and custom filters) --> \n\
+    <report-text>                                     \n\
+      <junit4:filtertrace defaults="true" enabled="true"> \n\
+        <containsstring contains=".MyClass." />       \n\
+        <containsregex pattern="^(\s+at )(foo\.bar\.)" /> \n\
+      </junit4:filtertrace>                           \n\
+    </report-text>                                    \n\
+');
+</script></pre>
+
 <p>The level of verbosity of the output can be fine-tuned to one's needs by disabling
 or enabling test statuses and suite summaries or each test's output. Experimenting
 highly recommended.</p>
