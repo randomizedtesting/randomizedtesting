@@ -639,6 +639,7 @@ public class JUnit4 extends Task {
 
   public void setFiltertrace(boolean filterTrace) {
     warnUnsupported("filtertrace");
+    log("Hint: report listeners have stack filtering options.", Project.MSG_WARN);
   }
 
   public void setTimeout(String v) {

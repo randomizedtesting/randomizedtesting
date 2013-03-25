@@ -82,4 +82,25 @@ public class TestTextReport extends JUnit4XmlTestBase {
     super.executeTarget("failureslist");
     assertLogContains("Tests with failures");
   }
+  
+
+  @Test 
+  public void filtertrace_default() {
+    super.executeTarget("filtertrace_default");
+
+    assertLogDoesNotContain("at sun.reflect.");
+    assertLogDoesNotContain("at java.lang.reflect.Method");
+    assertLogDoesNotContain("at org.junit.runners.");
+    assertLogDoesNotContain("at com.carrotsearch.ant.tasks.junit4.slave.SlaveMain");
+  }
+  
+  @Test 
+  public void filtertrace_custom() {
+    super.executeTarget("filtertrace_custom");
+
+    assertLogContains("at sun.reflect.");
+    assertLogContains("at java.lang.reflect.Method");
+    assertLogDoesNotContain("at org.junit.");
+    assertLogDoesNotContain(".SlaveMain.");
+  }  
 }

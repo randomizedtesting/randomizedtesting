@@ -49,7 +49,7 @@ public class FailureMirror {
   public Description getDescription() {
     return description;
   }
-  
+
   public String getTrace() {
     return trace;
   }

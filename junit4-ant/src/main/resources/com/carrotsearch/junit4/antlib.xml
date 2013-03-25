@@ -51,4 +51,8 @@
     <typedef
         name="duplicate"
         classname="com.carrotsearch.ant.tasks.junit4.DuplicateResources" />
+
+    <typedef
+        name="filtertrace" 
+        classname="com.carrotsearch.ant.tasks.junit4.listeners.StackTraceFilter" />        
 </antlib> 

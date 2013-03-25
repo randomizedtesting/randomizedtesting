@@ -1027,5 +1027,45 @@
               />
           </listeners>
       </junit4:junit4>
-   </target>   
+   </target>
+
+  <target name="filtertrace_default">
+    <junit4:junit4 haltonfailure="false">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <listeners>
+        <junit4:report-text>
+          <junit4:filtertrace>
+            <!-- custom filters. 
+                <containsstring contains=".SlaveMain." /> 
+                <containsregex pattern="^(\s+at )(org\.junit\.)" /> 
+             -->
+          </junit4:filtertrace>
+        </junit4:report-text>
+      </listeners>
+    </junit4:junit4>
+  </target>
+  
+  <target name="filtertrace_custom">
+    <junit4:junit4 haltonfailure="false">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <listeners>
+        <junit4:report-text>
+          <junit4:filtertrace defaults="false">
+              <containsstring contains=".SlaveMain." /> 
+              <containsregex pattern="^(\s+at )(org\.junit\.)" /> 
+          </junit4:filtertrace>
+        </junit4:report-text>
+      </listeners>
+    </junit4:junit4>
+  </target>      
 </project>
