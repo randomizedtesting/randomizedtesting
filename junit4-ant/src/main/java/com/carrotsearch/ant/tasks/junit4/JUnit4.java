@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.tools.ant.*;
 import org.apache.tools.ant.taskdefs.Execute;
@@ -709,7 +710,6 @@ public class JUnit4 extends Task {
     this.heartbeat = heartbeat;
   }
   
-  @SuppressWarnings("deprecation")
   @Override
   public void execute() throws BuildException {
     validateJUnit4();
@@ -894,7 +894,7 @@ public class JUnit4 extends Task {
       for (File f : temporaryFiles) {
         try {
           if (f != null) {
-            Files.deleteRecursively(f);
+            if (!FileUtils.deleteQuietly(f)) throw new IOException();
           }
         } catch (IOException e) {
           log("Could not remove temporary path: " + f.getAbsolutePath(), Project.MSG_WARN);

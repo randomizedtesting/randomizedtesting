@@ -49,6 +49,7 @@ public class TestEventBusSanityCheck extends RandomizedTest {
     aggregatedBus.register(new Object() {
       volatile Thread foo;
 
+      @SuppressWarnings("unused")
       @Subscribe
       public void onSlaveIdle(SlaveIdle slave) {
         final Thread other = foo;
