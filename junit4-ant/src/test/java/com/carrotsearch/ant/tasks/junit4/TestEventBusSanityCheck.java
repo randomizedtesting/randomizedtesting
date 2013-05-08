@@ -1,4 +1,5 @@
-package com.carrotsearch.ant.tasks.junit4.it;
+package com.carrotsearch.ant.tasks.junit4;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -49,7 +50,6 @@ public class TestEventBusSanityCheck extends RandomizedTest {
     aggregatedBus.register(new Object() {
       volatile Thread foo;
 
-      @SuppressWarnings("unused")
       @Subscribe
       public void onSlaveIdle(SlaveIdle slave) {
         final Thread other = foo;
