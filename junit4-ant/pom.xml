@@ -248,7 +248,6 @@
               <inclusion>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <filter>!com/google/common/eventbus/SynchronizedEventHandler.class</filter>
               </inclusion>
               <inclusion>
                 <groupId>asm</groupId>
