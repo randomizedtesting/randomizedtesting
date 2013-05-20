@@ -17,8 +17,10 @@ public final class Rethrow {
   /**
    * Rethrows <code>t</code> (identical object).
    */
-  public static void rethrow(Throwable t) {
+  public static RuntimeException rethrow(Throwable t) {
     new Rethrower<Error>().rethrow(t);
+    // Inaccessible.
+    return null;
   }
 }
 
