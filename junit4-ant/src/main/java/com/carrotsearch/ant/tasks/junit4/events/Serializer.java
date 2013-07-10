@@ -97,7 +97,7 @@ public class Serializer implements Closeable {
     }
   }
 
-  static Gson createGSon(ClassLoader refLoader) {
+  public static Gson createGSon(ClassLoader refLoader) {
     return new GsonBuilder()
       .registerTypeAdapter(byte[].class, new JsonByteArrayAdapter())
       .registerTypeHierarchyAdapter(Annotation.class, new JsonAnnotationAdapter(refLoader))
