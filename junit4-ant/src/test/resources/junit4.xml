@@ -1067,5 +1067,78 @@
         </junit4:report-text>
       </listeners>
     </junit4:junit4>
+  </target>
+  
+  <target name="allFilteredOut">
+    <junit4:junit4 ifNoTests="fail">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <sysproperty key="tests.method" value="-nonexistent-" />
+    </junit4:junit4>
+  </target>
+  
+  <target name="oneIgnored">
+    <junit4:junit4 ifNoTests="fail">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <sysproperty key="tests.method" value="ignored" />
+    </junit4:junit4>
+  </target>
+  
+  <target name="oneAssumptionIgnored">
+    <junit4:junit4 ifNoTests="fail">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <sysproperty key="tests.method" value="ignored" />
+    </junit4:junit4>
   </target>      
+
+  <target name="oneSuccessful">
+    <junit4:junit4 ifNoTests="fail">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <sysproperty key="tests.method" value="ok" />
+    </junit4:junit4>
+  </target>      
+
+  <target name="oneFailure">
+    <junit4:junit4 ifNoTests="fail">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <sysproperty key="tests.method" value="failure" />
+    </junit4:junit4>
+  </target>      
+
+  <target name="oneError">
+    <junit4:junit4 ifNoTests="fail">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <sysproperty key="tests.method" value="error" />
+    </junit4:junit4>
+  </target>      
+
 </project>
