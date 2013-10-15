@@ -1,20 +1,64 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.*;
+import static com.carrotsearch.randomizedtesting.SysGlobals.CURRENT_PREFIX;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_PREFIX;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_RANDOM_SEED;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTCLASS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTMETHOD;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Deque;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.TeeOutputStream;
-import org.apache.tools.ant.*;
+import org.apache.tools.ant.AntClassLoader;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
-import org.apache.tools.ant.types.*;
+import org.apache.tools.ant.types.Assertions;
+import org.apache.tools.ant.types.Commandline;
+import org.apache.tools.ant.types.CommandlineJava;
+import org.apache.tools.ant.types.Environment;
 import org.apache.tools.ant.types.Environment.Variable;
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.PropertySet;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
@@ -25,14 +69,24 @@ import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
 import com.carrotsearch.ant.tasks.junit4.balancers.SuiteHint;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
 import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.ChildBootstrap;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
-import com.carrotsearch.randomizedtesting.*;
+import com.carrotsearch.randomizedtesting.ClassGlobFilter;
+import com.carrotsearch.randomizedtesting.MethodGlobFilter;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.SeedUtils;
+import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
-import com.google.common.base.*;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -43,8 +97,6 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
-
-import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 /**
  * An ANT task to run JUnit4 tests. Differences (benefits?) compared to ANT's default JUnit task:
@@ -131,6 +183,13 @@ public class JUnit4 extends Task {
   /** What to do on JVM output? */
   public static enum JvmOutputAction {
     PIPE,
+    IGNORE,
+    FAIL,
+    WARN
+  }
+  
+  /** What to do when there were no executed tests (all ignored or none at all?). */
+  public static enum NoTestsAction {
     IGNORE,
     FAIL,
     WARN
@@ -261,6 +320,11 @@ public class JUnit4 extends Task {
    * @see #setHeartbeat
    */
   private long heartbeat; 
+  
+  /**
+   * @see #setIfNoTests
+   */
+  private NoTestsAction ifNoTests = NoTestsAction.IGNORE;
   
   /**
    * 
@@ -469,6 +533,19 @@ public class JUnit4 extends Task {
    */
   public void setTempDir(File tempDir) {
     this.tempDir = tempDir;
+  }
+  
+  /**
+   * What to do when no tests were executed (all tests were ignored)?
+   * @see NoTestsAction
+   */
+  public void setIfNoTests(String value) {
+    try {
+      ifNoTests = NoTestsAction.valueOf(value.toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException e) {
+      throw new BuildException("Invalid value (one of "
+          + Arrays.toString(NoTestsAction.values()) + " accepted): " + value);
+    }
   }
 
   /**
@@ -899,6 +976,22 @@ public class JUnit4 extends Task {
         } catch (IOException e) {
           log("Could not remove temporary path: " + f.getAbsolutePath(), Project.MSG_WARN);
         }
+      }
+    }
+    
+    int executedTests = testsSummary.getNonIgnoredTestsCount();
+    if (executedTests == 0) {
+      String message = "There were no executed tests: " + testsSummary;
+      switch (ifNoTests) {
+        case FAIL:
+          throw new BuildException(message);
+        case WARN:
+          log(message, Project.MSG_WARN);
+          break;
+        case IGNORE:
+          break;
+        default:
+          throw new RuntimeException("Unreachable case clause: " + ifNoTests);
       }
     }
   }

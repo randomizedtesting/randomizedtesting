@@ -42,4 +42,8 @@ public class TestsSummary {
     }
     return s.toString();
   }
+
+  public int getNonIgnoredTestsCount() {
+    return tests - (ignores + assumptions);
+  }
 }
