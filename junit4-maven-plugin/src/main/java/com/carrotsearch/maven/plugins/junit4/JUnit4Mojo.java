@@ -72,7 +72,7 @@ public class JUnit4Mojo extends AbstractMojo {
   /**
    * The Maven project object
    *
-   * @parameter expression="${project}"
+   * @parameter property="project"
    * @readonly
    */
   private MavenProject project;
@@ -81,14 +81,14 @@ public class JUnit4Mojo extends AbstractMojo {
    * Base directory to invoke slave VMs in. Also note <code>isolateWorkingDirectories</code>
    * parameter.
    * 
-   * @parameter expression="${project.build.directory}"
+   * @parameter property="project.build.directory"
    */
   private File dir;
 
   /**
    * The directory to store temporary files in.
    * 
-   * @parameter expression="${project.build.directory}"
+   * @parameter property="project.build.directory"
    */
   private File tempDir;
 
@@ -122,7 +122,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * randomized testing properties is changed, the seed can be overridden using "tests.seed"
    * property.
    * 
-   * @parameter expression="${tests.seed}" default-value=""
+   * @parameter property="tests.seed" default-value=""
    */
   private String seed;
 
@@ -289,7 +289,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * Specifies the name of the JUnit artifact used for running tests. JUnit dependency
    * must be in at least version 4.10.
    *
-   * @parameter expression="${junitArtifactName}" default-value="junit:junit"
+   * @parameter property="junitArtifactName" default-value="junit:junit"
    */
   private String junitArtifactName;
 
@@ -302,7 +302,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * 
    * <p>Allowed values (any comma-delimited combination of): ignore, pipe, warn, fail.
    *
-   * @parameter expression="${jvmOutputAction}" default-value="pipe,warn"
+   * @parameter property="jvmOutputAction" default-value="pipe,warn"
    */
   private String jvmOutputAction;
   
@@ -343,7 +343,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * Set this to "true" to skip running tests, but still compile them. Its use
    * is NOT RECOMMENDED, but quite convenient on occasion.
    * 
-   * @parameter default-value="false" expression="${skipTests}"
+   * @parameter default-value="false" property="skipTests"
    */
   private boolean skipTests;
 
@@ -382,7 +382,7 @@ public class JUnit4Mojo extends AbstractMojo {
   /**
    * Map of plugin artifacts.
    *
-   * @parameter expression="${plugin.artifactMap}"
+   * @parameter property="plugin.artifactMap"
    * @required
    * @readonly
    */
@@ -391,7 +391,7 @@ public class JUnit4Mojo extends AbstractMojo {
   /**
    * Map of project artifacts.
    *
-   * @parameter expression="${project.artifactMap}"
+   * @parameter property="project.artifactMap"
    * @required
    * @readonly
    */
@@ -400,7 +400,7 @@ public class JUnit4Mojo extends AbstractMojo {
   /**
    * The current build session instance.
    *
-   * @parameter expression="${session}"
+   * @parameter property="session"
    * @required
    * @readonly
    */
