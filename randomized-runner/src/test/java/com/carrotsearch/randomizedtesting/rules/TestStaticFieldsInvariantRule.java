@@ -16,10 +16,13 @@ import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope.Scope;
 
 public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
   static int LEAK_THRESHOLD = 5 * 1024 * 1024;
 
+  @ThreadLeakScope(Scope.SUITE)
   public static class Base extends RandomizedTest {
     private static TestRule assumeNotNestedRule = new TestRule() {
       public Statement apply(final Statement base, Description description) {

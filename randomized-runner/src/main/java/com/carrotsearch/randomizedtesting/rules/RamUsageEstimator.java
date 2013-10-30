@@ -36,6 +36,8 @@ import java.util.*;
  * Estimates the size (memory representation) of Java objects.
  * 
  * @see #sizeOf(Object)
+ * @see #shallowSizeOf(Object)
+ * @see #shallowSizeOfInstance(Class)
  */
 final class RamUsageEstimator {
   /**
@@ -74,14 +76,14 @@ final class RamUsageEstimator {
   /** No instantiation. */
   private RamUsageEstimator() {}
 
-  private final static int NUM_BYTES_BOOLEAN = 1;
-  private final static int NUM_BYTES_BYTE = 1;
-  private final static int NUM_BYTES_CHAR = 2;
-  private final static int NUM_BYTES_SHORT = 2;
-  private final static int NUM_BYTES_INT = 4;
-  private final static int NUM_BYTES_FLOAT = 4;
-  private final static int NUM_BYTES_LONG = 8;
-  private final static int NUM_BYTES_DOUBLE = 8;
+  public final static int NUM_BYTES_BOOLEAN = 1;
+  public final static int NUM_BYTES_BYTE = 1;
+  public final static int NUM_BYTES_CHAR = 2;
+  public final static int NUM_BYTES_SHORT = 2;
+  public final static int NUM_BYTES_INT = 4;
+  public final static int NUM_BYTES_FLOAT = 4;
+  public final static int NUM_BYTES_LONG = 8;
+  public final static int NUM_BYTES_DOUBLE = 8;
 
   /** 
    * Number of bytes this jvm uses to represent an object reference. 
@@ -182,7 +184,7 @@ final class RamUsageEstimator {
     // estimateRamUsage().
     Method tempObjectFieldOffsetMethod = null;
     try {
-      Method objectFieldOffsetM = unsafeClass.getMethod("objectFieldOffset", Field.class);
+      final Method objectFieldOffsetM = unsafeClass.getMethod("objectFieldOffset", Field.class);
       final Field dummy1Field = DummyTwoLongObject.class.getDeclaredField("dummy1");
       final int ofs1 = ((Number) objectFieldOffsetM.invoke(theUnsafe, dummy1Field)).intValue();
       final Field dummy2Field = DummyTwoLongObject.class.getDeclaredField("dummy2");
@@ -218,17 +220,33 @@ final class RamUsageEstimator {
     int objectAlignment = 8;
     try {
       final Class<?> beanClazz = Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
-      final Object hotSpotBean = ManagementFactory.newPlatformMXBeanProxy(
-        ManagementFactory.getPlatformMBeanServer(),
-        "com.sun.management:type=HotSpotDiagnostic",
-        beanClazz
-      );
+      // Try to get the diagnostic mxbean without calling {@link ManagementFactory#getPlatformMBeanServer()}
+      // which starts AWT thread (and shows junk in the dock) on a Mac:
+      Object hotSpotBean;
+      // Java 7+, HotSpot
+      try {
+        hotSpotBean = ManagementFactory.class
+          .getMethod("getPlatformMXBean", Class.class)
+          .invoke(null, beanClazz);
+      } catch (Exception e1) {
+        // Java 6, HotSpot
+        try {
+          Class<?> sunMF = Class.forName("sun.management.ManagementFactory");
+          hotSpotBean = sunMF.getMethod("getDiagnosticMXBean").invoke(null);
+        } catch (Exception e2) {
+          // Last resort option is an attempt to get it from ManagementFactory's server anyway (may start AWT).
+          hotSpotBean = ManagementFactory.newPlatformMXBeanProxy(
+              ManagementFactory.getPlatformMBeanServer(),
+              "com.sun.management:type=HotSpotDiagnostic", beanClazz);
+        }
+      }
+      if (hotSpotBean != null) {
       final Method getVMOptionMethod = beanClazz.getMethod("getVMOption", String.class);
       final Object vmOption = getVMOptionMethod.invoke(hotSpotBean, "ObjectAlignmentInBytes");
       objectAlignment = Integer.parseInt(
-          vmOption.getClass().getMethod("getValue").invoke(vmOption).toString()
-      );
+            vmOption.getClass().getMethod("getValue").invoke(vmOption).toString());
       supportedFeatures.add(JvmFeature.OBJECT_ALIGNMENT);        
+      }
     } catch (Exception e) {
       // Ignore.
     }
@@ -283,6 +301,46 @@ final class RamUsageEstimator {
   public static long alignObjectSize(long size) {
     size += (long) NUM_BYTES_OBJECT_ALIGNMENT - 1L;
     return size - (size % NUM_BYTES_OBJECT_ALIGNMENT);
+  }
+
+  /** Returns the size in bytes of the byte[] object. */
+  public static long sizeOf(byte[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + arr.length);
+  }
+  
+  /** Returns the size in bytes of the boolean[] object. */
+  public static long sizeOf(boolean[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + arr.length);
+  }
+  
+  /** Returns the size in bytes of the char[] object. */
+  public static long sizeOf(char[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + (long) NUM_BYTES_CHAR * arr.length);
+  }
+
+  /** Returns the size in bytes of the short[] object. */
+  public static long sizeOf(short[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + (long) NUM_BYTES_SHORT * arr.length);
+  }
+  
+  /** Returns the size in bytes of the int[] object. */
+  public static long sizeOf(int[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + (long) NUM_BYTES_INT * arr.length);
+  }
+  
+  /** Returns the size in bytes of the float[] object. */
+  public static long sizeOf(float[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + (long) NUM_BYTES_FLOAT * arr.length);
+  }
+  
+  /** Returns the size in bytes of the long[] object. */
+  public static long sizeOf(long[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + (long) NUM_BYTES_LONG * arr.length);
+  }
+  
+  /** Returns the size in bytes of the double[] object. */
+  public static long sizeOf(double[] arr) {
+    return alignObjectSize((long) NUM_BYTES_ARRAY_HEADER + (long) NUM_BYTES_DOUBLE * arr.length);
   }
 
   /** 
