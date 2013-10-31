@@ -327,6 +327,11 @@ public class JUnit4 extends Task {
   private NoTestsAction ifNoTests = NoTestsAction.IGNORE;
   
   /**
+   * @see #setStatsPropertyPrefix
+   */
+  private String statsPropertyPrefix;
+  
+  /**
    * 
    */
   public JUnit4() {
@@ -786,6 +791,13 @@ public class JUnit4 extends Task {
   public void setHeartbeat(long heartbeat) {
     this.heartbeat = heartbeat;
   }
+
+  /**
+   * Sets the property prefix to which test statistics are saved.
+   */
+  public void setStatsPropertyPrefix(String statsPropertyPrefix) {
+    this.statsPropertyPrefix = statsPropertyPrefix;
+  }
   
   @Override
   public void execute() throws BuildException {
@@ -978,7 +990,21 @@ public class JUnit4 extends Task {
         }
       }
     }
-    
+
+    if (statsPropertyPrefix != null) {
+      Project p = getProject();
+      p.setNewProperty(statsPropertyPrefix + ".tests", Integer.toString(testsSummary.tests));
+      p.setNewProperty(statsPropertyPrefix + ".errors", Integer.toString(testsSummary.errors));
+      p.setNewProperty(statsPropertyPrefix + ".failures", Integer.toString(testsSummary.failures));
+      p.setNewProperty(statsPropertyPrefix + ".ignores", Integer.toString(testsSummary.ignores));
+      p.setNewProperty(statsPropertyPrefix + ".suites", Integer.toString(testsSummary.suites));
+      p.setNewProperty(statsPropertyPrefix + ".assumptions", Integer.toString(testsSummary.assumptions));
+      p.setNewProperty(statsPropertyPrefix + ".suiteErrors", Integer.toString(testsSummary.suiteErrors));
+
+      p.setNewProperty(statsPropertyPrefix + ".nonIgnored", Integer.toString(testsSummary.getNonIgnoredTestsCount()));
+      p.setNewProperty(statsPropertyPrefix + ".successful", Boolean.toString(testsSummary.isSuccessful()));
+    }
+
     int executedTests = testsSummary.getNonIgnoredTestsCount();
     if (executedTests == 0) {
       String message = "There were no executed tests: " + testsSummary;

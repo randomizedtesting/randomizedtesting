@@ -1141,4 +1141,91 @@
     </junit4:junit4>
   </target>      
 
+  <target name="statsProperties">
+    <sequential>
+      <local name="junit4.stats.tests" />
+      <local name="junit4.stats.errors" />
+      <local name="junit4.stats.failures" />
+      <local name="junit4.stats.ignores" />
+      <local name="junit4.stats.suites" />
+      <local name="junit4.stats.assumptions" />
+      <local name="junit4.stats.suiteErrors" />
+      <local name="junit4.stats.nonIgnored" />
+      <local name="junit4.stats.successful" />
+
+      <junit4:junit4 statsPropertyPrefix="junit4.stats" haltonfailure="false">
+        <classpath refid="tests.classpath" />
+  
+        <fileset dir="${basedir}">
+          <include name="**/TestStatuses.class" />
+        </fileset>
+      </junit4:junit4>
+  
+      <echo>
+        ${junit4.stats.tests}
+        ${junit4.stats.errors}
+        ${junit4.stats.failures}
+        ${junit4.stats.ignores}
+        ${junit4.stats.suites}
+        ${junit4.stats.assumptions}
+        ${junit4.stats.suiteErrors}
+        ${junit4.stats.nonIgnored}
+        ${junit4.stats.successful}
+      </echo>
+
+      <fail><condition><not><equals arg1="${junit4.stats.tests}"    arg2="5" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.errors}"   arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.failures}" arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.ignores}"  arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.suites}"   arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.assumptions}" arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.suiteErrors}" arg2="0" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.nonIgnored}"  arg2="3" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.successful}"  arg2="false" /></not></condition></fail>
+    </sequential>
+
+    <sequential>
+      <local name="junit4.stats.tests" />
+      <local name="junit4.stats.errors" />
+      <local name="junit4.stats.failures" />
+      <local name="junit4.stats.ignores" />
+      <local name="junit4.stats.suites" />
+      <local name="junit4.stats.assumptions" />
+      <local name="junit4.stats.suiteErrors" />
+      <local name="junit4.stats.nonIgnored" />
+      <local name="junit4.stats.successful" />
+
+      <junit4:junit4 haltonfailure="false" statsPropertyPrefix="junit4.stats">
+        <classpath refid="tests.classpath" />
+  
+        <fileset dir="${basedir}">
+          <include name="**/TestStatuses.class" />
+        </fileset>
+  
+        <sysproperty key="tests.method" value="error" />
+      </junit4:junit4>
+  
+      <echo>
+        ${junit4.stats.tests}
+        ${junit4.stats.errors}
+        ${junit4.stats.failures}
+        ${junit4.stats.ignores}
+        ${junit4.stats.suites}
+        ${junit4.stats.assumptions}
+        ${junit4.stats.suiteErrors}
+        ${junit4.stats.nonIgnored}
+        ${junit4.stats.successful}
+      </echo>
+      
+      <fail><condition><not><equals arg1="${junit4.stats.tests}"    arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.errors}"   arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.failures}" arg2="0" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.ignores}"  arg2="0" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.suites}"   arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.assumptions}" arg2="0" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.suiteErrors}" arg2="0" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.nonIgnored}"  arg2="1" /></not></condition></fail>
+      <fail><condition><not><equals arg1="${junit4.stats.successful}"  arg2="false" /></not></condition></fail>      
+    </sequential>
+  </target>
 </project>
