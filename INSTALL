@@ -2,7 +2,7 @@ We're using Maven 3.x to reduce the size of the project. The top-level project
 is a parent aggregator for everything else.
 
 # Compile, test and create JAR files.
-mvn clean package
+mvn clean verify
 
 # Deploy a snapshot or stage a release
 mvn -Psonatype-oss-release,release clean deploy
