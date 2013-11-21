@@ -55,6 +55,11 @@
                 <dependency>org.simpleframework:simple-xml</dependency>
               </classpathDependencyExcludes>
 
+              <argLine>
+                -DargLine.property=foobar
+                -DargLine.property2=foobar
+              </argLine>
+
               <listeners>
                 <report-text
                     showThrowable="true" 

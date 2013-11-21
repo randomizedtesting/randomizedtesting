@@ -8,14 +8,12 @@ import com.carrotsearch.maven.plugins.junit4.*;
 la = new LogAssert(new File(basedir, "build.log"));
 
 // Tests successful.
-la.assertLogContains("Tests summary: 1 suite, 1 test");
+la.assertLogContains("Tests summary: 1 suite, 2 tests");
 
 // Listener enabled.
 la.assertLogContains("| Test001InsideMaven.success");
 
 // Assertions.
 la.assertLogContains("-ea:com.carrotsearch.ant.tasks.junit4.tests.sub1...");
-
-// 
 
 return true;

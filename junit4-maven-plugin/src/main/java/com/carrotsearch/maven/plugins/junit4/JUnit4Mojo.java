@@ -214,6 +214,13 @@ public class JUnit4Mojo extends AbstractMojo {
   private String [] jvmArgs;
 
   /**
+   * Arbitrary JVM options to set on the command line.
+   *
+   * @parameter property="argLine"
+   */
+  private String argLine;
+
+  /**
    * Adds a system property to any forked JVM.
    * 
    * @parameter
@@ -539,6 +546,10 @@ public class JUnit4Mojo extends AbstractMojo {
     // JVM args.
     for (String jvmArg : Objects.firstNonNull(jvmArgs, EMPTY_STRING_ARRAY)) {
       junit4.addElement("jvmarg").addAttribute("value", jvmArg);
+    }
+    
+    if (argLine != null) {
+        junit4.addElement("jvmarg").addAttribute("line", argLine);
     }
 
     // System properties
