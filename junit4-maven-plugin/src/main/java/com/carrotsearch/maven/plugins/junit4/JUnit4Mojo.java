@@ -335,6 +335,13 @@ public class JUnit4Mojo extends AbstractMojo {
   private PlexusConfiguration balancers;
 
   /**
+   * Raw section to copy/paste into ANT-driver.
+   *
+   * @parameter
+   */
+  private PlexusConfiguration verbatim;
+
+  /**
    * Sets the heartbeat used to detect inactive/ hung forked tests (JVMs) to the given
    * number of seconds. The heartbeat detects
    * no-event intervals and will report them to listeners. Notably, {@link TextReport} report will
@@ -602,7 +609,14 @@ public class JUnit4Mojo extends AbstractMojo {
     appendRawXml(assertions, junit4);
     
     // Copy over balancers
-    appendRawXml(balancers, junit4);    
+    appendRawXml(balancers, junit4);
+    
+    // Copy over verbatim section.
+    if (verbatim != null) {
+        for (PlexusConfiguration c : verbatim.getChildren()) {
+            appendRawXml(c, junit4);
+        }
+    }
   }
 
   /**
