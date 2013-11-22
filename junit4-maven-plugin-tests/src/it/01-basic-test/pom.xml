@@ -91,6 +91,10 @@
               <excludes>
                 <exclude>**/Buhu*</exclude>
               </excludes>
+              
+              <verbatim>
+                <jvmarg line="-Dverbatim.section=foobar" />
+              </verbatim>
             </configuration>
           </execution>
         </executions>

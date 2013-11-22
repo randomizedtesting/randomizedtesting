@@ -13,5 +13,6 @@ public class Test001InsideMaven {
   public void checkArgLinePassed() {
       Assert.assertEquals("foobar", System.getProperty("argLine.property"));
       Assert.assertEquals("foobar", System.getProperty("argLine.property2"));
+      Assert.assertEquals("foobar", System.getProperty("verbatim.section"));
   }
 }
