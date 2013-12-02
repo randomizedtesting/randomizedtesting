@@ -466,14 +466,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Test execution logic for the entire suite. 
    */
   private void runSuite(final RunNotifier notifier) {
-    handler = new QueueUncaughtExceptionsHandler();
-
     // TODO: this effectively means we can't run concurrent randomized runners.
     final UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
+    handler = new QueueUncaughtExceptionsHandler();
     Thread.setDefaultUncaughtExceptionHandler(handler);
 
     this.runnerThreadGroup = new RunnerThreadGroup(
-        "TGRP-" + Classes.simpleName(suiteClass), handler);
+        "TGRP-" + Classes.simpleName(suiteClass));
 
     final Thread runner = new Thread(runnerThreadGroup,
         "SUITE-" + Classes.simpleName(suiteClass) + "-seed#" + SeedUtils.formatSeedChain(runnerRandomness)) {

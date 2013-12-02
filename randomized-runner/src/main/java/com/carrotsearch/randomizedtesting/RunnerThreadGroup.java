@@ -1,6 +1,5 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -9,12 +8,9 @@ import java.util.logging.Logger;
  * should be no thread outside of this group's control.
  */
 final class RunnerThreadGroup extends ThreadGroup {
-  private final UncaughtExceptionHandler handler;
-
   /* */
-  RunnerThreadGroup(String name, UncaughtExceptionHandler handler) {
+  RunnerThreadGroup(String name) {
     super(name);
-    this.handler = handler;
   }
 
   /**
@@ -33,6 +29,6 @@ final class RunnerThreadGroup extends ThreadGroup {
             "always have a context and it didn't have any?", ignore);
     }
 
-    handler.uncaughtException(t, e);
+    super.uncaughtException(t, e);
   }
 }
