@@ -41,6 +41,8 @@
     <minimum.maven.version>3.0.2</minimum.maven.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
 
@@ -193,6 +195,12 @@
           <configuration>
             <skip>${skip.deployment}</skip>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
         </plugin>
 
         <plugin>
