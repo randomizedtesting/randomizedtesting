@@ -382,6 +382,7 @@ public class SlaveMain {
    * Warning emitter. Uses whatever alternative non-event communication channel is.
    */
   public static void warn(String message, Throwable t) {
+    @SuppressWarnings("resource")
     PrintStream w = (warnings == null ? System.err : warnings);
     try {
       w.print("WARN: ");

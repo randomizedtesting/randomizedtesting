@@ -190,8 +190,10 @@ public final class RandomizedContext {
         throw new IllegalStateException("No context information for thread: " +
             Threads.threadName(thread) + ". " +
             "Is this thread running under a " +
-            RandomizedRunner.class + " runner? Add @RunWith(" + RandomizedRunner.class + ".class)" +
-                " to your test class. ");
+            RandomizedRunner.class + " runner context? Add @RunWith(" + RandomizedRunner.class + ".class)" +
+                " to your test class. Make sure your code accesses random contexts within "
+                + "@BeforeClass and @AfterClass boundary (for example, static test class initializers are "
+                + "not permitted to access random contexts).");
       }
 
       synchronized (context._contextLock) {

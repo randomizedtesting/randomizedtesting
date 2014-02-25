@@ -62,7 +62,13 @@ import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.TypePath;
+import org.omg.CORBA.RepositoryIdHelper;
 
 import com.carrotsearch.ant.tasks.junit4.SuiteBalancer.Assignment;
 import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
@@ -82,6 +88,7 @@ import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SeedUtils;
 import com.carrotsearch.randomizedtesting.SysGlobals;
+import com.carrotsearch.randomizedtesting.annotations.ReplicateOnEachVm;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -177,9 +184,6 @@ public class JUnit4 extends Task {
   /** System property passed to forked VMs: current working directory (absolute). */
   private static final String CHILDVM_SYSPROP_CWD = "junit4.childvm.cwd";
 
-  /** System property passed to forked VMs: VM ID (integer). */
-  private static final String CHILDVM_SYSPROP_ID = "junit4.childvm.id";
-  
   /** What to do on JVM output? */
   public static enum JvmOutputAction {
     PIPE,
@@ -847,7 +851,7 @@ public class JUnit4 extends Task {
 
     // Process test classes and resources.
     long start = System.currentTimeMillis();    
-    final List<String> testClassNames = processTestResources();
+    final TestsCollection testCollection = processTestResources();
 
     final EventBus aggregatedBus = new EventBus("aggregated");
     final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
@@ -1210,6 +1214,7 @@ public class JUnit4 extends Task {
       }
     }
 
+    // TODO if has(replicated classes) return slaveCount;
     slaveCount = Math.min(testCases, slaveCount);
     return slaveCount;
   }
@@ -1494,8 +1499,13 @@ public class JUnit4 extends Task {
       commandline.addSysproperty(v);
 
       v = new Variable();
-      v.setKey(CHILDVM_SYSPROP_ID);
+      v.setKey(SysGlobals.CHILDVM_SYSPROP_JVM_ID);
       v.setValue(Integer.toString(slaveInfo.id));
+      commandline.addSysproperty(v);
+
+      v = new Variable();
+      v.setKey(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT);
+      v.setValue(Integer.toString(slaveInfo.slaves));
       commandline.addSysproperty(v);
 
       final Execute execute = new Execute();
@@ -1546,8 +1556,8 @@ public class JUnit4 extends Task {
    * Process test resources. If there are any test resources that are _not_ class files,
    * this will cause a build error.   
    */
-  private List<String> processTestResources() {
-    List<String> testClassNames = Lists.newArrayList();
+  private TestsCollection processTestResources() {
+    TestsCollection collection = new TestsCollection();
     resources.setProject(getProject());
 
     @SuppressWarnings("unchecked")
@@ -1566,7 +1576,7 @@ public class JUnit4 extends Task {
             .replace(File.separatorChar, '.')
             .replace('/', '.')
             .replace('\\', '.');
-          testClassNames.add(className);
+          collection.add(new TestClass(className));
           
           if (!javaSourceWarn) {
             log("Source (.java) files used for naming source suites. This is discouraged, " +
@@ -1590,12 +1600,26 @@ public class JUnit4 extends Task {
                   + r.getName() + ", " + r.getLocation());
             }
             is.reset();
-  
+
+            final String REPLICATE_CLASS = ReplicateOnEachVm.class.getName();
+            final TestClass testClass = new TestClass();
             ClassReader reader = new ClassReader(is);
-            String className = reader.getClassName().replace('/', '.');
-            log("Test class parsed: " + r.getName() + " as " 
-                + reader.getClassName(), Project.MSG_DEBUG);
-            testClassNames.add(className);
+            ClassVisitor annotationVisitor = new ClassVisitor(Opcodes.ASM5) {
+              @Override
+              public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                String className = Type.getType(desc).getClassName();
+                if (className.equals(REPLICATE_CLASS)) {
+                  testClass.replicate = true;
+                }
+                return null;
+              }
+            };
+
+            reader.accept(annotationVisitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+            testClass.className = reader.getClassName().replace('/', '.');
+            log("Test class parsed: " + r.getName() + " as " + testClass.className, Project.MSG_DEBUG);
+            
+            collection.add(testClass);
           } finally {
             is.close();
           }
@@ -1609,14 +1633,14 @@ public class JUnit4 extends Task {
     String testClassFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTCLASS()));
     if (testClassFilter != null) {
       ClassGlobFilter filter = new ClassGlobFilter(testClassFilter);
-      for (Iterator<String> i = testClassNames.iterator(); i.hasNext();) {
-        if (!filter.shouldRun(Description.createSuiteDescription(i.next()))) {
+      for (Iterator<TestClass> i = collection.testClasses.iterator(); i.hasNext();) {
+        if (!filter.shouldRun(Description.createSuiteDescription(i.next().className))) {
           i.remove();
         }
       }
     }
 
-    return testClassNames;
+    return collection;
   }
 
   /**

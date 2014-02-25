@@ -17,6 +17,8 @@ public class TestSysProperties extends JUnit4XmlTestBase {
     executeTarget("failureTypePassing");
     assertLogContains("Throwable #1: com.carrotsearch.ant.tasks.junit4.tests.SyntheticException");
     assertLogContains("Tests summary: 1 suite, 1 test, 1 error");
+    
+    super.restoreSyserr.println(getLog());
   }
 
   @Test

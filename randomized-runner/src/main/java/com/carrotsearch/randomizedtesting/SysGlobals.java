@@ -10,6 +10,12 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
  * and {@link RandomizedRunner}.
  */
 public final class SysGlobals {
+  /** System property passed to forked VMs: VM ID (sequential integer between 0 and the (number of concurrent jvms - 1)). */
+  public static final String CHILDVM_SYSPROP_JVM_ID = "junit4.childvm.id";
+  
+  /** System property passed to forked VMs: the number of concurrent JVMs. */
+  public static final String CHILDVM_SYSPROP_JVM_COUNT = "junit4.childvm.count";
+
   private final static Object lock = new Object();
 
   /**

@@ -98,9 +98,9 @@
       </dependency>  
 
       <dependency>
-        <groupId>asm</groupId>
+        <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
-        <version>3.3.1</version>
+        <version>5.0_BETA</version>
       </dependency>
 
       <dependency>

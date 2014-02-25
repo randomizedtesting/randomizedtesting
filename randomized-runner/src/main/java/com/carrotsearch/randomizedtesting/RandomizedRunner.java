@@ -1,12 +1,34 @@
 package com.carrotsearch.randomizedtesting;
 
-import static com.carrotsearch.randomizedtesting.SysGlobals.*;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_APPEND_SEED;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_ITERATIONS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_RANDOM_SEED;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_STACKFILTERING;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTCLASS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTMETHOD;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -15,15 +37,44 @@ import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
-import org.junit.runner.*;
-import org.junit.runner.manipulation.*;
-import org.junit.runner.notification.*;
-import org.junit.runners.model.*;
+import org.junit.runner.Description;
+import org.junit.runner.Result;
+import org.junit.runner.Runner;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.Filterable;
+import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.FrameworkField;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.MultipleFailureException;
+import org.junit.runners.model.Statement;
+import org.junit.runners.model.TestClass;
 
-import com.carrotsearch.randomizedtesting.annotations.*;
+import com.carrotsearch.randomizedtesting.annotations.Listeners;
+import com.carrotsearch.randomizedtesting.annotations.Name;
+import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
+import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.annotations.TestGroup;
+import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
+import com.carrotsearch.randomizedtesting.annotations.Timeout;
+import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
 
 /**
@@ -253,6 +304,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   final static ThreadGroup mainThreadGroup = Thread.currentThread().getThreadGroup();
 
+  private final Map<String,String> restoreProperties = new HashMap<String,String>();
+
   /**
    * What kind of container are we in? Unfortunately we need to adjust
    * to some "assumptions" containers make about runners.
@@ -388,6 +441,25 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public void run(RunNotifier notifier) {
+    processSystemProperties();
+    try {
+      runSuite(notifier);
+    } finally {
+      restoreSystemProperties();
+    }
+  }
+
+  private void restoreSystemProperties() {
+    for (Map.Entry<String,String> e : restoreProperties.entrySet()) {
+      if (e.getValue() == null) {
+        System.clearProperty(e.getKey());
+      } else {
+        System.setProperty(e.getKey(), e.getValue());
+      }
+    }
+  }
+
+  private void processSystemProperties() {
     if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS())) != null) {
       suiteFilters.add(new ClassGlobFilter(System.getProperty(SYSPROP_TESTCLASS())));
     }
@@ -396,7 +468,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
       testFilters.add(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD())));
     }
 
-    runSuite(notifier);
+    if (emptyToNull(System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT)) == null &&
+        emptyToNull(System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID)) == null) {
+      // We don't run under JUnit4 so we have to fill in these manually.
+      restoreProperties.put(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT, System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT));
+      restoreProperties.put(SysGlobals.CHILDVM_SYSPROP_JVM_ID, System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID));
+      System.setProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT, "1");
+      System.setProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID, "0");
+    }
   }
 
   static class UncaughtException {
