@@ -1228,4 +1228,22 @@
       <fail><condition><not><equals arg1="${junit4.stats.successful}"  arg2="false" /></not></condition></fail>      
     </sequential>
   </target>
+
+  <target name="replicateSingleTest">
+    <junit4:junit4 
+        ifNoTests="fail" 
+        haltonfailure="true" 
+        parallelism="3"
+        uniqueSuiteNames="false">
+      <classpath refid="tests.classpath" />
+
+      <listeners>
+          <junit4:report-text showOutput="always" />
+      </listeners>
+
+      <fileset dir="${basedir}">
+        <include name="**/TestSuiteReplicated.class" />
+      </fileset>
+    </junit4:junit4>
+  </target>  
 </project>

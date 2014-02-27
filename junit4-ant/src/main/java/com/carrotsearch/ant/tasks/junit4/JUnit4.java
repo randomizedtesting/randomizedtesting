@@ -1166,20 +1166,14 @@ public class JUnit4 extends Task {
     // Append all replicated suites to each forked JVM, AFTER we process the stealing queue
     // to enforce all replicated suites run on each bound JVM.
     if (!replicated.isEmpty()) {
-      for (String suite : replicated) {
-        for (ForkedJvmInfo si : jvmInfo) {
-          Assignment e = new Assignment(suite, si.id, 0);
-          perJvmAssignments.get(si.id).add(e);
+      for (ForkedJvmInfo si : jvmInfo) {
+        for (String suite : replicated) {
+            si.testSuites.add(suite);
         }
-      }
-
-      // Repeat shuffle after replicated suites are appended.
-      if (shuffleOnSlave) {
-        // Shuffle suites on slaves so that the result is always the same wrt master seed
-        // (sort first, then shuffle with a constant seed).
-        for (List<Assignment> assignments : perJvmAssignments.values()) {
-          Collections.sort(assignments);
-          Collections.shuffle(assignments, new Random(this.masterSeed()));
+        if (shuffleOnSlave) {
+          // Shuffle suites on slaves so that the result is always the same wrt master seed
+          // (sort first, then shuffle with a constant seed).
+          Collections.shuffle(si.testSuites, new Random(this.masterSeed()));
         }
       }
     }
@@ -1282,6 +1276,7 @@ public class JUnit4 extends Task {
   /**
    * Attach listeners and execute a slave process.
    */
+  @SuppressWarnings("deprecation")
   private void executeSlave(final ForkedJvmInfo slave, final EventBus aggregatedBus)
     throws Exception
   {
@@ -1350,7 +1345,6 @@ public class JUnit4 extends Task {
     final AtomicBoolean clientWithLimitedCharset = new AtomicBoolean(); 
     final PrintWriter w = new PrintWriter(Files.newWriter(classNamesDynamic, Charsets.UTF_8));
     eventBus.register(new Object() {
-      @SuppressWarnings("unused")
       @Subscribe
       public void onIdleSlave(final SlaveIdle idleSlave) {
         aggregatedBus.post(new SlaveIdle() {
@@ -1375,7 +1369,6 @@ public class JUnit4 extends Task {
         });
       }
 
-      @SuppressWarnings("unused")
       @Subscribe
       public void onBootstrap(final BootstrapEvent e) {
         Charset cs = Charset.forName(((BootstrapEvent) e).getDefaultCharsetName());
@@ -1386,7 +1379,6 @@ public class JUnit4 extends Task {
         aggregatedBus.post(new ChildBootstrap(slave));
       }
 
-      @SuppressWarnings("unused")
       @Subscribe
       public void receiveQuit(QuitEvent e) {
         slave.end = System.currentTimeMillis();
