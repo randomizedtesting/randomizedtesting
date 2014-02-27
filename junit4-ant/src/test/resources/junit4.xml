@@ -251,7 +251,11 @@
             haltonfailure="false" 
             uniqueSuiteNames="false"
             parallelism="3">
+
             <classpath refid="tests.classpath" />
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
 
             <listeners>
                 <junit4:report-ant-xml dir="ant-xmls">
@@ -1251,6 +1255,25 @@
     </junit4:junit4>
   </target>
 
+  <target name="replicationAndBalancing">
+    <junit4:junit4 
+        ifNoTests="fail" 
+        haltonfailure="true" 
+        parallelism="3"
+        uniqueSuiteNames="false">
+      <classpath refid="tests.classpath" />
+
+      <listeners>
+          <junit4:report-text showOutput="always" />
+      </listeners>
+
+      <fileset dir="${basedir}">
+        <include name="**/TestSuiteReplicated.class" />
+        <include name="**/TestNonReplicated*.class" />
+      </fileset>
+    </junit4:junit4>
+  </target>
+  
   <target name="pseudoBalancing">
     <junit4:junit4 
         ifNoTests="fail" 

@@ -21,6 +21,17 @@ public class TestReplication extends JUnit4XmlTestBase {
   }
 
   @Test
+  public void replicationAndBalancing() {
+    super.executeTarget("replicationAndBalancing");
+    
+    assertLogContains("Non-replicated test, VM: 0");
+    assertLogContains("Non-replicated test, VM: 1");
+    assertLogContains("Replicated test, VM: 0");
+    assertLogContains("Replicated test, VM: 1");
+    assertLogContains("Replicated test, VM: 2");
+  }
+
+  @Test
   public void pseudoBalancing() {
     super.executeTarget("pseudoBalancing");
 
