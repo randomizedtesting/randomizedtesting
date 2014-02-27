@@ -1,14 +1,13 @@
 package com.carrotsearch.ant.tasks.junit4.it;
 
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.google.common.collect.Sets;
-
 
 public class TestReplication extends JUnit4XmlTestBase {
   @Test
@@ -43,8 +42,10 @@ public class TestReplication extends JUnit4XmlTestBase {
       Matcher m = p.matcher(log);
       Assert.assertTrue(m.find());
       int jvm = Integer.parseInt(m.group(2));
-      
-      for (int ignoredOnJvm : Sets.difference(Sets.newHashSet(0, 1, 2), Sets.newHashSet(jvm))) {
+
+      HashSet<Integer> s = new HashSet<Integer>(Arrays.asList(0, 1, 2));
+      s.remove(jvm);
+      for (int ignoredOnJvm : s) {
         assertLogContains("Test " + i + " ignored on VM " + ignoredOnJvm);
       }
     }
