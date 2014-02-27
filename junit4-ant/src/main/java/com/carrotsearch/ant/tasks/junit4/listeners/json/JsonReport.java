@@ -13,7 +13,7 @@ import org.apache.tools.ant.Project;
 import org.junit.runner.Description;
 
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
-import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
+import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
 import com.carrotsearch.ant.tasks.junit4.events.json.*;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
@@ -40,7 +40,7 @@ public class JsonReport implements AggregatedEventListener {
 
   private String projectName;
   
-  private Map<Integer, SlaveInfo> slaves = Maps.newTreeMap();
+  private Map<Integer, ForkedJvmInfo> slaves = Maps.newTreeMap();
   private OutputStreamWriter writer;
 
   private static enum OutputMethod {
@@ -137,7 +137,7 @@ public class JsonReport implements AggregatedEventListener {
       .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonAggregatedSuiteResultEventAdapter(outputStreams))
       .registerTypeAdapter(AggregatedTestResultEvent.class, new JsonAggregatedTestResultEventAdapter())
       .registerTypeAdapter(FailureMirror.class, new JsonFailureMirrorAdapter())
-      .registerTypeAdapter(SlaveInfo.class, new JsonSlaveInfoAdapter())
+      .registerTypeAdapter(ForkedJvmInfo.class, new JsonSlaveInfoAdapter())
       .registerTypeHierarchyAdapter(Annotation.class, new JsonAnnotationAdapter(refLoader))
       .registerTypeHierarchyAdapter(Class.class, new JsonClassAdapter(refLoader))
       .registerTypeAdapter(Description.class, new JsonDescriptionAdapter())

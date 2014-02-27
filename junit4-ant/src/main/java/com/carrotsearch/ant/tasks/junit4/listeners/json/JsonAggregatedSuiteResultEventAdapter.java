@@ -7,7 +7,7 @@ import java.util.Date;
 
 import org.apache.commons.io.output.WriterOutputStream;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
+import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
 import com.carrotsearch.ant.tasks.junit4.events.*;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
 import com.google.gson.*;
@@ -43,7 +43,7 @@ public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<Agg
 
   public JsonArray serializeEvents(AggregatedSuiteResultEvent e, JsonSerializationContext context) {
     final JsonArray output = new JsonArray();
-    final SlaveInfo slave = e.getSlave();
+    final ForkedJvmInfo slave = e.getSlave();
     int lineBuffer = 160;
     final StringWriter out = new StringWriter();
     final StringWriter err = new StringWriter();

@@ -21,11 +21,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -62,7 +62,11 @@ import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Resources;
 import org.apache.tools.ant.util.LoaderUtils;
 import org.junit.runner.Description;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import com.carrotsearch.ant.tasks.junit4.SuiteBalancer.Assignment;
 import com.carrotsearch.ant.tasks.junit4.balancers.RoundRobinBalancer;
@@ -82,15 +86,21 @@ import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SeedUtils;
 import com.carrotsearch.randomizedtesting.SysGlobals;
+import com.carrotsearch.randomizedtesting.annotations.ReplicateOnEachVm;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.Ordering;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
@@ -177,9 +187,6 @@ public class JUnit4 extends Task {
   /** System property passed to forked VMs: current working directory (absolute). */
   private static final String CHILDVM_SYSPROP_CWD = "junit4.childvm.cwd";
 
-  /** System property passed to forked VMs: VM ID (integer). */
-  private static final String CHILDVM_SYSPROP_ID = "junit4.childvm.id";
-  
   /** What to do on JVM output? */
   public static enum JvmOutputAction {
     PIPE,
@@ -375,6 +382,13 @@ public class JUnit4 extends Task {
    */
   public void setUniqueSuiteNames(boolean uniqueSuiteNames) {
     this.uniqueSuiteNames = uniqueSuiteNames;
+  }
+  
+  /**
+   * @see #setUniqueSuiteNames(boolean)
+   */
+  public boolean isUniqueSuiteNames() {
+    return uniqueSuiteNames;
   }
 
   /**
@@ -847,7 +861,7 @@ public class JUnit4 extends Task {
 
     // Process test classes and resources.
     long start = System.currentTimeMillis();    
-    final List<String> testClassNames = processTestResources();
+    final TestsCollection testCollection = processTestResources();
 
     final EventBus aggregatedBus = new EventBus("aggregated");
     final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
@@ -863,7 +877,7 @@ public class JUnit4 extends Task {
       aggregatedBus.register(o);
     }
 
-    if (testClassNames.isEmpty()) {
+    if (testCollection.testClasses.isEmpty()) {
       aggregatedBus.post(new AggregatedQuitEvent());
     } else {
       start = System.currentTimeMillis();
@@ -871,26 +885,28 @@ public class JUnit4 extends Task {
       // Check if we allow duplicate suite names. Some reports (ANT compatible XML
       // reports) will have a problem with duplicate suite names, for example.
       if (uniqueSuiteNames) {
-        List<String> unique = Lists.newArrayList(new HashSet<String>(testClassNames));
-        testClassNames.clear();
-        testClassNames.addAll(unique);
+        testCollection.onlyUniqueSuiteNames();
       }
 
-      final int slaveCount = determineSlaveCount(testClassNames.size());
-      final List<SlaveInfo> slaveInfos = Lists.newArrayList();
-      for (int slave = 0; slave < slaveCount; slave++) {
-        final SlaveInfo slaveInfo = new SlaveInfo(slave, slaveCount);
+      final int jvmCount = determineForkedJvmCount(testCollection);
+      final List<ForkedJvmInfo> slaveInfos = Lists.newArrayList();
+      for (int jvmid = 0; jvmid < jvmCount; jvmid++) {
+        final ForkedJvmInfo slaveInfo = new ForkedJvmInfo(jvmid, jvmCount);
         slaveInfos.add(slaveInfo);
       }
+
       
-      // Order test class names identically for balancers.
-      Collections.sort(testClassNames);
-      
+      if (jvmCount > 1 && uniqueSuiteNames && testCollection.hasReplicatedSuites()) {
+        throw new BuildException(String.format(Locale.ENGLISH,
+            "There are test suites that request JVM replication and the number of forked JVMs %d is larger than 1. Run on a single JVM.",
+            jvmCount));
+      }
+
       // Prepare a pool of suites dynamically dispatched to slaves as they become idle.
       final Deque<String> stealingQueue = 
-          new ArrayDeque<String>(loadBalanceSuites(slaveInfos, testClassNames, balancers));
+          new ArrayDeque<String>(loadBalanceSuites(slaveInfos, testCollection, balancers));
       aggregatedBus.register(new Object() {
-        @Subscribe @SuppressWarnings("unused")
+        @Subscribe
         public void onSlaveIdle(SlaveIdle slave) {
           if (stealingQueue.isEmpty()) {
             slave.finished();
@@ -903,8 +919,8 @@ public class JUnit4 extends Task {
 
       // Create callables for the executor.
       final List<Callable<Void>> slaves = Lists.newArrayList();
-      for (int slave = 0; slave < slaveCount; slave++) {
-        final SlaveInfo slaveInfo = slaveInfos.get(slave);
+      for (int slave = 0; slave < jvmCount; slave++) {
+        final ForkedJvmInfo slaveInfo = slaveInfos.get(slave);
         slaves.add(new Callable<Void>() {
           @Override
           public Void call() throws Exception {
@@ -915,7 +931,9 @@ public class JUnit4 extends Task {
       }
 
       ExecutorService executor = Executors.newCachedThreadPool();
-      aggregatedBus.post(new AggregatedStartEvent(slaves.size(), testClassNames.size()));
+      aggregatedBus.post(new AggregatedStartEvent(slaves.size(),
+          // TODO: this doesn't account for replicated suites.
+          testCollection.testClasses.size()));
 
       try {
         List<Future<Void>> all = executor.invokeAll(slaves);
@@ -934,7 +952,7 @@ public class JUnit4 extends Task {
       }
       aggregatedBus.post(new AggregatedQuitEvent());
 
-      for (SlaveInfo si : slaveInfos) {
+      for (ForkedJvmInfo si : slaveInfos) {
         if (si.start > 0 && si.end > 0) {
           log(String.format(Locale.ENGLISH, "JVM J%d: %8.2f .. %8.2f = %8.2fs",
               si.id,
@@ -947,8 +965,8 @@ public class JUnit4 extends Task {
       log("Execution time total: " + Duration.toHumanDuration(
           (System.currentTimeMillis() - start)));
 
-      SlaveInfo slaveInError = null;
-      for (SlaveInfo i : slaveInfos) {
+      ForkedJvmInfo slaveInError = null;
+      for (ForkedJvmInfo i : slaveInfos) {
         if (i.executionError != null) {
           log("ERROR: JVM J" + i.id + " ended with an exception, command line: " + i.getCommandLine());
           log("ERROR: JVM J" + i.id + " ended with an exception: " + 
@@ -1060,22 +1078,35 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Perform load balancing of the set of suites. Sets {@link SlaveInfo#testSuites}
+   * Perform load balancing of the set of suites. Sets {@link ForkedJvmInfo#testSuites}
    * to suites preassigned to a given slave and returns a pool of suites
    * that should be load-balanced dynamically based on job stealing.
    */
-  private List<String> loadBalanceSuites(List<SlaveInfo> slaveInfos,
-      List<String> testClassNames, List<SuiteBalancer> balancers) {
+  private List<String> loadBalanceSuites(List<ForkedJvmInfo> jvmInfo,
+      TestsCollection testsCollection, List<SuiteBalancer> balancers) {
+    
+    // Order test suites identically for balancers.
+    // and split into replicated and non-replicated suites.
+    Multimap<Boolean,TestClass> partitioned = sortAndSplitReplicated(testsCollection.testClasses);
+    Function<TestClass,String> extractClassName = new Function<TestClass,String>() {
+      @Override
+      public String apply(TestClass input) {
+        return input.className;
+      }
+    };
+    Collection<String> replicated = Collections2.transform(partitioned.get(true), extractClassName);
+    Collection<String> suites     = Collections2.transform(partitioned.get(false), extractClassName);
+
     final List<SuiteBalancer> balancersWithFallback = Lists.newArrayList(balancers);
     balancersWithFallback.add(new RoundRobinBalancer());
 
     // Go through all the balancers, the first one to assign a suite wins.
-    final Multiset<String> remaining = HashMultiset.create(testClassNames);
+    final Multiset<String> remaining = HashMultiset.create(suites);
     final Map<Integer,List<Assignment>> perJvmAssignments = Maps.newHashMap();
-    for (SlaveInfo si : slaveInfos) {
+    for (ForkedJvmInfo si : jvmInfo) {
       perJvmAssignments.put(si.id, Lists.<Assignment> newArrayList());
     }
-    final int jvmCount = slaveInfos.size();
+    final int jvmCount = jvmInfo.size();
     for (SuiteBalancer balancer : balancersWithFallback) {
       balancer.setOwner(this);
       final List<Assignment> assignments =
@@ -1104,7 +1135,7 @@ public class JUnit4 extends Task {
     if (remaining.size() != 0) {
       throw new RuntimeException("Not all suites assigned?: " + remaining);
     }
-    
+
     if (shuffleOnSlave) {
       // Shuffle suites on slaves so that the result is always the same wrt master seed
       // (sort first, then shuffle with a constant seed).
@@ -1117,7 +1148,7 @@ public class JUnit4 extends Task {
     // Take a fraction of suites scheduled as last on each slave and move them to a common
     // job-stealing queue.
     List<SuiteHint> stealingQueueWithHints = Lists.newArrayList();
-    for (SlaveInfo si : slaveInfos) {
+    for (ForkedJvmInfo si : jvmInfo) {
       final List<Assignment> assignments = perJvmAssignments.get(si.id);
       int moveToCommon = (int) (assignments.size() * dynamicAssignmentRatio);
 
@@ -1139,8 +1170,23 @@ public class JUnit4 extends Task {
     // Sort stealing queue according to descending cost.
     Collections.sort(stealingQueueWithHints, SuiteHint.DESCENDING_BY_WEIGHT);
 
+    // Append all replicated suites to each forked JVM, AFTER we process the stealing queue
+    // to enforce all replicated suites run on each bound JVM.
+    if (!replicated.isEmpty()) {
+      for (ForkedJvmInfo si : jvmInfo) {
+        for (String suite : replicated) {
+            si.testSuites.add(suite);
+        }
+        if (shuffleOnSlave) {
+          // Shuffle suites on slaves so that the result is always the same wrt master seed
+          // (sort first, then shuffle with a constant seed).
+          Collections.shuffle(si.testSuites, new Random(this.masterSeed()));
+        }
+      }
+    }
+
     // Dump scheduling information.
-    for (SlaveInfo si : slaveInfos) {
+    for (ForkedJvmInfo si : jvmInfo) {
       log("Forked JVM J" + si.id + " assignments (after shuffle):", Project.MSG_VERBOSE);
       for (String suiteName : si.testSuites) {
         log("  " + suiteName, Project.MSG_VERBOSE);
@@ -1157,6 +1203,24 @@ public class JUnit4 extends Task {
       stealingQueue.add(suiteHint.suiteName);
     }
     return stealingQueue;
+  }
+
+  private Multimap<Boolean,TestClass> sortAndSplitReplicated(List<TestClass> testClasses) {
+    List<TestClass> sorted = Ordering.natural()
+      .onResultOf(new Function<TestClass,String>() {
+        @Override
+        public String apply(TestClass input) {
+          return input.className + ";" + input.replicate;
+        }
+      })
+      .sortedCopy(testClasses);
+
+    return Multimaps.index(sorted, new Function<TestClass,Boolean>() {
+      @Override
+      public Boolean apply(TestClass t) {
+        return t.replicate;
+      }
+    });
   }
 
   /**
@@ -1182,42 +1246,45 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Determine how many slaves to use.
+   * Determine how many forked JVMs to use.
    */
-  private int determineSlaveCount(int testCases) {
+  private int determineForkedJvmCount(TestsCollection testCollection) {
     int cores = Runtime.getRuntime().availableProcessors();
-    int slaveCount;
+    int jvmCount;
     if (this.parallelism.equals(PARALLELISM_AUTO)) {
       if (cores >= 8) {
         // Maximum parallel jvms is 4, conserve some memory and memory bandwidth.
-        slaveCount = 4;
+        jvmCount = 4;
       } else if (cores >= 4) {
         // Make some space for the aggregator.
-        slaveCount = 3;
+        jvmCount = 3;
       } else {
         // even for dual cores it usually makes no sense to fork more than one
         // JVM.
-        slaveCount = 1;
+        jvmCount = 1;
       }
     } else if (this.parallelism.equals(PARALLELISM_MAX)) {
-      slaveCount = Runtime.getRuntime().availableProcessors();
+      jvmCount = Runtime.getRuntime().availableProcessors();
     } else {
       try {
-        slaveCount = Math.max(1, Integer.parseInt(parallelism));
+        jvmCount = Math.max(1, Integer.parseInt(parallelism));
       } catch (NumberFormatException e) {
         throw new BuildException("parallelism must be 'auto', 'max' or a valid integer: "
             + parallelism);
       }
     }
 
-    slaveCount = Math.min(testCases, slaveCount);
-    return slaveCount;
+    if (!testCollection.hasReplicatedSuites()) {
+      jvmCount = Math.min(testCollection.testClasses.size(), jvmCount);
+    }
+    return jvmCount;
   }
 
   /**
    * Attach listeners and execute a slave process.
    */
-  private void executeSlave(final SlaveInfo slave, final EventBus aggregatedBus)
+  @SuppressWarnings("deprecation")
+  private void executeSlave(final ForkedJvmInfo slave, final EventBus aggregatedBus)
     throws Exception
   {
     final String uniqueSeed = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date());
@@ -1285,7 +1352,6 @@ public class JUnit4 extends Task {
     final AtomicBoolean clientWithLimitedCharset = new AtomicBoolean(); 
     final PrintWriter w = new PrintWriter(Files.newWriter(classNamesDynamic, Charsets.UTF_8));
     eventBus.register(new Object() {
-      @SuppressWarnings("unused")
       @Subscribe
       public void onIdleSlave(final SlaveIdle idleSlave) {
         aggregatedBus.post(new SlaveIdle() {
@@ -1310,7 +1376,6 @@ public class JUnit4 extends Task {
         });
       }
 
-      @SuppressWarnings("unused")
       @Subscribe
       public void onBootstrap(final BootstrapEvent e) {
         Charset cs = Charset.forName(((BootstrapEvent) e).getDefaultCharsetName());
@@ -1321,7 +1386,6 @@ public class JUnit4 extends Task {
         aggregatedBus.post(new ChildBootstrap(slave));
       }
 
-      @SuppressWarnings("unused")
       @Subscribe
       public void receiveQuit(QuitEvent e) {
         slave.end = System.currentTimeMillis();
@@ -1405,7 +1469,7 @@ public class JUnit4 extends Task {
     }
   }
 
-  private void checkJvmOutput(File file, SlaveInfo slave, String fileName) {
+  private void checkJvmOutput(File file, ForkedJvmInfo slave, String fileName) {
     if (file.length() > 0) {
       String message = "JVM J" + slave.id + ": " + fileName + " was not empty, see: " + file;
       if (jvmOutputAction.contains(JvmOutputAction.WARN)) {
@@ -1475,7 +1539,7 @@ public class JUnit4 extends Task {
   /**
    * Execute a slave process. Pump events to the given event bus.
    */
-  private Execute forkProcess(SlaveInfo slaveInfo, EventBus eventBus, 
+  private Execute forkProcess(ForkedJvmInfo slaveInfo, EventBus eventBus, 
       CommandlineJava commandline, 
       InputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {
     try {
@@ -1494,8 +1558,13 @@ public class JUnit4 extends Task {
       commandline.addSysproperty(v);
 
       v = new Variable();
-      v.setKey(CHILDVM_SYSPROP_ID);
+      v.setKey(SysGlobals.CHILDVM_SYSPROP_JVM_ID);
       v.setValue(Integer.toString(slaveInfo.id));
+      commandline.addSysproperty(v);
+
+      v = new Variable();
+      v.setKey(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT);
+      v.setValue(Integer.toString(slaveInfo.slaves));
       commandline.addSysproperty(v);
 
       final Execute execute = new Execute();
@@ -1515,7 +1584,7 @@ public class JUnit4 extends Task {
     }
   }
 
-  private File getWorkingDirectory(SlaveInfo slaveInfo) {
+  private File getWorkingDirectory(ForkedJvmInfo slaveInfo) {
     File baseDir = (dir == null ? getProject().getBaseDir() : dir);
     final File slaveDir;
     if (isolateWorkingDirectories) {
@@ -1546,8 +1615,8 @@ public class JUnit4 extends Task {
    * Process test resources. If there are any test resources that are _not_ class files,
    * this will cause a build error.   
    */
-  private List<String> processTestResources() {
-    List<String> testClassNames = Lists.newArrayList();
+  private TestsCollection processTestResources() {
+    TestsCollection collection = new TestsCollection();
     resources.setProject(getProject());
 
     @SuppressWarnings("unchecked")
@@ -1566,7 +1635,7 @@ public class JUnit4 extends Task {
             .replace(File.separatorChar, '.')
             .replace('/', '.')
             .replace('\\', '.');
-          testClassNames.add(className);
+          collection.add(new TestClass(className));
           
           if (!javaSourceWarn) {
             log("Source (.java) files used for naming source suites. This is discouraged, " +
@@ -1590,12 +1659,27 @@ public class JUnit4 extends Task {
                   + r.getName() + ", " + r.getLocation());
             }
             is.reset();
-  
+
+            // Hardcoded intentionally.
+            final String REPLICATE_CLASS = "com.carrotsearch.randomizedtesting.annotations.ReplicateOnEachVm";
+            final TestClass testClass = new TestClass();
             ClassReader reader = new ClassReader(is);
-            String className = reader.getClassName().replace('/', '.');
-            log("Test class parsed: " + r.getName() + " as " 
-                + reader.getClassName(), Project.MSG_DEBUG);
-            testClassNames.add(className);
+            ClassVisitor annotationVisitor = new ClassVisitor(Opcodes.ASM5) {
+              @Override
+              public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+                String className = Type.getType(desc).getClassName();
+                if (className.equals(REPLICATE_CLASS)) {
+                  testClass.replicate = true;
+                }
+                return null;
+              }
+            };
+
+            reader.accept(annotationVisitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+            testClass.className = reader.getClassName().replace('/', '.');
+            log("Test class parsed: " + r.getName() + " as " + testClass.className, Project.MSG_DEBUG);
+            
+            collection.add(testClass);
           } finally {
             is.close();
           }
@@ -1609,14 +1693,14 @@ public class JUnit4 extends Task {
     String testClassFilter = Strings.emptyToNull(getProject().getProperty(SYSPROP_TESTCLASS()));
     if (testClassFilter != null) {
       ClassGlobFilter filter = new ClassGlobFilter(testClassFilter);
-      for (Iterator<String> i = testClassNames.iterator(); i.hasNext();) {
-        if (!filter.shouldRun(Description.createSuiteDescription(i.next()))) {
+      for (Iterator<TestClass> i = collection.testClasses.iterator(); i.hasNext();) {
+        if (!filter.shouldRun(Description.createSuiteDescription(i.next().className))) {
           i.remove();
         }
       }
     }
 
-    return testClassNames;
+    return collection;
   }
 
   /**

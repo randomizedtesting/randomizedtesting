@@ -49,7 +49,7 @@
     </dependency>
 
     <dependency>
-      <groupId>asm</groupId>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
       <scope>provided</scope>
     </dependency>
@@ -197,7 +197,7 @@
           </execution>
         </executions>
         <configuration>
-          <includeGroupIds>com.carrotsearch.randomizedtesting,junit,asm</includeGroupIds>
+          <includeGroupIds>com.carrotsearch.randomizedtesting,junit,org.ow2.asm</includeGroupIds>
         </configuration>
       </plugin>
 
@@ -251,7 +251,7 @@
                 <filter>!com/google/common/eventbus/SynchronizedEventHandler.class</filter>
               </inclusion>
               <inclusion>
-                <groupId>asm</groupId>
+                <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
               </inclusion>
               <inclusion>

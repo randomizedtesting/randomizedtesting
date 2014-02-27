@@ -2,7 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.events.aggregated;
 
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
+import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
 
 /**
  * High level heartbeat event issued to report listeners when a forked JVM
@@ -11,12 +11,12 @@ import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
  * not guaranteed (and may be null).
  */
 public final class HeartBeatEvent {
-  private final SlaveInfo slave;
+  private final ForkedJvmInfo slave;
   private final Description description;
   private final long lastActivity;
   private final long currentTime;
 
-  public HeartBeatEvent(SlaveInfo slave, Description description, long lastActivity, long currentTime) {
+  public HeartBeatEvent(ForkedJvmInfo slave, Description description, long lastActivity, long currentTime) {
     this.slave = slave;
     this.description = description;
     this.lastActivity = lastActivity;
@@ -39,7 +39,7 @@ public final class HeartBeatEvent {
     return getCurrentTime() - getLastActivity();
   }
 
-  public SlaveInfo getSlave() {
+  public ForkedJvmInfo getSlave() {
     return slave;
   }
 }
