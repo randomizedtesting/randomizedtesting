@@ -1660,7 +1660,8 @@ public class JUnit4 extends Task {
             }
             is.reset();
 
-            final String REPLICATE_CLASS = ReplicateOnEachVm.class.getName();
+            // Hardcoded intentionally.
+            final String REPLICATE_CLASS = "com.carrotsearch.randomizedtesting.annotations.ReplicateOnEachVm";
             final TestClass testClass = new TestClass();
             ClassReader reader = new ClassReader(is);
             ClassVisitor annotationVisitor = new ClassVisitor(Opcodes.ASM5) {
