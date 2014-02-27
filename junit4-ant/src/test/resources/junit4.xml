@@ -655,6 +655,25 @@
         </junit4:junit4>
     </target>
 
+    <target name="reasonForIgnoredByDisabledGroup">
+        <junit4:junit4>
+            <classpath refid="tests.classpath" />
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+
+            <fileset dir="${basedir}">
+                <include name="**/ReasonForIgnoredByDisabledGroup.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text />
+            </listeners>
+        </junit4:junit4>
+    </target>
+    
+    
+
     <target name="jvmverbose">
         <junit4:junit4 haltonfailure="false">
             <classpath refid="tests.classpath" />

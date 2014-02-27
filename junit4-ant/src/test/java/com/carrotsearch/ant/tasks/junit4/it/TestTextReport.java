@@ -29,6 +29,12 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogContains("(Ignored method.)");
   }
 
+  @Test 
+  public void reasonForIgnoredByDisabledGroup() {
+    super.executeTarget("reasonForIgnoredByDisabledGroup");
+    assertLogContains("(@DisabledGroup(value=foo bar))");
+  }
+
 	@Test 
 	public void reasonForSuiteAssumptionIgnored() {
 	  super.executeTarget("reasonForSuiteAssumptionIgnored");

@@ -1179,8 +1179,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
             notifier.fireTestIgnored(c.description);
           }
           notifier.fireTestAssumptionFailed(new Failure(c.description, 
-              new InternalAssumptionViolatedException("'" + g.getName() + "' test group is disabled (@"
-                  + g.getAnnotation().annotationType().getSimpleName() + ")")));
+              new InternalAssumptionViolatedException("'" + g.getName() + "' test group is disabled ("
+                  + toString(g.getAnnotation()) + ")")));
           notifier.fireTestFinished(c.description);
 
           // Ignore this test.
@@ -1428,6 +1428,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
     return b.toString();
   }
 
+  private String toString(Annotation ann) {
+    if (ann == null) return "@null?";
+    return ann.toString().replace(
+        ann.annotationType().getName(), 
+        ann.annotationType().getSimpleName());
+  }
+  
   /**
    * Convert value to a stringified form for naming parameterized methods.
    */
