@@ -71,6 +71,7 @@ public final class RuntimeTestGroup {
    * Returns the execution state for this group.
    */
   public boolean isEnabled() {
+    // TODO: re-evaluate using RR#checkIgnoredGroup's logic.
     return enabled;
   }
 

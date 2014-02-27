@@ -1165,6 +1165,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     // Check if any of the test's annotations is a TestGroup. If so, check if it's disabled
     // and ignore test if so.
+    
+    // TODO: testGroupEvaluator.evaluate(annotationsOf(c.method, suiteClass), ruleChain)
+    // the default should be that the test runs only if all test groups are enabled.
+    // tests.groups=foo,bar -> foo and bar
+    // tests.groups=foo,!bar -> foo and not bar
+    // tests.groups=*,!foo -> all except foo
+
     for (AnnotatedElement element : Arrays.asList(c.method, suiteClass)) {
       for (Annotation ann : element.getAnnotations()) {
         RuntimeTestGroup g = testGroups.get(ann.annotationType());
