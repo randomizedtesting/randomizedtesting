@@ -26,6 +26,7 @@ import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
@@ -40,7 +41,9 @@ public class AntXmlReport implements AggregatedEventListener {
   private File dir;
   private boolean mavenExtensions = true;
   private List<TokenFilter> filters = Lists.newArrayList();
-
+  private Map<String,Integer> suiteCounts = Maps.newHashMap();
+  private boolean ignoreDuplicateSuites;
+  
   /**
    * @see #setOutputStreams(boolean)
    */
@@ -65,6 +68,13 @@ public class AntXmlReport implements AggregatedEventListener {
    */
   public void setMavenExtensions(boolean mavenExtensions) {
     this.mavenExtensions = mavenExtensions;
+  }
+
+  /**
+   * Ignore duplicate suite names.
+   */
+  public void setIgnoreDuplicateSuites(boolean ignoreDuplicateSuites) {
+    this.ignoreDuplicateSuites = ignoreDuplicateSuites;
   }
 
   /**
@@ -105,6 +115,19 @@ public class AntXmlReport implements AggregatedEventListener {
       junit4.log("Could not emit XML report for suite (null description).", 
           Project.MSG_WARN);
       return;
+    }
+
+    if (!suiteCounts.containsKey(displayName)) {
+      suiteCounts.put(displayName, 1);
+    } else {
+      int newCount = suiteCounts.get(displayName) + 1;
+      suiteCounts.put(displayName, newCount);
+      if (!ignoreDuplicateSuites && newCount == 2) {
+        junit4.log("Duplicate suite name used with XML reports: "
+            + displayName + ". This may confuse tools that process XML reports. "
+            + "Set 'ignoreDuplicateSuites' to true to skip this message.", Project.MSG_WARN);
+      }
+      displayName = displayName + "-" + newCount;
     }
     
     try {

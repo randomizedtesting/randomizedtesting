@@ -383,6 +383,13 @@ public class JUnit4 extends Task {
   public void setUniqueSuiteNames(boolean uniqueSuiteNames) {
     this.uniqueSuiteNames = uniqueSuiteNames;
   }
+  
+  /**
+   * @see #setUniqueSuiteNames(boolean)
+   */
+  public boolean isUniqueSuiteNames() {
+    return uniqueSuiteNames;
+  }
 
   /**
    * Specifies the ratio of suites moved to dynamic assignment list. A dynamic

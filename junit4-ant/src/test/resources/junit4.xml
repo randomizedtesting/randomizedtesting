@@ -247,7 +247,10 @@
         <delete dir="ant-xmls" failonerror="false" />
         <mkdir dir="ant-xmls" />
 
-        <junit4:junit4 haltonfailure="false">
+        <junit4:junit4 
+            haltonfailure="false" 
+            uniqueSuiteNames="false"
+            parallelism="3">
             <classpath refid="tests.classpath" />
 
             <listeners>
@@ -267,6 +270,7 @@
                 <include name="**/tests/TestBeforeClassError.class" />
                 <include name="**/tests/TestHierarchicalSuiteDescription.class" />
                 <include name="**/tests/TestInvalidUtfCharacter.class" />
+                <include name="**/TestSuiteReplicated.class" />
             </fileset>
         </junit4:junit4>
     </target>
@@ -1245,5 +1249,23 @@
         <include name="**/TestSuiteReplicated.class" />
       </fileset>
     </junit4:junit4>
-  </target>  
+  </target>
+
+  <target name="pseudoBalancing">
+    <junit4:junit4 
+        ifNoTests="fail" 
+        haltonfailure="true" 
+        parallelism="3"
+        uniqueSuiteNames="false">
+      <classpath refid="tests.classpath" />
+
+      <listeners>
+          <junit4:report-text showOutput="always" />
+      </listeners>
+
+      <fileset dir="${basedir}">
+        <include name="**/TestPseudoLoadBalancing.class" />
+      </fileset>
+    </junit4:junit4>
+  </target>
 </project>
