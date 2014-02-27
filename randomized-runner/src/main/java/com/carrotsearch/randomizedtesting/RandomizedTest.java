@@ -134,10 +134,7 @@ public class RandomizedTest extends Assert {
    */
   public static int atLeast(int min) {
     if (min < 0) throw new IllegalArgumentException("atLeast requires non-negative argument: " + min);
-
-    min = (int) Math.min(min, (isNightly() ? 3 * min : min) * multiplier());
-    int max = (int) Math.min(Integer.MAX_VALUE, (long) min + (min / 2));
-    return randomIntBetween(min, max);
+    return scaledRandomIntBetween(min, Integer.MAX_VALUE);
   }
 
   /** 
