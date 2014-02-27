@@ -1,13 +1,13 @@
 package com.carrotsearch.ant.tasks.junit4.events.aggregated;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
+import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
 import com.carrotsearch.ant.tasks.junit4.events.SuiteStartedEvent;
 
 public class AggregatedSuiteStartedEvent {
-  private transient final SlaveInfo slave;
+  private transient final ForkedJvmInfo slave;
   private SuiteStartedEvent suiteStartedEvent;
 
-  public AggregatedSuiteStartedEvent(SlaveInfo id, SuiteStartedEvent e) {
+  public AggregatedSuiteStartedEvent(ForkedJvmInfo id, SuiteStartedEvent e) {
     this.slave = id;
     this.suiteStartedEvent = e;
   }
@@ -16,7 +16,7 @@ public class AggregatedSuiteStartedEvent {
     return suiteStartedEvent;
   }
   
-  public SlaveInfo getSlave() {
+  public ForkedJvmInfo getSlave() {
     return slave;
   }
 }

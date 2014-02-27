@@ -11,9 +11,6 @@ import org.junit.Test;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 
-import com.carrotsearch.randomizedtesting.annotations.ReplicateOnEachVm;
-
-@ReplicateOnEachVm
 public class TestFailureTypePassing {
   @Test
   public void nonStandardError() throws Exception {

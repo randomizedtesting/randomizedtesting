@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
+import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 
 public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
-  private transient final SlaveInfo slave;
+  private transient final ForkedJvmInfo slave;
 
   private final long executionTime;
   private final long startTimestamp;
@@ -20,7 +20,7 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   private final List<FailureMirror> suiteFailures;
   private final List<IEvent> eventStream;
 
-  public AggregatedSuiteResultEvent(SlaveInfo id, Description description, 
+  public AggregatedSuiteResultEvent(ForkedJvmInfo id, Description description, 
       List<FailureMirror> suiteFailures, List<AggregatedTestResultEvent> tests,
       List<IEvent> eventStream,
       long startTimestamp, long executionTime) {
@@ -62,7 +62,7 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   }
   
   @Override
-  public SlaveInfo getSlave() {
+  public ForkedJvmInfo getSlave() {
     return slave;
   }
 

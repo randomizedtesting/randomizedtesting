@@ -9,12 +9,12 @@ import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
 import com.google.common.eventbus.Subscribe;
 
 public class DiagnosticsListener {
-  private final SlaveInfo slave;
+  private final ForkedJvmInfo slave;
 
   private boolean quitReceived;
   private Task task;
 
-  public DiagnosticsListener(SlaveInfo slave, JUnit4 task) {
+  public DiagnosticsListener(ForkedJvmInfo slave, JUnit4 task) {
     this.task = task;
     this.slave = slave;
   }

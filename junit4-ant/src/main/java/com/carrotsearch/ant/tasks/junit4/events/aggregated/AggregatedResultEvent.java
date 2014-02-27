@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.SlaveInfo;
+import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 
@@ -13,7 +13,7 @@ import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
  */
 public interface AggregatedResultEvent {
   public Description getDescription();
-  public SlaveInfo getSlave();
+  public ForkedJvmInfo getSlave();
   public boolean isSuccessful();
   public List<FailureMirror> getFailures();
   List<IEvent> getEventStream();  

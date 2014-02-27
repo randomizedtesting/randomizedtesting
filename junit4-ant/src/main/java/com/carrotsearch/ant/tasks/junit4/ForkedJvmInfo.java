@@ -16,7 +16,7 @@ import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 /**
  * Static slave information.
  */
-public final class SlaveInfo {
+public final class ForkedJvmInfo {
   /**
    * Unique sequential slave identifier.
    */
@@ -53,7 +53,7 @@ public final class SlaveInfo {
   Throwable executionError;
 
   /* */
-  public SlaveInfo(int id, int slaves) {
+  public ForkedJvmInfo(int id, int slaves) {
     this.id = id;
     this.slaves = slaves;
   }
