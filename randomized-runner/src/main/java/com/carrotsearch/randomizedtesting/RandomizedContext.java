@@ -2,7 +2,6 @@ package com.carrotsearch.randomizedtesting;
 
 import java.io.Closeable;
 import java.lang.Thread.State;
-import java.lang.annotation.Annotation;
 import java.util.*;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
@@ -116,7 +115,7 @@ public final class RandomizedContext {
    */
   public boolean isNightly() {
     checkDisposed();
-    return getTestGroups().get(Nightly.class).isEnabled();
+    return getGroupEvaluator().isEnabled(Nightly.class);
   }
 
   /**
@@ -273,10 +272,10 @@ public final class RandomizedContext {
   }
 
   /**
-   * Provide access to test groups.
+   * Provide access to {@link GroupEvaluator}.
    */
-  HashMap<Class<? extends Annotation>,RuntimeTestGroup> getTestGroups() {
-    return runner.testGroups;
+  public GroupEvaluator getGroupEvaluator() {
+    return runner.groupEvaluator;
   }
 
   /**

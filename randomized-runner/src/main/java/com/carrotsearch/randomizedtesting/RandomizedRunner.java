@@ -71,7 +71,6 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
-import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
@@ -131,11 +130,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** A dummy class serving as the source of defaults for annotations. */
   @Nightly
   private static class DefaultAnnotationValues {}
-
-  /**
-   * Default instance of {@link Nightly} annotation. 
-   */
-  private static final Nightly defaultNightly = DefaultAnnotationValues.class.getAnnotation(Nightly.class); 
 
   /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
@@ -239,9 +233,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** All test candidates, processed (seeds assigned) and flattened. */
   private List<TestCandidate> testCandidates;
 
-  /** All test groups. */
-  HashMap<Class<? extends Annotation>, RuntimeTestGroup> testGroups;
-
   /** Class suite description. */
   private Description suiteDescription;
 
@@ -305,6 +296,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   final static ThreadGroup mainThreadGroup = Thread.currentThread().getThreadGroup();
 
   private final Map<String,String> restoreProperties = new HashMap<String,String>();
+
+  public GroupEvaluator groupEvaluator;
 
   /**
    * What kind of container are we in? Unfortunately we need to adjust
@@ -392,7 +385,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       // Collect all test candidates, regardless if they will be executed or not.
       suiteDescription = Description.createSuiteDescription(suiteClass);
       testCandidates = collectTestCandidates(suiteDescription);
-      testGroups = collectGroups(testCandidates);
+      this.groupEvaluator = new GroupEvaluator(testCandidates);
     } catch (Throwable t) {
       throw new InitializationError(t);
     }
@@ -1158,44 +1151,24 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** 
    * Returns true if we should ignore this test candidate.
    */
-  @SuppressWarnings("all")
   private boolean checkIgnoredGroup(RunNotifier notifier, TestCandidate c) {
-    final HashMap<Class<? extends Annotation>,RuntimeTestGroup> testGroups = 
-        RandomizedContext.current().getTestGroups();
-
-    // Check if any of the test's annotations is a TestGroup. If so, check if it's disabled
-    // and ignore test if so.
-    
-    // TODO: testGroupEvaluator.evaluate(annotationsOf(c.method, suiteClass), ruleChain)
-    // the default should be that the test runs only if all test groups are enabled.
-    // tests.groups=foo,bar -> foo and bar
-    // tests.groups=foo,!bar -> foo and not bar
-    // tests.groups=*,!foo -> all except foo
-
-    for (AnnotatedElement element : Arrays.asList(c.method, suiteClass)) {
-      for (Annotation ann : element.getAnnotations()) {
-        RuntimeTestGroup g = testGroups.get(ann.annotationType());
-        if (g != null && !g.isEnabled()) {
-          /*
-           * This is mighty weird but it's a workaround for JUnit's limitations in passing the
-           * cause of an ignored test and at the same time mark a test as ignored in certain IDEs
-           * (Eclipse).
-           */
-          notifier.fireTestStarted(c.description);
-          if (containerRunner != RunnerContainer.IDEA) {
-            notifier.fireTestIgnored(c.description);
-          }
-          notifier.fireTestAssumptionFailed(new Failure(c.description, 
-              new InternalAssumptionViolatedException("'" + g.getName() + "' test group is disabled ("
-                  + toString(g.getAnnotation()) + ")")));
-          notifier.fireTestFinished(c.description);
-
-          // Ignore this test.
-          return true;
-        }
+    final GroupEvaluator evaluator = RandomizedContext.current().getGroupEvaluator();
+    String reasonIgnored = evaluator.isIgnored(c.method, suiteClass);
+    if (reasonIgnored != null) {
+      /*
+       * This is mighty weird but it's a workaround for JUnit's limitations in passing the
+       * cause of an ignored test and at the same time mark a test as ignored in certain IDEs
+       * (Eclipse).
+       */
+      notifier.fireTestStarted(c.description);
+      if (containerRunner != RunnerContainer.IDEA) {
+        notifier.fireTestIgnored(c.description);
       }
+      notifier.fireTestAssumptionFailed(new Failure(c.description, new InternalAssumptionViolatedException(reasonIgnored)));
+      notifier.fireTestFinished(c.description);
+      return true;
     }
-
+    
     return false;
   }
 
@@ -1435,13 +1408,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     return b.toString();
   }
 
-  private String toString(Annotation ann) {
-    if (ann == null) return "@null?";
-    return ann.toString().replace(
-        ann.annotationType().getName(), 
-        ann.annotationType().getSimpleName());
-  }
-  
   /**
    * Convert value to a stringified form for naming parameterized methods.
    */
@@ -1486,40 +1452,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     return parameters;
-  }
-
-  /**
-   * Collect all test groups.
-   */
-  private HashMap<Class<? extends Annotation>, RuntimeTestGroup> collectGroups(
-      List<TestCandidate> testCandidates) {
-    final HashMap<Class<? extends Annotation>, RuntimeTestGroup> groups = 
-        new HashMap<Class<? extends Annotation>, RuntimeTestGroup>();
-
-    // Always use @Nightly as a group.
-    groups.put(Nightly.class, new RuntimeTestGroup(defaultNightly));
-
-    // Collect all groups declared on methods and instance classes.
-    HashSet<Class<?>> clazzes = new HashSet<Class<?>>();
-    HashSet<Annotation> annotations = new HashSet<Annotation>();
-    for (TestCandidate c : testCandidates) {
-      final Class<?> testClass = c.instanceProvider.getTestClass();
-      if (!clazzes.contains(testClass)) {
-        clazzes.add(testClass);
-        annotations.addAll(Arrays.asList(testClass.getAnnotations()));
-      }
-      annotations.addAll(Arrays.asList(c.method.getAnnotations()));
-    }
-
-    // Check all annotations. 
-    for (Annotation ann : annotations) {
-      if (!groups.containsKey(ann) 
-          && ann.annotationType().isAnnotationPresent(TestGroup.class)) {
-        groups.put(ann.annotationType(), new RuntimeTestGroup(ann));
-      }
-    }
-
-    return groups;
   }
 
   /**

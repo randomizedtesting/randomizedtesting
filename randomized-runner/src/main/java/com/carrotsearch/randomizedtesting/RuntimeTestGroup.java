@@ -11,9 +11,6 @@ public final class RuntimeTestGroup {
 
   /** The annotation marked as a group. */
   private final Annotation annotation;
-  
-  /** Group information. */
-  private final TestGroup testGroup;
 
   /** @see #getName() */
   private final String name;
@@ -22,26 +19,12 @@ public final class RuntimeTestGroup {
   private final String sysProperty;
 
   /**
-   * Execution state for the tests marked with this group. 
-   */
-  private boolean enabled;
-
-  /**
    * Hide from the public.
    */
   RuntimeTestGroup(Annotation ann) {
     this.annotation = ann;
     this.name = getGroupName(ann.annotationType());
     this.sysProperty = getGroupSysProperty(ann.annotationType());
-    this.testGroup = ann.annotationType().getAnnotation(TestGroup.class);
-    
-    try {
-      this.enabled = RandomizedTest.systemPropertyAsBoolean(
-          getSysPropertyName(), testGroup.enabled());
-    } catch (IllegalArgumentException e) {
-      // Ignore malformed system property, disable the group if malformed though.
-      this.enabled = false;
-    }
   }
 
   /**
@@ -65,14 +48,6 @@ public final class RuntimeTestGroup {
    */
   public String getSysPropertyName() {
     return sysProperty;
-  }
-
-  /**
-   * Returns the execution state for this group.
-   */
-  public boolean isEnabled() {
-    // TODO: re-evaluate using RR#checkIgnoredGroup's logic.
-    return enabled;
   }
 
   /**
