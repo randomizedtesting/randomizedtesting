@@ -65,7 +65,6 @@ import org.junit.runners.model.TestClass;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Name;
-import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
@@ -127,10 +126,6 @@ import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
  */
 @SuppressWarnings("javadoc")
 public final class RandomizedRunner extends Runner implements Filterable {
-  /** A dummy class serving as the source of defaults for annotations. */
-  @Nightly
-  private static class DefaultAnnotationValues {}
-
   /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
    * test methods. These stack entries contain additional information about
@@ -1153,7 +1148,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private boolean checkIgnoredGroup(RunNotifier notifier, TestCandidate c) {
     final GroupEvaluator evaluator = RandomizedContext.current().getGroupEvaluator();
-    String reasonIgnored = evaluator.isIgnored(c.method, suiteClass);
+    String reasonIgnored = evaluator.isTestIgnored(c.method, suiteClass);
     if (reasonIgnored != null) {
       /*
        * This is mighty weird but it's a workaround for JUnit's limitations in passing the

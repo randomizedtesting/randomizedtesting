@@ -115,7 +115,7 @@ public final class RandomizedContext {
    */
   public boolean isNightly() {
     checkDisposed();
-    return getGroupEvaluator().isEnabled(Nightly.class);
+    return getGroupEvaluator().isTestGroupEnabled(Nightly.class);
   }
 
   /**

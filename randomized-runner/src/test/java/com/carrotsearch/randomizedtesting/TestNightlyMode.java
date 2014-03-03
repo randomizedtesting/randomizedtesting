@@ -8,6 +8,7 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 
 /**
  * Nightly mode checks.
@@ -27,7 +28,7 @@ public class TestNightlyMode extends WithNestedTestClass {
 
   @Test
   public void invalidValueNightly() {
-    System.setProperty(RuntimeTestGroup.getGroupSysProperty(Nightly.class), "invalid-value");
+    System.setProperty(TestGroup.Utilities.getSysProperty(Nightly.class), "invalid-value");
     Result result = JUnitCore.runClasses(Nested.class);
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(1, result.getFailureCount());
@@ -36,7 +37,7 @@ public class TestNightlyMode extends WithNestedTestClass {
 
   @Test
   public void nightly() {
-    System.setProperty(RuntimeTestGroup.getGroupSysProperty(Nightly.class), "yes");
+    System.setProperty(TestGroup.Utilities.getSysProperty(Nightly.class), "yes");
     Result result = JUnitCore.runClasses(Nested.class);
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(0, result.getFailureCount());
@@ -57,6 +58,6 @@ public class TestNightlyMode extends WithNestedTestClass {
   
   @After
   public void cleanupAfter() {
-    System.clearProperty(RuntimeTestGroup.getGroupSysProperty(Nightly.class));
+    System.clearProperty(TestGroup.Utilities.getSysProperty(Nightly.class));
   }
 }
