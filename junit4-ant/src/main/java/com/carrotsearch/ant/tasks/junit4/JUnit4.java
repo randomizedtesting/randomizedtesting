@@ -1371,6 +1371,7 @@ public class JUnit4 extends Task {
 
             log("Forked JVM J" + slave.id + " stole suite: " + suiteName, Project.MSG_VERBOSE);
             w.println(suiteName);
+            w.flush();
             idleSlave.newSuite(suiteName);
           }
         });
