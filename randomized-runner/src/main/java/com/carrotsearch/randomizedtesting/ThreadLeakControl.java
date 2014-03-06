@@ -57,6 +57,7 @@ import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
  * Everything corresponding to thread leak control. This is very, very fragile to changes
  * because of how threads interact and where they can be spun off.
  */
+@SuppressWarnings("resource")
 class ThreadLeakControl {
   /** A dummy class serving as the source of defaults for annotations. */
   @ThreadLeakScope

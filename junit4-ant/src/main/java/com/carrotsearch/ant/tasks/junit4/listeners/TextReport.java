@@ -55,6 +55,7 @@ import com.google.common.io.Files;
  * informational info about the progress to the console or a text
  * file.
  */
+@SuppressWarnings("resource")
 public class TextReport implements AggregatedEventListener {
   /*
    * Indents for outputs.
@@ -404,6 +405,8 @@ public class TextReport implements AggregatedEventListener {
         case APPEND_STDOUT:
           ((IStreamEvent) e.getEvent()).copyTo(outStream);
           break;
+        default:
+          break;
       }
     }
   }
@@ -473,6 +476,9 @@ public class TextReport implements AggregatedEventListener {
             flushOutput();
             emitStatusLine(aggregated, aggregated.getStatus(), aggregated.getExecutionTime());
           }
+          
+        default:
+          break;          
       }
     }
 

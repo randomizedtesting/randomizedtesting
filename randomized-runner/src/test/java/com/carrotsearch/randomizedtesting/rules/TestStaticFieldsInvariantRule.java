@@ -48,7 +48,6 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
   public static class Smaller extends Base {
     static byte [] field0; 
     
-    @SuppressWarnings("unused")
     @BeforeClass
     private static void setup() {
       field0 = new byte [LEAK_THRESHOLD / 2];
@@ -62,7 +61,6 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
     static long field4;
     final static long [] field5 = new long [1024];
 
-    @SuppressWarnings("unused")
     @BeforeClass
     private static void setup() {
       field1 = new byte [LEAK_THRESHOLD / 2];

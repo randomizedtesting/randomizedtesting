@@ -135,7 +135,10 @@ public final class ForkedJvmInfo {
             ((IStreamEvent) evt).copyTo(stderr);
           }
           break;
-      }
+
+        default:
+          break;
+    }
     }
 
     stdout.flush();

@@ -4,6 +4,7 @@ import java.io.RandomAccessFile;
 import java.util.Date;
 
 
+@SuppressWarnings("resource")
 public class LocalRun {
   public static void main(String[] args) throws Exception {
     System.out.println("Live and prosper.");
