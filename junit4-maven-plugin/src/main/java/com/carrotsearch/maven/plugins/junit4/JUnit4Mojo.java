@@ -46,7 +46,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.io.Closeables;
+import com.google.common.io.Closer;
 
 /**
  * Run tests using a delegation to <a
@@ -644,15 +644,17 @@ public class JUnit4Mojo extends AbstractMojo {
    * Create a temporary ANT file for executing JUnit4 ANT task.
    */
   private File createTemporaryAntFile(Document doc) throws IOException {
-    OutputStream os = null;
+    Closer closer = Closer.create();
     try {
       File antFile = File.createTempFile("junit4-ant-", ".xml", dir);
-      os = new FileOutputStream(antFile);
+      OutputStream os = closer.register(new FileOutputStream(antFile));
       XMLWriter xmlWriter = new XMLWriter(os, OutputFormat.createPrettyPrint());
       xmlWriter.write(doc);
       return antFile;
+    } catch (Throwable t) {
+      throw closer.rethrow(t);
     } finally {
-      Closeables.closeQuietly(os);
+      closer.close();
     }
   }
 

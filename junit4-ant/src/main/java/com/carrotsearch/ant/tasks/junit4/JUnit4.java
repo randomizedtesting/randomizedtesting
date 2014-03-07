@@ -104,6 +104,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
+import com.google.common.io.Closer;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 
@@ -1282,7 +1284,6 @@ public class JUnit4 extends Task {
   /**
    * Attach listeners and execute a slave process.
    */
-  @SuppressWarnings("deprecation")
   private void executeSlave(final ForkedJvmInfo slave, final EventBus aggregatedBus)
     throws Exception
   {
@@ -1392,11 +1393,14 @@ public class JUnit4 extends Task {
       }      
     });
 
-    OutputStream sysout = new BufferedOutputStream(new FileOutputStream(sysoutFile));
-    OutputStream syserr = new BufferedOutputStream(new FileOutputStream(syserrFile));
-    Exception error = null;
-    RandomAccessFile streamsBuffer = new RandomAccessFile(streamsBufferFile, "rw");
+    Closer closer = Closer.create();
+    closer.register(eventStream);
+    closer.register(w);
     try {
+      OutputStream sysout = closer.register(new BufferedOutputStream(new FileOutputStream(sysoutFile)));
+      OutputStream syserr = closer.register(new BufferedOutputStream(new FileOutputStream(syserrFile)));
+      RandomAccessFile streamsBuffer = closer.register(new RandomAccessFile(streamsBufferFile, "rw"));
+
       Execute execute = forkProcess(slave, eventBus, commandline, eventStream, sysout, syserr, streamsBuffer);
       log("Forked JVM J" + slave.id + " finished with exit code: " + execute.getExitValue(), Project.MSG_DEBUG);
 
@@ -1408,9 +1412,9 @@ public class JUnit4 extends Task {
           case SlaveMain.ERR_OLD_JUNIT:
             throw new BuildException("Forked JVM's classpath must use JUnit 4.10 or newer.");
           default:
-            Closeables.closeQuietly(sysout);
-            Closeables.closeQuietly(syserr);
-            
+            Closeables.close(sysout, false);
+            Closeables.close(syserr, false);
+
             StringBuilder message = new StringBuilder();
             if (exitStatus == SlaveMain.ERR_OOM) {
               message.append("Forked JVM ran out of memory.");
@@ -1437,25 +1441,20 @@ public class JUnit4 extends Task {
             throw new BuildException(message.toString());
         }
       }
-    } catch (Exception e) {
-      error = e;
+    } catch (Throwable t) {
+      throw closer.rethrow(t);
     } finally {
-      Closeables.closeQuietly(eventStream);
-      Closeables.closeQuietly(w);
-      Closeables.closeQuietly(sysout);
-      Closeables.closeQuietly(syserr);
-      Closeables.closeQuietly(streamsBuffer);
-      Files.copy(classNamesDynamic, Files.newOutputStreamSupplier(classNamesFile, true));
-      classNamesDynamic.delete();
-      streamsBufferFile.delete();
-    }
-
-    // Check sysout/syserr lengths.
-    checkJvmOutput(sysoutFile, slave, "stdout");
-    checkJvmOutput(syserrFile, slave, "stderr");
-
-    if (error != null) {
-      throw error;
+      try {
+        closer.close();
+      } finally {
+        Files.asByteSource(classNamesDynamic).copyTo(Files.asByteSink(classNamesFile, FileWriteMode.APPEND));
+        classNamesDynamic.delete();
+        streamsBufferFile.delete();
+        
+        // Check sysout/syserr lengths.
+        checkJvmOutput(sysoutFile, slave, "stdout");
+        checkJvmOutput(syserrFile, slave, "stderr");        
+      }
     }
 
     if (!diagnosticsListener.quitReceived()) {

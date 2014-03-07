@@ -47,7 +47,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.CharSink;
 import com.google.common.io.Closeables;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 
 /**
@@ -308,7 +310,13 @@ public class TextReport implements AggregatedEventListener {
     if (outputFile != null) {
       try {
         Files.createParentDirs(outputFile);
-        this.output = Files.newWriterSupplier(outputFile, Charsets.UTF_8, append).getOutput();
+        final CharSink charSink;
+        if (append) {
+          charSink = Files.asCharSink(outputFile, Charsets.UTF_8, FileWriteMode.APPEND);
+        } else {
+          charSink = Files.asCharSink(outputFile, Charsets.UTF_8);
+        }
+        this.output = charSink.openBufferedStream();
       } catch (IOException e) {
         throw new BuildException(e);
       }
@@ -378,7 +386,7 @@ public class TextReport implements AggregatedEventListener {
     }
 
     if (output != null) {
-      Closeables.closeQuietly(output);
+      Closeables.close(output, true);
     }
   }
 

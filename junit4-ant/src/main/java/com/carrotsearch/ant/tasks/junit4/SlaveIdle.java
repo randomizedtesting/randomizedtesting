@@ -3,8 +3,6 @@ package com.carrotsearch.ant.tasks.junit4;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import com.google.common.io.Closeables;
-
 /**
  * An event published when a slave is idle and waits for new suite classes.
  */
@@ -20,7 +18,11 @@ class SlaveIdle {
   }
 
   public void finished() {
-    Closeables.closeQuietly(stdin);
+    try {
+      stdin.close();
+    } catch (IOException e) {
+      // Ignore, not much we can do.
+    }
   }
 
   public void newSuite(String suiteName) {
