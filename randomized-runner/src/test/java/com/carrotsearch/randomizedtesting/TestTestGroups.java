@@ -1,9 +1,15 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import org.fest.assertions.api.Assertions;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -35,6 +41,22 @@ public class TestTestGroups extends WithNestedTestClass {
     @Test @Group1 @Group2
     public void test1() {
     }
+    
+    @BeforeClass
+    public static void beforeClass() {
+      beforeClassRan = true;
+    }
+    
+    @AfterClass
+    public static void afterClass() {
+      afterClassRan = true;
+    }
+  }
+
+  public static class Nested3 extends Nested1 {
+    @Test
+    public void testUnconditional() {
+    }
   }
 
   @Group1 @Group2
@@ -42,8 +64,21 @@ public class TestTestGroups extends WithNestedTestClass {
     @Test
     public void test1() {
     }
+    
+    @BeforeClass
+    public static void beforeClass() {
+      beforeClassRan = true;
+    }
+    
+    @AfterClass
+    public static void afterClass() {
+      afterClassRan = true;
+    }    
   }
-
+  
+  public static boolean beforeClassRan;
+  public static boolean afterClassRan;
+  
   @Test
   public void checkDefaultNames() {
     Assert.assertEquals("group1", getGroupName(Group1.class));
@@ -59,16 +94,61 @@ public class TestTestGroups extends WithNestedTestClass {
     String group1Property = getSysProperty(Group1.class);
     String group2Property = getSysProperty(Group2.class);
     try {
+      afterClassRan = beforeClassRan = false;
       checkResult(JUnitCore.runClasses(Nested1.class), 1, 1, 0);
+      Assert.assertFalse(afterClassRan);
+      Assert.assertFalse(beforeClassRan);
       
+      afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "true");
       checkResult(JUnitCore.runClasses(Nested1.class), 1, 1, 0);
+      Assert.assertFalse(afterClassRan);
+      Assert.assertFalse(beforeClassRan);
 
+      afterClassRan = beforeClassRan = false;
       System.setProperty(group2Property, "true");
       checkResult(JUnitCore.runClasses(Nested1.class), 1, 0, 0);
+      Assert.assertTrue(afterClassRan);
+      Assert.assertTrue(beforeClassRan);
 
+      afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "false");      
       checkResult(JUnitCore.runClasses(Nested1.class), 1, 1, 0);
+      Assert.assertFalse(afterClassRan);
+      Assert.assertFalse(beforeClassRan);
+    } finally {
+      System.clearProperty(group1Property);
+      System.clearProperty(group2Property);
+    }
+  }
+
+  @Test
+  public void groupsOnASubsetOfMethods() {
+    String group1Property = getSysProperty(Group1.class);
+    String group2Property = getSysProperty(Group2.class);
+    try {
+      afterClassRan = beforeClassRan = false;
+      checkResult(JUnitCore.runClasses(Nested3.class), 2, 1, 0);
+      Assert.assertTrue(afterClassRan);
+      Assert.assertTrue(beforeClassRan);
+      
+      afterClassRan = beforeClassRan = false;
+      System.setProperty(group1Property, "true");
+      checkResult(JUnitCore.runClasses(Nested3.class), 2, 1, 0);
+      Assert.assertTrue(afterClassRan);
+      Assert.assertTrue(beforeClassRan);
+
+      afterClassRan = beforeClassRan = false;
+      System.setProperty(group2Property, "true");
+      checkResult(JUnitCore.runClasses(Nested3.class), 2, 0, 0);
+      Assert.assertTrue(afterClassRan);
+      Assert.assertTrue(beforeClassRan);
+
+      afterClassRan = beforeClassRan = false;
+      System.setProperty(group1Property, "false");      
+      checkResult(JUnitCore.runClasses(Nested3.class), 2, 1, 0);
+      Assert.assertTrue(afterClassRan);
+      Assert.assertTrue(beforeClassRan);
     } finally {
       System.clearProperty(group1Property);
       System.clearProperty(group2Property);
@@ -80,16 +160,28 @@ public class TestTestGroups extends WithNestedTestClass {
     String group1Property = getSysProperty(Group1.class);
     String group2Property = getSysProperty(Group2.class);
     try {
+      afterClassRan = beforeClassRan = false;
       checkResult(JUnitCore.runClasses(Nested2.class), 1, 1, 0);
-      
+      Assert.assertFalse(afterClassRan);
+      Assert.assertFalse(beforeClassRan);
+
+      afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "true");
       checkResult(JUnitCore.runClasses(Nested2.class), 1, 1, 0);
+      Assert.assertFalse(afterClassRan);
+      Assert.assertFalse(beforeClassRan);
 
+      afterClassRan = beforeClassRan = false;
       System.setProperty(group2Property, "true");
       checkResult(JUnitCore.runClasses(Nested2.class), 1, 0, 0);
+      Assert.assertTrue(afterClassRan);
+      Assert.assertTrue(beforeClassRan);
 
+      afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "false");      
       checkResult(JUnitCore.runClasses(Nested2.class), 1, 1, 0);
+      Assert.assertFalse(afterClassRan);
+      Assert.assertFalse(beforeClassRan);
     } finally {
       System.clearProperty(group1Property);
       System.clearProperty(group2Property);
