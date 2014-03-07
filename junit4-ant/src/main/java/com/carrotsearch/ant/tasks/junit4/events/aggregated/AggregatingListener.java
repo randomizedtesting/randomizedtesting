@@ -54,6 +54,8 @@ public class AggregatingListener {
         case SUITE_FAILURE:
           eventStream.add(e);
           break;
+        default:
+          break;
       }
     }
   }

@@ -210,6 +210,7 @@ public class SlaveMain {
   /**
    * Console entry point.
    */
+  @SuppressWarnings("resource")
   public static void main(String[] allArgs) {
     int exitStatus = 0;
 

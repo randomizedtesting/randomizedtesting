@@ -30,13 +30,11 @@ public class TestCustomMethodProvider extends WithNestedTestClass {
   @TestMethodProviders({MyTestMethodProvider.class})
   public static class Base {}
 
-  @SuppressWarnings("unused")
   public static class T4 extends Base { @MyTest  private  void test1() {} }
   public static class T2 extends Base { @MyTest           void test1() {} }
   public static class T3 extends Base { @MyTest protected void test1() {} }
   public static class T1 extends Base { @MyTest   public  void test1() {} }
 
-  @SuppressWarnings("unused")
   public static class ST4 extends Base { @MyTest static private   void test1() {} }
   public static class ST2 extends Base { @MyTest static           void test1() {} }
   public static class ST3 extends Base { @MyTest static protected void test1() {} }

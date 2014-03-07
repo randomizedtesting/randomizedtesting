@@ -17,7 +17,6 @@ import com.google.common.collect.Lists;
 public class PrivateHooksPropagation {
   final static List<String> order = Lists.newArrayList();
 
-  @SuppressWarnings("unused")
   public static class Super extends RandomizedTest {
     @BeforeClass private   static void beforeClass1() { order.add("super.beforeclass1"); }
     @BeforeClass protected static void beforeClass2() { order.add("super.beforeclass2"); }
@@ -28,7 +27,6 @@ public class PrivateHooksPropagation {
     @Test        public void testMethod1() { order.add("super.testMethod1"); }
   }
 
-  @SuppressWarnings("unused")
   public static class Sub extends Super {
     @BeforeClass private   static void beforeClass1() { order.add("sub.beforeclass1"); }
     @BeforeClass protected static void beforeClass2() { order.add("sub.beforeclass2"); }

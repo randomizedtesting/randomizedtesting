@@ -84,6 +84,9 @@ public class JsonAggregatedSuiteResultEventAdapter implements JsonSerializer<Agg
               ((IStreamEvent) evt).copyTo(stderr);
             }
             break;
+
+          default:
+            break;
         }
       } catch (IOException ex) {
         // Ignore.

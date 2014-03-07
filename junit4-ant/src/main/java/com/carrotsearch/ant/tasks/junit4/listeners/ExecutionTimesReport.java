@@ -27,7 +27,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.io.Closeables;
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
 
 /**
@@ -174,8 +174,9 @@ public class ExecutionTimesReport implements AggregatedEventListener {
    * Writes back hints file. 
    */
   public static void writeHints(File file, Map<String,List<Long>> hints) throws IOException {
-    BufferedWriter w = Files.newWriter(file, Charsets.UTF_8);
+    Closer closer = Closer.create();
     try {
+      BufferedWriter w = closer.register(Files.newWriter(file, Charsets.UTF_8));
       if (!(hints instanceof SortedMap)) {
         hints = new TreeMap<String,List<Long>>(hints);
       }
@@ -187,8 +188,10 @@ public class ExecutionTimesReport implements AggregatedEventListener {
         joiner.appendTo(w, e.getValue());
         w.write("\n");
       }
+    } catch (Throwable t) {
+      throw closer.rethrow(t);
     } finally {
-      Closeables.closeQuietly(w);
+      closer.close();
     }
   }
 
@@ -218,7 +221,11 @@ public class ExecutionTimesReport implements AggregatedEventListener {
           throw new BuildException("Could not read hints from resource: "
               + r.getDescription(), e);
         } finally {
-          Closeables.closeQuietly(is);
+          try {
+            if (is != null) is.close();
+          } catch (IOException e) {
+            throw new BuildException("Could not close hints file: " + r.getDescription());
+          }
         }
       }
     }

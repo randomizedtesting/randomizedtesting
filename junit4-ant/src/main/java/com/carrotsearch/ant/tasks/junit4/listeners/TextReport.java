@@ -47,7 +47,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.CharSink;
 import com.google.common.io.Closeables;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 
 /**
@@ -55,6 +57,7 @@ import com.google.common.io.Files;
  * informational info about the progress to the console or a text
  * file.
  */
+@SuppressWarnings("resource")
 public class TextReport implements AggregatedEventListener {
   /*
    * Indents for outputs.
@@ -307,7 +310,13 @@ public class TextReport implements AggregatedEventListener {
     if (outputFile != null) {
       try {
         Files.createParentDirs(outputFile);
-        this.output = Files.newWriterSupplier(outputFile, Charsets.UTF_8, append).getOutput();
+        final CharSink charSink;
+        if (append) {
+          charSink = Files.asCharSink(outputFile, Charsets.UTF_8, FileWriteMode.APPEND);
+        } else {
+          charSink = Files.asCharSink(outputFile, Charsets.UTF_8);
+        }
+        this.output = charSink.openBufferedStream();
       } catch (IOException e) {
         throw new BuildException(e);
       }
@@ -377,7 +386,7 @@ public class TextReport implements AggregatedEventListener {
     }
 
     if (output != null) {
-      Closeables.closeQuietly(output);
+      Closeables.close(output, true);
     }
   }
 
@@ -403,6 +412,8 @@ public class TextReport implements AggregatedEventListener {
           break;
         case APPEND_STDOUT:
           ((IStreamEvent) e.getEvent()).copyTo(outStream);
+          break;
+        default:
           break;
       }
     }
@@ -473,6 +484,9 @@ public class TextReport implements AggregatedEventListener {
             flushOutput();
             emitStatusLine(aggregated, aggregated.getStatus(), aggregated.getExecutionTime());
           }
+          
+        default:
+          break;          
       }
     }
 

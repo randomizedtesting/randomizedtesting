@@ -61,7 +61,7 @@ public class Serializer implements Closeable {
           gson.toJson(event, event.getClass(), jsonWriter);
           jsonWriter.endArray();
         } catch (Throwable t) {
-          Closeables.closeQuietly(writer);
+          Closeables.close(writer, false);
           writer = null;
 
           SlaveMain.warn("Unhandled exception in event serialization.", t);

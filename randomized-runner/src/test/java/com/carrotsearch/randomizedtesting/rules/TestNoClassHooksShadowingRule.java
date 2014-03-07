@@ -15,7 +15,6 @@ import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 
 public class TestNoClassHooksShadowingRule extends WithNestedTestClass {
-  @SuppressWarnings("unused")
   public static class Super extends RandomizedTest {
     private static TestRule assumeNotNestedRule = new TestRule() {
       public Statement apply(final Statement base, Description description) {
@@ -53,7 +52,6 @@ public class TestNoClassHooksShadowingRule extends WithNestedTestClass {
     public static void before() {}
   }
 
-  @SuppressWarnings("unused")
   public static class Sub3 extends Super {
     @BeforeClass
     private static void privateBefore() {}

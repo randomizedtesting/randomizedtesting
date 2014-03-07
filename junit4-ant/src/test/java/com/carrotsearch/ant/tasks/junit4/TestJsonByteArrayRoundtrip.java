@@ -30,6 +30,7 @@ public class TestJsonByteArrayRoundtrip extends RandomizedTest {
     check("\n\t".getBytes("UTF-8"));
   }
 
+  @SuppressWarnings("resource")
   private void check(byte[] bytes) throws Exception {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Serializer s = new Serializer(baos);
