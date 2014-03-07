@@ -5,6 +5,7 @@ import java.lang.Thread.State;
 import java.util.*;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 
 /**
  * Context variables for an execution of a test suite (hooks and tests) running
@@ -56,12 +57,28 @@ public final class RandomizedContext {
    */
   private EnumMap<LifecycleScope, List<CloseableResourceInfo>> disposableResources
     = new EnumMap<LifecycleScope, List<CloseableResourceInfo>>(LifecycleScope.class);
+  
+  /**
+   * Nightly mode?
+   */
+  private final boolean nightly;
 
   /** */
   private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, RandomizedRunner runner) {
     this.threadGroup = tg;
     this.suiteClass = suiteClass;
     this.runner = runner;
+    
+    boolean enabled;
+    try {
+      enabled = RandomizedTest.systemPropertyAsBoolean(
+          TestGroup.Utilities.getSysProperty(Nightly.class),
+          Nightly.class.getAnnotation(TestGroup.class).enabled());
+    } catch (IllegalArgumentException e) {
+      // Ignore malformed system property, disable the group if malformed though.
+      enabled = false;
+    }
+    this.nightly = enabled;
   }
 
   /** The class (suite) being tested. */
@@ -115,7 +132,7 @@ public final class RandomizedContext {
    */
   public boolean isNightly() {
     checkDisposed();
-    return getGroupEvaluator().isTestGroupEnabled(Nightly.class);
+    return nightly;
   }
 
   /**

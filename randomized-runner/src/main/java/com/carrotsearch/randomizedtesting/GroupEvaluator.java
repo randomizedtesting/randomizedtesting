@@ -6,7 +6,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
+import com.carrotsearch.randomizedtesting.FilterExpressionParser.IContext;
+import com.carrotsearch.randomizedtesting.FilterExpressionParser.Node;
 import com.carrotsearch.randomizedtesting.RandomizedRunner.TestCandidate;
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 
@@ -37,9 +40,18 @@ class GroupEvaluator {
   }
 
   private final HashMap<Class<? extends Annotation>, TestGroupInfo> testGroups;
+  private final Node filter;
+  private String filterExpression;
 
   GroupEvaluator(List<TestCandidate> testCandidates) {
     testGroups = collectGroups(testCandidates);
+
+    filterExpression = System.getProperty(SysGlobals.SYSPROP_TESTFILTER());
+    if (filterExpression != null && filterExpression.trim().isEmpty()) {
+      filterExpression = null;
+    }
+
+    filter = filterExpression != null ? new FilterExpressionParser().parse(filterExpression) : null;
   }
 
   private HashMap<Class<? extends Annotation>, TestGroupInfo> collectGroups(List<TestCandidate> testCandidates) {
@@ -74,40 +86,58 @@ class GroupEvaluator {
         builder.appendOpt(info.sysProperty, System.getProperty(info.sysProperty));
       }
     }
+
+    if (filterExpression != null) {
+      builder.appendOpt(SysGlobals.SYSPROP_TESTFILTER(), filterExpression);
+    }
   }
 
   String isTestIgnored(AnnotatedElement... elements) {
+    final Map<String, Annotation> annotations = new HashMap<String,Annotation>();
+
     for (AnnotatedElement element : elements) {
       for (Annotation ann : element.getAnnotations()) {
-        if (ann.annotationType().isAnnotationPresent(TestGroup.class) 
-            && !isTestGroupEnabled(ann.annotationType())) {
-          TestGroupInfo g = testGroups.get(ann.annotationType());
-          return "'" + g.name + "' test group is disabled (" + toString(ann) + ")";
+        Class<? extends Annotation> annType = ann.annotationType();
+        if (annType.isAnnotationPresent(TestGroup.class)) {
+          if (!testGroups.containsKey(annType)) {
+            testGroups.put(annType, new TestGroupInfo(annType));
+          }
+          annotations.put(testGroups.get(annType).name, ann);
         }
       }
     }
 
-    // XXX: testGroupEvaluator.evaluate(annotationsOf(c.method, suiteClass), ruleChain)
-    // the default should be that the test runs only if all test groups are enabled.
-    // tests.groups=foo,bar -> foo and bar
-    // tests.groups=foo,!bar -> foo and not bar
-    // tests.groups=*,!foo -> all except foo
-
-    // XXX: msg:= "'" + g.getName() + "' test group is disabled (" + toString(g.getAnnotation()) + ")"
-    return null;
-  }
-
-  boolean isTestGroupEnabled(Class<? extends Annotation> ann) {
-    if (!ann.isAnnotationPresent(TestGroup.class)) {
-      throw new IllegalArgumentException("Expected an annotation annotated with @TestGroup: " + ann);
+    String defaultState = null;
+    for (Annotation ann : annotations.values()) {
+      TestGroupInfo g = testGroups.get(ann.annotationType());
+      if (!g.enabled) {
+        defaultState = "'" + g.name + "' test group is disabled (" + toString(ann) + ")";
+        break;
+      }
     }
 
-    if (testGroups.containsKey(ann)) {
-      return testGroups.get(ann).enabled;
+    if (filter != null) {
+      final String defaultStateCopy = defaultState;
+      boolean enabled = filter.evaluate(new IContext() {
+        @Override
+        public boolean defaultValue() {
+          return defaultStateCopy == null;
+        }
+
+        @Override
+        public boolean hasGroup(String value) {
+          if (value.startsWith("@")) value = value.substring(1);
+          for (Annotation ann : annotations.values()) {
+            if (value.equalsIgnoreCase(testGroups.get(ann.annotationType()).name)) {
+              return true;
+            }
+          }
+          return false;
+        }
+      });
+      return enabled ? null : "Test filter condition is true: " + filterExpression;
     } else {
-      TestGroupInfo testGroupInfo = new TestGroupInfo(ann);
-      testGroups.put(ann, testGroupInfo);
-      return testGroupInfo.enabled;
+      return defaultState;
     }
   }
   
