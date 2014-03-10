@@ -49,6 +49,7 @@ public final class SysGlobals {
   private final String SYSPROP_ITERATIONS;
   private final String SYSPROP_TESTCLASS;
   private final String SYSPROP_TESTMETHOD;
+  private final String SYSPROP_TESTFILTER;
   private final String SYSPROP_KILLATTEMPTS;
   private final String SYSPROP_KILLWAIT;
   private final String SYSPROP_TIMEOUT;
@@ -64,6 +65,7 @@ public final class SysGlobals {
     this.SYSPROP_ITERATIONS     = prefixWith(prefix, "iters");
     this.SYSPROP_TESTCLASS      = prefixWith(prefix, "class");         
     this.SYSPROP_TESTMETHOD     = prefixWith(prefix, "method");
+    this.SYSPROP_TESTFILTER     = prefixWith(prefix, "filter");
     this.SYSPROP_KILLATTEMPTS   = prefixWith(prefix, "killattempts");
     this.SYSPROP_KILLWAIT       = prefixWith(prefix, "killwait");
     this.SYSPROP_TIMEOUT        = prefixWith(prefix, "timeout");
@@ -161,6 +163,11 @@ public final class SysGlobals {
    */
   public static String SYSPROP_TESTMETHOD() { return singleton().SYSPROP_TESTMETHOD; }
 
+  /**
+   * Global test filter.
+   */
+  public static String SYSPROP_TESTFILTER() { return singleton().SYSPROP_TESTFILTER; }
+  
   /**
    * If there's a runaway thread, how many times do we try to interrupt and
    * then kill it before we give up? Runaway threads may affect other tests (bad idea).

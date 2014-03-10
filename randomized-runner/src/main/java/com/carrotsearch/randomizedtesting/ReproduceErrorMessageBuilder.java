@@ -68,12 +68,7 @@ public class ReproduceErrorMessageBuilder {
 
   public ReproduceErrorMessageBuilder appendTestGroupOptions(RandomizedContext ctx) {
     if (ctx != null) {
-      for (RuntimeTestGroup g : ctx.getTestGroups().values()) {
-        String sysPropName = g.getSysPropertyName();
-        if (System.getProperty(sysPropName) != null) {
-          appendOpt(sysPropName, System.getProperty(sysPropName));
-        }
-      }
+      ctx.getGroupEvaluator().appendGroupFilteringOptions(this);
     }
     return this;
   }

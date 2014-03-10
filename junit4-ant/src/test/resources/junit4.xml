@@ -325,6 +325,24 @@
         </junit4.preconf>
     </target>
 
+    <target name="filterexpression">
+        <junit4.preconf haltonfailure="false">
+            <classpath>
+                <fileset dir=".." includes="dependency/randomized*.jar" />
+            </classpath>
+        
+            <sysproperty key="tests.filter" value="@foo and not @bar" />
+
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestFilteringExpressions.class" />
+            </fileset>
+
+            <listeners>
+                <junit4:report-text />
+            </listeners>
+        </junit4.preconf>
+    </target>
+
     <target name="nojunit-task">
         <taskdef name="junit4-nojunit" classname="com.carrotsearch.ant.tasks.junit4.JUnit4">
             <classpath>

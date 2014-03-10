@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -82,10 +83,12 @@ import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.ClassGlobFilter;
+import com.carrotsearch.randomizedtesting.FilterExpressionParser;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SeedUtils;
 import com.carrotsearch.randomizedtesting.SysGlobals;
+import com.carrotsearch.randomizedtesting.FilterExpressionParser.Node;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -917,6 +920,20 @@ public class JUnit4 extends Task {
           }
         }
       });
+      
+      // Check for filtering expressions.
+      @SuppressWarnings("unchecked")
+      Vector<Variable> vv = getCommandline().getSystemProperties().getVariablesVector();
+      for (Variable v : vv) {
+        if (SysGlobals.SYSPROP_TESTFILTER().equals(v.getKey())) {
+          try {
+            Node root = new FilterExpressionParser().parse(v.getValue());
+            log("Parsed test filtering expression: " + root.toExpression(), Project.MSG_INFO);
+          } catch (Exception e) {
+            log("Could not parse filtering expression: " + v.getValue(), Project.MSG_WARN);
+          }
+        }
+      }
 
       // Create callables for the executor.
       final List<Callable<Void>> slaves = Lists.newArrayList();

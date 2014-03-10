@@ -1,9 +1,15 @@
 package com.carrotsearch.randomizedtesting.annotations;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
-import com.carrotsearch.randomizedtesting.RuntimeTestGroup;
+import com.carrotsearch.randomizedtesting.SysGlobals;
 
 /**
  * A test group applied to an annotation indicates that a given annotation
@@ -15,11 +21,6 @@ import com.carrotsearch.randomizedtesting.RuntimeTestGroup;
  * can be enabled or disabled using boolean system properties (or test 
  * hooks in the code). A test case is executed if it has no groups or if all of its groups
  * are enabled.
- * 
- * <p>{@link RuntimeTestGroup} contains static methods to resolve a given group's annotation
- * name and system property.
- * 
- * @see RuntimeTestGroup
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -41,7 +42,39 @@ public @interface TestGroup {
   String sysProperty() default "";
 
   /**
-   * Is the group enabled or disabled by default? 
+   * Is the group enabled or disabled by default (unless overridden by test group filtering
+   * rules).  
    */
   boolean enabled() default true;
+  
+  /**
+   * Utilities to deal with annotations annotated with {@link TestGroup}.
+   */
+  public static class Utilities {
+    public static String getGroupName(Class<? extends Annotation> annotationClass) {
+      TestGroup testGroup = annotationClass.getAnnotation(TestGroup.class);
+      if (testGroup == null)
+        throw new IllegalArgumentException("Annotation must have a @TestGroup annotation: " 
+            + annotationClass);
+
+      String tmp = emptyToNull(testGroup.name());
+      return tmp == null ? annotationClass.getSimpleName().toLowerCase() : tmp;
+    }
+
+    public static String getSysProperty(Class<? extends Annotation> annotationClass) {
+      TestGroup testGroup = annotationClass.getAnnotation(TestGroup.class);
+      if (testGroup == null)
+        throw new IllegalArgumentException("Annotation must have a @TestGroup annotation: " 
+            + annotationClass);
+
+      String tmp = emptyToNull(testGroup.sysProperty());
+      return (tmp != null ? tmp : SysGlobals.prefixProperty(getGroupName(annotationClass))); 
+    }
+  
+    private static String emptyToNull(String value) {
+      if (value == null || value.trim().isEmpty())
+        return null;
+      return value.trim();
+    }
+  }
 }
