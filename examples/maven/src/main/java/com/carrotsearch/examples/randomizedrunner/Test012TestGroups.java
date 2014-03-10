@@ -4,6 +4,7 @@ import java.lang.annotation.*;
 
 import org.junit.Test;
 
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
@@ -33,6 +34,27 @@ import com.carrotsearch.randomizedtesting.annotations.TestGroup;
  * {@link Nightly} is defined in a very similar way. Note that test groups are
  * real annotations so they are recognizable by IDEs, can be searched,
  * manipulated etc.
+ * 
+ * <p>
+ * Another feature of using {@link RandomizedRunner} with groups is the ability to specify
+ * complex group-based filters specified via <code>tests.filter</code> system property.
+ * These filters are boolean conditions, with optional parentheses. For example:
+ * <ul>
+ *  <li><code>{@literal @}nightly</code> - runs all tests with test group named <i>nightly</i>.</li>
+ *  <li><code>not {@literal @}nightly</code> - runs all tests not annotated with a test group named <i>nightly</i>.</li>
+ *  <li><code>{@literal @}fast and not {@literal @}requiresdisplay</code> - runs all tests annotated with <i>fast</i> and not annotated with <i>requiresdisplay</i>.</li>
+ *  <li><code>not ({@literal @}slow or {@literal @}nightly)</code> - skips any tests annotated with <i>slow</i> or <i>nightly</i>.</li>  
+ * </ul>
+ * 
+ * <strong>Important!</strong> Note that using filtering expression has precedence over the default state of a group
+ * and its corresponding system property. This is intentional so that filtering expressions can be used
+ * independently of each group's default state. Should the default state be taken into account one
+ * can use a special keyword <code>default</code>, as in:
+ * <ul>
+ *  <li><code>default and not {@literal @}slow</code> - runs any tests that would be selected by their default
+ *  group status (including those that do not have any test groups at all), 
+ *  excluding any tests annotated with <i>slow</i>.</li> 
+ * </ul>   
  */
 public class Test012TestGroups extends RandomizedTest {
   @TestGroup(name = "requiresdisplay", enabled = false, sysProperty = "display")
