@@ -126,6 +126,9 @@ public class TextReport implements AggregatedEventListener {
   /** @see #setShowSuiteSummary(boolean) */
   private boolean showSuiteSummary = true;
 
+  /** @see #showEmptySuites(boolean) */
+  private boolean showEmptySuites = false;
+  
   /**
    * Status display info.
    */
@@ -274,6 +277,14 @@ public class TextReport implements AggregatedEventListener {
     this.showNumFailuresAtEnd = num;
   }
 
+  /**
+   * Display suites without any errors and with no tests (resulting from filtering
+   * expressions, for example).
+   */
+  public void setShowEmptySuites(boolean showEmptySuites) {
+    this.showEmptySuites = showEmptySuites;
+  }
+  
   /**
    * If enabled, shows suite summaries in "maven-like" format of:
    * <pre>
@@ -433,6 +444,10 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) throws IOException {
+    if (e.isSuccessful() && e.getTests().isEmpty() && !showEmptySuites) {
+      return;
+    }
+
     // We must emit buffered test and stream events (in case of failures).
     if (!isPassthrough()) {
       if (showSuiteSummary) {

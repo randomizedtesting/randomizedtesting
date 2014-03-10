@@ -11,7 +11,7 @@ import org.junit.Test;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 
-public class TestFilteringExpressions extends RandomizedTest {
+public class TestFilteringExpressions {
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Inherited
@@ -24,18 +24,32 @@ public class TestFilteringExpressions extends RandomizedTest {
   @TestGroup(enabled = false)
   public static @interface Bar {}
   
-  @Test @Foo
-  public void testFoo() {
-    System.out.println(">foo<");
+  public static class Example1 extends RandomizedTest {
+    @Test @Foo
+    public void testFoo() {
+      System.out.println(">foo<");
+    }
+    
+    @Test @Foo @Bar
+    public void testFooBar() {
+      System.out.println(">foobar<");
+    }
+    
+    @Test @Bar
+    public void testBar() {
+      System.out.println(">bar<");
+    }    
   }
   
-  @Test @Foo @Bar
-  public void testFooBar() {
-    System.out.println(">foobar<");
-  }
-  
-  @Test @Bar
-  public void testBar() {
-    System.out.println(">bar<");
-  }    
+  public static class Example2 extends RandomizedTest {
+    @Test @Foo @Bar
+    public void testFooBar() {
+      System.out.println(">foobar2<");
+    }
+    
+    @Test @Bar
+    public void testBar() {
+      System.out.println(">bar2<");
+    }    
+  }  
 }

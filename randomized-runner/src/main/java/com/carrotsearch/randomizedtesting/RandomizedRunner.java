@@ -610,6 +610,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
       // Filter out test candidates to see if there's anything left. If not,
       // don't bother running class hooks.
       final List<TestCandidate> filtered = getFilteredTestCandidates();
+
+      // Filter out any tests ignored by filtering expression
+      final GroupEvaluator evaluator = RandomizedContext.current().getGroupEvaluator();
+      if (evaluator.hasFilteringExpression()) {
+        for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext();) {
+          TestCandidate c = i.next();
+          if (evaluator.isTestIgnored(c.method, suiteClass) != null) {
+            i.remove();
+          }
+        }
+      }
+
       if (!filtered.isEmpty()) {
         if (areAllRemainingIgnored(filtered)) {
           for (TestCandidate candidate : filtered) {

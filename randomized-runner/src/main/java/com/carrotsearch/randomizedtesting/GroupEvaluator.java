@@ -87,10 +87,14 @@ class GroupEvaluator {
       }
     }
 
-    if (filterExpression != null) {
+    if (hasFilteringExpression()) {
       builder.appendOpt(SysGlobals.SYSPROP_TESTFILTER(), filterExpression);
     }
   }
+
+  public boolean hasFilteringExpression() {
+    return filterExpression != null;
+  }  
 
   String isTestIgnored(AnnotatedElement... elements) {
     final Map<String, Annotation> annotations = new HashMap<String,Annotation>();
@@ -116,7 +120,7 @@ class GroupEvaluator {
       }
     }
 
-    if (filter != null) {
+    if (hasFilteringExpression()) {
       final String defaultStateCopy = defaultState;
       boolean enabled = filter.evaluate(new IContext() {
         @Override
@@ -146,5 +150,5 @@ class GroupEvaluator {
     return ann.toString().replace(
         ann.annotationType().getName(), 
         ann.annotationType().getSimpleName());
-  }  
+  }
 }

@@ -51,7 +51,7 @@ public class TestTestFiltering extends WithNestedTestClass {
     
     // Run on default filter.
     System.setProperty(SysGlobals.SYSPROP_TESTFILTER(), "default");
-    checkResult(JUnitCore.runClasses(Nested1.class), 1, 1, 0);        
+    checkResult(JUnitCore.runClasses(Nested1.class), 0, 0, 0);        
   }
 
   private void checkResult(Result result, int run, int ignored, int failures) {

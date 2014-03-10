@@ -334,7 +334,7 @@
             <sysproperty key="tests.filter" value="@foo and not @bar" />
 
             <fileset dir="${basedir}">
-                <include name="**/tests/TestFilteringExpressions.class" />
+                <include name="**/tests/TestFilteringExpressions$Example*.class" />
             </fileset>
 
             <listeners>
