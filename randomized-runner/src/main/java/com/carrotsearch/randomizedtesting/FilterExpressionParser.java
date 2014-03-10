@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 /**
  * Test group conditions filter parser. 
  */
-final class FilterExpressionParser {
+public final class FilterExpressionParser {
   static final Node [] EMPTY = new Node [0];
 
   @SuppressWarnings("serial")
@@ -59,7 +59,7 @@ final class FilterExpressionParser {
     }
   }
 
-  abstract class Node { 
+  public abstract class Node { 
     int lbp;
     Node [] args = EMPTY;
     public InputRange range;

@@ -135,7 +135,7 @@ class GroupEvaluator {
           return false;
         }
       });
-      return enabled ? null : "Test filter condition is true: " + filterExpression;
+      return enabled ? null : "Test filter condition: " + filterExpression;
     } else {
       return defaultState;
     }
