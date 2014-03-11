@@ -19,4 +19,9 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface ParametersFactory {
+  /**
+   * Shuffles the order of tests generated for the 
+   * parameter set.
+   */
+  boolean shuffle() default true;
 }
