@@ -21,7 +21,8 @@ public abstract class GlobFilter extends Filter {
    * Check if a given string matches the glob.
    */
   protected final boolean globMatches(String string) {
-    return pattern.matcher(string).matches();
+    boolean result = pattern.matcher(string).matches();
+    return result;
   }
 
   /**
@@ -42,6 +43,8 @@ public abstract class GlobFilter extends Filter {
         case '-':
         case '{':
         case '}':
+        case '[':
+        case ']':
           pattern.append("\\");
           pattern.append(c);
           break;

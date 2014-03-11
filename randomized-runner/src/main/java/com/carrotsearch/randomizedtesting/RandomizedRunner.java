@@ -1079,12 +1079,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
       for (Filter f : testFilters) {
         // Inquire for both full description (possibly with parameters and seed)
         // and simplified description (just method name).
-        if (!f.shouldRun(candidate.description) ||
-            !f.shouldRun(Description.createTestDescription(
-              candidate.instanceProvider.getTestClass(), candidate.method.getName()))) {
-          i.remove();
-          break;
+        if (f.shouldRun(candidate.description) ||
+            f.shouldRun(Description.createTestDescription(
+                candidate.instanceProvider.getTestClass(), candidate.method.getName()))) {
+          continue;
         }
+
+        i.remove();
+        break;
       }
     }
 

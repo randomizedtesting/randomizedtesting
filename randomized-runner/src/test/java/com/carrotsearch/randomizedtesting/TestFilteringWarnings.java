@@ -99,7 +99,7 @@ public class TestFilteringWarnings extends WithNestedTestClass {
   @Test
   public void testItersWithFixedMethodName() {
     System.setProperty(SysGlobals.SYSPROP_ITERATIONS(), "5");
-    System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), "method");
+    System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), "foo");
     Result result = JUnitCore.runClasses(Nested.class);
     if (result.getIgnoreCount() == 0) {
       Assert.assertTrue(result.getFailures().isEmpty());
