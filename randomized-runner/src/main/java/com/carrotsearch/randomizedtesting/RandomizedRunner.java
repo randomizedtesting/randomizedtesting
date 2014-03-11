@@ -1453,6 +1453,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
         .isStatic()
         .isPublic();
 
+      ParametersFactory pfAnnotation = m.getAnnotation(ParametersFactory.class);
+      assert pfAnnotation != null;
+
       if (!Iterable.class.isAssignableFrom(m.getReturnType())) {
         throw new RuntimeException("@" + ParametersFactory.class.getSimpleName() + " annotated " +
         		"methods must be public, static and returning Iterable<Object[]>:" + m);
@@ -1460,8 +1463,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
       List<Object[]> result = new ArrayList<Object[]>();
       try {
-        for (Object [] p : (Iterable<Object[]>) m.invoke(null)) 
+        for (Object [] p : (Iterable<Object[]>) m.invoke(null)) {
           result.add(p);
+        }
       } catch (InvocationTargetException e) {
         Rethrow.rethrow(e.getCause());
       } catch (Throwable t) {
@@ -1470,6 +1474,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
       if (result.isEmpty()) {
         throw new InternalAssumptionViolatedException("Parameters set should not be empty. Ignoring tests.");
+      }
+
+      if (pfAnnotation.shuffle()) {
+        Collections.shuffle(result, new Random(runnerRandomness.getSeed()));
       }
 
       parameters.addAll(result);
