@@ -7,6 +7,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Locale;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SysGlobals;
@@ -58,7 +59,7 @@ public @interface TestGroup {
             + annotationClass);
 
       String tmp = emptyToNull(testGroup.name());
-      return tmp == null ? annotationClass.getSimpleName().toLowerCase() : tmp;
+      return tmp == null ? annotationClass.getSimpleName().toLowerCase(Locale.ENGLISH) : tmp;
     }
 
     public static String getSysProperty(Class<? extends Annotation> annotationClass) {
