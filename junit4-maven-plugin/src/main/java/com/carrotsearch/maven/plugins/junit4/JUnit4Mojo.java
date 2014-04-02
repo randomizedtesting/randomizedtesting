@@ -312,6 +312,15 @@ public class JUnit4Mojo extends AbstractMojo {
    * @parameter property="jvmOutputAction" default-value="pipe,warn"
    */
   private String jvmOutputAction;
+
+  /**
+   * Allows or disallow duplicate suite names in resource collections. By default this option
+   * is <code>true</code> because certain ANT-compatible report types (like XML reports)
+   * will have a problem with duplicate suite names (will overwrite files).
+   *
+   * @parameter default-value="true"
+   */
+  private boolean uniqueSuiteNames = JUnit4.DEFAULT_UNIQUE_SUITE_NAME;
   
   /**
    * Raw listeners configuration. Same XML as for ANT.
@@ -549,6 +558,7 @@ public class JUnit4Mojo extends AbstractMojo {
     junit4.addAttribute("leaveTemporary", Boolean.toString(leaveTemporary));
     junit4.addAttribute("dynamicAssignmentRatio", Float.toString(dynamicAssignmentRatio));
     junit4.addAttribute("sysouts", Boolean.toString(sysouts));
+    junit4.addAttribute("uniqueSuiteNames", Boolean.toString(uniqueSuiteNames));
 
     // JVM args.
     for (String jvmArg : Objects.firstNonNull(jvmArgs, EMPTY_STRING_ARRAY)) {

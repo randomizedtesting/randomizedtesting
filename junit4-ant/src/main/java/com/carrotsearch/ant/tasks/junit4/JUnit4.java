@@ -188,6 +188,9 @@ public class JUnit4 extends Task {
   /** Default value of {@link #setSysouts}. */
   public static final boolean DEFAULT_SYSOUTS = false;
 
+  /** Default value of {@link #setUniqueSuiteNames(boolean)} */
+  public static final boolean DEFAULT_UNIQUE_SUITE_NAME = true;
+
   /** System property passed to forked VMs: current working directory (absolute). */
   private static final String CHILDVM_SYSPROP_CWD = "junit4.childvm.cwd";
 
@@ -231,7 +234,7 @@ public class JUnit4 extends Task {
   /**
    * @see #setUniqueSuiteNames
    */
-  private boolean uniqueSuiteNames = true;
+  private boolean uniqueSuiteNames = DEFAULT_UNIQUE_SUITE_NAME;
   
   /**
    * Environment variables to use in the forked JVM.
