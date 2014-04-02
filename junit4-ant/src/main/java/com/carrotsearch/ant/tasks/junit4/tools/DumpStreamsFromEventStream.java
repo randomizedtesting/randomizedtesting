@@ -20,7 +20,15 @@ import com.google.gson.stream.JsonToken;
 
 public class DumpStreamsFromEventStream {
   public static void main(String[] args) throws Exception {
-    File inputFile = new File(args[0]);
+    File inputFile;
+
+    if (args.length != 1) {
+      System.err.println("Usage: [input.events]");
+      System.exit(1);
+      return;
+    } else {
+      inputFile = new File(args[0]);
+    }
 
     Gson gson = Serializer.createGSon(DumpStreamsFromEventStream.class.getClassLoader());
 
