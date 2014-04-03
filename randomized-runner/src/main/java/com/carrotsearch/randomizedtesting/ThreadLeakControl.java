@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import org.junit.Test;
+import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -366,6 +367,15 @@ class ThreadLeakControl {
   }
 
   /**
+   * Check on zombie threads status.
+   */
+  private static void checkZombies() throws AssumptionViolatedException {
+    if (RandomizedRunner.hasZombieThreads()) {
+      throw new AssumptionViolatedException("Leaked background threads present (zombies).");
+    }
+  }
+
+  /**
    * A {@link Statement} for wrapping suite-level execution. 
    */
   Statement forSuite(final Statement s, final Description suiteDescription) {
@@ -375,7 +385,7 @@ class ThreadLeakControl {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        RandomizedRunner.checkZombies();
+        checkZombies();
 
         threadLeakGroup = firstAnnotated(ThreadLeakGroup.class, suiteClass, DefaultAnnotationValues.class);
         final List<Throwable> errors = new ArrayList<Throwable>();
@@ -435,7 +445,7 @@ class ThreadLeakControl {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        RandomizedRunner.checkZombies();
+        checkZombies();
 
         final StatementRunner sr = new StatementRunner(s);
         final List<Throwable> errors = new ArrayList<Throwable>();

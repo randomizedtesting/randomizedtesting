@@ -71,6 +71,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
 import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
@@ -1846,11 +1847,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Check on zombie threads status.
+   * Returns true if any previous (or current) suite marked with 
+   * {@link ThreadLeakZombies.Consequence#IGNORE_REMAINING_TESTS} has
+   * left zombie threads.
    */
-  static void checkZombies() throws AssumptionViolatedException {
-    if (zombieMarker.get()) {
-      throw new AssumptionViolatedException("Leaked background threads present (zombies).");
-    }
+  public static boolean hasZombieThreads() {
+    return zombieMarker.get();
   }
 }
