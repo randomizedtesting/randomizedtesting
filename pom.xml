@@ -43,6 +43,13 @@
     </license>
   </licenses>  
 
+    <distributionManagement>
+        <site>
+            <id>randomtesting-site</id>
+            <url>scm:git:git@github.com:benson-basis/randomizedtesting.git</url>
+        </site>
+    </distributionManagement>
+
   <properties>
     <minimum.maven.version>3.0.2</minimum.maven.version>
 
