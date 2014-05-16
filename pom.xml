@@ -246,7 +246,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.2</version>
+          <version>3.3</version>
           <configuration>
            <extractors>
              <extractor>java</extractor>
@@ -296,6 +296,7 @@
             <scmBranch>gh-pages</scmBranch>
           </configuration>
         </plugin>
+
       </plugins>
     </pluginManagement>
   </build>
@@ -373,6 +374,7 @@
                             <report>dependencies</report>
                             <report>issue-tracking</report>
                             <report>scm</report>
+                            <report>plugins</report>
                         </reports>
                     </reportSet>
                 </reportSets>
@@ -394,6 +396,10 @@
                         </reports>
                     </reportSet>
                 </reportSets>
+            </plugin>
+            <plugin>
+              <artifactId>maven-plugin-plugin</artifactId>
+              <version>3.3</version>
             </plugin>
         </plugins>
     </reporting>
