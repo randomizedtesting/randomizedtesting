@@ -9,6 +9,12 @@
     <version>9</version>
   </parent>
 
+<!--
+  How to publish the site:
+  mvn site site:stage
+  mvn scm-publish:publish-scm
+  -->
+
   <prerequisites>
     <maven>${minimum.maven.version}</maven>
   </prerequisites>
