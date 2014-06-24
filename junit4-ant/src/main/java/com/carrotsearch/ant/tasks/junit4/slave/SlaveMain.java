@@ -252,11 +252,8 @@ public class SlaveMain {
       if (eventsFile == null) {
         throw new IOException("You must specify communication channel for events.");
       }
-      final OutputStream eventsChannel = new RandomAccessFileOutputStream(eventsFile);
-
       // Send bootstrap package.
-      final int bufferSize = 8 * 1024;
-      serializer = new Serializer(new BufferedOutputStream(eventsChannel, bufferSize))
+      serializer = new Serializer(new EventsOutputStream(eventsFile))
         .serialize(new BootstrapEvent())
         .flush();
 
