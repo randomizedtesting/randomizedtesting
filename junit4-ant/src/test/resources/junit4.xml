@@ -86,7 +86,7 @@
     </target>
 
     <target name="statuses">
-        <junit4.preconf>
+        <junit4.preconf debugstream="true">
             <fileset dir="${basedir}">
                 <include name="**/tests/TestStatuses.class" />
             </fileset>

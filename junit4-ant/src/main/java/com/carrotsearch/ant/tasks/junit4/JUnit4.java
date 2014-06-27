@@ -187,6 +187,9 @@ public class JUnit4 extends Task {
 
   /** Default value of {@link #setSysouts}. */
   public static final boolean DEFAULT_SYSOUTS = false;
+  
+  /** Default value of {@link #setDebugStream}. */
+  public static final boolean DEFAULT_DEBUGSTREAM = false;
 
   /** Default value of {@link #setUniqueSuiteNames(boolean)} */
   public static final boolean DEFAULT_UNIQUE_SUITE_NAME = true;
@@ -220,7 +223,12 @@ public class JUnit4 extends Task {
    * @see #setSysouts
    */
   private boolean sysouts = DEFAULT_SYSOUTS; 
-  
+
+  /**
+   * @see #setDebugStream
+   */
+  private boolean debugStream = DEFAULT_DEBUGSTREAM; 
+
   /**
    * Slave VM command line.
    */
@@ -380,6 +388,14 @@ public class JUnit4 extends Task {
    */
   public void setSysouts(boolean sysouts) {
     this.sysouts = sysouts;
+  }
+  
+  /**
+   * Enables a debug stream from each forked JVM. This will create an additional file
+   * next to each events file. For debugging the framework only, not a general-purpose setting.
+   */
+  public void setDebugStream(boolean debugStream) {
+    this.debugStream = debugStream;
   }
   
   /**
@@ -1349,6 +1365,10 @@ public class JUnit4 extends Task {
     
     if (sysouts) {
       commandline.createArgument().setValue(SlaveMain.OPTION_SYSOUTS);
+    }
+    
+    if (debugStream) {
+      commandline.createArgument().setValue(SlaveMain.OPTION_DEBUGSTREAM);
     }
 
     InputStream eventStream = new TailInputStream(eventFile);

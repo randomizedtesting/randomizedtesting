@@ -71,6 +71,12 @@ public class SlaveMain {
   public static final String OPTION_EVENTSFILE = "-eventsfile";
 
   /**
+   * Should the debug stream from the runner be created? It's named after the events file
+   * with <code>.debug</code> suffix.
+   */
+  public static final String OPTION_DEBUGSTREAM = "-debug";
+
+  /**
    * Fire a runner failure after startup to verify messages
    * are propagated properly. Not really useful in practice...
    */
@@ -87,6 +93,9 @@ public class SlaveMain {
 
   /** Flush serialization stream frequently. */
   private boolean flushFrequently = false;
+
+  /** Debug stream to flush progress information to. */
+  private File debugMessagesFile;
   
   /** 
    * Multiplex calls to System streams to both event stream
@@ -118,9 +127,10 @@ public class SlaveMain {
   /**
    * Execute tests.
    */
-  private void execute(Iterator<String> classNames) {
+  private void execute(Iterator<String> classNames) throws Throwable {
     final RunNotifier fNotifier = new OrderedRunNotifier();
     final Result result = new Result();
+    final Writer debug = debugMessagesFile == null ? new NullWriter() : new OutputStreamWriter(new FileOutputStream(debugMessagesFile), "UTF-8");
 
     fNotifier.addListener(result.createListener());
 
@@ -135,20 +145,24 @@ public class SlaveMain {
 
     fNotifier.addListener(new RunListener() {
       public void testRunFinished(Result result) throws Exception {
+        debug(debug, "testRunFinished(T:" + result.getRunCount() + ";F:" + result.getFailureCount() + ";I:" + result.getIgnoreCount() + ")");
         serializer.flush();
       }
 
       @Override
       public void testRunStarted(Description description) throws Exception {
+        debug(debug, "testRunStarted(" + description + ")");
         serializer.flush();
       }
       
       @Override
       public void testStarted(Description description) throws Exception {
+        debug(debug, "testStarted(" + description + ")");
         serializer.flush();
       }
       
       public void testFinished(Description description) throws Exception {
+        debug(debug, "testFinished(" + description + ")");
         serializer.flush();
       }
     });
@@ -166,25 +180,44 @@ public class SlaveMain {
      * Important. Run each class separately so that we get separate 
      * {@link RunListener} callbacks for the top extracted description.
      */
-    while (classNames.hasNext()) {
-      Class<?> clazz = instantiate(classNames.next());
-      if (clazz == null) 
-        continue;
-
-      Request request = Request.aClass(clazz);
-      try {
-        Runner runner = request.getRunner();
-        methodFilter.apply(runner);
-
-        fNotifier.fireTestRunStarted(runner.getDescription());
-        runner.run(fNotifier);
-        fNotifier.fireTestRunFinished(result);
-      } catch (NoTestsRemainException e) {
-        // Don't complain if all methods have been filtered out. 
-        // I don't understand the reason why this exception has been
-        // built in to filters at all.
+    debug(debug, "Entering main suite loop.");
+    try {
+      while (classNames.hasNext()) {
+        final String clName = classNames.next();
+        debug(debug, "Instantiating: " + clName);
+        Class<?> clazz = instantiate(clName);
+        if (clazz == null) 
+          continue;
+  
+        Request request = Request.aClass(clazz);
+        try {
+          Runner runner = request.getRunner();
+          methodFilter.apply(runner);
+  
+          fNotifier.fireTestRunStarted(runner.getDescription());
+          debug(debug, "Runner.run(" + clName + ")");
+          runner.run(fNotifier);
+          debug(debug, "Runner.done(" + clName + ")");
+          fNotifier.fireTestRunFinished(result);
+        } catch (NoTestsRemainException e) {
+          // Don't complain if all methods have been filtered out. 
+          // I don't understand the reason why this exception has been
+          // built in to filters at all.
+        }
       }
+    } catch (Throwable t) {
+      debug(debug, "Main suite loop error: " + t);
+      throw t;
+    } finally {
+      debug(debug, "Leaving main suite loop.");
+      debug.close();
     }
+  }
+
+  private void debug(Writer w, String msg) throws IOException {
+    w.write(msg);
+    w.write("\n");
+    w.flush();
   }
 
   /**
@@ -219,6 +252,7 @@ public class SlaveMain {
       final ArrayDeque<String> args = new ArrayDeque<String>(Arrays.asList(allArgs));
 
       // Options.
+      boolean debugStream = false;
       boolean flushFrequently = false;
       File  eventsFile = null;
       boolean suitesOnStdin = false;
@@ -239,6 +273,8 @@ public class SlaveMain {
             raf.setLength(0);
             raf.close();
           }
+        } else if (option.startsWith(OPTION_DEBUGSTREAM)) {
+          debugStream = true;
         } else if (option.startsWith("@")) {
           // Append arguments file, one line per option.
           args.addAll(Arrays.asList(readArgsFile(option.substring(1))));
@@ -262,6 +298,7 @@ public class SlaveMain {
 
       final SlaveMain main = new SlaveMain(serializer);
       main.flushFrequently = flushFrequently;
+      main.debugMessagesFile = debugStream ? new File(eventsFile.getAbsolutePath() + ".debug"): null;
 
       final Iterator<String> stdInput;
       if (suitesOnStdin) { 
