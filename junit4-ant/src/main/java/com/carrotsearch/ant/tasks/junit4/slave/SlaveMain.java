@@ -15,6 +15,7 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.io.CountingOutputStream;
 
 /**
  * A slave process running the actual tests on the target JVM.
@@ -131,6 +132,7 @@ public class SlaveMain {
     final RunNotifier fNotifier = new OrderedRunNotifier();
     final Result result = new Result();
     final Writer debug = debugMessagesFile == null ? new NullWriter() : new OutputStreamWriter(new FileOutputStream(debugMessagesFile), "UTF-8");
+    serializer.debug = debug;
 
     fNotifier.addListener(result.createListener());
 
@@ -210,14 +212,17 @@ public class SlaveMain {
       throw t;
     } finally {
       debug(debug, "Leaving main suite loop.");
-      debug.close();
     }
   }
 
-  private void debug(Writer w, String msg) throws IOException {
-    w.write(msg);
-    w.write("\n");
-    w.flush();
+  public static void debug(Writer w, String msg) throws IOException {
+    try {
+      w.write(msg);
+      w.write("\n");
+      w.flush();
+    } catch (IOException e) {
+      // Ignore, not much to do.
+    }
   }
 
   /**
@@ -289,7 +294,8 @@ public class SlaveMain {
         throw new IOException("You must specify communication channel for events.");
       }
       // Send bootstrap package.
-      serializer = new Serializer(new EventsOutputStream(eventsFile))
+      EventsOutputStream os = new EventsOutputStream(eventsFile);
+      serializer = new Serializer(os)
         .serialize(new BootstrapEvent())
         .flush();
 
