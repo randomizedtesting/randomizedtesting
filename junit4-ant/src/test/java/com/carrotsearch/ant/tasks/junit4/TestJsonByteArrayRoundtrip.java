@@ -30,13 +30,13 @@ public class TestJsonByteArrayRoundtrip extends RandomizedTest {
     check("\n\t".getBytes("UTF-8"));
   }
 
-  @SuppressWarnings("resource")
   private void check(byte[] bytes) throws Exception {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Serializer s = new Serializer(baos);
     s.serialize(new AppendStdErrEvent(bytes, 0, bytes.length));
     s.flush();
-    
+    s.close();
+
     Deserializer deserializer = new Deserializer(new ByteArrayInputStream(baos.toByteArray()),
         Thread.currentThread().getContextClassLoader());
     IEvent deserialize = deserializer.deserialize();

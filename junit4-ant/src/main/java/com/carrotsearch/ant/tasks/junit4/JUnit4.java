@@ -1498,7 +1498,7 @@ public class JUnit4 extends Task {
     }
 
     if (!diagnosticsListener.quitReceived()) {
-      throw new BuildException("Quit event not received from a slave process? This may indicate JVM crash or runner bugs.");
+      throw new BuildException("Quit event not received from the forked process? This may indicate JVM crash or runner bugs.");
     }
 
     if (clientWithLimitedCharset.get() && dynamicAssignmentRatio > 0) {

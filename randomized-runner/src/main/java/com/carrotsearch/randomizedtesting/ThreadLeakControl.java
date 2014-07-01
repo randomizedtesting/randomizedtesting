@@ -281,7 +281,12 @@ class ThreadLeakControl {
       if (tgroup != null && "system".equals(tgroup.getName()) && tgroup.getParent() == null) {
         return true;
       }
-      
+
+      // Explicit check for Serializer shutdown daemon.
+      if (t.getName().equals("JUnit4-serializer-daemon")) {
+        return true;
+      }
+
       // Explicit check for java flight recorder (jfr) threads.
       if (t.getName().equals("JFR request timer")) {
         return true;

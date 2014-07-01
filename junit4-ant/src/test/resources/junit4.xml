@@ -1337,4 +1337,22 @@
       </fileset>
     </junit4:junit4>
   </target>
+
+  <target name="stackoverflow">
+    <junit4:junit4 
+        haltonfailure="true" parallelism="1" 
+        jvmoutputaction="pipe,ignore"
+        debugstream="true"
+        leavetemporary="true">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+          <include name="**/StackOverflow*.class" />
+      </fileset>
+      
+      <listeners>
+          <junit4:report-text showOutput="always" showStatusOk="true" showSuiteSummary="true" />
+      </listeners>      
+    </junit4:junit4>
+  </target> 
 </project>
