@@ -15,9 +15,15 @@ public class ReproduceInfoPrinter extends RunListener {
 
   @Override
   public void testFailure(Failure failure) throws Exception {
+    final StringBuilder b = buildReproduceInfo(failure);
+    if (b == null) return;
+    System.err.println(b.toString());
+  }
+
+  protected StringBuilder buildReproduceInfo(Failure failure) {
     // Ignore assumptions.
     if (failure.getException() instanceof AssumptionViolatedException) {
-      return;
+      return null;
     }
 
     final Description d = failure.getDescription();
@@ -38,7 +44,6 @@ public class ReproduceInfoPrinter extends RunListener {
       }
       traces.formatThrowable(b, failure.getException());
     }
-
-    System.err.println(b.toString());
+    return b;
   }
 }
