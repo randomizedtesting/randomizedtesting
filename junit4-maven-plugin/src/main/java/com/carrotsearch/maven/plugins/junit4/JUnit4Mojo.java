@@ -29,6 +29,7 @@ import org.apache.maven.plugin.antrun.AntrunXmlPlexusConfigurationWriter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.shared.artifact.filter.PatternIncludesArtifactFilter;
+import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
@@ -371,6 +372,13 @@ public class JUnit4Mojo extends AbstractMojo {
   private boolean skipTests;
 
   /**
+   * @parameter default-value="${project.packaging}" 
+   * @required
+   * @readonly
+   */
+  private String packaging;
+  
+  /**
    * List of dependencies to exclude from the test classpath. Each dependency 
    * string must follow the format
    * <i>groupId:artifactId</i>. For example: <i>org.acme:project-a</i>
@@ -457,6 +465,11 @@ public class JUnit4Mojo extends AbstractMojo {
    */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if ("pom".equals(packaging)) {
+      getLog().debug("Skipping execution for packaging \"" + packaging + "\"");
+      return;
+    }
+
     validateParameters();
     
     if (skipTests) {
@@ -476,13 +489,17 @@ public class JUnit4Mojo extends AbstractMojo {
       File tempAntFile = createTemporaryAntFile(doc);
 
       ProjectHelper.configureProject(antProject, tempAntFile);
-      antProject.executeTarget(DEFAULT_TARGET);
-
-      if (!leaveTemporary) {
-        tempAntFile.delete();
+      try {
+        antProject.executeTarget(DEFAULT_TARGET);
+      } finally {
+        if (!leaveTemporary) {
+          tempAntFile.delete();
+        }
       }
     } catch (IOException e) {
       throw new MojoExecutionException("An I/O error occurred: " + e.getMessage(), e);
+    } catch (BuildException e) {
+      throw new MojoExecutionException(e.getMessage(), e.getCause());
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
@@ -492,7 +509,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * Initial validation of input parameters and configuration.
    */
   private void validateParameters() throws MojoExecutionException {
-    // Check for junit dependency on project level.
+    // Check directory existence first.
     if (!dir.exists() || !dir.isDirectory()) {
       throw new MojoExecutionException("Directory does not exist: "
           + dir.getAbsolutePath());
