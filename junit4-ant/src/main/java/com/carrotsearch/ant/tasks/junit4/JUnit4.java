@@ -250,7 +250,7 @@ public class JUnit4 extends Task {
   private Environment env = new Environment();
   
   /**
-   * Directory to invoke slave VM in.
+   * Directory to invoke forked VMs in.
    */
   private File dir;
 

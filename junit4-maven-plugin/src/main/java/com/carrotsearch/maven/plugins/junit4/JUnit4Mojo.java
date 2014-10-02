@@ -841,6 +841,7 @@ public class JUnit4Mojo extends AbstractMojo {
       junit4.addComment("Test classes search paths and patterns.");
       Element fs = junit4.addElement("fileset");
       fs.addAttribute("dir", testClassesDirectory.getAbsolutePath());
+      fs.addAttribute("erroronmissingdir", "false");
       fs.add(patternSet.createCopy());
     }
   }
