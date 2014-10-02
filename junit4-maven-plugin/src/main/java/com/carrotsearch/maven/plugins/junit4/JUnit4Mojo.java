@@ -26,6 +26,11 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.antrun.AntrunXmlPlexusConfigurationWriter;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.shared.artifact.filter.PatternIncludesArtifactFilter;
@@ -53,13 +58,13 @@ import com.google.common.io.Closer;
  * Run tests using a delegation to <a
  * href="https://github.com/carrotsearch/randomizedtesting/">Randomized
  * Testing's JUnit4</a> ANT task.
- * 
- * @requiresProject true
- * @requiresDependencyResolution test
- * @goal junit4
- * @phase test
- * @threadSafe
  */
+@Mojo(
+    name = "junit4",
+    defaultPhase = LifecyclePhase.TEST,
+    threadSafe = true,
+    requiresProject = true,
+    requiresDependencyResolution = ResolutionScope.TEST)
 public class JUnit4Mojo extends AbstractMojo {
   /** An empty String[]. */
   private static final String[] EMPTY_STRING_ARRAY = new String [] {};
@@ -72,46 +77,47 @@ public class JUnit4Mojo extends AbstractMojo {
 
   /**
    * The Maven project object
-   *
-   * @parameter property="project"
-   * @readonly
    */
+  @Parameter(
+      property = "project", 
+      readonly = true, 
+      required = true)
   private MavenProject project;
 
   /**
    * Base directory to invoke slave VMs in. Also note <code>isolateWorkingDirectories</code>
    * parameter.
-   * 
-   * @parameter property="project.build.directory"
    */
+  @Parameter(
+      property = "project.build.directory",
+      readonly = true, 
+      required = true)
   private File dir;
 
   /**
    * The directory to store temporary files in.
-   * 
-   * @parameter property="project.build.directory"
    */
+  @Parameter(
+      property = "project.build.directory")
   private File tempDir;
 
   /**
-   * The number of parallel slaves. Can be set to a constant "max" for the
+   * The number of parallel f. Can be set to a constant "max" for the
    * number of cores returned from {@link Runtime#availableProcessors()} or 
    * "auto" for sensible defaults depending on the number of cores.
    * The default is a single subprocess.
    * 
    * <p>Note that this setting forks physical JVM processes so it multiplies the 
    * requirements for heap memory, IO, etc.
-   *  
-   * @parameter default-value="1"
    */
+  @Parameter(defaultValue = "1")
   private String parallelism = JUnit4.DEFAULT_PARALLELISM;
 
   /**
    * Property to set to "true" if there is a failure in a test. The use of this
    * property is discouraged in Maven (builds should be declarative).
-   *
-   * @parameter
    */
+  @Parameter
   private String failureProperty;
 
   /**
@@ -122,32 +128,28 @@ public class JUnit4Mojo extends AbstractMojo {
    * seed can be fixed for suites and methods alike. Unless the global prefix of
    * randomized testing properties is changed, the seed can be overridden using "tests.seed"
    * property.
-   * 
-   * @parameter property="tests.seed" default-value=""
    */
+  @Parameter(property = "tests.seed", defaultValue = "")
   private String seed;
 
   /**
    * Predictably shuffle tests order after balancing. This will help in spreading
    * lighter and heavier tests over a single slave's execution timeline while
    * still keeping the same tests order depending on the seed.
-   * 
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue = "true")
   private boolean shuffleOnSlave = JUnit4.DEFAULT_SHUFFLE_ON_SLAVE;
   
   /**
    * Prints the summary of all executed, ignored etc. tests at the end.
-   * 
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue = "true")
   private boolean printSummary = JUnit4.DEFAULT_PRINT_SUMMARY;
 
   /**
    * Stop the build process if there were failures or errors during test execution.
-   * 
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue = "true")
   private boolean haltOnFailure = JUnit4.DEFAULT_HALT_ON_FAILURE;
 
   /**
@@ -156,8 +158,6 @@ public class JUnit4Mojo extends AbstractMojo {
    * follows: "S<i>num</i>", where <i>num</i> is slave's number. Directories are created
    * automatically and removed unless <code>leaveTemporary</code> is set to
    * <code>true</code>.
-   * 
-   * @parameter default-value="true"
    */
   private boolean isolateWorkingDirectories = JUnit4.DEFAULT_ISOLATE_WORKING_DIRECTORIES;
 
@@ -167,9 +167,8 @@ public class JUnit4Mojo extends AbstractMojo {
    * sysout and syserrs are captured and proxied to the event stream to be synchronized
    * with other test events but occasionally one may want to synchronize them with direct 
    * JVM output (to synchronize with compiler output or GC output for example).
-   *  
-   * @parameter default-value="false"
    */
+  @Parameter(defaultValue = "false")
   private boolean sysouts = JUnit4.DEFAULT_SYSOUTS;
   
   /**
@@ -186,77 +185,67 @@ public class JUnit4Mojo extends AbstractMojo {
    * be an error based on suite-dependency it will not be directly repeatable. In such
    * case use the per-slave-jvm list of suites file dumped to disk for each slave JVM.
    * (see <code>leaveTemporary</code> parameter).
-   * 
-   * @parameter default-value="0.25"
    */
+  @Parameter(defaultValue = "0.25")
   private float dynamicAssignmentRatio = JUnit4.DEFAULT_DYNAMIC_ASSIGNMENT_RATIO;
   
   /**
    * Set the maximum memory to be used by all forked JVMs. The value as 
    * defined by <tt>-mx</tt> or <tt>-Xmx</tt> in the java
    * command line options.
-   * 
-   * @parameter
    */
+  @Parameter
   private String maxMemory;
 
   /**
    * Set to true to leave temporary files for diagnostics.
-   * 
-   * @parameter 
    */
+  @Parameter
   private boolean leaveTemporary;
 
   /**
    * Add an additional argument to any forked JVM.
-   * 
-   * @parameter
    */
+  @Parameter
   private String [] jvmArgs;
 
   /**
    * Arbitrary JVM options to set on the command line.
-   *
-   * @parameter property="argLine"
    */
+  @Parameter(property = "argLine")
   private String argLine;
 
   /**
    * Adds a system property to any forked JVM.
-   * 
-   * @parameter
    */
+  @Parameter
   private Map<String, String> systemProperties; 
 
   /**
    * Adds an environment variable to any forked JVM.
-   * 
-   * @parameter
    */
+  @Parameter
   private Map<String, String> environmentVariables; 
 
   /**
    * The command used to invoke the Java Virtual Machine, default is 'java'. The
    * command is resolved by java.lang.Runtime.exec().
-   * 
-   * @parameter default-value="java"
    */
+  @Parameter(defaultValue = "java")
   private String jvm;
 
   /**
    * The directory containing generated test classes of the project being
    * tested. This will be included at the beginning of the test classpath.
-   * 
-   * @parameter default-value="${project.build.testOutputDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.testOutputDirectory}")
   private File testClassesDirectory;
 
   /**
    * The directory containing generated classes of the project being
    * tested. This will be included after <code>testClassesDirectory</code>.
-   * 
-   * @parameter default-value="${project.build.outputDirectory}"
    */
+  @Parameter(defaultValue = "${project.build.outputDirectory}")
   private File classesDirectory;
 
   /**
@@ -267,9 +256,8 @@ public class JUnit4Mojo extends AbstractMojo {
    * &lt;include&gt;**&#47;Test*.class&lt;/include&gt;
    * </pre>
    * Note that this may result in nested classes being included for tests. Use proper exclusion patterns. 
-   * 
-   * @parameter
    */
+  @Parameter
   private List<String> includes;
 
   /**
@@ -279,9 +267,8 @@ public class JUnit4Mojo extends AbstractMojo {
    * &lt;exclude&gt;**&#47;*$*.class&lt;/exclude&gt;
    * </pre>
    * This patterns excludes any nested classes that might otherwise be included. 
-   *
-   * @parameter
    */
+  @Parameter
   private List<String> excludes;
 
   /**
@@ -296,9 +283,10 @@ public class JUnit4Mojo extends AbstractMojo {
   /**
    * Specifies the name of the JUnit artifact used for running tests. JUnit dependency
    * must be in at least version 4.10.
-   *
-   * @parameter property="junitArtifactName" default-value="junit:junit"
    */
+  @Parameter(
+      property = "junitArtifactName", 
+      defaultValue = "junit:junit")
   private String junitArtifactName;
 
   /**
@@ -309,46 +297,42 @@ public class JUnit4Mojo extends AbstractMojo {
    * logs) are also printed to these streams so sometimes the output can be ignored.
    * 
    * <p>Allowed values (any comma-delimited combination of): ignore, pipe, warn, fail.
-   *
-   * @parameter property="jvmOutputAction" default-value="pipe,warn"
    */
+  @Parameter(
+      property = "jvmOutputAction", 
+      defaultValue = "pipe,warn")
   private String jvmOutputAction;
 
   /**
    * Allows or disallow duplicate suite names in resource collections. By default this option
    * is <code>true</code> because certain ANT-compatible report types (like XML reports)
    * will have a problem with duplicate suite names (will overwrite files).
-   *
-   * @parameter default-value="true"
    */
+  @Parameter(defaultValue = "true")
   private boolean uniqueSuiteNames = JUnit4.DEFAULT_UNIQUE_SUITE_NAME;
   
   /**
    * Raw listeners configuration. Same XML as for ANT.
-   *
-   * @parameter
    */
+  @Parameter
   private PlexusConfiguration listeners;
 
   /**
    * Raw assertions configuration. Same XML as for ANT.
-   *
-   * @parameter
    */
+  @Parameter
   private PlexusConfiguration assertions;
 
   /**
    * Raw balancers configuration. Same XML as for ANT.
-   *
-   * @parameter
    */
+  @Parameter
   private PlexusConfiguration balancers;
 
   /**
    * Raw section to copy/paste into ANT-driver.
-   *
-   * @parameter
    */
+  @Parameter
   private PlexusConfiguration verbatim;
 
   /**
@@ -358,9 +342,8 @@ public class JUnit4Mojo extends AbstractMojo {
    * emit heartbeat information (to a file or console).
    * 
    * <p>Setting the heartbeat to zero means no detection.
-   * 
-   * @parameter default-value="0"
    */
+  @Parameter(defaultValue = "0")
   private long heartbeat;
 
   /**
@@ -369,15 +352,19 @@ public class JUnit4Mojo extends AbstractMojo {
    * 
    * @parameter default-value="false" property="skipTests"
    */
+  @Parameter(
+      property = "skipTests",
+      defaultValue = "false")
   private boolean skipTests;
 
   /**
-   * @parameter default-value="${project.packaging}" 
-   * @required
-   * @readonly
+   * Project packaging mode to skip POM-projects
    */
+  @Parameter(
+      defaultValue = "${project.packaging}",
+      readonly = true)
   private String packaging;
-  
+
   /**
    * List of dependencies to exclude from the test classpath. Each dependency 
    * string must follow the format
@@ -385,9 +372,8 @@ public class JUnit4Mojo extends AbstractMojo {
    * 
    * <p>This is modeled after surefire. An excluded dependency does <b>not</b> mean its
    * transitive dependencies will also be excluded. 
-   *
-   * @parameter
    */
+  @Parameter
   private List<String> classpathDependencyExcludes;
 
   /**
@@ -398,43 +384,41 @@ public class JUnit4Mojo extends AbstractMojo {
    * <li><i>runtime</i> - compile, runtime
    * <li><i>test</i> - system, provided, compile, runtime, test
    * </ul>
-   *
-   * @parameter default-value=""
    */
+  @Parameter(defaultValue = "")
   private String classpathDependencyScopeExclude;
 
   /**
    * Additional elements to be appended to the classpath.
-   *
-   * @parameter
    */
+  @Parameter
   private List<String> additionalClasspathElements; 
 
   /**
    * Map of plugin artifacts.
-   *
-   * @parameter property="plugin.artifactMap"
-   * @required
-   * @readonly
    */
+  @Parameter(
+      defaultValue = "${plugin.artifactMap}",
+      required = true,
+      readonly = true)
   private Map<String,Artifact> pluginArtifactMap;
 
   /**
    * Map of project artifacts.
-   *
-   * @parameter property="project.artifactMap"
-   * @required
-   * @readonly
    */
+  @Parameter(
+      defaultValue = "${project.artifactMap}",
+      required = true,
+      readonly = true)
   private Map<String,Artifact> projectArtifactMap;
 
   /**
    * The current build session instance.
-   *
-   * @parameter property="session"
-   * @required
-   * @readonly
    */
+  @Parameter(
+      property = "session",
+      required = true,
+      readonly = true)
   private MavenSession session;
 
   /**
@@ -444,19 +428,20 @@ public class JUnit4Mojo extends AbstractMojo {
    * @readonly
    * @required
    */
+  @Component
   private RepositorySystem repositorySystem; 
 
   /**
    * For retrieval of artifact's metadata.
-   *
-   * @component
    */
   @SuppressWarnings("deprecation")
+  @Component
   private org.apache.maven.artifact.metadata.ArtifactMetadataSource metadataSource;
 
   /**
-   * @component
+   * 
    */
+  @Component
   private ArtifactResolver resolver;
   
   
@@ -517,6 +502,7 @@ public class JUnit4Mojo extends AbstractMojo {
 
     // Check for junit dependency on project level.
     Artifact junitArtifact = projectArtifactMap.get(junitArtifactName);
+
     if (junitArtifact == null) {
       throw new MojoExecutionException("Missing JUnit artifact in project dependencies: "
           + junitArtifactName);

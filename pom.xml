@@ -229,17 +229,6 @@
         </plugin>
         
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.2</version>
-          <configuration>
-           <extractors>
-             <extractor>java</extractor>
-           </extractors>
-          </configuration>
-        </plugin>
-        
-        <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
           <version>1.0.0</version>
