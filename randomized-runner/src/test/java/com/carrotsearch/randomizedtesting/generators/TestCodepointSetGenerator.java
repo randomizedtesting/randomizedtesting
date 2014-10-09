@@ -1,9 +1,15 @@
 package com.carrotsearch.randomizedtesting.generators;
 
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+
+import com.carrotsearch.randomizedtesting.RandomizedTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
@@ -11,7 +17,7 @@ import org.junit.runners.Suite.SuiteClasses;
   TestCodepointSetGenerator.CodepointSetOnCodePoints.class,
   TestCodepointSetGenerator.CodepointSetOnSurrogatesOnly.class
 })
-public class TestCodepointSetGenerator {
+public class TestCodepointSetGenerator extends RandomizedTest {
   private final static int [] codepoints = {
     'a', 'b', 'c', 'd',
     0xd7ff,
@@ -38,7 +44,26 @@ public class TestCodepointSetGenerator {
           0xffff
       }));
     }
-    
+
+    @Test
+    public void testAllCharactersUsed() {
+      char [] domain = "abcdefABCDEF".toCharArray();
+      Set<Character> chars = new HashSet<Character>();
+      for (char chr : domain) {
+        chars.add(chr);
+      }
+
+      CodepointSetGenerator gen = new CodepointSetGenerator(domain);
+      Random r = new Random(randomLong());
+      for (int i = 0; i < 1000000 && !chars.isEmpty(); i++) {
+        for (char ch : gen.ofCodeUnitsLength(r, 100, 100).toCharArray()) {
+          chars.remove(ch);
+        }
+      }
+      
+      assertTrue(chars.isEmpty());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testSurrogatesInConstructor() {
       new CodepointSetGenerator(withSurrogates.toCharArray());
@@ -49,6 +74,25 @@ public class TestCodepointSetGenerator {
     public CodepointSetOnCodePoints() {
       super(new CodepointSetGenerator(withSurrogates));      
     }
+    
+    @Test
+    public void testAllCharactersUsed() {
+      char [] domain = "abcdefABCDEF".toCharArray();
+      Set<Character> chars = new HashSet<Character>();
+      for (char chr : domain) {
+        chars.add(chr);
+      }
+
+      CodepointSetGenerator gen = new CodepointSetGenerator(new String(domain));
+      Random r = new Random(randomLong());
+      for (int i = 0; i < 1000000 && !chars.isEmpty(); i++) {
+        for (char ch : gen.ofCodeUnitsLength(r, 100, 100).toCharArray()) {
+          chars.remove(ch);
+        }
+      }
+      
+      assertTrue(chars.isEmpty());
+    }    
   }
   
   public static class CodepointSetOnSurrogatesOnly extends StringGeneratorTestBase {

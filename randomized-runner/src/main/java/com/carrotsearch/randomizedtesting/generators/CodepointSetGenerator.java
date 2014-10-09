@@ -38,24 +38,28 @@ public class CodepointSetGenerator extends StringGenerator {
   public CodepointSetGenerator(String s) {
     int bmps = 0;
     int supplementaries = 0;
-    for (int i = 0; i < s.length(); i += s.offsetByCodePoints(i, 1)) {
+    for (int i = 0; i < s.length();) {
       int codepoint = s.codePointAt(i);
       if (Character.isSupplementaryCodePoint(codepoint)) {
         supplementaries++;
       } else {
         bmps++;
       }
+      
+      i += Character.charCount(codepoint);
     }
 
     this.bmp = new int [bmps];
     this.supplementary = new int [supplementaries];
-    for (int i = 0; i < s.length(); i += s.offsetByCodePoints(i, 1)) {
+    for (int i = 0; i < s.length();) {
       int codepoint = s.codePointAt(i);
       if (Character.isSupplementaryCodePoint(codepoint)) {
         supplementary[--supplementaries] = codepoint;
       } else {
         bmp[--bmps] = codepoint;
       }
+      
+      i += Character.charCount(codepoint);
     }
 
     this.all = concat(bmp, supplementary);
