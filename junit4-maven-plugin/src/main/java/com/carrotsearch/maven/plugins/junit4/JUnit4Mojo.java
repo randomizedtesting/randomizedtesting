@@ -455,11 +455,11 @@ public class JUnit4Mojo extends AbstractMojo {
       return;
     }
 
-    validateParameters();
-    
     if (skipTests) {
       return;
     }
+
+    validateParameters();
 
     // Ant project setup.
     final Project antProject = new Project();
