@@ -3,6 +3,7 @@ package com.carrotsearch.randomizedtesting;
 import java.io.Closeable;
 import java.lang.Thread.State;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
@@ -335,6 +336,30 @@ public final class RandomizedContext {
         }
         context.perThreadResources.put(t, perThreadResources);
       }
+    }
+  }
+
+  /**
+   * Pushes the given randomness to the top of the stack, runs the {@link Callable} and disposes
+   * the randomness before the this method returns.
+   * <p>
+   * This utility method can be used to initialize resources in a reproducible way since all calls to utility methods
+   * like {@link com.carrotsearch.randomizedtesting.RandomizedTest#randomInt()} et.al. are forwarded to the current
+   * RandomContext which uses the provided randomness from the top of the stack.
+   * </p>
+   *
+   * @param randomness the randomness to push to the top of the stack
+   * @param callable the callable to execute
+   * @param <T> the return type of the callable
+   * @return the result of the call to {@link java.util.concurrent.Callable#call()}
+   * @throws Exception if {@link java.util.concurrent.Callable#call()} throws an exception
+   */
+  public <T> T runWithPrivateRandomness(Randomness randomness, Callable<T> callable) throws Exception {
+    push(randomness);
+    try {
+      return callable.call();
+    } finally {
+      popAndDestroy();
     }
   }
 }
