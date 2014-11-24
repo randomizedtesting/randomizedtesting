@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -250,7 +252,7 @@ public class RandomizedTest extends Assert {
   /**
    * @see #globalTempDir()
    */
-  private static File globalTempDir;
+  private static Path globalTempDir;
   
   /**
    * Subfolders under {@link #globalTempDir} are created synchronously, so we don't need
@@ -263,7 +265,7 @@ public class RandomizedTest extends Assert {
    * multiple class loaders are used, there may be more global temp dirs, but it
    * shouldn't really be the case in practice.
    */
-  public static File globalTempDir() {
+  public static Path globalTempDir() throws IOException {
     checkContext();
     synchronized (RandomizedTest.class) {
       if (globalTempDir == null) {
@@ -271,46 +273,40 @@ public class RandomizedTest extends Assert {
         if (tempDirPath == null) 
           throw new Error("No property java.io.tmpdir?");
 
-        File tempDir = new File(tempDirPath);
-        if (!tempDir.isDirectory() || !tempDir.canWrite()) {
+        Path tempDir = Paths.get(tempDirPath);
+        if (!Files.isDirectory(tempDir) || !Files.isWritable(tempDir)) {
           throw new Error("Temporary folder not accessible: "
-              + tempDir.getAbsolutePath());
+              + tempDir.toAbsolutePath());
         }
 
         SimpleDateFormat tsFormat = new SimpleDateFormat("'tests-'yyyyMMddHHmmss'-'SSS");
-        int retries = 10;
-        do {
           String dirName = tsFormat.format(new Date());
-          final File tmpFolder = new File(tempDir, dirName);
-          // I assume mkdir is filesystem-atomic and only succeeds if the 
+          final Path tmpFolder =tempDir.resolve(dirName);
+          // I assume mkdir is filesystem-atomic and only succeeds if the
           // directory didn't previously exist?
-          if (tmpFolder.mkdir()) {
-            globalTempDir = tmpFolder;
-            Runtime.getRuntime().addShutdownHook(new Thread() {
-              public void run() {
-                try {
-                  forceDeleteRecursively(globalTempDir);
-                } catch (IOException e) {
-                  // Not much else to do but to log and quit.
-                  System.err.println("Error while deleting temporary folder '" +
-                      globalTempDir.getAbsolutePath() +
-                  		"': " + e.getMessage());
-                }
-
-                if (globalTempDir.exists()) {
-                  System.err.println("Could not delete temporary folder entirely: "
-                      + globalTempDir.getAbsolutePath());
-                }                
+          Files.createDirectories(tmpFolder);
+          globalTempDir = tmpFolder;
+          Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+              try {
+                forceDeleteRecursively(globalTempDir);
+              } catch (IOException e) {
+                // Not much else to do but to log and quit.
+                System.err.println("Error while deleting temporary folder '" +
+                    globalTempDir.toAbsolutePath() +
+                    "': " + e.getMessage());
               }
-            });
-            return globalTempDir;
-          }
-        } while (retries-- > 0);
-        throw new RuntimeException("Could not create temporary space in: "
-            + tempDir);
+
+              if (Files.exists(globalTempDir)) {
+                System.err.println("Could not delete temporary folder entirely: "
+                    + globalTempDir.toAbsolutePath());
+              }
+            }
+          });
+          return globalTempDir;
+        }
       }
-      return globalTempDir;
-    }
+    return globalTempDir;
   }
 
   /**
@@ -318,7 +314,7 @@ public class RandomizedTest extends Assert {
    * 
    * @see #globalTempDir()
    */
-  public File newTempDir() {
+  public Path newTempDir() throws IOException {
     return newTempDir(LifecycleScope.TEST);
   }
 
@@ -326,12 +322,11 @@ public class RandomizedTest extends Assert {
    * Creates a temporary directory, deleted after the given lifecycle phase. 
    * Temporary directory is created relative to a globally picked temporary directory.
    */
-  public static File newTempDir(LifecycleScope scope) {
+  public static Path newTempDir(LifecycleScope scope) throws IOException {
     checkContext();
     synchronized (RandomizedTest.class) {
-      File tempDir = new File(globalTempDir(), nextTempName());
-      if (!tempDir.mkdir()) throw new RuntimeException("Could not create temporary folder: "
-          + tempDir.getAbsolutePath());
+      Path tempDir = globalTempDir().resolve(nextTempName());
+      Files.createDirectories(tempDir);
       getContext().closeAtEnd(new TempPathResource(tempDir), scope);
       return tempDir;
     }
@@ -360,7 +355,7 @@ public class RandomizedTest extends Assert {
   /**
    * Creates a new temporary file for the {@link LifecycleScope#TEST} duration.
    */
-  public File newTempFile() {
+  public Path newTempFile() throws IOException {
     return newTempFile(LifecycleScope.TEST);
   }
 
@@ -368,18 +363,11 @@ public class RandomizedTest extends Assert {
    * Creates a new temporary file deleted after the given lifecycle phase completes.
    * The file is physically created on disk, but is not locked or opened.
    */
-  public static File newTempFile(LifecycleScope scope) {
+  public static Path newTempFile(LifecycleScope scope) throws IOException {
     checkContext();
     synchronized (RandomizedTest.class) {
-      File tempFile = new File(globalTempDir(), nextTempName());
-      try {
-        if (!tempFile.createNewFile()) 
-          throw new RuntimeException("Could not create temporary file: " 
-              + tempFile.getAbsolutePath());
-      } catch (IOException e) {
-        throw new RuntimeException("Could not create temporary file: " 
-            + tempFile.getAbsolutePath(), e);
-      }
+      Path tempFile = globalTempDir().resolve(nextTempName());
+      Files.createFile(tempFile);
       getContext().closeAtEnd(new TempPathResource(tempFile), scope);
       return tempFile;
     }
@@ -394,17 +382,34 @@ public class RandomizedTest extends Assert {
    * Recursively delete a folder (or file). This attempts to delete everything that
    * can be deleted, but possibly can leave things behind if files are locked for example.
    */
-  static void forceDeleteRecursively(File fileOrDir) throws IOException {
-    if (fileOrDir.isDirectory()) {
-      // We are not checking for symlinks here!
-      for (File f : fileOrDir.listFiles()) {
-        forceDeleteRecursively(f);
-      }
-    }
+  static void forceDeleteRecursively(Path fileOrDir) throws IOException {
+    if (Files.isDirectory(fileOrDir)) {
+      Files.walkFileTree(fileOrDir, new FileVisitor<Path>() {
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+          return FileVisitResult.CONTINUE;
+        }
 
-    if (!fileOrDir.delete()) {
-      RandomizedRunner.logger.warning("Could not delete: "
-          + fileOrDir.getAbsolutePath());
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException impossible) throws IOException {
+          assert impossible == null;
+          Files.delete(dir);
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+          Files.delete(file);
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+          return FileVisitResult.CONTINUE;
+        }
+      });
+    } else {
+      Files.delete(fileOrDir);
     }
   }
 
