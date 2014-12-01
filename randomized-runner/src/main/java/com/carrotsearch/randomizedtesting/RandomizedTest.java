@@ -277,7 +277,7 @@ public class RandomizedTest extends Assert {
               + tempDir.getAbsolutePath());
         }
 
-        SimpleDateFormat tsFormat = new SimpleDateFormat("'tests-'yyyyMMddHHmmss'-'SSS");
+        SimpleDateFormat tsFormat = new SimpleDateFormat("'tests-'yyyyMMddHHmmss'-'SSS", Locale.ROOT);
         int retries = 10;
         do {
           String dirName = tsFormat.format(new Date());

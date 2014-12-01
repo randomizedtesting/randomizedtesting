@@ -8,6 +8,7 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.tools.ant.BuildException;
@@ -146,8 +147,7 @@ public class AntXmlReport implements AggregatedEventListener {
    * Build data model for serialization.
    */
   private TestSuiteModel buildModel(AggregatedSuiteResultEvent e) throws IOException {
-    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ROOT);
     TestSuiteModel suite = new TestSuiteModel();
 
     suite.hostname = "nohost.nodomain";

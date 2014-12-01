@@ -1323,7 +1323,7 @@ public class JUnit4 extends Task {
   private void executeSlave(final ForkedJvmInfo slave, final EventBus aggregatedBus)
     throws Exception
   {
-    final String uniqueSeed = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS").format(new Date());
+    final String uniqueSeed = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.ROOT).format(new Date());
 
     final File classNamesFile = tempFile(uniqueSeed,
         "junit4-J" + slave.id, ".suites", getTempDir());
