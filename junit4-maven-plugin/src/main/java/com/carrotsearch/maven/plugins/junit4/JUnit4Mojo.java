@@ -455,6 +455,13 @@ public class JUnit4Mojo extends AbstractMojo {
       return;
     }
 
+    // Check directory existence first.
+    if (!dir.isDirectory() ||
+        !tempDir.isDirectory()) {
+      getLog().warn("Location does not exist or is not a directory: " + dir.getAbsolutePath());
+      skipTests = true;
+    }
+
     if (skipTests) {
       return;
     }
@@ -494,12 +501,6 @@ public class JUnit4Mojo extends AbstractMojo {
    * Initial validation of input parameters and configuration.
    */
   private void validateParameters() throws MojoExecutionException {
-    // Check directory existence first.
-    if (!dir.exists() || !dir.isDirectory()) {
-      throw new MojoExecutionException("Directory does not exist: "
-          + dir.getAbsolutePath());
-    }
-
     // Check for junit dependency on project level.
     Artifact junitArtifact = projectArtifactMap.get(junitArtifactName);
 
