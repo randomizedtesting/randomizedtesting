@@ -1295,6 +1295,9 @@ public class JUnit4 extends Task {
       } else if (cores >= 4) {
         // Make some space for the aggregator.
         jvmCount = 3;
+      } else if (cores == 3) {
+        // Yes, three-core chips are a thing.
+        jvmCount = 2;
       } else {
         // even for dual cores it usually makes no sense to fork more than one
         // JVM.
