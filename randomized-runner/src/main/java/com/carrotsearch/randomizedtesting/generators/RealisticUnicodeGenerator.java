@@ -62,7 +62,7 @@ public class RealisticUnicodeGenerator extends StringGenerator {
 
   @Override
   public String ofCodeUnitsLength(Random r, int minCodeUnits, int maxCodeUnits) {
-    int length = RandomInts.randomIntBetween(r, minCodeUnits, minCodeUnits);
+    int length = RandomInts.randomIntBetween(r, minCodeUnits, maxCodeUnits);
     final int block = r.nextInt(blockStarts.length);
 
     final StringBuilder sb = new StringBuilder();
