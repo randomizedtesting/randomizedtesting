@@ -2,6 +2,10 @@ package com.carrotsearch.ant.tasks.junit4.events;
 
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -9,6 +13,36 @@ import java.util.TreeMap;
  * Initial message sent from the slave to the master (if forked locally).
  */
 public class BootstrapEvent extends AbstractEvent {
+  private static final List<String> GUARANTEED_PROPERTIES = Arrays.asList(
+      "java.version",
+      "java.vendor",
+      "java.vendor.url",
+      "java.home",
+      "java.vm.specification.version",
+      "java.vm.specification.vendor",
+      "java.vm.specification.name",
+      "java.vm.version",
+      "java.vm.vendor",
+      "java.vm.name",
+      "java.specification.version",
+      "java.specification.vendor",
+      "java.specification.name",
+      "java.class.version",
+      "java.class.path",
+      "java.library.path",
+      "java.io.tmpdir",
+      "java.compiler",
+      "java.ext.dirs",
+      "os.name",
+      "os.arch",
+      "os.version",
+      "file.separator",
+      "path.separator",
+      "line.separator",
+      "user.name",
+      "user.home",
+      "user.dir");
+
   private String defaultCharset;
   private Map<String, String> systemProperties;
   private String pidString;
@@ -25,21 +59,41 @@ public class BootstrapEvent extends AbstractEvent {
       pidString = "<pid acquire exception: " + t.toString() + ">";
     }
 
-    this.systemProperties = new TreeMap<String, String>();
-    for (Map.Entry<Object, Object> e : System.getProperties().entrySet()) {
-      Object key = e.getKey();
-      Object value = e.getValue();
-      if (key != null) {
-        systemProperties.put(
-            key.toString(), value != null ? value.toString() : "");
-      }
-    }
+    this.systemProperties = collectSystemProperties();
 
     systemProperties.put("junit4.memory.total", 
         Long.toString(Runtime.getRuntime().totalMemory()));
     systemProperties.put("junit4.processors", 
         Long.toString(Runtime.getRuntime().availableProcessors()));
     systemProperties.put("junit4.pidString", pidString);
+  }
+
+  private Map<String,String> collectSystemProperties() {
+    List<String> propertyNames = new ArrayList<String>();
+    try {
+      Enumeration<?> e = System.getProperties().propertyNames();
+      while (e.hasMoreElements()) {
+        propertyNames.add((String) e.nextElement()); 
+      }
+    } catch (SecurityException e) {
+      // No access to the full set of properties. Try to include at least the default
+      // guaranteed set of properties (maybe we have read-only access).
+      propertyNames.addAll(GUARANTEED_PROPERTIES);
+    }
+
+    TreeMap<String, String> sysProps = new TreeMap<String, String>();
+    for (String propertyName : propertyNames) {
+      try {
+        String value = System.getProperty(propertyName);
+        if (value != null) {
+          sysProps.put(propertyName, value);
+        }
+      } catch (SecurityException e) {
+        // No access. Ignore.
+      }
+    }
+
+    return sysProps;
   }
 
   /**
