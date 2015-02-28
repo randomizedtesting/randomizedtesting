@@ -39,11 +39,7 @@ import com.carrotsearch.randomizedtesting.annotations.Timeout;
  * thread resided when interrupts were sent to it. This is typically useful in
  * diagnosing what the thread was doing and why it couldn't be terminated. Keeping
  * Java logging system enabled is thus strongly encouraged.
- * 
- * @see RandomizedRunner#SYSPROP_KILLATTEMPTS
- * @see RandomizedRunner#SYSPROP_KILLWAIT
  */
-@SuppressWarnings("javadoc")
 public class Test008Timeouts extends RandomizedTest {
   @Test(timeout = 500)
   public void standardAnnotation() {
