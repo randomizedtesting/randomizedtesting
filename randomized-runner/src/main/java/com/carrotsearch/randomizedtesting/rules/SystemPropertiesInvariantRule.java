@@ -13,6 +13,10 @@ import org.junit.runners.model.Statement;
  * A {@link TestRule} that ensures system properties remain unmodified by the nested
  * {@link Statement}. This can be applied both at suite level and at test level.
  * 
+ * This rule requires appropriate security permission to read and write 
+ * system properties ({@link System#getProperties()}) if running under a security
+ * manager.  
+ * 
  * @see SystemPropertiesRestoreRule
  * @see ClassRule
  * @see Rule
@@ -49,14 +53,14 @@ public class SystemPropertiesInvariantRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        TreeMap<String,String> before = SystemPropertiesRestoreRule.cloneAsMap(System.getProperties());
+        TreeMap<String,String> before = SystemPropertiesRestoreRule.systemPropertiesAsMap();
         ArrayList<Throwable> errors = new ArrayList<Throwable>();
         try {
           s.evaluate();
         } catch (Throwable t) {
           errors.add(t);
         } finally {
-          final TreeMap<String,String> after = SystemPropertiesRestoreRule.cloneAsMap(System.getProperties());
+          final TreeMap<String,String> after = SystemPropertiesRestoreRule.systemPropertiesAsMap();
 
           // Remove ignored if they exist.
           before.keySet().removeAll(ignoredProperties);

@@ -13,11 +13,11 @@ import com.carrotsearch.randomizedtesting.SeedDecorator;
  * always derived from the same master). With a {@link SeedDecorator} one can perturb
  * the seed for every suite. 
  * 
- * <p><ul>
+ * <ul>
  * <li><b>Extra care should be used to make permutations consistent across different runs.</b></li>
  * <li><b>Seed decorators must be thread-safe, re-entrable, preferably unsynchronized and 
  * must never fail!</b></li>
- * </ul></p>
+ * </ul>
  *
  * @see #value() 
  */

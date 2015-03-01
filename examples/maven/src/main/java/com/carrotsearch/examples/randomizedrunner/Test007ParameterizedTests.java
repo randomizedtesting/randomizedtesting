@@ -23,7 +23,7 @@ import com.carrotsearch.randomizedtesting.annotations.*;
  * explicit array constructors.
  * <pre>
  * {@literal @}{@link ParametersFactory}
- * public static Iterable<Object[]> parameters() {
+ * public static Iterable&lt;Object[]&gt; parameters() {
  *   return Arrays.asList($$(
  *     $(1, "abc"), 
  *     $(2, "def")));

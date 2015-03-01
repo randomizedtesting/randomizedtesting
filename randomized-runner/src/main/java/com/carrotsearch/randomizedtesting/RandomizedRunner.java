@@ -71,6 +71,11 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
 import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakFilters;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakGroup;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
@@ -113,19 +118,23 @@ import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
  *   <li>a test method must not leave behind any active threads; this is detected
  *       using {@link ThreadGroup} active counts and is sometimes problematic (many classes
  *       in the standard library leave active threads behind without waiting for them to terminate).
- *       One can use the {@link ThreadLeaks} annotation to control how aggressive the detection
+ *       One can use the {@link ThreadLeakScope}, {@link ThreadLeakAction}
+ *       and other annotations to control how aggressive the detection
  *       strategy is and if it fails the test or not.</li>
  *   <li>uncaught exceptions from any of children threads will cause the test to fail.</li>
  * </ul>
  * 
  * @see RandomizedTest
- * @see ThreadLeaks
- * @see Validators
+ * @see ThreadLeakAction
+ * @see ThreadLeakScope
+ * @see ThreadLeakZombies
+ * @see ThreadLeakGroup
+ * @see ThreadLeakLingering
+ * @see ThreadLeakFilters
  * @see Listeners
  * @see RandomizedContext
  * @see TestMethodProviders
  */
-@SuppressWarnings("javadoc")
 public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 

@@ -12,6 +12,10 @@ import org.junit.runners.model.Statement;
  * A {@link TestRule} which restores system properties from before the nested 
  * {@link Statement}.
  * 
+ * This rule requires appropriate security permission to read and write 
+ * system properties ({@link System#getProperties()}) if running under a security
+ * manager. 
+ * 
  * @see SystemPropertiesInvariantRule
  * @see ClassRule
  * @see Rule
@@ -48,11 +52,11 @@ public class SystemPropertiesRestoreRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        TreeMap<String,String> before = cloneAsMap(System.getProperties());
+        TreeMap<String,String> before = systemPropertiesAsMap();
         try {
           s.evaluate();
         } finally {
-          TreeMap<String,String> after = cloneAsMap(System.getProperties());
+          TreeMap<String,String> after = systemPropertiesAsMap();
           if (!after.equals(before)) {
             // Restore original properties.
             restore(before, after, ignoredProperties);
@@ -62,7 +66,7 @@ public class SystemPropertiesRestoreRule implements TestRule {
     };
   }
   
-  static TreeMap<String,String> cloneAsMap(Properties properties) {
+  private static TreeMap<String,String> cloneAsMap(Properties properties) {
     TreeMap<String,String> result = new TreeMap<String,String>();
     for (Enumeration<?> e = properties.propertyNames(); e.hasMoreElements();) {
       final Object key = e.nextElement();
@@ -105,6 +109,14 @@ public class SystemPropertiesRestoreRule implements TestRule {
           System.setProperty(e.getKey(), key);
         }
       }
+    }
+  }
+
+  static TreeMap<String, String> systemPropertiesAsMap() {
+    try {
+      return cloneAsMap(System.getProperties());
+    } catch (SecurityException e) {
+      throw new AssertionError("Access to System.getProperties() denied.", e);
     }
   }  
 }

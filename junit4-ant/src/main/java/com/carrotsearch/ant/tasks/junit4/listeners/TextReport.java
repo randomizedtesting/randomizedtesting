@@ -290,7 +290,7 @@ public class TextReport implements AggregatedEventListener {
    * <pre>
    * Running SuiteName
    * [...suite tests if enabled...]
-   * Tests: xx, Failures: xx, Errors: xx, Skipped: xx, Time: xx sec [<<< FAILURES!]
+   * Tests: xx, Failures: xx, Errors: xx, Skipped: xx, Time: xx sec [&lt;&lt;&lt; FAILURES!]
    * </pre>
    */
   public void setShowSuiteSummary(boolean showSuiteSummary) {

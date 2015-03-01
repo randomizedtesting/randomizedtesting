@@ -36,7 +36,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
  * [Randomness, seed=[EE581D5EC61D6BCF]]
  * </pre>
  * In {@link Test006RepeatingTests} we will see how this derived
- * seed is used with {@link Repeat} annotation.</li>
+ * seed is used with {@link Repeat} annotation.
  * 
  * <p>Normally we will not be interested in a random seed if a test case passes. But if a test
  * case fails we will want to know the seed to be able to repeat the test. {@link RandomizedRunner}
