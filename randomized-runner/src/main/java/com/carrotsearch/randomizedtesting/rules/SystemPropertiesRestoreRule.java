@@ -116,7 +116,13 @@ public class SystemPropertiesRestoreRule implements TestRule {
     try {
       return cloneAsMap(System.getProperties());
     } catch (SecurityException e) {
-      throw new AssertionError("Access to System.getProperties() denied.", e);
+      AssertionError ae = new AssertionError("Access to System.getProperties() denied.");
+      try {
+        ae.initCause(e);
+      } catch (Exception ignored) {
+        // If we can't initCause, ignore it.
+      }
+      throw ae;
     }
-  }  
+  }
 }
