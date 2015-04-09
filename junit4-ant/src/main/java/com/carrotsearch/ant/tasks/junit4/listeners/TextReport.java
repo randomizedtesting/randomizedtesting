@@ -18,6 +18,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.tools.ant.BuildException;
@@ -205,6 +206,9 @@ public class TextReport implements AggregatedEventListener {
   /** Stack trace filters. */
   private List<StackTraceFilter> stackFilters = Lists.newArrayList();
 
+  private int totalSuites;
+  private AtomicInteger suitesCompleted = new AtomicInteger();
+
   public void setShowStatusError(boolean showStatus)   { displayStatus.put(TestStatus.ERROR, showStatus); }
   public void setShowStatusFailure(boolean showStatus) { displayStatus.put(TestStatus.FAILURE, showStatus); }
   public void setShowStatusOk(boolean showStatus)      { displayStatus.put(TestStatus.OK, showStatus);  }
@@ -353,11 +357,12 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onStart(AggregatedStartEvent e) throws IOException {
+    this.totalSuites = e.getSuiteCount();
     logShort("Executing " +
-        e.getSuiteCount() + Pluralize.pluralize(e.getSuiteCount(), " suite") +
+        totalSuites + Pluralize.pluralize(totalSuites, " suite") +
         " with " + 
         e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".\n", false);
-    
+
     forkedJvmCount = e.getSlaveCount();
     jvmIdFormat = " J%-" + (1 + (int) Math.floor(Math.log10(forkedJvmCount))) + "d";
 
@@ -444,7 +449,11 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) throws IOException {
-    if (e.isSuccessful() && e.getTests().isEmpty() && !showEmptySuites) {
+    final int completed = suitesCompleted.incrementAndGet();
+
+    if (e.isSuccessful() && 
+        e.getTests().isEmpty() && 
+        !showEmptySuites) {
       return;
     }
 
@@ -467,7 +476,7 @@ public class TextReport implements AggregatedEventListener {
 
     // Emit suite summary line if requested.
     if (showSuiteSummary) {
-      emitSuiteEnd(e);
+      emitSuiteEnd(e, completed);
     }
   }
 
@@ -537,13 +546,16 @@ public class TextReport implements AggregatedEventListener {
 
   /**
    * Suite end.
+   * @param completed 
    */
-  private void emitSuiteEnd(AggregatedSuiteResultEvent e) throws IOException {
+  private void emitSuiteEnd(AggregatedSuiteResultEvent e, int suitesCompleted) throws IOException {
     assert showSuiteSummary;
 
     final StringBuilder b = new StringBuilder();
-    b.append(String.format(Locale.ENGLISH, "%sCompleted%s in %.2fs, ",
+    b.append(String.format(Locale.ENGLISH, "%sCompleted [%d/%d]%s in %.2fs, ",
         shortTimestamp(e.getStartTimestamp() + e.getExecutionTime()),
+        suitesCompleted,
+        totalSuites,
         e.getSlave().slaves > 1 ? " on J" + e.getSlave().id : "",
         e.getExecutionTime() / 1000.0d));
     b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));

@@ -20,10 +20,18 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   private final List<FailureMirror> suiteFailures;
   private final List<IEvent> eventStream;
 
-  public AggregatedSuiteResultEvent(ForkedJvmInfo id, Description description, 
-      List<FailureMirror> suiteFailures, List<AggregatedTestResultEvent> tests,
+  private final AggregatedSuiteStartedEvent startEvent;
+
+  public AggregatedSuiteResultEvent(
+      AggregatedSuiteStartedEvent startEvent,
+      ForkedJvmInfo id, 
+      Description description, 
+      List<FailureMirror> suiteFailures, 
+      List<AggregatedTestResultEvent> tests,
       List<IEvent> eventStream,
-      long startTimestamp, long executionTime) {
+      long startTimestamp, 
+      long executionTime) {
+    this.startEvent = startEvent;
     this.slave = id;
     this.tests = tests;
     this.suiteFailures = suiteFailures;
@@ -33,6 +41,10 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
     this.startTimestamp = startTimestamp;
   }
 
+  public AggregatedSuiteStartedEvent getStartEvent() {
+    return startEvent;
+  }
+  
   public List<AggregatedTestResultEvent> getTests() {
     return tests;
   }

@@ -23,6 +23,7 @@ public class AggregatingListener {
   private EventBus target;
   private ForkedJvmInfo slave;
 
+  private AggregatedSuiteStartedEvent startEvent;
   private Description lastSuite;
   private List<FailureMirror> suiteFailures;
 
@@ -83,12 +84,15 @@ public class AggregatingListener {
   @Subscribe
   public void receiveSuiteStart(SuiteStartedEvent e) {
     assert lastSuite == null;
+    assert startEvent == null;
+
     tests = new ArrayDeque<AggregatedTestResultEvent>();
     suiteFailures = Lists.newArrayList();
     eventStream = Lists.newArrayList();
     lastSuite = e.getDescription();
-    
-    target.post(new AggregatedSuiteStartedEvent(slave, e));
+    startEvent = new AggregatedSuiteStartedEvent(slave, e);
+
+    target.post(startEvent);
   }
 
   @Subscribe
@@ -152,11 +156,17 @@ public class AggregatingListener {
   @Subscribe
   public void receiveSuiteEnd(SuiteCompletedEvent e) {
     target.post(new AggregatedSuiteResultEvent(
-        slave, e.getDescription(), suiteFailures, 
-        Lists.newArrayList(tests.descendingIterator()), eventStream,
-        e.getStartTimestamp(), e.getExecutionTime()));
+        startEvent,
+        slave, 
+        e.getDescription(), 
+        suiteFailures, 
+        Lists.newArrayList(tests.descendingIterator()), 
+        eventStream,
+        e.getStartTimestamp(), 
+        e.getExecutionTime()));
     this.suiteFailures = null;
     this.lastSuite = null;
+    this.startEvent = null;
     this.tests = null;
     this.eventStream = null;
   }
