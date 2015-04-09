@@ -28,14 +28,14 @@
     <name>Carrot Search s.c.</name>
     <url>http://carrotsearch.com</url>
   </organization>
-  
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
-  </licenses>  
+  </licenses>
 
   <properties>
     <minimum.maven.version>3.0.2</minimum.maven.version>
@@ -78,7 +78,7 @@
         <artifactId>ant-junit</artifactId>
         <version>${ant.version}</version>
       </dependency>
-      
+
       <dependency>
         <groupId>dom4j</groupId>
         <artifactId>dom4j</artifactId>
@@ -95,7 +95,7 @@
             <groupId>com.google.code.findbugs</groupId>
           </exclusion>
         </exclusions>
-      </dependency>  
+      </dependency>
 
       <dependency>
         <groupId>org.ow2.asm</groupId>
@@ -126,12 +126,12 @@
           </exclusion>
         </exclusions>
       </dependency>
-      
+
       <dependency>
-         <groupId>org.easytesting</groupId>
-         <artifactId>fest-assert-core</artifactId>
-         <version>2.0M6</version>
-         <scope>test</scope>
+        <groupId>org.easytesting</groupId>
+        <artifactId>fest-assert-core</artifactId>
+        <version>2.0M6</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -139,7 +139,7 @@
         <artifactId>commons-io</artifactId>
         <version>2.3</version>
       </dependency>
-    </dependencies>  
+    </dependencies>
   </dependencyManagement>
 
   <build>
@@ -158,7 +158,7 @@
               <offlineLink>
                 <url>http://guava-libraries.googlecode.com/svn/trunk/javadoc/</url>
                 <location>${project.parent.basedir}/etc/javadoc/google-guava</location>
-              </offlineLink>              
+              </offlineLink>
             </offlineLinks>
           </configuration>
         </plugin>
@@ -168,7 +168,7 @@
           <artifactId>maven-assembly-plugin</artifactId>
           <version>2.2.2</version>
         </plugin>
-        
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
@@ -227,7 +227,7 @@
             </dependency>
           </dependencies>
         </plugin>
-        
+
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
@@ -251,7 +251,7 @@
               </pluginExecutions>
             </lifecycleMappingMetadata>
           </configuration>
-        </plugin>        
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -311,5 +311,45 @@
         </plugins>
       </build>
     </profile>
-  </profiles> 
+
+    <profile>
+      <id>eclipse</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.eclipse.m2e</groupId>
+              <artifactId>lifecycle-mapping</artifactId>
+              <version>1.0.0</version>
+              <configuration>
+                <lifecycleMappingMetadata>
+                  <pluginExecutions>
+                    <pluginExecution>
+                      <pluginExecutionFilter>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-plugin-plugin</artifactId>
+                        <versionRange>[3.4,)</versionRange>
+                        <goals>
+                          <goal>descriptor</goal>
+                          <goal>helpmojo</goal>
+                        </goals>
+                      </pluginExecutionFilter>
+                      <action>
+                        <ignore></ignore>
+                      </action>
+                    </pluginExecution>
+                  </pluginExecutions>
+                </lifecycleMappingMetadata>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
 </project>
