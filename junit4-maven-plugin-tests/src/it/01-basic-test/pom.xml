@@ -69,6 +69,7 @@
               <heartbeat>10</heartbeat>
               <jvmOutputAction>pipe,ignore</jvmOutputAction>
               <leaveTemporary>true</leaveTemporary>
+              <ifNoTests>warn</ifNoTests>
               <classpathDependencyExcludes>
                 <dependency>org.simpleframework:simple-xml</dependency>
               </classpathDependencyExcludes>
