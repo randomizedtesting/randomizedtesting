@@ -308,7 +308,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * is <code>true</code> because certain ANT-compatible report types (like XML reports)
    * will have a problem with duplicate suite names (will overwrite files).
    */
-  @Parameter(defaultValue = "true")
+  @Parameter(defaultValue = "" + JUnit4.DEFAULT_UNIQUE_SUITE_NAME)
   private boolean uniqueSuiteNames = JUnit4.DEFAULT_UNIQUE_SUITE_NAME;
   
   /**
@@ -394,6 +394,39 @@ public class JUnit4Mojo extends AbstractMojo {
   @Parameter
   private List<String> additionalClasspathElements; 
 
+  /**
+   * Initializes custom prefix for all junit4 properties. This must be consistent
+   * across all junit4 invocations if done from the same classpath. Use only when REALLY needed. 
+   */
+  @Parameter()
+  private String prefix;
+
+  /**
+   * Enables a debug stream from each forked JVM. This will create an additional file
+   * next to each events file. For debugging the framework only, not a general-purpose setting.  
+   */
+  @Parameter()
+  private Boolean debugStream;
+
+  /**
+   * Set new environment for the forked process?
+   */
+  @Parameter()
+  private Boolean newEnvironment;
+
+  /**
+   * What to do when no tests were executed (all tests were ignored)? Possible values:
+   * ignore, fail, warn.
+   */
+  @Parameter(defaultValue = "ignore")
+  private String ifNoTests;
+
+  /**
+   * Sets the property prefix to which test statistics are saved.
+   */  
+  @Parameter()
+  private String statsPropertyPrefix;
+  
   /**
    * Map of plugin artifacts.
    */
@@ -555,6 +588,12 @@ public class JUnit4Mojo extends AbstractMojo {
     if (maxMemory != null) junit4.addAttribute("maxMemory", maxMemory);
     if (jvmOutputAction != null) junit4.addAttribute("jvmOutputAction", jvmOutputAction);
     if (heartbeat != 0) junit4.addAttribute("heartbeat", Long.toString(heartbeat));
+    if (prefix != null) junit4.addAttribute("prefix", prefix);
+    if (debugStream != null) junit4.addAttribute("debugStream", debugStream.toString());
+    if (newEnvironment != null) junit4.addAttribute("newEnvironment", newEnvironment.toString());
+    if (ifNoTests != null) junit4.addAttribute("ifNoTests", ifNoTests);
+    if (statsPropertyPrefix != null) junit4.addAttribute("statsPropertyPrefix", statsPropertyPrefix);
+      
     junit4.addAttribute("shuffleOnSlave", Boolean.toString(shuffleOnSlave));
     junit4.addAttribute("printSummary", Boolean.toString(printSummary));
     junit4.addAttribute("isolateWorkingDirectories", Boolean.toString(isolateWorkingDirectories));
@@ -563,6 +602,7 @@ public class JUnit4Mojo extends AbstractMojo {
     junit4.addAttribute("dynamicAssignmentRatio", Float.toString(dynamicAssignmentRatio));
     junit4.addAttribute("sysouts", Boolean.toString(sysouts));
     junit4.addAttribute("uniqueSuiteNames", Boolean.toString(uniqueSuiteNames));
+
 
     // JVM args.
     for (String jvmArg : Objects.firstNonNull(jvmArgs, EMPTY_STRING_ARRAY)) {
