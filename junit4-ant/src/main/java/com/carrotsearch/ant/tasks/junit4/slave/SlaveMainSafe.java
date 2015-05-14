@@ -9,14 +9,21 @@ public class SlaveMainSafe {
 
     PrintStream serr = System.err;
     try {
-      SlaveMain.main(args);
+      serr.println("# Initializing.");
+      try {
+        SlaveMain.main(args);
+      } finally {
+        serr.println("# Done.");
+      }
     } catch (Throwable e) {
-      serr.println(e.toString());
-      e.printStackTrace(serr);
-
-      System.out.close();
-      System.err.close();
-      JvmExit.halt(SlaveMain.ERR_EXCEPTION);
+      try  {
+        serr.println(e.toString());
+        e.printStackTrace(serr);
+        System.out.close();
+        System.err.close();
+      } finally {
+        JvmExit.halt(SlaveMain.ERR_EXCEPTION);
+      }
     }
   }
 

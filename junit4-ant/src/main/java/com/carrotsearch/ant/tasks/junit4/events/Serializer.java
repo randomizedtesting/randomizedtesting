@@ -68,17 +68,30 @@ public class Serializer implements Closeable {
         throw new IOException("Serializer already closed.");
       }
 
-      do {
-        // An alternative way of solving GH-92 and GH-110. Instead of buffering
-        // serialized json we emit directly. If a recursive call occurs to serialize()
-        // we enqueue the event and continue, serializing them in order.
-        events.addLast(event);
-        if (events.size() > 1) {
-          return this;
+      // An alternative way of solving GH-92 and GH-110. Instead of buffering
+      // serialized json we emit directly. If a recursive call occurs to serialize()
+      // we enqueue the event and continue, serializing them in order.
+      events.addLast(event);
+      if (events.size() > 1) {
+        SlaveMain.warn("Serializing " + event.getType() + " (postponed, " + events.size() + " in queue)", null);
+        return this;
+      }
+      SlaveMain.warn("Serializing " + event.getType(), null);
+
+      flushQueue();
+
+      return this;
+    }
+  }
+
+  private void flushQueue() throws IOException {
+    synchronized (lock) {
+      while (!events.isEmpty()) {
+        if (writer == null) {
+          throw new IOException("Serializer already closed, with " + events.size() + " events on queue.");
         }
 
-        event = events.peekFirst();
-
+        IEvent event = events.removeFirst();
         try {
           JsonWriter jsonWriter = new JsonWriter(writer);
           jsonWriter.setIndent("  ");
@@ -98,18 +111,18 @@ public class Serializer implements Closeable {
             }
           }
         }
-
-        events.removeFirst();
-      } while (writer != null && !events.isEmpty());
-
-      return this;
+      }
     }
   }
 
   public Serializer flush() throws IOException {
     synchronized (lock) {
       if (writer != null) {
+        SlaveMain.warn("flushing...", null);
+        flushQueue();
         writer.flush();
+      } else {
+        SlaveMain.warn("flushing failed (serializer closed)", null);
       }
       return this;
     }
@@ -117,10 +130,11 @@ public class Serializer implements Closeable {
 
   public void close() throws IOException {
     synchronized (lock) {
+      SlaveMain.warn("closing...", null);
       if (writer != null) {
-        if (events.isEmpty()) {
-          serialize(new QuitEvent());
-        }
+        serialize(new QuitEvent());
+        flushQueue();
+
         writer.close();
         writer = null;
       }
