@@ -449,10 +449,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   private void restoreSystemProperties() {
     for (Map.Entry<String,String> e : restoreProperties.entrySet()) {
-      if (e.getValue() == null) {
-        System.clearProperty(e.getKey());
-      } else {
-        System.setProperty(e.getKey(), e.getValue());
+      try {
+        if (e.getValue() == null) {
+          System.clearProperty(e.getKey());
+        } else {
+          System.setProperty(e.getKey(), e.getValue());
+        }
+      } catch (SecurityException x) {
+        logger.warning("Could not restore system property: " + e.getKey() + " => " + e.getValue());
       }
     }
   }
@@ -466,13 +470,20 @@ public final class RandomizedRunner extends Runner implements Filterable {
       testFilters.add(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD())));
     }
 
-    if (emptyToNull(System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT)) == null &&
-        emptyToNull(System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID)) == null) {
-      // We don't run under JUnit4 so we have to fill in these manually.
-      restoreProperties.put(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT, System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT));
-      restoreProperties.put(SysGlobals.CHILDVM_SYSPROP_JVM_ID, System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID));
-      System.setProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT, "1");
-      System.setProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID, "0");
+    try {
+      String jvmCount = System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT);
+      String jvmId = System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID);
+      if (emptyToNull(jvmCount) == null &&
+          emptyToNull(jvmId) == null) {
+          // We don't run under JUnit4 so we have to fill in these manually.
+          System.setProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT, "1");
+          System.setProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID, "0");
+          restoreProperties.put(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT, jvmCount);
+          restoreProperties.put(SysGlobals.CHILDVM_SYSPROP_JVM_ID, jvmId);
+      }
+    } catch (SecurityException e) {
+      // Ignore if we can't set those properties.
+      logger.warning("Could not set child VM count and ID properties.");
     }
   }
 

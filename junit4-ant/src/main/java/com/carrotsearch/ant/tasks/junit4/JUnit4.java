@@ -1379,12 +1379,11 @@ public class JUnit4 extends Task {
     // Set up input suites file.
     commandline.createArgument().setValue("@" + classNamesFile.getAbsolutePath());
 
-    // Emit command line before -stdin to avoid confusion.
-    slave.slaveCommandLine = escapeAndJoin(commandline.getCommandline());
-    log("Forked JVM process command line (may need escape sequences for your shell):\n" + 
-        slave.slaveCommandLine, Project.MSG_VERBOSE);
-
-    commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
+    // May or may not use dynamic load balancing, but if == 0 then we're for sure
+    // not using it.
+    if (dynamicAssignmentRatio > 0) {
+      commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
+    }
 
     final EventBus eventBus = new EventBus("slave-" + slave.id);
     final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, this);
@@ -1608,6 +1607,12 @@ public class JUnit4 extends Task {
       v.setKey(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT);
       v.setValue(Integer.toString(slaveInfo.slaves));
       commandline.addSysproperty(v);
+
+      // Emit command line before -stdin to avoid confusion.
+      slaveInfo.slaveCommandLine = escapeAndJoin(commandline.getCommandline());
+      log("Forked child JVM at '" + cwd.getAbsolutePath() + 
+          "', command (may need escape sequences for your shell):\n" + 
+          slaveInfo.slaveCommandLine, Project.MSG_VERBOSE);
 
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
