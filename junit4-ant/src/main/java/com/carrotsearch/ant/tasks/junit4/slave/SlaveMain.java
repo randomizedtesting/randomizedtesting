@@ -165,6 +165,25 @@ public class SlaveMain {
         debug(debug, "testFinished(" + description + ")");
         serializer.flush();
       }
+      
+      @Override
+      public void testIgnored(Description description) throws Exception {
+        debug(debug, "testIgnored(T:" + description + ")");
+      }
+      
+      @Override
+      public void testFailure(Failure failure) throws Exception {
+        debug(debug, "testFailure(T:" + failure + ")");
+      }
+      
+      @Override
+      public void testAssumptionFailure(Failure failure) {
+        try {
+          debug(debug, "testAssumptionFailure(T:" + failure + ")");
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
     });
 
     /*
@@ -307,13 +326,16 @@ public class SlaveMain {
         stdInput = Collections.<String>emptyList().iterator();
       }
 
+      warn("# execute() start", null);
       main.execute(Iterators.concat(testClasses.iterator(), stdInput));
-
+      warn("# execute() done", null);
+      
       // For unhandled exceptions tests.
       if (System.getProperty(SYSPROP_FIRERUNNERFAILURE) != null) {
         throw new Exception(System.getProperty(SYSPROP_FIRERUNNERFAILURE));
       }
     } catch (Throwable t) {
+      warn("# catch()", t);
       lastResortMemory = null;
       tryWaitingForGC();
 
@@ -329,12 +351,14 @@ public class SlaveMain {
     try {
       if (serializer != null) {
         try {
+          warn("# serializer.close()", null);
           serializer.close();
         } catch (Throwable t) {
           warn("Exception closing serializer.", t);
         }
       }
     } finally {
+      warn("# halt()", null);
       JvmExit.halt(exitStatus);
     }
   }
@@ -425,7 +449,8 @@ public class SlaveMain {
       if (t != null) {
         w.print(" -> ");
         try {
-          w.println(Throwables.getStackTraceAsString(t));
+          t.printStackTrace(w);
+          // w.println(Throwables.getStackTraceAsString(t));
         } catch (OutOfMemoryError e) {
           // Ignore, OOM.
           w.print(t.getClass().getName());
