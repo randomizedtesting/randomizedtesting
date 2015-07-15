@@ -1,24 +1,17 @@
 package com.carrotsearch.ant.tasks.junit4.slave;
 
-import java.io.PrintStream;
 import java.io.Serializable;
 
 public class SlaveMainSafe {
   public static void main(String[] args) {
     verifyJUnit4Present();
 
-    PrintStream serr = System.err;
     try {
-      serr.println("# Initializing.");
-      try {
-        SlaveMain.main(args);
-      } finally {
-        serr.println("# Done.");
-      }
+      SlaveMain.main(args);
     } catch (Throwable e) {
       try  {
-        serr.println(e.toString());
-        e.printStackTrace(serr);
+        System.err.println(e.toString());
+        e.printStackTrace(System.err);
         System.out.close();
         System.err.close();
       } finally {

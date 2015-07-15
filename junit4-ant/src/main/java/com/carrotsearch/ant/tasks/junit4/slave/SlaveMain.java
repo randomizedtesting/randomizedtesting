@@ -1,18 +1,42 @@
 package com.carrotsearch.ant.tasks.junit4.slave;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.RandomAccessFile;
+import java.io.Writer;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
-import org.junit.runner.*;
+import org.junit.runner.Description;
+import org.junit.runner.Request;
+import org.junit.runner.Result;
+import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
-import org.junit.runner.notification.*;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
+import org.junit.runner.notification.RunNotifier;
 
-import com.carrotsearch.ant.tasks.junit4.events.*;
+import com.carrotsearch.ant.tasks.junit4.events.AppendStdErrEvent;
+import com.carrotsearch.ant.tasks.junit4.events.AppendStdOutEvent;
+import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
+import com.carrotsearch.ant.tasks.junit4.events.Serializer;
+import com.carrotsearch.ant.tasks.junit4.events.SuiteFailureEvent;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
@@ -326,16 +350,13 @@ public class SlaveMain {
         stdInput = Collections.<String>emptyList().iterator();
       }
 
-      warn("# execute() start", null);
       main.execute(Iterators.concat(testClasses.iterator(), stdInput));
-      warn("# execute() done", null);
       
       // For unhandled exceptions tests.
       if (System.getProperty(SYSPROP_FIRERUNNERFAILURE) != null) {
         throw new Exception(System.getProperty(SYSPROP_FIRERUNNERFAILURE));
       }
     } catch (Throwable t) {
-      warn("# catch()", t);
       lastResortMemory = null;
       tryWaitingForGC();
 
@@ -351,14 +372,12 @@ public class SlaveMain {
     try {
       if (serializer != null) {
         try {
-          warn("# serializer.close()", null);
           serializer.close();
         } catch (Throwable t) {
           warn("Exception closing serializer.", t);
         }
       }
     } finally {
-      warn("# halt()", null);
       JvmExit.halt(exitStatus);
     }
   }
@@ -441,7 +460,6 @@ public class SlaveMain {
    * Warning emitter. Uses whatever alternative non-event communication channel is.
    */
   public static void warn(String message, Throwable t) {
-    @SuppressWarnings("resource")
     PrintStream w = (warnings == null ? System.err : warnings);
     try {
       w.print("WARN: ");
@@ -450,7 +468,6 @@ public class SlaveMain {
         w.print(" -> ");
         try {
           t.printStackTrace(w);
-          // w.println(Throwables.getStackTraceAsString(t));
         } catch (OutOfMemoryError e) {
           // Ignore, OOM.
           w.print(t.getClass().getName());

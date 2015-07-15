@@ -297,7 +297,7 @@
           </fileset>
       </junit4:junit4>
 
-      <junit4:junit4>
+      <junit4:junit4 haltonfailure="false">
           <classpath refid="tests.classpath" />
 
           <listeners>
@@ -310,7 +310,7 @@
           </fileset>
       </junit4:junit4>
       
-      <junit4:junit4>
+      <junit4:junit4 haltonfailure="false">
           <classpath refid="tests.classpath" />
 
           <listeners>
