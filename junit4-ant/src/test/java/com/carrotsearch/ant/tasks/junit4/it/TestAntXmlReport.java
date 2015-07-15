@@ -7,6 +7,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.simpleframework.xml.core.Persister;
+
+import com.carrotsearch.ant.tasks.junit4.listeners.antxml.MavenFailsafeSummaryModel;
+
+import static org.junit.Assert.*;
 
 public class TestAntXmlReport  extends JUnit4XmlTestBase {
   @Test 
@@ -33,4 +38,33 @@ public class TestAntXmlReport  extends JUnit4XmlTestBase {
       }
     }
   }
+  
+  @Test 
+  public void summary() throws Exception {
+    super.executeTarget("antxml-summary");
+    
+    Persister p = new Persister();
+    File parent = getProject().getBaseDir();
+
+    MavenFailsafeSummaryModel m1 = p.read(MavenFailsafeSummaryModel.class, new File(parent, "ant-xmls/summary1.xml"));
+    assertEquals(255, (int) m1.result);
+    assertEquals(5, m1.completed);
+    assertEquals(2, m1.skipped);
+    assertEquals(1, m1.errors);
+    assertEquals(1, m1.failures);
+    
+    m1 = p.read(MavenFailsafeSummaryModel.class, new File(parent, "ant-xmls/summary2.xml"));
+    assertNull(m1.result);
+    assertEquals(1, m1.completed);
+    assertEquals(0, m1.skipped);
+    assertEquals(0, m1.errors);
+    assertEquals(0, m1.failures);
+
+    m1 = p.read(MavenFailsafeSummaryModel.class, new File(parent, "ant-xmls/summary3.xml"));
+    assertEquals(254, (int) m1.result);
+    assertEquals(0, m1.completed);
+    assertEquals(0, m1.skipped);
+    assertEquals(0, m1.errors);
+    assertEquals(0, m1.failures);
+  }  
 }

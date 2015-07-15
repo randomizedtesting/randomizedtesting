@@ -19,6 +19,8 @@ import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.transform.RegistryMatcher;
 
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
+import com.carrotsearch.ant.tasks.junit4.TestsSummaryEventListener;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedTestResultEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
@@ -41,6 +43,7 @@ public class AntXmlReport implements AggregatedEventListener {
   private JUnit4 junit4;
   private File dir;
   private boolean mavenExtensions = true;
+  private File summaryFile;
   private List<TokenFilter> filters = Lists.newArrayList();
   private Map<String,Integer> suiteCounts = Maps.newHashMap();
   private boolean ignoreDuplicateSuites;
@@ -50,11 +53,22 @@ public class AntXmlReport implements AggregatedEventListener {
    */
   private boolean outputStreams = true;
   
+  private final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
+
   /**
    * Output directory to write reports to.
    */
   public void setDir(File dir) {
     this.dir = dir;
+  }
+  
+  /**
+   * Where to emit Maven's summary file? This can be used
+   * by <a href="http://maven.apache.org/surefire/maven-failsafe-plugin/verify-mojo.html#summaryFile">
+   * the failsafe plugin</a> to verify whether the build succeeded or not.  
+   */
+  public void setSummaryFile(File file) {
+    this.summaryFile = file;
   }
   
   /**
@@ -98,18 +112,48 @@ public class AntXmlReport implements AggregatedEventListener {
     
     try {
       Files.createParentDirs(dir);
-      dir.mkdir();
+      if (!dir.exists()) {
+        if (!dir.mkdir()) {
+          throw new IOException("Could not mkdir: " + dir);
+        }
+      }
     } catch (IOException e) {
-      throw new BuildException("Could not create parent folders of: "
-          + dir, e);
+      throw new BuildException("Could not create parent folders of: " + dir, e);
+    }
+    
+    try {
+      if (summaryFile != null) {
+        Files.createParentDirs(summaryFile);
+      }
+    } catch (IOException e) {
+      throw new BuildException("Could not create parent folders of: " + summaryFile, e);
     }
   }
 
+  /**
+   * Write the summary file, if requested.
+   */
+  @Subscribe
+  public void onQuit(AggregatedQuitEvent e) {
+    junit4.log("QUITTING, sum: "  + summaryFile, Project.MSG_WARN);
+    if (summaryFile != null) {
+      try {
+        Persister persister = new Persister();
+        persister.write(new MavenFailsafeSummaryModel(summaryListener.getResult()), summaryFile);
+      } catch (Exception x) {
+        junit4.log("Could not serialize summary report.", x, Project.MSG_WARN);
+      }
+    }
+  }
+  
   /**
    * Emit information about all of suite's tests. 
    */
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) {
+    // Calculate summaries.
+    summaryListener.suiteSummary(e);
+
     Description suiteDescription = e.getDescription();
     String displayName = suiteDescription.getDisplayName();
     if (displayName.trim().isEmpty()) {
@@ -139,10 +183,10 @@ public class AntXmlReport implements AggregatedEventListener {
       persister.write(buildModel(e), reportFile);
     } catch (Exception x) {
       junit4.log("Could not serialize report for suite "
-          + displayName + ": " + x.toString(), Project.MSG_WARN);
+          + displayName + ": " + x.toString(), x, Project.MSG_WARN);
     }
   }
-
+  
   /**
    * Build data model for serialization.
    */

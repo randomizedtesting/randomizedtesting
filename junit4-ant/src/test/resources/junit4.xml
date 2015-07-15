@@ -279,6 +279,51 @@
         </junit4:junit4>
     </target>
 
+    <target name="antxml-summary">
+      <delete dir="ant-xmls" failonerror="false" />
+      <mkdir dir="ant-xmls" />
+
+      <junit4:junit4 haltonfailure="false">
+          <classpath refid="tests.classpath" />
+
+          <listeners>
+              <junit4:report-ant-xml dir="ant-xmls" summaryFile="ant-xmls/summary1.xml">
+              </junit4:report-ant-xml>
+          </listeners>
+
+          <fileset dir="${basedir}">
+              <include name="**/tests/TestStatuses.class" />
+              <include name="**/tests/TestIgnoredSuite.class" />
+          </fileset>
+      </junit4:junit4>
+
+      <junit4:junit4>
+          <classpath refid="tests.classpath" />
+
+          <listeners>
+              <junit4:report-ant-xml dir="ant-xmls" summaryFile="ant-xmls/summary2.xml">
+              </junit4:report-ant-xml>
+          </listeners>
+
+          <fileset dir="${basedir}">
+              <include name="**/tests/TestSuccess.class" />
+          </fileset>
+      </junit4:junit4>
+      
+      <junit4:junit4>
+          <classpath refid="tests.classpath" />
+
+          <listeners>
+              <junit4:report-ant-xml dir="ant-xmls" summaryFile="ant-xmls/summary3.xml">
+              </junit4:report-ant-xml>
+          </listeners>
+
+          <fileset dir="${basedir}">
+              <include name="**/tests/TestIgnoredSuite.class" />
+          </fileset>
+      </junit4:junit4>      
+    </target>
+
     <target name="json">
         <delete dir="json" failonerror="false" />
         <mkdir dir="json" />
