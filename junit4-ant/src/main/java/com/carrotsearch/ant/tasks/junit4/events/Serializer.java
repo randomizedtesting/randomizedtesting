@@ -73,11 +73,11 @@ public class Serializer implements Closeable {
       // we enqueue the event and continue, serializing them in order.
       events.addLast(event);
       if (events.size() > 1) {
-        SlaveMain.warn("Serializing " + event.getType() + " (postponed, " + events.size() + " in queue)", null);
+        // SlaveMain.warn("Serializing " + event.getType() + " (postponed, " + events.size() + " in queue)", null);
         return this;
       }
-      SlaveMain.warn("Serializing " + event.getType(), null);
 
+      // SlaveMain.warn("Serializing " + event.getType(), null);
       flushQueue();
 
       return this;
@@ -118,11 +118,11 @@ public class Serializer implements Closeable {
   public Serializer flush() throws IOException {
     synchronized (lock) {
       if (writer != null) {
-        SlaveMain.warn("flushing...", null);
+        // SlaveMain.warn("flushing...", null);
         flushQueue();
         writer.flush();
       } else {
-        SlaveMain.warn("flushing failed (serializer closed)", null);
+        // SlaveMain.warn("flushing failed (serializer closed)", null);
       }
       return this;
     }
@@ -130,7 +130,7 @@ public class Serializer implements Closeable {
 
   public void close() throws IOException {
     synchronized (lock) {
-      SlaveMain.warn("closing...", null);
+      // SlaveMain.warn("closing...", null);
       if (writer != null) {
         serialize(new QuitEvent());
         flushQueue();
