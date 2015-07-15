@@ -135,7 +135,6 @@ public class AntXmlReport implements AggregatedEventListener {
    */
   @Subscribe
   public void onQuit(AggregatedQuitEvent e) {
-    junit4.log("QUITTING, sum: "  + summaryFile, Project.MSG_WARN);
     if (summaryFile != null) {
       try {
         Persister persister = new Persister();
