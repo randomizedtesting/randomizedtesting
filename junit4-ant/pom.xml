@@ -116,11 +116,11 @@
                     <!--
                     Leave in for tests.
                     <classpathDependencyExcludes>asm:asm</classpathDependencyExcludes>
+                    <classpathDependencyExcludes>org.simpleframework:simple-xml</classpathDependencyExcludes>
                     -->
                     <classpathDependencyExcludes>com.carrotsearch.randomizedtesting:randomizedtesting-runner</classpathDependencyExcludes>
                     <classpathDependencyExcludes>com.google.code.gson:gson</classpathDependencyExcludes>
                     <classpathDependencyExcludes>com.google.guava:guava</classpathDependencyExcludes>
-                    <classpathDependencyExcludes>org.simpleframework:simple-xml</classpathDependencyExcludes>
                     <classpathDependencyExcludes>commons-io:commons-io</classpathDependencyExcludes>
                 </classpathDependencyExcludes>
               </configuration>

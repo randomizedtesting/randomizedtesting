@@ -280,14 +280,14 @@
     </target>
 
     <target name="antxml-summary">
-      <delete dir="ant-xmls" failonerror="false" />
-      <mkdir dir="ant-xmls" />
+      <delete dir="ant-xmls2" failonerror="false" />
+      <mkdir dir="ant-xmls2" />
 
       <junit4:junit4 haltonfailure="false">
           <classpath refid="tests.classpath" />
 
           <listeners>
-              <junit4:report-ant-xml dir="ant-xmls" summaryFile="ant-xmls/summary1.xml">
+              <junit4:report-ant-xml dir="ant-xmls2" summaryFile="ant-xmls2/summary1.xml">
               </junit4:report-ant-xml>
           </listeners>
 
@@ -299,9 +299,12 @@
 
       <junit4:junit4>
           <classpath refid="tests.classpath" />
+          <classpath>
+              <fileset dir=".." includes="dependency/randomized*.jar" />
+          </classpath>
 
           <listeners>
-              <junit4:report-ant-xml dir="ant-xmls" summaryFile="ant-xmls/summary2.xml">
+              <junit4:report-ant-xml dir="ant-xmls2" summaryFile="ant-xmls2/summary2.xml">
               </junit4:report-ant-xml>
           </listeners>
 
@@ -314,7 +317,7 @@
           <classpath refid="tests.classpath" />
 
           <listeners>
-              <junit4:report-ant-xml dir="ant-xmls" summaryFile="ant-xmls/summary3.xml">
+              <junit4:report-ant-xml dir="ant-xmls2" summaryFile="ant-xmls2/summary3.xml">
               </junit4:report-ant-xml>
           </listeners>
 

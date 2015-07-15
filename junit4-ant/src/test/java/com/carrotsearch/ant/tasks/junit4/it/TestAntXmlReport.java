@@ -7,13 +7,37 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Root;
 import org.simpleframework.xml.core.Persister;
-
-import com.carrotsearch.ant.tasks.junit4.listeners.antxml.MavenFailsafeSummaryModel;
 
 import static org.junit.Assert.*;
 
 public class TestAntXmlReport  extends JUnit4XmlTestBase {
+  @Root(name = "failsafe-summary")
+  public static class MavenFailsafeSummaryModel_Local {
+    @Attribute(required = false)
+    public Integer result;
+
+    @Attribute
+    public boolean timeout = false;
+
+    @Attribute
+    public int completed;
+
+    @Attribute
+    public int errors;
+
+    @Attribute
+    public int failures;
+
+    @Attribute
+    public int skipped;
+
+    @Attribute
+    public String failureMessage = "";
+  }
+
   @Test 
   public void antxml() throws Exception {
     super.executeTarget("antxml");
@@ -42,25 +66,25 @@ public class TestAntXmlReport  extends JUnit4XmlTestBase {
   @Test 
   public void summary() throws Exception {
     super.executeTarget("antxml-summary");
-    
+
     Persister p = new Persister();
     File parent = getProject().getBaseDir();
 
-    MavenFailsafeSummaryModel m1 = p.read(MavenFailsafeSummaryModel.class, new File(parent, "ant-xmls/summary1.xml"));
+    MavenFailsafeSummaryModel_Local m1 = p.read(MavenFailsafeSummaryModel_Local.class, new File(parent, "ant-xmls2/summary1.xml"));
     assertEquals(255, (int) m1.result);
     assertEquals(5, m1.completed);
     assertEquals(2, m1.skipped);
     assertEquals(1, m1.errors);
     assertEquals(1, m1.failures);
     
-    m1 = p.read(MavenFailsafeSummaryModel.class, new File(parent, "ant-xmls/summary2.xml"));
-    assertNull(m1.result);
+    m1 = p.read(MavenFailsafeSummaryModel_Local.class, new File(parent, "ant-xmls2/summary2.xml"));
+    assertEquals(null, m1.result);
     assertEquals(1, m1.completed);
     assertEquals(0, m1.skipped);
     assertEquals(0, m1.errors);
     assertEquals(0, m1.failures);
 
-    m1 = p.read(MavenFailsafeSummaryModel.class, new File(parent, "ant-xmls/summary3.xml"));
+    m1 = p.read(MavenFailsafeSummaryModel_Local.class, new File(parent, "ant-xmls2/summary3.xml"));
     assertEquals(254, (int) m1.result);
     assertEquals(0, m1.completed);
     assertEquals(0, m1.skipped);
