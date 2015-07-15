@@ -95,11 +95,15 @@ public class StaticFieldsInvariantRule implements TestRule {
             if (Modifier.isStatic(field.getModifiers()) && 
                 !field.getType().isPrimitive() &&
                 accept(field)) {
-              field.setAccessible(true);
-              Object v = field.get(null);
-              if (v != null) {
-                fieldsAndValues.add(new Entry(field, v));
-                values.add(v);
+              try {
+                field.setAccessible(true);
+                Object v = field.get(null);
+                if (v != null) {
+                  fieldsAndValues.add(new Entry(field, v));
+                  values.add(v);
+                }
+              } catch (SecurityException e) {
+                errors.add(new RuntimeException("Could not access field '" + field.getName() + "'.", e));
               }
             }
           }
