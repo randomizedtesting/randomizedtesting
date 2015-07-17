@@ -1,0 +1,142 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.carrotsearch.randomizedtesting</groupId>
+  <artifactId>junit4-maven-plugin-tests</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name><![CDATA[RandomizedTesting JUnit4 Maven Plugin Tests]]></name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+
+    <!-- <rr.version>@project.version@</rr.version> -->
+    <rr.version>2.1.16</rr.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.carrotsearch.randomizedtesting</groupId>
+      <artifactId>randomizedtesting-runner</artifactId>
+      <version>${rr.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Disable Surefire by binding it to a non-existent phase. -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <skipTests>true</skipTests>
+          </configuration>
+          <executions>
+            <execution>
+              <id>default-test</id>
+              <phase>none</phase>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- Configure common settings for RR/JUnit4 runner. -->
+        <plugin>
+          <groupId>com.carrotsearch.randomizedtesting</groupId>
+          <artifactId>junit4-maven-plugin</artifactId>
+          <version>${rr.version}</version>
+          
+          <!-- Defaults for all tests (ITs and Unit). -->
+          <configuration>
+            <heartbeat>10</heartbeat>
+            <jvmOutputAction>pipe,ignore</jvmOutputAction>
+            <leaveTemporary>true</leaveTemporary>
+            <ifNoTests>warn</ifNoTests>
+
+            <listeners>
+              <report-text showThrowable="true" showStackTraces="true" showOutput="always" showStatusOk="true"
+                showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" />
+            </listeners>
+
+            <systemProperties combine.children="append">
+              <arg.common>arg.common</arg.common>
+            </systemProperties>
+          </configuration>
+          
+          <executions>
+            <!-- Defaults for unit tests. -->
+            <execution>
+              <id>unit-tests</id>
+              <phase>test</phase>
+              <goals>
+                <goal>junit4</goal>
+              </goals>
+              <inherited>true</inherited>
+              <configuration>
+                <includes>
+                  <include>**/Test*.class</include>
+                  <include>**/*Test.class</include>
+                </includes>
+                <excludes>
+                  <exclude>**/*$*</exclude>
+                </excludes>
+              </configuration>
+            </execution>
+            
+            <!-- Defaults for integration tests. -->
+            <execution>
+              <id>integration-tests</id>
+              <phase>integration-test</phase>
+              <goals>
+                <goal>junit4</goal>
+              </goals>
+              <inherited>true</inherited>
+              <configuration>
+                <includes>
+                  <include>**/IT*.class</include>
+                  <include>**/*IT.class</include>
+                </includes>
+                <excludes>
+                  <exclude>**/*$*</exclude>
+                </excludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>com.carrotsearch.randomizedtesting</groupId>
+        <artifactId>junit4-maven-plugin</artifactId>
+        <executions>
+          <!-- Local override for unit tests. -->
+          <execution>
+            <id>unit-tests</id>
+            <configuration>
+              <systemProperties combine.children="append">
+                <arg.unit>arg.unit</arg.unit>
+              </systemProperties>
+            </configuration>
+          </execution>
+
+          <!-- Integration tests. -->
+          <execution>
+            <id>integration-tests</id>
+            <configuration>
+              <systemProperties combine.children="append">
+                <arg.it>arg.it</arg.it>
+              </systemProperties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

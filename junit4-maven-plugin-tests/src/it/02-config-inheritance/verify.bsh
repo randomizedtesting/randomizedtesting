@@ -1,0 +1,16 @@
+
+import java.io.*;
+import java.util.*;
+import java.util.regex.*;
+
+import com.carrotsearch.maven.plugins.junit4.*;
+
+la = new LogAssert(new File(basedir, "build.log"));
+
+// Tests successful.
+la.assertLogContains("Tests summary: 1 suite, 2 tests");
+
+// Build successful.
+la.assertLogContains("BUILD SUCCESS");
+
+return true;
