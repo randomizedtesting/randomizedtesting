@@ -15,7 +15,7 @@
     <maven.compiler.target>1.7</maven.compiler.target>
 
     <!-- <rr.version>@project.version@</rr.version> -->
-    <rr.version>2.1.16</rr.version>
+    <rr.version>@project.version@</rr.version>
   </properties>
 
   <dependencies>
