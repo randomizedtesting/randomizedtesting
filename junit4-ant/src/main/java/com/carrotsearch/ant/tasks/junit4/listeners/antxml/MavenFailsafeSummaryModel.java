@@ -1,11 +1,11 @@
 package com.carrotsearch.ant.tasks.junit4.listeners.antxml;
 
-import org.simpleframework.xml.Attribute;
-import org.simpleframework.xml.Root;
+import org.simpleframework.xml.*;
 
 import com.carrotsearch.ant.tasks.junit4.TestsSummary;
 
 @Root(name = "failsafe-summary")
+@Order(elements = {"completed", "errors", "failures", "skipped", "failureMessage"})
 public class MavenFailsafeSummaryModel {
   private static final int FAILURE  = 255;
   private static final int NO_TESTS = 254;
@@ -16,19 +16,19 @@ public class MavenFailsafeSummaryModel {
   @Attribute
   public boolean timeout = false;
 
-  @Attribute
+  @Element
   public int completed;
 
-  @Attribute
+  @Element
   public int errors;
 
-  @Attribute
+  @Element
   public int failures;
 
-  @Attribute
+  @Element
   public int skipped;
 
-  @Attribute
+  @Element(required = false)
   public String failureMessage = "";
 
   MavenFailsafeSummaryModel() {
