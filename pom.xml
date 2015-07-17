@@ -16,7 +16,7 @@
   <!-- Project info. -->
   <groupId>com.carrotsearch.randomizedtesting</groupId>
   <artifactId>randomizedtesting-parent</artifactId>
-  <version>2.1.16-SNAPSHOT</version>
+  <version>2.1.16</version>
   <packaging>pom</packaging>
 
   <name>RandomizedTesting Parent POM</name>
