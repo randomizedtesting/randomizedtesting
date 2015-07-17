@@ -1,5 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4.it;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -8,13 +10,14 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.Order;
 import org.simpleframework.xml.Root;
 import org.simpleframework.xml.core.Persister;
 
-import static org.junit.Assert.*;
-
 public class TestAntXmlReport  extends JUnit4XmlTestBase {
   @Root(name = "failsafe-summary")
+  @Order(elements = {"completed", "errors", "failures", "skipped", "failureMessage"})
   public static class MavenFailsafeSummaryModel_Local {
     @Attribute(required = false)
     public Integer result;
@@ -22,22 +25,22 @@ public class TestAntXmlReport  extends JUnit4XmlTestBase {
     @Attribute
     public boolean timeout = false;
 
-    @Attribute
+    @Element
     public int completed;
 
-    @Attribute
+    @Element
     public int errors;
 
-    @Attribute
+    @Element
     public int failures;
 
-    @Attribute
+    @Element
     public int skipped;
 
-    @Attribute
+    @Element(required = false)
     public String failureMessage = "";
   }
-
+  
   @Test 
   public void antxml() throws Exception {
     super.executeTarget("antxml");
