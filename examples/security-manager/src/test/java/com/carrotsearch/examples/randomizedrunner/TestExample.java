@@ -1,6 +1,7 @@
 package com.carrotsearch.examples.randomizedrunner.reports;
 
 import junit.framework.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -43,9 +44,14 @@ import com.carrotsearch.randomizedtesting.rules.StaticFieldsInvariantRule;
 @TimeoutSuite(millis = 200000000)
 public class TestExample extends Assert {
 
+  @BeforeClass
+  private static void beforeClassPrivate() {
+    System.out.println("beforeClassPrivate");
+  }
+
   @Test
   public void test() {
-    System.out.println("hello");
+    System.out.println("test");
   }
 
 }

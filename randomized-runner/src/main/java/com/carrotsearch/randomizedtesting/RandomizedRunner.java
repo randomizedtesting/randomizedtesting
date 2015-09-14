@@ -15,6 +15,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1625,7 +1627,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
     if (!Modifier.isPublic(m.getModifiers())) {
       try {
         if (!m.isAccessible()) {
-          m.setAccessible(true);
+          AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            @Override
+            public Void run() {
+              m.setAccessible(true);
+              return null;
+            }});
         }
       } catch (SecurityException e) {
         throw new RuntimeException("There is a non-public method that needs to be called. This requires " +

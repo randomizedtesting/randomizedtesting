@@ -2,6 +2,8 @@ package com.carrotsearch.randomizedtesting.rules;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -96,7 +98,13 @@ public class StaticFieldsInvariantRule implements TestRule {
                 !field.getType().isPrimitive() &&
                 accept(field)) {
               try {
-                field.setAccessible(true);
+                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                  @Override
+                  public Void run() {
+                    field.setAccessible(true);
+                    return null;
+                  }
+                });
                 Object v = field.get(null);
                 if (v != null) {
                   fieldsAndValues.add(new Entry(field, v));

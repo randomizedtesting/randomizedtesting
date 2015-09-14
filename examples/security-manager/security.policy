@@ -15,7 +15,8 @@ grant codeBase "${junit4.jar.url}" {
 
 //// permissions for the randomized runner jar
 grant codeBase "${randomizedtesting.jar.url}" {
-  // nothing yet, coming soon!
+  // optionally needed for access to private test methods (e.g. beforeClass)
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
 };
 
 //// Test class permission: we want this to be minimal!

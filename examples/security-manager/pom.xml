@@ -133,8 +133,9 @@
                     showStatusFailure="true"
                     showStatusIgnored="true"
 
-                    showSuiteSummary="false"
-                />
+                    showSuiteSummary="false">
+                    <filtertrace enabled="false"/>
+                </report-text>
 
                 <!-- JSON report with HTML scaffolding. -->
                 <report-json file="${dir.ant.tests}/result-json/results.html" />
