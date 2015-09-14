@@ -1640,7 +1640,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Invoke a given method on a suiteClass instance (can be null for static methods).
    */
-  void invoke(Method m, Object instance, Object... args) throws Throwable {
+  void invoke(final Method m, Object instance, Object... args) throws Throwable {
     if (!Modifier.isPublic(m.getModifiers())) {
       try {
         if (!m.isAccessible()) {

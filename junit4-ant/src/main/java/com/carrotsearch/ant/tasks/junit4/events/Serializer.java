@@ -93,13 +93,14 @@ public class Serializer implements Closeable {
           throw new IOException("Serializer already closed, with " + events.size() + " events on queue.");
         }
 
-        IEvent event = events.removeFirst();
+        final IEvent event = events.removeFirst();
         try {
-          JsonWriter jsonWriter = new JsonWriter(writer);
+          final JsonWriter jsonWriter = new JsonWriter(writer);
           jsonWriter.setIndent("  ");
           jsonWriter.beginArray();
           jsonWriter.value(event.getType().name());
           // serialization requires suppressing access checks!
+          final Gson gson = this.gson;
           AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
             @Override
             public Void run() throws Exception {
