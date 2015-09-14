@@ -4,6 +4,8 @@ import java.lang.Thread.State;
 import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -101,18 +103,33 @@ final class Threads {
   public static HashSet<Thread> getThreads(ThreadGroup tg) {
     Thread [] threads = new Thread [2];
     int maxIndex;
-    while ((maxIndex = tg.enumerate(threads, true)) == threads.length) {
+    while ((maxIndex = doEnumerate(tg, threads, true)) == threads.length) {
       threads = new Thread [threads.length * 2];
     }
     return new HashSet<Thread>(Arrays.asList(threads).subList(0, maxIndex));
   }
+  
+  private static int doEnumerate(final ThreadGroup tg, final Thread[] threads, final boolean recurse) {
+    return AccessController.doPrivileged(new PrivilegedAction<Integer>() {
+      @Override
+      public Integer run() {
+        return tg.enumerate(threads, recurse);
+      }
+    });
+  }
 
   public static ThreadGroup getTopThreadGroup() {
     // a lame workaround so that J9 works.
-    ThreadGroup tg = Thread.currentThread().getThreadGroup(); 
-    while (tg != null && tg.getParent() != null) {
-      tg = tg.getParent();
-    }
+    ThreadGroup tg = AccessController.doPrivileged(new PrivilegedAction<ThreadGroup>() {
+      @Override
+      public ThreadGroup run() {
+        ThreadGroup tg = Thread.currentThread().getThreadGroup(); 
+        while (tg != null && tg.getParent() != null) {
+          tg = tg.getParent();
+        }
+        return tg;
+      }
+    });
 
     if (tg == null) {
       throw new RuntimeException("No root ThreadGroup for thread: " + Thread.currentThread());

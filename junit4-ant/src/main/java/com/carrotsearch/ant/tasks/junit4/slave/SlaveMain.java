@@ -12,6 +12,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.io.Writer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -432,28 +434,33 @@ public class SlaveMain {
 
     // Set warnings stream to System.err.
     warnings = System.err;
-    
-    System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
+    AccessController.doPrivileged(new PrivilegedAction<Void>() {
       @Override
-      public void write(byte[] b, int off, int len) throws IOException {
-        if (multiplexStdStreams) {
-          origSysOut.write(b, off, len);
-        }
-        serializer.serialize(new AppendStdOutEvent(b, off, len));
-        if (flushFrequently) serializer.flush();
-      }
-    })));
+      public Void run() {
+        System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
+          @Override
+          public void write(byte[] b, int off, int len) throws IOException {
+            if (multiplexStdStreams) {
+              origSysOut.write(b, off, len);
+            }
+            serializer.serialize(new AppendStdOutEvent(b, off, len));
+            if (flushFrequently) serializer.flush();
+          }
+        })));
 
-    System.setErr(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
-      @Override
-      public void write(byte[] b, int off, int len) throws IOException {
-        if (multiplexStdStreams) {
-          origSysErr.write(b, off, len);
-        }
-        serializer.serialize(new AppendStdErrEvent(b, off, len));
-        if (flushFrequently) serializer.flush();
+        System.setErr(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
+          @Override
+          public void write(byte[] b, int off, int len) throws IOException {
+            if (multiplexStdStreams) {
+              origSysErr.write(b, off, len);
+            }
+            serializer.serialize(new AppendStdErrEvent(b, off, len));
+            if (flushFrequently) serializer.flush();
+          }
+        })));
+        return null;
       }
-    })));
+    });
   }
 
   /**

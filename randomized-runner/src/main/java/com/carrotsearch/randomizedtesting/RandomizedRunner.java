@@ -559,7 +559,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // TODO: this effectively means we can't run concurrent randomized runners.
     final UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
     handler = new QueueUncaughtExceptionsHandler();
-    Thread.setDefaultUncaughtExceptionHandler(handler);
+    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+      @Override
+      public Void run() {
+        Thread.setDefaultUncaughtExceptionHandler(handler);
+        return null;
+      }
+    });
 
     this.runnerThreadGroup = new RunnerThreadGroup(
         "TGRP-" + Classes.simpleName(suiteClass));
@@ -601,7 +607,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
               Thread.getDefaultUncaughtExceptionHandler().getClass())));
     }
 
-    Thread.setDefaultUncaughtExceptionHandler(previous);
+    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+      @Override
+      public Void run() {
+        Thread.setDefaultUncaughtExceptionHandler(previous);
+        return null;
+      }
+    });
     runnerThreadGroup = null;
     handler = null;
   }
@@ -996,7 +1008,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private <T> List<T> getAnnotatedFieldValues(Object test,
       Class<? extends Annotation> annotationClass, Class<T> valueClass) {
-    TestClass info = new TestClass(suiteClass);
+    TestClass info = AccessController.doPrivileged(new PrivilegedAction<TestClass>() {
+      @Override
+      public TestClass run() {
+        return new TestClass(suiteClass);
+      }
+    });
     List<T> results = new ArrayList<T>();
 
     List<FrameworkField> annotatedFields = 

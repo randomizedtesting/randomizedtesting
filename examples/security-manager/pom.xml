@@ -73,6 +73,7 @@
             <configuration>
               <exportAntProperties>true</exportAntProperties>
               <tasks>
+                <makeurl file="${junit:junit:jar}" property="junit.jar.url"/>
                 <makeurl file="${com.carrotsearch.randomizedtesting:junit4-ant:jar}" property="junit4.jar.url"/>
                 <makeurl file="${com.carrotsearch.randomizedtesting:randomizedtesting-runner:jar}" property="randomizedtesting.jar.url"/>
               </tasks>
@@ -94,6 +95,7 @@
             <configuration>
               <rules>
                 <requireProperty>
+                  <property>junit.jar.url</property>
                   <property>junit4.jar.url</property>
                   <property>randomizedtesting.jar.url</property>
                 </requireProperty>
@@ -150,6 +152,7 @@
                 <param>-Djava.security.manager</param>
                 <param>-Djava.security.policy==${project.basedir}/security.policy</param>
                 <!-- pass for debugging <param>-Djava.security.debug=policy</param> -->
+                <param>-Djunit.jar.url=${junit.jar.url}</param>
                 <param>-Djunit4.jar.url=${junit4.jar.url}</param>
                 <param>-Drandomizedtesting.jar.url=${randomizedtesting.jar.url}</param>
               </jvmArgs>
