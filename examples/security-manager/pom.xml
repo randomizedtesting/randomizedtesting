@@ -1,0 +1,161 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.carrotsearch.randomizedtesting</groupId>
+    <artifactId>randomizedtesting-parent</artifactId>
+    <version>2.2.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>randomizedtesting-security-manager-example</artifactId>
+  <name>RandomizedTesting Security Manager Example</name>
+
+  <description>
+    Simple use-case running with security manager
+  </description>
+
+  <properties>
+    <skip.deployment>false</skip.deployment>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.carrotsearch.randomizedtesting</groupId>
+      <artifactId>randomizedtesting-runner</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.carrotsearch.randomizedtesting</groupId>
+      <artifactId>junit4-ant</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- We don't want to use surefire to run our tests so we skip it. -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <skipTests>true</skipTests>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <!-- 
+         Set property of the url to each dependency
+         We use antrun to turn path into a proper URL (for windows with spaces etc)
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <exportAntProperties>true</exportAntProperties>
+              <tasks>
+                <makeurl file="${com.carrotsearch.randomizedtesting:junit4-ant:jar}" property="junit4.jar.url"/>
+                <makeurl file="${com.carrotsearch.randomizedtesting:randomizedtesting-runner:jar}" property="randomizedtesting.jar.url"/>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- fail build in a clean way, if something gets screwed up -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-urls-were-set</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <rules>
+                <requireProperty>
+                  <property>junit4.jar.url</property>
+                  <property>randomizedtesting.jar.url</property>
+                </requireProperty>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Run tests with JUnit4 under security manager -->
+      <plugin>
+        <groupId>com.carrotsearch.randomizedtesting</groupId>
+        <artifactId>junit4-maven-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>junit4-tests</id>
+            <goals>
+              <goal>junit4</goal>
+            </goals>
+            <!-- run in integration-test phase, so jars are "like production" for permission -->
+            <phase>integration-test</phase>
+            <configuration>
+              <haltOnFailure>true</haltOnFailure>
+              
+              <!-- Our tests are in primary classes folder. -->
+              <!-- <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory> -->
+
+              <!-- Attach a simple listener. -->
+              <listeners>
+                <report-text
+                    showThrowable="true" 
+                    showStackTraces="true" 
+                    showOutput="onerror" 
+
+                    showStatusOk="true"
+                    showStatusError="true"
+                    showStatusFailure="true"
+                    showStatusIgnored="true"
+
+                    showSuiteSummary="false"
+                />
+
+                <!-- JSON report with HTML scaffolding. -->
+                <report-json file="${dir.ant.tests}/result-json/results.html" />
+              </listeners>
+
+              <assertions>
+                <enable package="com.carrotsearch"/>
+              </assertions>
+
+              <!-- do all system properties here, to avoid policy hell! -->
+              <jvmArgs>
+                <param>-Djava.security.manager</param>
+                <param>-Djava.security.policy==${project.basedir}/security.policy</param>
+                <!-- pass for debugging <param>-Djava.security.debug=policy</param> -->
+                <param>-Djunit4.jar.url=${junit4.jar.url}</param>
+                <param>-Drandomizedtesting.jar.url=${randomizedtesting.jar.url}</param>
+              </jvmArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

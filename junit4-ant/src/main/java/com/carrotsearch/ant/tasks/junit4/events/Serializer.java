@@ -2,6 +2,8 @@ package com.carrotsearch.ant.tasks.junit4.events;
 
 import java.io.*;
 import java.lang.annotation.Annotation;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayDeque;
 
 import org.junit.runner.Description;
@@ -97,7 +99,14 @@ public class Serializer implements Closeable {
           jsonWriter.setIndent("  ");
           jsonWriter.beginArray();
           jsonWriter.value(event.getType().name());
-          gson.toJson(event, event.getClass(), jsonWriter);
+          // serialization requires suppressing access checks!
+          AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+            @Override
+            public Void run() throws Exception {
+              gson.toJson(event, event.getClass(), jsonWriter);
+              return null;
+            }
+          });
           jsonWriter.endArray();
           writer.write("\n\n");
         } catch (Throwable t) {

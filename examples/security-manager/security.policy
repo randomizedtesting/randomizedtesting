@@ -1,0 +1,26 @@
+// policy file for tests
+
+//// These permissions apply to the JDK itself
+//// (actually only needed for "extensions")
+
+grant codeBase "file:${{java.ext.dirs}}/*" {
+  permission java.security.AllPermission;
+};
+
+//// permission for the junit4 runner jar
+grant codeBase "${junit4.jar.url}" {
+  // gson serialization requires this
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+};
+
+//// permissions for the randomized runner jar
+grant codeBase "${randomizedtesting.jar.url}" {
+  // nothing yet, coming soon!
+};
+
+//// Test class permission: we want this to be minimal!
+grant {
+  permission java.util.PropertyPermission "*", "read,write";
+  permission java.io.FilePermission "<<ALL FILES>>", "read,readlink,write,delete,execute";
+  permission java.lang.RuntimePermission "*";
+};
