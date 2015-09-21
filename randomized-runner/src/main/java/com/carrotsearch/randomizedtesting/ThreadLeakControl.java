@@ -14,6 +14,8 @@ import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.reflect.AnnotatedElement;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -312,7 +314,7 @@ class ThreadLeakControl {
         return true;
       }
 
-      final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(t.getStackTrace()));
+      final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(getStackTrace(t)));
       Collections.reverse(stack);
 
       // Explicit check for GC$Daemon
@@ -678,6 +680,15 @@ class ThreadLeakControl {
     }
     return formatThreadStacks(getThreadsWithTraces());
   }
+  
+  private static StackTraceElement[] getStackTrace(final Thread t) {
+    return AccessController.doPrivileged(new PrivilegedAction<StackTraceElement[]>() {
+      @Override
+      public StackTraceElement[] run() {
+        return t.getStackTrace();
+      }
+    });
+  }
 
   /**
    * Returns all {@link ThreadLeakGroup} applicable threads, with stack
@@ -687,7 +698,7 @@ class ThreadLeakControl {
     final Set<Thread> threads = getThreads(filters);
     final HashMap<Thread,StackTraceElement[]> r = new HashMap<Thread,StackTraceElement[]>();
     for (Thread t : threads) {
-        r.put(t, t.getStackTrace());
+        r.put(t, getStackTrace(t));
     }
     return r;
   }
@@ -769,7 +780,7 @@ class ThreadLeakControl {
       HashMap<Thread,StackTraceElement[]> zombies = new HashMap<Thread,StackTraceElement[]>();
       for (Thread t : ordered) {
         if (t.isAlive()) {
-          zombies.put(t, t.getStackTrace());
+          zombies.put(t, getStackTrace(t));
         }
       }
   

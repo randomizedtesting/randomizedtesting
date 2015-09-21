@@ -62,6 +62,7 @@
     <module>junit4-maven-plugin-tests</module>
     <module>examples/maven</module>
     <module>examples/ant</module>
+    <module>examples/security-manager</module>
     <module>packaging</module>
   </modules>
 

@@ -15,6 +15,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -557,7 +559,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // TODO: this effectively means we can't run concurrent randomized runners.
     final UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
     handler = new QueueUncaughtExceptionsHandler();
-    Thread.setDefaultUncaughtExceptionHandler(handler);
+    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+      @Override
+      public Void run() {
+        Thread.setDefaultUncaughtExceptionHandler(handler);
+        return null;
+      }
+    });
 
     this.runnerThreadGroup = new RunnerThreadGroup(
         "TGRP-" + Classes.simpleName(suiteClass));
@@ -599,7 +607,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
               Thread.getDefaultUncaughtExceptionHandler().getClass())));
     }
 
-    Thread.setDefaultUncaughtExceptionHandler(previous);
+    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+      @Override
+      public Void run() {
+        Thread.setDefaultUncaughtExceptionHandler(previous);
+        return null;
+      }
+    });
     runnerThreadGroup = null;
     handler = null;
   }
@@ -994,7 +1008,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private <T> List<T> getAnnotatedFieldValues(Object test,
       Class<? extends Annotation> annotationClass, Class<T> valueClass) {
-    TestClass info = new TestClass(suiteClass);
+    TestClass info = AccessController.doPrivileged(new PrivilegedAction<TestClass>() {
+      @Override
+      public TestClass run() {
+        return new TestClass(suiteClass);
+      }
+    });
     List<T> results = new ArrayList<T>();
 
     List<FrameworkField> annotatedFields = 
@@ -1621,11 +1640,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Invoke a given method on a suiteClass instance (can be null for static methods).
    */
-  void invoke(Method m, Object instance, Object... args) throws Throwable {
+  void invoke(final Method m, Object instance, Object... args) throws Throwable {
     if (!Modifier.isPublic(m.getModifiers())) {
       try {
         if (!m.isAccessible()) {
-          m.setAccessible(true);
+          AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            @Override
+            public Void run() {
+              m.setAccessible(true);
+              return null;
+            }});
         }
       } catch (SecurityException e) {
         throw new RuntimeException("There is a non-public method that needs to be called. This requires " +
