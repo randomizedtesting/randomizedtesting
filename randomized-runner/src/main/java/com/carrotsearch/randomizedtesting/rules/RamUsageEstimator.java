@@ -28,6 +28,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -576,7 +578,17 @@ final class RamUsageEstimator {
           shallowInstanceSize = adjustForField(shallowInstanceSize, f);
 
           if (!f.getType().isPrimitive()) {
-            f.setAccessible(true);
+            try {
+              AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                @Override
+                public Void run() {
+                  f.setAccessible(true);
+                  return null;
+                }
+              });
+            } catch (Exception e) {
+              throw new IllegalStateException("Unable to access '" + f + "' to estimate memory usage", e);
+            }
             referenceFields.add(f);
           }
         }

@@ -2,6 +2,8 @@ package com.carrotsearch.randomizedtesting.rules;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -91,12 +93,18 @@ public class StaticFieldsInvariantRule implements TestRule {
         ArrayList<Entry> fieldsAndValues = new ArrayList<Entry>();
         ArrayList<Object> values = new ArrayList<Object>();
         for (Class<?> c = testClass; countSuperclasses && c.getSuperclass() != null; c = c.getSuperclass()) {
-          for (Field field : c.getDeclaredFields()) {
+          for (final Field field : c.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers()) && 
                 !field.getType().isPrimitive() &&
                 accept(field)) {
               try {
-                field.setAccessible(true);
+                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                  @Override
+                  public Void run() {
+                    field.setAccessible(true);
+                    return null;
+                  }
+                });
                 Object v = field.get(null);
                 if (v != null) {
                   fieldsAndValues.add(new Entry(field, v));
