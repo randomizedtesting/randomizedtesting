@@ -22,7 +22,7 @@ public class TestMiscJUnit4Attributes extends JUnit4XmlTestBase {
   @Test
   public void ignoredSuite() throws Throwable {
     executeTarget("ignoredSuite");
-    assertLogContains("Tests summary: 1 suite, 0 tests");
+    assertLogContains("Tests summary: 1 suite (1 ignored), 0 tests");
   }
 
   @Test

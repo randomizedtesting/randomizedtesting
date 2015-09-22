@@ -204,7 +204,6 @@ public class ExecutionTimesReport implements AggregatedEventListener {
       Collection<ResourceCollection> resources, Collection<String> suiteNames) {
     final Map<String,List<Long>> hints = Maps.newHashMap();
     for (ResourceCollection rc : resources) {
-      @SuppressWarnings("unchecked")
       Iterator<Resource> i = rc.iterator();
       while (i.hasNext()) {
         InputStream is = null;

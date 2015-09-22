@@ -14,6 +14,9 @@ New Features
 Bug Fixes
 
 Other Changes
+  
+  * GH-203: report the number of completely ignored suites 
+    in the summary. (Dawid Weiss)
 
   * GH-204: modernize and clean up project layout. (Dawid Weiss)
 

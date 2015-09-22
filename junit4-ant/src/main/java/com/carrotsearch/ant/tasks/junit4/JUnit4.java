@@ -939,9 +939,8 @@ public class JUnit4 extends Task {
           }
         }
       });
-      
+
       // Check for filtering expressions.
-      @SuppressWarnings("unchecked")
       Vector<Variable> vv = getCommandline().getSystemProperties().getVariablesVector();
       for (Variable v : vv) {
         if (SysGlobals.SYSPROP_TESTFILTER().equals(v.getKey())) {
@@ -1666,7 +1665,6 @@ public class JUnit4 extends Task {
     TestsCollection collection = new TestsCollection();
     resources.setProject(getProject());
 
-    @SuppressWarnings("unchecked")
     Iterator<Resource> iter = (Iterator<Resource>) resources.iterator();
     boolean javaSourceWarn = false;
     while (iter.hasNext()) {
