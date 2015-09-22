@@ -1,0 +1,38 @@
+-classpath
+'/mnt/storage/dweiss/work/randomizedtesting/randomized-runner/target/classes:/home/dweiss/.m2/repository/junit/junit/4.10/junit-4.10.jar'
+-encoding
+'UTF-8'
+-overview
+'/mnt/storage/dweiss/work/randomizedtesting/randomized-runner/src/main/java/com/carrotsearch/randomizedtesting/package.html'
+-protected
+-sourcepath
+'/mnt/storage/dweiss/work/randomizedtesting/randomized-runner/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2011-2015 <a href="http://carrotsearch.com">Carrot Search s.c.</a>. All Rights Reserved.'
+-charset
+'UTF-8'
+-d
+'/mnt/storage/dweiss/work/randomizedtesting/randomized-runner/target/apidocs'
+-docencoding
+'UTF-8'
+-docfilessubdirs
+-doctitle
+'RandomizedTesting Randomized Runner v2.1.17 API Documentation'
+-group
+'RandomizedRunner and RandomizedTest' 'com.carrotsearch.randomizedtesting*'
+-group
+'Annotations' 'com.carrotsearch.randomizedtesting.annotations'
+-group
+'Listeners&#44; Generators and Validators' 'com.carrotsearch.randomizedtesting.generators:com.carrotsearch.randomizedtesting.listeners:com.carrotsearch.randomizedtesting.validators'
+-header
+'<div id=\'header\'><a class=\'logo\' target=\'_top\' href=\'http://labs.carrotsearch.com\'></a>RandomizedTesting Randomized Runner v2.1.17 <br>API Documentation</div>'
+-link
+'http://java.sun.com/javase/6/docs/api'
+-linkoffline
+'http://kentbeck.github.com/junit/javadoc/latest' '/mnt/storage/dweiss/work/randomizedtesting/etc/javadoc/junit'
+-linkoffline
+'http://guava-libraries.googlecode.com/svn/trunk/javadoc' '/mnt/storage/dweiss/work/randomizedtesting/etc/javadoc/google-guava'
+-version
+-windowtitle
+'RandomizedTesting Randomized Runner v2.1.17 API Documentation (JavaDoc)'
