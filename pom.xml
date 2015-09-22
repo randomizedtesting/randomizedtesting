@@ -299,7 +299,10 @@
       </activation>
 
       <build>
+        <!-- 
+        Disable for now, we have target-relative classpaths in tests
         <directory>target/eclipse</directory>
+         -->
 
         <pluginManagement>
           <plugins>
