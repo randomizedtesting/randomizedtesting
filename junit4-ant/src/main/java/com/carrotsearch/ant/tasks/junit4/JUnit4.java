@@ -1029,7 +1029,10 @@ public class JUnit4 extends Task {
         getProject().setNewProperty(failureProperty, "true");        
       }
       if (haltOnFailure) {
-        throw new BuildException("There were test failures: " + testsSummary);
+        throw new BuildException(String.format(Locale.ROOT,
+            "There were test failures: %s [seed: %s]",
+            testsSummary,
+            getSeed()));
       }
     }
 
