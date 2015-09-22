@@ -9,6 +9,7 @@ See the following for more information:
   Docs: http://labs.carrotsearch.com/randomizedtesting.html
   Wiki: https://github.com/randomizedtesting/randomizedtesting/wiki
   Bugs: https://github.com/randomizedtesting/randomizedtesting/issues
+  CI:   http://builds.carrot2.org/browse/RNDTEST
 
 See LICENSE.txt to make your company's lawyer happy.
 
