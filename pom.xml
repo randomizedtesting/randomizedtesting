@@ -1,19 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
 
-  <!-- We use SonaType for publishing artefacts. Parent POM makes things easier here. -->
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
-  </parent>
+  <modelVersion>4.0.0</modelVersion>
 
   <prerequisites>
     <maven>${minimum.maven.version}</maven>
   </prerequisites>
 
-  <!-- Project info. -->
   <groupId>com.carrotsearch.randomizedtesting</groupId>
   <artifactId>randomizedtesting-parent</artifactId>
   <version>2.2.0-SNAPSHOT</version>
@@ -21,7 +16,7 @@
 
   <name>RandomizedTesting Parent POM</name>
   <url>http://labs.carrotsearch.com</url>
-  <description>Foundation classes and rules for applying the principles of Randomized Testing.</description>
+  <description>JUnit test runner and plugins for running JUnit tests with pseudo-randomness.</description>
   <inceptionYear>2011</inceptionYear>
 
   <organization>
@@ -38,7 +33,7 @@
   </licenses>
 
   <properties>
-    <minimum.maven.version>3.0.2</minimum.maven.version>
+    <minimum.maven.version>3.2.5</minimum.maven.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -47,12 +42,14 @@
     <maven.compiler.target>1.6</maven.compiler.target>
 
     <skip.deployment>false</skip.deployment>
-
-    <junit.version>4.10</junit.version>
-    <antplugin.version>1.7</antplugin.version>
-    <ant.version>1.8.2</ant.version>
-
     <gpg.passphrase></gpg.passphrase>
+
+    <version.junit>4.10</version.junit>
+    <version.maven-antrun-plugin>1.8</version.maven-antrun-plugin>
+    <version.ant>1.9.4</version.ant>
+
+    <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
+    <version.maven-clean-plugin>2.6.1</version.maven-clean-plugin>
   </properties>
 
   <modules>
@@ -63,7 +60,6 @@
     <module>examples/maven</module>
     <module>examples/ant</module>
     <module>examples/security-manager</module>
-    <module>packaging</module>
   </modules>
 
   <dependencyManagement>
@@ -71,13 +67,13 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>${ant.version}</version>
+        <version>${version.ant}</version>
       </dependency>
 
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant-junit</artifactId>
-        <version>${ant.version}</version>
+        <version>${version.ant}</version>
       </dependency>
 
       <dependency>
@@ -119,7 +115,7 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
+        <version>${version.junit}</version>
         <exclusions>
           <exclusion>
             <artifactId>hamcrest-core</artifactId>
@@ -148,83 +144,104 @@
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.8.1</version>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>${version.maven-clean-plugin}</version>
           <configuration>
-            <offlineLinks>
-              <offlineLink>
-                <url>http://kentbeck.github.com/junit/javadoc/latest/</url>
-                <location>${project.parent.basedir}/etc/javadoc/junit</location>
-              </offlineLink>
-              <offlineLink>
-                <url>http://guava-libraries.googlecode.com/svn/trunk/javadoc/</url>
-                <location>${project.parent.basedir}/etc/javadoc/google-guava</location>
-              </offlineLink>
-            </offlineLinks>
+            <failOnError>false</failOnError>
+            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+            <filesets>
+              <fileset>
+                <directory>${project.build.directory}</directory>
+                <excludes>
+                  <exclude>eclipse/**</exclude>
+                  <exclude>idea/**</exclude>
+                </excludes>
+              </fileset>
+            </filesets>
           </configuration>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.2.2</version>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.2</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>2.1.2</version>
+          <version>2.4</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <version>2.3</version>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.10.3</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.10</version>
-          <configuration>
-            <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <configuration>
-            <skip>${skip.deployment}</skip>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.1</version>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.5.5</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>2.3.2</version>
+          <version>2.6</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>2.5.2</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.7</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>2.10</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.3</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.6</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.18.1</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
-          <version>${antplugin.version}</version>
+          <version>${version.maven-antrun-plugin}</version>
 
           <dependencies>
             <dependency>
               <groupId>org.apache.ant</groupId>
               <artifactId>ant</artifactId>
-              <version>${ant.version}</version>
+              <version>${version.ant}</version>
             </dependency>
             <dependency>
               <groupId>org.apache.ant</groupId>
               <artifactId>ant-junit</artifactId>
-              <version>${ant.version}</version>
+              <version>${version.ant}</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -266,61 +283,18 @@
       </properties>
     </profile>
 
-    <!-- Release profile. -->
     <profile>
-      <id>release</id>
-      <build>
-        <defaultGoal>package</defaultGoal>
-        <plugins>
-          <!-- javadocs -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <configuration>
-                  <encoding>${project.build.sourceEncoding}</encoding>
-                  <docfilessubdirs>true</docfilessubdirs>
-                  <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
-                  <windowtitle>${project.name} v${project.version} API Documentation (JavaDoc)</windowtitle>
-                  <doctitle>${project.name} v${project.version} API Documentation</doctitle>
-                  <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
-                  <failonerror>true</failonerror>
-                  <use>false</use>
-                </configuration>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-
-          <!-- Attach sources -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>eclipse</id>
+      <id>profile.ide.eclipse-m2e</id>
+      
       <activation>
         <property>
           <name>m2e.version</name>
         </property>
       </activation>
+
       <build>
+        <directory>target/eclipse</directory>
+
         <pluginManagement>
           <plugins>
             <plugin>
@@ -330,6 +304,21 @@
               <configuration>
                 <lifecycleMappingMetadata>
                   <pluginExecutions>
+                    <pluginExecution>
+                      <pluginExecutionFilter>
+                        <groupId>de.thetaphi</groupId>
+                        <artifactId>forbiddenapis</artifactId>
+                        <versionRange>[1.0.0,)</versionRange>
+                        <goals>
+                          <goal>testCheck</goal>
+                          <goal>check</goal>
+                        </goals>
+                      </pluginExecutionFilter>
+                      <action>
+                        <ignore />
+                      </action>
+                    </pluginExecution>
+                    
                     <pluginExecution>
                       <pluginExecutionFilter>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -343,10 +332,61 @@
                       <action>
                         <ignore></ignore>
                       </action>
-                    </pluginExecution>
+                    </pluginExecution>                    
                   </pluginExecutions>
                 </lifecycleMappingMetadata>
               </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
+    <profile>
+      <id>eclipse</id>
+      <build>
+        <defaultGoal>compile antrun:run</defaultGoal>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <artifactId>maven-antrun-plugin</artifactId>
+              <version>${version.maven-antrun-plugin}</version>
+              <executions>
+                <execution>
+                  <id>default-cli</id>
+                  <phase>none</phase>
+                  <inherited>false</inherited>
+                  <configuration>
+                    <target>
+                      <presetdef name="copy">
+                        <copy overwrite="true" />
+                      </presetdef>
+                      <condition property="onwin">
+                        <os family="windows" />
+                      </condition>
+
+                      <fileset id="id:settings" dir="etc/eclipse/settings" />
+                      <copy todir="examples/ant/.settings">              <fileset refid="id:settings" /></copy>
+                      <copy todir="examples/maven/.settings">            <fileset refid="id:settings" /></copy>
+                      <copy todir="examples/security-manager/.settings"> <fileset refid="id:settings" /></copy>
+                      <copy todir="junit4-ant/.settings">                <fileset refid="id:settings" /></copy>
+                      <copy todir="junit4-maven-plugin/.settings">       <fileset refid="id:settings" /></copy>
+                      <copy todir="junit4-maven-plugin-tests/.settings"> <fileset refid="id:settings" /></copy>
+                      <copy todir="randomized-runner/.settings">         <fileset refid="id:settings" /></copy>
+                    </target>
+                  </configuration>
+                  <goals>
+                    <goal>run</goal>
+                  </goals>
+                </execution>
+              </executions>
+              <dependencies>
+                <dependency>
+                  <groupId>org.apache.ant</groupId>
+                  <artifactId>ant</artifactId>
+                  <version>${version.ant}</version>
+                </dependency>
+              </dependencies>
             </plugin>
           </plugins>
         </pluginManagement>

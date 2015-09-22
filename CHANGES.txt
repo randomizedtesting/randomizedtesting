@@ -1,0 +1,23 @@
+
+RandomizedTesting, Change Log
+=============================
+
+For an up-to-date CHANGES file see 
+https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
+
+======================= randomizedtesting 2.2.0-SNAPSHOT =======================
+
+Changes in Backwards Compatibility
+
+New Features
+
+Bug Fixes
+
+Other Changes
+
+  * GH-204: modernize and clean up project layout. (Dawid Weiss)
+
+======================= randomizedtesting (pre 2.2.0) =======================
+
+No separate changelog was maintained. See git commit history or issues at
+GitHub.

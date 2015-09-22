@@ -1,8 +1,12 @@
-target
+# Eclipse
+target/
 .project
 .classpath
 .settings
+
+# IntelliJ
 .idea
 
+# Maven
 *.versionsBackup
 *.swp

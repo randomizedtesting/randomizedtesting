@@ -1,0 +1,17 @@
+#
+# This is a generic editor configuration file, supported
+# by many editors (directly or via plugins).
+# 
+# See http://editorconfig.org for more information.
+#
+
+root = true
+
+[*]
+charset = UTF-8
+
+[*.{java}]
+charset = UTF-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
