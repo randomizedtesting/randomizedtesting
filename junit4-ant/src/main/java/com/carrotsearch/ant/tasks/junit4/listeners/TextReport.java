@@ -546,7 +546,6 @@ public class TextReport implements AggregatedEventListener {
 
   /**
    * Suite end.
-   * @param completed 
    */
   private void emitSuiteEnd(AggregatedSuiteResultEvent e, int suitesCompleted) throws IOException {
     assert showSuiteSummary;

@@ -18,6 +18,7 @@ public class TestsSummaryEventListener {
   private int ignores;
 
   private int suites;
+  private int ignoredSuites;
   private int suiteErrors;
 
   /**
@@ -54,12 +55,17 @@ public class TestsSummaryEventListener {
           break;
       }
     }
+    
+    if (e.isSuccessful() &&
+        e.getTests().isEmpty()) {
+      ignoredSuites++;
+    }
   }
 
   /**
    * Return the summary of all tests.
    */
   public TestsSummary getResult() {
-    return new TestsSummary(suites, suiteErrors, tests, failures, errors, assumptions, ignores);
+    return new TestsSummary(suites, ignoredSuites, suiteErrors, tests, failures, errors, assumptions, ignores);
   }
 }

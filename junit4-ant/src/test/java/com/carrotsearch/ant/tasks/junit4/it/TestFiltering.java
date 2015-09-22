@@ -27,6 +27,6 @@ public class TestFiltering extends JUnit4XmlTestBase {
     assertLogDoesNotContain(">bar<");
     assertLogDoesNotContain(">foobar2<");
     assertLogDoesNotContain(">bar2<");
-    assertLogContains("Tests summary: 2 suites, 1 test");
+    assertLogContains("Tests summary: 2 suites (1 ignored), 1 test");
   }
 }

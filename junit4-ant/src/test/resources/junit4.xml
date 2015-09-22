@@ -374,6 +374,7 @@
     </target>
 
     <target name="filterexpression">
+        <echo>${basedir}</echo>
         <junit4.preconf haltonfailure="false">
             <classpath>
                 <fileset dir=".." includes="dependency/randomized*.jar" />
