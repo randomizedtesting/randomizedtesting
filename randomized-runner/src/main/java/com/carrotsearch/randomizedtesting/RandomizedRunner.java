@@ -755,6 +755,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     return new Statement() {
       public void evaluate() throws Throwable {
         for (final TestCandidate c : filtered) {
+          if (threadLeakControl.isTimedOut()) {
+            break;
+          }
           if (isTestIgnored(notifier, c)) {
             continue;
           }

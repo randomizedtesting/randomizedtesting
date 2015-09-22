@@ -819,6 +819,10 @@ class ThreadLeakControl {
     return timedOut;
   }
 
+  boolean isTimedOut() {
+    return suiteTimedOut.get();
+  }
+
   /**
    * Return the {@link RunNotifier} that should be used by any sub-statements
    * running actual instance-scope tests. We need this because we need to
