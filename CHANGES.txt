@@ -31,7 +31,7 @@ Other Changes
   * GH-203: report the number of completely ignored suites 
     in the summary. (Dawid Weiss)
 
-  * PR-202: support running with security manager and limit the required 
+  * PR #202: support running with security manager and limit the required 
     permissions. (Robert Muir)
 
 ======================= randomizedtesting (pre 2.2.0) =======================
