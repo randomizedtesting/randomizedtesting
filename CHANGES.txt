@@ -19,6 +19,11 @@ Other Changes
 
 ======================= randomizedtesting 2.1.17 ============================
 
+Bug Fixes
+
+  * GH-201: Tests still running (and zombified) after suite timeout occurred.
+    (Dawid Weiss)
+
 Other Changes
 
   * GH-205: Report test seed in halt on failure message. (Dawid Weiss)
