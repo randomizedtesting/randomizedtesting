@@ -5,7 +5,7 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.2.0-SNAPSHOT =======================
+======================= randomizedtesting 2.2.0-SNAPSHOT ====================
 
 Changes in Backwards Compatibility
 
@@ -14,11 +14,20 @@ New Features
 Bug Fixes
 
 Other Changes
+
+  * GH-204: modernize and clean up project layout. (Dawid Weiss)
+
+======================= randomizedtesting 2.1.17 ============================
+
+Other Changes
+
+  * GH-205: Report test seed in halt on failure message. (Dawid Weiss)
   
   * GH-203: report the number of completely ignored suites 
     in the summary. (Dawid Weiss)
 
-  * GH-204: modernize and clean up project layout. (Dawid Weiss)
+  * PR-202: support running with security manager and limit the required 
+    permissions. (Robert Muir)
 
 ======================= randomizedtesting (pre 2.2.0) =======================
 
