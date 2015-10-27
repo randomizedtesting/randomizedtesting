@@ -13,6 +13,10 @@ New Features
 
 Bug Fixes
 
+  * GH-192: Reworked json streaming to get rid of gson and permit dumping
+    JVM-related diagnostics (security manager policy dumps, etc.). 
+    (Dawid Weiss)
+
 Other Changes
 
   * GH-204: modernize and clean up project layout. (Dawid Weiss)
