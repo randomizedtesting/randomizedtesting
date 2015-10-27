@@ -42,8 +42,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -88,6 +86,7 @@ import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SeedUtils;
 import com.carrotsearch.randomizedtesting.SysGlobals;
+import com.carrotsearch.randomizedtesting.TeeOutputStream;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser.Node;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.Charsets;
@@ -1039,10 +1038,10 @@ public class JUnit4 extends Task {
       for (File f : temporaryFiles) {
         try {
           if (f != null) {
-            if (!FileUtils.deleteQuietly(f)) throw new IOException();
+            java.nio.file.Files.delete(f.toPath());
           }
         } catch (IOException e) {
-          log("Could not remove temporary path: " + f.getAbsolutePath(), Project.MSG_WARN);
+          log("Could not remove temporary path: " + f.getAbsolutePath() + " (" + e.getMessage() + ")", Project.MSG_WARN);
         }
       }
     }

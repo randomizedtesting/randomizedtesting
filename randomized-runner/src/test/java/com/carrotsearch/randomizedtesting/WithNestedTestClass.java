@@ -12,8 +12,6 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import org.apache.commons.io.output.TeeOutputStream;
-import org.apache.commons.io.output.WriterOutputStream;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;

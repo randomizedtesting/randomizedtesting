@@ -55,12 +55,6 @@
     </dependency>
 
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.simpleframework</groupId>
       <artifactId>simple-xml</artifactId>
       <scope>provided</scope>
@@ -114,7 +108,6 @@
                     -->
                     <classpathDependencyExcludes>com.carrotsearch.randomizedtesting:randomizedtesting-runner</classpathDependencyExcludes>
                     <classpathDependencyExcludes>com.google.guava:guava</classpathDependencyExcludes>
-                    <classpathDependencyExcludes>commons-io:commons-io</classpathDependencyExcludes>
                 </classpathDependencyExcludes>
               </configuration>
             </execution>
@@ -246,10 +239,6 @@
               <inclusion>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-              </inclusion>
-              <inclusion>
-                <groupId>commons-io</groupId>
-                <artifactId>commons-io</artifactId>
               </inclusion>
               <inclusion>
                 <groupId>org.simpleframework</groupId>

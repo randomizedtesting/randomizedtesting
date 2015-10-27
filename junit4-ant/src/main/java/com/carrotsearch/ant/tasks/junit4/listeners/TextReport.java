@@ -1,9 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.listeners;
 
-import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatDescription;
-import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatDurationInSeconds;
-import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatTime;
-import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.formatTimestamp;
+import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +17,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.junit.runner.Description;
@@ -43,6 +39,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.HeartBeatEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.PartialOutputEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
+import com.carrotsearch.randomizedtesting.WriterOutputStream;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;

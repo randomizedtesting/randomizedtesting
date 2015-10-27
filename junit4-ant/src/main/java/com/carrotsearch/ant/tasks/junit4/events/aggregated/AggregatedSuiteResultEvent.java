@@ -1,7 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.events.aggregated;
 
-import static com.carrotsearch.ant.tasks.junit4.events.EventType.APPEND_STDERR;
-import static com.carrotsearch.ant.tasks.junit4.events.EventType.APPEND_STDOUT;
+import static com.carrotsearch.ant.tasks.junit4.events.EventType.*;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -12,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.io.output.WriterOutputStream;
 import org.junit.runner.Description;
 
 import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
@@ -24,6 +22,7 @@ import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 import com.carrotsearch.ant.tasks.junit4.events.JsonHelpers;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
+import com.carrotsearch.randomizedtesting.WriterOutputStream;
 
 public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   private transient final ForkedJvmInfo slave;

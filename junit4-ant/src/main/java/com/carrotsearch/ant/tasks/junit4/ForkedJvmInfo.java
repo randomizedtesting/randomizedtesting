@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.output.WriterOutputStream;
-
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
+import com.carrotsearch.randomizedtesting.WriterOutputStream;
 
 /**
  * Static slave information.

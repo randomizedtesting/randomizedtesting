@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
@@ -137,7 +136,7 @@ public class JsonReport implements AggregatedEventListener {
 
       File jsonFile = targetFile;
       if (method == OutputMethod.HTML) {
-        jsonFile = new File(FilenameUtils.removeExtension(targetFile.getAbsolutePath()) + ".jsonp");
+        jsonFile = new File(removeExtension(targetFile.getAbsolutePath()) + ".jsonp");
       }
 
       writer = new OutputStreamWriter(
@@ -169,6 +168,13 @@ public class JsonReport implements AggregatedEventListener {
     } catch (IOException e) {
       throw new BuildException("Could not emit JSON report.", e);
     }
+  }
+
+  private String removeExtension(String name) {
+    if (name.indexOf(".") > 0) {
+      name = name.substring(0, name.lastIndexOf("."));
+    }
+    return name;
   }
 
   /**
@@ -264,7 +270,7 @@ public class JsonReport implements AggregatedEventListener {
         Resources.toString(
             cl.getResource(resourcePrefix + "index.html"), Charsets.UTF_8);
     index = index.replaceAll(Pattern.quote("tests-output.jsonp"),
-        FilenameUtils.removeExtension(targetFile.getName()) + ".jsonp");
+        removeExtension(targetFile.getName()) + ".jsonp");
     Files.write(index, targetFile, Charsets.UTF_8);
     
     // Copy over the remaining files. This is hard coded but scanning a JAR seems like an overkill.

@@ -25,6 +25,8 @@ Bug Fixes
 
 Other Changes
 
+  * GH-209: Remove dependency on commons-io. (Dawid Weiss) 
+
   * GH-204: modernize and clean up project layout. (Dawid Weiss)
 
 ======================= randomizedtesting 2.1.17 ============================
