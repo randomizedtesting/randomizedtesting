@@ -1595,5 +1595,3 @@ public class JsonReader extends IOContext implements Closeable {
     pos += NON_EXECUTE_PREFIX.length;
   }
 }
-
-// NOCOMMIT: move all former gson classes to com.carrotsearch.*;
