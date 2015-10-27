@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import junit.framework.Assert;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -15,7 +15,7 @@ import com.carrotsearch.randomizedtesting.Utils;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.*;
 
-import static org.fest.assertions.data.MapEntry.*;
+import static org.assertj.core.data.MapEntry.*;
 
 /**
  * Check {@link Seeds}.

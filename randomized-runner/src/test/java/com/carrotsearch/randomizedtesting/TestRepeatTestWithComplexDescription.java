@@ -3,7 +3,7 @@ package com.carrotsearch.randomizedtesting;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.Description;

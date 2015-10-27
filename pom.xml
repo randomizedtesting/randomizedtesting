@@ -47,6 +47,7 @@
     <version.junit>4.10</version.junit>
     <version.maven-antrun-plugin>1.8</version.maven-antrun-plugin>
     <version.ant>1.9.4</version.ant>
+    <version.assertj>2.2.0</version.assertj>
 
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
     <version.maven-clean-plugin>2.6.1</version.maven-clean-plugin>
@@ -119,11 +120,11 @@
       </dependency>
 
       <dependency>
-        <groupId>org.easytesting</groupId>
-        <artifactId>fest-assert-core</artifactId>
-        <version>2.0M6</version>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${version.assertj}</version>
         <scope>test</scope>
-      </dependency>
+      </dependency> 
     </dependencies>
   </dependencyManagement>
 
@@ -241,28 +242,9 @@
         </plugin>
 
         <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-enforcer-plugin</artifactId>
-                    <versionRange>[1.0.0,)</versionRange>
-                    <goals>
-                      <goal>enforce</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>3.0.0</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -303,6 +285,20 @@
                   <pluginExecutions>
                     <pluginExecution>
                       <pluginExecutionFilter>
+                        <groupId>org.apache.felix</groupId>
+                        <artifactId>maven-bundle-plugin</artifactId>
+                        <versionRange>[1.0.0,)</versionRange>
+                        <goals>
+                          <goal>manifest</goal>
+                        </goals>
+                      </pluginExecutionFilter>
+                      <action>
+                        <ignore />
+                      </action>
+                    </pluginExecution>
+
+                    <pluginExecution>
+                      <pluginExecutionFilter>
                         <groupId>de.thetaphi</groupId>
                         <artifactId>forbiddenapis</artifactId>
                         <versionRange>[1.0.0,)</versionRange>
@@ -315,7 +311,7 @@
                         <ignore />
                       </action>
                     </pluginExecution>
-                    
+
                     <pluginExecution>
                       <pluginExecutionFilter>
                         <groupId>org.apache.maven.plugins</groupId>

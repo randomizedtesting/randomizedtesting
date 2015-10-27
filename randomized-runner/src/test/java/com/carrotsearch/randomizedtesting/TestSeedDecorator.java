@@ -2,7 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import java.util.*;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.*;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.RunWith;

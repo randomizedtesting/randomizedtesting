@@ -3,7 +3,7 @@ package com.carrotsearch.randomizedtesting.rules;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;

@@ -3,7 +3,7 @@ package com.carrotsearch.randomizedtesting;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;

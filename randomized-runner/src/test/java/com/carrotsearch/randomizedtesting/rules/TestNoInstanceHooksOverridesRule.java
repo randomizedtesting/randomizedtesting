@@ -2,7 +2,7 @@ package com.carrotsearch.randomizedtesting.rules;
 
 import java.lang.reflect.Method;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;

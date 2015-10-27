@@ -2,7 +2,7 @@ package com.carrotsearch.randomizedtesting.timeouts;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;

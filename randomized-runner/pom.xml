@@ -21,10 +21,10 @@
     </dependency>
 
     <dependency>
-       <groupId>org.easytesting</groupId>
-       <artifactId>fest-assert-core</artifactId>
-       <scope>test</scope>
-    </dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency> 
   </dependencies>
   
   <build>
@@ -34,7 +34,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <configuration>
-            <overview>${basedir}/src/main/java/com/carrotsearch/randomizedtesting/package.html</overview>
             <groups>
               <group>
                 <title>RandomizedRunner and RandomizedTest</title>
@@ -49,43 +48,6 @@
                 <packages>com.carrotsearch.randomizedtesting.generators:com.carrotsearch.randomizedtesting.listeners:com.carrotsearch.randomizedtesting.validators</packages>
               </group>
             </groups>
-            <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
-          </configuration>
-        </plugin>
-        
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <configuration>
-            <archive>  
-              <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-            </archive>
-          </configuration>
-        </plugin>
-
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin</artifactId>
-                    <versionRange>[2.3.4,)</versionRange>
-                    <goals>
-                      <goal>manifest</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
           </configuration>
         </plugin>
       </plugins>
@@ -95,7 +57,6 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-        <version>2.3.4</version>
         <configuration>
           <instructions>
             <Bundle-RequiredExecutionEnvironment>JavaSE-1.7</Bundle-RequiredExecutionEnvironment>
@@ -103,15 +64,6 @@
             <Export-Package>${project.groupId}.*;version="${project.version}"</Export-Package>
           </instructions>
         </configuration>
-        <executions>
-          <execution>
-            <id>bundle-manifest</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>manifest</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
