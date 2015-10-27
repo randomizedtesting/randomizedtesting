@@ -59,7 +59,7 @@ import java.io.Reader;
  * #skipValue()}.
  *
  * <h3>Example</h3>
- * Suppose we'd like to parse a stream of messages such as the following: <pre>
+ * Suppose we'd like to parse a stream of messages such as the following: <pre>{@code
  * [
  *   {
  *     "id": 912345678901,
@@ -79,8 +79,8 @@ import java.io.Reader;
  *       "followers_count": 2
  *     }
  *   }
- * ]</pre>
- * This code implements the parser for the above structure: <pre>
+ * ]}</pre>
+ * This code implements the parser for the above structure: <pre>{@code
  *
  *   public List<Message> readJsonStream(InputStream in) throws IOException {
  *     JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
@@ -155,7 +155,7 @@ import java.io.Reader;
  *     }
  *     reader.endObject();
  *     return new User(username, followersCount);
- *   }</pre>
+ *   }}</pre>
  *
  * <h3>Number Handling</h3>
  * This reader permits numeric values to be read as strings and string values to
@@ -167,24 +167,25 @@ import java.io.Reader;
  * precision loss, extremely large values should be written and read as strings
  * in JSON.
  *
- * <a name="nonexecuteprefix"/><h3>Non-Execute Prefix</h3>
+ * <a name="nonexecuteprefix"></a><h3>Non-Execute Prefix</h3>
  * Web servers that serve private data using JSON may be vulnerable to <a
  * href="http://en.wikipedia.org/wiki/JSON#Cross-site_request_forgery">Cross-site
  * request forgery</a> attacks. In such an attack, a malicious site gains access
  * to a private JSON file by executing it with an HTML {@code <script>} tag.
  *
- * <p>Prefixing JSON files with <code>")]}'\n"</code> makes them non-executable
+ * Prefixing JSON files with <code>")]}'\n"</code> makes them non-executable
  * by {@code <script>} tags, disarming the attack. Since the prefix is malformed
  * JSON, strict parsing fails when it is encountered. This class permits the
  * non-execute prefix when {@link #setLenient(boolean) lenient parsing} is
  * enabled.
  *
- * <p>Each {@code JsonReader} may be used to read a single JSON stream. Instances
+ * Each {@code JsonReader} may be used to read a single JSON stream. Instances
  * of this class are not thread safe.
  *
  * @author Jesse Wilson
  * @since 1.6
  */
+@SuppressWarnings("javadoc")
 public class JsonReader extends IOContext implements Closeable {
   /** The only non-execute prefix this parser permits */
   private static final char[] NON_EXECUTE_PREFIX = ")]}'\n".toCharArray();

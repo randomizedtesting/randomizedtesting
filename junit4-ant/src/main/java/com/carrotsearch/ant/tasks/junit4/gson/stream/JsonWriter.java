@@ -47,7 +47,7 @@ import java.io.Writer;
  * </ul>
  *
  * <h3>Example</h3>
- * Suppose we'd like to encode a stream of messages such as the following: <pre>
+ * Suppose we'd like to encode a stream of messages such as the following: <pre>{@code
  * [
  *   {
  *     "id": 912345678901,
@@ -67,8 +67,8 @@ import java.io.Writer;
  *       "followers_count": 2
  *     }
  *   }
- * ]</pre>
- * This code encodes the above structure: <pre>
+ * ]}</pre>
+ * This code encodes the above structure: <pre>{@code
  *   public void writeJsonStream(OutputStream out, List<Message> messages) throws IOException {
  *     JsonWriter writer = new JsonWriter(new OutputStreamWriter(out, "UTF-8"));
  *     writer.setIndent("    ");
@@ -112,7 +112,7 @@ import java.io.Writer;
  *       writer.value(value);
  *     }
  *     writer.endArray();
- *   }</pre>
+ *   }}</pre>
  *
  * <p>Each {@code JsonWriter} may be used to write a single JSON stream.
  * Instances of this class are not thread safe. Calls that would result in a
@@ -121,6 +121,7 @@ import java.io.Writer;
  * @author Jesse Wilson
  * @since 1.6
  */
+@SuppressWarnings("javadoc")
 public class JsonWriter extends IOContext implements Closeable, Flushable {
 
   /*
