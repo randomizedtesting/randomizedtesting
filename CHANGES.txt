@@ -25,6 +25,8 @@ Bug Fixes
 
 Other Changes
 
+  * GH-210: Make RR compilable/ testable under Java 1.9. (Dawid Weiss)
+
   * GH-209: Remove dependency on commons-io. (Dawid Weiss) 
 
   * GH-204: modernize and clean up project layout. (Dawid Weiss)
