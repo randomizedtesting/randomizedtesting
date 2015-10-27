@@ -19,6 +19,7 @@ import com.carrotsearch.randomizedtesting.ClassModel.MethodModel;
 public abstract class NoShadowingOrOverridesOnMethodsRule implements TestRule {
   private Class<? extends Annotation>[] annotations;
 
+  @SafeVarargs
   public NoShadowingOrOverridesOnMethodsRule(Class<? extends Annotation>... annotations) {
     this.annotations = annotations;
   }

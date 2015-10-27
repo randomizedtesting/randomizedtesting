@@ -1,9 +1,10 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -108,29 +109,30 @@ public class TestRandomizedTest extends RandomizedTest {
   }
 
   @Test
-  public void testNewTempDir() {
+  public void testNewTempDir() throws IOException {
     for (int i = 0; i < 10; i++) {
-      File dir = newTempDir();
+      Path dir = newTempDir();
       assertNotNull(dir);
-      assertTrue(dir.isDirectory());
-      assertTrue(dir.canWrite());
-      assertTrue(dir.canRead());
-      assertTrue(dir.canExecute());
-      assertEquals(0, dir.listFiles().length);
+      assertTrue(Files.isDirectory(dir));
+      assertTrue(Files.isWritable(dir));
+      assertTrue(Files.isReadable(dir));
+      assertTrue(Files.isExecutable(dir));
+      try (DirectoryStream<Path> path = Files.newDirectoryStream(dir)) {
+        assertFalse(path.iterator().hasNext());
+      }
     }
   }
 
   @Test
   public void testNewTempFile() throws IOException {
     for (int i = 0; i < 10; i++) {
-      File file = newTempFile();
+      Path file = newTempFile();
       assertNotNull(file);
-      assertTrue(file.isFile());
-      assertTrue(file.canWrite());
-      assertTrue(file.canRead());
-      assertTrue(file.getName().indexOf(' ') >= 0);
-
-      new FileOutputStream(file).close();
+      assertTrue(Files.isRegularFile(file));
+      assertTrue(Files.isWritable(file));
+      assertTrue(Files.isReadable(file));
+      assertTrue(file.getFileName().toString().indexOf(' ') >= 0);
+      Files.newOutputStream(file).close();
     }
   }
 

@@ -9,6 +9,9 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Changes in Backwards Compatibility
 
+  * PR #178: Move to Java 1.7 and use the java NIO 2 API for temp files.
+    (Simon Willnauer) 
+
 New Features
 
 Bug Fixes

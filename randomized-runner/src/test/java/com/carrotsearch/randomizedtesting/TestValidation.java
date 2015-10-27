@@ -64,7 +64,6 @@ public class TestValidation extends WithNestedTestClass {
     }
   }
 
-  @SuppressWarnings({"unchecked"})
   @Test
   public void checkBeforeClass() throws Exception {
     for (Class<?> c : Arrays.asList(
