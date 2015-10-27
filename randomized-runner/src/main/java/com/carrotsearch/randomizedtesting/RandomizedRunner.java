@@ -600,11 +600,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
           new RuntimeException("Interrupted while waiting for the suite runner? Weird.", e)));
     }
 
-    if (Thread.getDefaultUncaughtExceptionHandler() != handler) {
+    UncaughtExceptionHandler current = Thread.getDefaultUncaughtExceptionHandler();
+    if (current != handler) {
       notifier.fireTestFailure(new Failure(suiteDescription, 
           new RuntimeException("Suite replaced Thread.defaultUncaughtExceptionHandler. " +
           		"It's better not to touch it. Or at least revert it to what it was before. Current: " + 
-              Thread.getDefaultUncaughtExceptionHandler().getClass())));
+              (current == null ? "(null)" : current.getClass()))));
     }
 
     AccessController.doPrivileged(new PrivilegedAction<Void>() {

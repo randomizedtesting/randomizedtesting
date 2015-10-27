@@ -16,6 +16,9 @@ Bug Fixes
   * GH-192: Reworked json streaming to get rid of gson and permit dumping
     JVM-related diagnostics (security manager policy dumps, etc.). 
     (Dawid Weiss)
+    
+  * GH-206: Potential NPE in checking getDefaultUncaughtExceptionHandler.
+    (Dawid Weiss)
 
 Other Changes
 
