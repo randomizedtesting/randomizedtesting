@@ -77,13 +77,11 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.ChildBootstrap;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
-import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.ClassGlobFilter;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
-import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SeedUtils;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.TeeOutputStream;
@@ -865,6 +863,9 @@ public class JUnit4 extends Task {
     // Setup a class loader over test classes. This will be used for loading annotations
     // and referenced classes. This is kind of ugly, but mirroring annotation content will
     // be even worse and Description carries these.
+
+    // TODO: we should NOT be using any actual classes, annotations, etc. 
+    // from client code. Everything should be a mirror.
     testsClassLoader = new AntClassLoader(
         this.getClass().getClassLoader(),
         getProject(),
@@ -1758,6 +1759,10 @@ public class JUnit4 extends Task {
 
   /**
    * Adds a classpath source which contains the given resource.
+   * 
+   * TODO: this is extremely ugly; separate the code required to run on the
+   * forked JVM into an isolated bundle and either create it on-demand (in temp.
+   * files location?) or locate it in classpath somehow (in a portable way).
    */
   private Path addSlaveClasspath() {
     Path path = new Path(getProject());
