@@ -1,14 +1,20 @@
 package com.carrotsearch.randomizedtesting;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.*;
-import org.junit.rules.*;
-import org.junit.runner.*;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.MethodRule;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Request;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-
-import com.google.common.collect.Lists;
 
 /**
  * {@link Rule} and {@link MethodRule} support.
@@ -113,10 +119,10 @@ public class TestRules extends WithNestedTestClass {
   }
 
   private void assertSameExecution(Class<?> clazz) throws Exception {
-    order = Lists.newArrayList();
+    order = new ArrayList<>();
     JUnitCore.runClasses(clazz);
     List<String> order1 = order;
-    order = Lists.newArrayList();
+    order = new ArrayList<>();
 
     new JUnitCore().run(Request.runner(new RandomizedRunner(clazz)));
     List<String> order2 = order;

@@ -3,6 +3,7 @@ package com.carrotsearch.ant.tasks.junit4.events;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -17,7 +18,6 @@ import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
-import com.google.common.base.Charsets;
 
 public class TestRemoteEventSerialization extends RandomizedTest {
   @RunWith(RandomizedRunner.class)
@@ -71,13 +71,13 @@ public class TestRemoteEventSerialization extends RandomizedTest {
 
   @Test
   public void eventStdout() throws IOException {
-    byte [] value = randomRealisticUnicodeOfCodepointLengthBetween(0, 10).getBytes(Charsets.UTF_8);
+    byte [] value = randomRealisticUnicodeOfCodepointLengthBetween(0, 10).getBytes(StandardCharsets.UTF_8);
     checkRoundtrip(new AppendStdOutEvent(value, 0, value.length));
   }
   
   @Test
   public void eventStderr() throws IOException {
-    byte [] value = randomRealisticUnicodeOfCodepointLengthBetween(0, 10).getBytes(Charsets.UTF_8);
+    byte [] value = randomRealisticUnicodeOfCodepointLengthBetween(0, 10).getBytes(StandardCharsets.UTF_8);
     checkRoundtrip(new AppendStdErrEvent(value, 0, value.length));
   }
 

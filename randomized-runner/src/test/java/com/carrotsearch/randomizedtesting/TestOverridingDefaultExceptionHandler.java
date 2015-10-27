@@ -2,6 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.fest.assertions.api.Assertions;
 import org.junit.AfterClass;
@@ -9,10 +10,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 
-import com.google.common.collect.Lists;
-
 public class TestOverridingDefaultExceptionHandler extends WithNestedTestClass {
-  static List<String> throwableMessages = Lists.newCopyOnWriteArrayList();
+  static List<String> throwableMessages = new CopyOnWriteArrayList<>();
 
   @SuppressWarnings("serial")
   public static class TestException extends RuntimeException {

@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.contracts;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fest.assertions.api.Assertions;
@@ -17,14 +18,12 @@ import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 /**
  * Verify if annotations are inherited.
  */
 public class TestAnnotationInheritance extends WithNestedTestClass {
-  final static List<String> order = Lists.newArrayList();
+  final static List<String> order = new ArrayList<>();
   
   public static class Nested1 {
     @Rule
@@ -100,15 +99,15 @@ public class TestAnnotationInheritance extends WithNestedTestClass {
   private void assertSameExecution(Class<?> clazz) throws Exception {
     order.clear();
     JUnitCore.runClasses(clazz);
-    List<String> order1 = Lists.newArrayList(order);
+    List<String> order1 = new ArrayList<>(order);
     order.clear();
 
     new JUnitCore().run(Request.runner(new RandomizedRunner(clazz)));
-    List<String> order2 = Lists.newArrayList(order);
+    List<String> order2 = new ArrayList<>(order);
     order.clear();
 
-    String msg = "# JUnit order:\n" + Joiner.on("\n").join(order1) + "\n" +
-                 "# RR order:\n" + Joiner.on("\n").join(order2);
+    String msg = "# JUnit order:\n" + order1 + "\n" +
+                 "# RR order:\n" + order2;
     Assertions.assertThat(order2).as(msg).isEqualTo(order1);
   }
 }

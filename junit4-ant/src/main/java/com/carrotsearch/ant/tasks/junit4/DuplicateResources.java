@@ -8,8 +8,6 @@ import org.apache.tools.ant.types.DataType;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 
-import com.google.common.collect.Iterators;
-
 /**
  * Duplicate nested resources N times. Useful for running
  * suites multiple times with load balancing.
@@ -33,7 +31,11 @@ public class DuplicateResources extends DataType implements ResourceCollection {
   @SuppressWarnings("unchecked")
   @Override
   public Iterator iterator() {
-    List elements = new ArrayList();
+    return getElements().iterator();
+  }
+
+  private List<Object> getElements() {
+    List<Object> elements = new ArrayList<Object>();
     for (ResourceCollection rc : rcs) {
       for (Iterator i = rc.iterator(); i.hasNext();) {
         final Object o = i.next();
@@ -42,12 +44,12 @@ public class DuplicateResources extends DataType implements ResourceCollection {
         }
       }
     }
-    return elements.iterator();
+    return elements;
   }
 
   @Override
   public int size() {
-    return Iterators.size(iterator());
+    return getElements().size();
   }
 
   @Override

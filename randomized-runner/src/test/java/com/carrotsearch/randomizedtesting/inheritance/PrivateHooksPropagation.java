@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.inheritance;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.fest.assertions.api.Assertions;
@@ -11,11 +12,9 @@ import org.junit.runner.Request;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 public class PrivateHooksPropagation {
-  final static List<String> order = Lists.newArrayList();
+  final static List<String> order = new ArrayList<>();
 
   public static class Super extends RandomizedTest {
     @BeforeClass private   static void beforeClass1() { order.add("super.beforeclass1"); }
@@ -42,10 +41,10 @@ public class PrivateHooksPropagation {
 
   private void assertSameExecution(Class<?> clazz) throws Exception {
     new JUnitCore().run(Request.runner(new RandomizedRunner(clazz)));
-    List<String> order1 = Lists.newArrayList(order);
+    List<String> order1 = new ArrayList<>(order);
     order.clear();
 
-    String msg = "# RR order:\n" + Joiner.on("\n").join(order1);
+    String msg = "# RR order:\n" + order1;
     Assertions.assertThat(order1).as(msg).containsOnly(
         "super.beforeclass1",
         "sub.beforeclass1",

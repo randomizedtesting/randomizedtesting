@@ -12,7 +12,6 @@ import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
-import com.google.common.collect.Lists;
 
 /**
  * It should not matter for the random sequence whether {@link Timeout} is
@@ -64,7 +63,7 @@ public class Test009TimeoutOrNotIdenticalSequence extends WithNestedTestClass {
       if (previous != null) {
         Assertions.assertThat(seeds).as("Class " + c.getSimpleName()).isEqualTo(previous);
       } else {
-        previous = Lists.newArrayList(seeds); 
+        previous = new ArrayList<>(seeds); 
       }
     }
   }

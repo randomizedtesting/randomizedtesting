@@ -1,23 +1,22 @@
 package com.carrotsearch.ant.tasks.junit4;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * A collection of test suites and extracted annotation information.
  */
 final class TestsCollection {
-  List<TestClass> testClasses = Lists.newArrayList();
+  List<TestClass> testClasses = new ArrayList<>();
 
   public void add(TestClass testClass) {
     testClasses.add(testClass);
   }
 
   public void onlyUniqueSuiteNames() {
-    Map<String, TestClass> unique = Maps.newLinkedHashMap();
+    Map<String, TestClass> unique = new LinkedHashMap<>();
     for (TestClass t : testClasses) {
       unique.put(t.className, t);
     }

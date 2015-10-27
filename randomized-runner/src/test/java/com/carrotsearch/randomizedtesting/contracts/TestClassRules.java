@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.contracts;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -16,13 +17,12 @@ import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
-import com.google.common.collect.Lists;
 
 /**
  * {@link ClassRule} support.
  */
 public class TestClassRules extends WithNestedTestClass {
-  final static List<String> order = Lists.newArrayList();
+  final static List<String> order = new ArrayList<>();
   
   public static class ClassRuleSupport {
     @ClassRule
@@ -63,11 +63,11 @@ public class TestClassRules extends WithNestedTestClass {
   private void assertSameExecution(Class<?> clazz) throws Exception {
     order.clear();
     JUnitCore.runClasses(clazz);
-    List<String> order1 = Lists.newArrayList(order);
+    List<String> order1 = new ArrayList<>(order);
     order.clear();
     
     new JUnitCore().run(Request.runner(new RandomizedRunner(clazz)));
-    List<String> order2 = Lists.newArrayList(order);
+    List<String> order2 = new ArrayList<>(order);
     order.clear();
     
     Assert.assertEquals(order1, order2);

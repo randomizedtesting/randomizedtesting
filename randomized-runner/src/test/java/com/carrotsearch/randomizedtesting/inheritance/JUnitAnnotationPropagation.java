@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.inheritance;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,11 +17,9 @@ import org.junit.runner.Request;
 import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 public class JUnitAnnotationPropagation {
-  final static List<String> order = Lists.newArrayList();
+  final static List<String> order = new ArrayList<>();
 
   public static class Super {
     @Rule
@@ -79,15 +78,15 @@ public class JUnitAnnotationPropagation {
   private void assertSameExecution(Class<?> clazz) throws Exception {
     order.clear();
     JUnitCore.runClasses(clazz);
-    List<String> order1 = Lists.newArrayList(order);
+    List<String> order1 = new ArrayList<>(order);
     order.clear();
 
     new JUnitCore().run(Request.runner(new RandomizedRunner(clazz)));
-    List<String> order2 = Lists.newArrayList(order);
+    List<String> order2 = new ArrayList<>(order);
     order.clear();
 
-    String msg = "# JUnit order:\n" + Joiner.on("\n").join(order1) + "\n" +
-                 "# RR order:\n" + Joiner.on("\n").join(order2);
+    String msg = "# JUnit order:\n" + order1 + "\n" +
+                 "# RR order:\n" + order2;
 
     // Don't care about relative ordering of hook methods.
     Assertions.assertThat(noNumbers(order2)).as(msg).isEqualTo(noNumbers(order1));
@@ -99,7 +98,7 @@ public class JUnitAnnotationPropagation {
   }
 
   private List<String> noNumbers(List<String> in) {
-    List<String> out = Lists.newArrayList();
+    List<String> out = new ArrayList<>();
     for (String s : in) {
       out.add(s.replaceAll("[0-9]+$", ""));
     }

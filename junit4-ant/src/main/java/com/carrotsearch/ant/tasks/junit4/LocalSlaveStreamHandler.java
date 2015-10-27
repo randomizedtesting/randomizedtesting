@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +21,6 @@ import com.carrotsearch.ant.tasks.junit4.events.EventType;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 import com.carrotsearch.ant.tasks.junit4.events.LowLevelHeartBeatEvent;
-import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 
 /**
@@ -44,7 +44,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   
   private volatile boolean stopping;
 
-  private List<Thread> pumpers = Lists.newArrayList();
+  private List<Thread> pumpers = new ArrayList<>();
 
   private final OutputStream sysout;
   private final OutputStream syserr;

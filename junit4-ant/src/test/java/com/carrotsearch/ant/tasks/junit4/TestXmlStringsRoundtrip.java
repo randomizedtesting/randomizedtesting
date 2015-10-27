@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -19,7 +20,6 @@ import org.xml.sax.SAXParseException;
 import com.carrotsearch.ant.tasks.junit4.listeners.antxml.XmlStringTransformerAccess;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
-import com.google.common.base.Charsets;
 
 public class TestXmlStringsRoundtrip extends RandomizedTest {
   @Test
@@ -69,7 +69,7 @@ public class TestXmlStringsRoundtrip extends RandomizedTest {
       docBuilder.parse(new ByteArrayInputStream(baos.toByteArray()));
     } catch (SAXParseException e) {
       System.out.println("Input: " + Arrays.toString(chars));
-      System.out.println("XML: " + new String(baos.toByteArray(), Charsets.UTF_8));
+      System.out.println("XML: " + new String(baos.toByteArray(), StandardCharsets.UTF_8));
       throw e;
     }
   }

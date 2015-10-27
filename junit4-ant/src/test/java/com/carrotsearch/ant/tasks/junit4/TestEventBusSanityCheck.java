@@ -1,6 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -16,7 +17,6 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope.Scope;
-import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
@@ -37,7 +37,7 @@ public class TestEventBusSanityCheck extends RandomizedTest {
   @Repeat(iterations = 100)
   public void testArrayQueueReentrance() throws Exception {
     // Mockups.
-    final List<String> foo = Lists.newArrayList();
+    final List<String> foo = new ArrayList<>();
     for (int i = randomIntBetween(2, 1000); --i > 0;) {
       foo.add(randomAsciiOfLength(20));
     }
@@ -70,10 +70,10 @@ public class TestEventBusSanityCheck extends RandomizedTest {
         foo = null;
       }
     });
-    
+
     // stress.
     ExecutorService executor = Executors.newCachedThreadPool();
-    final List<Callable<Void>> slaves = Lists.newArrayList();
+    final List<Callable<Void>> slaves = new ArrayList<>();
     for (int i = 0; i < randomIntBetween(1, 10); i++) {
       slaves.add(new Callable<Void>() {
         @Override

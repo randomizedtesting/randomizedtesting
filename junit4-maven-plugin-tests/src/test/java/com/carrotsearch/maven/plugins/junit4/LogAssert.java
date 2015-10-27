@@ -3,10 +3,9 @@ package com.carrotsearch.maven.plugins.junit4;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 import org.junit.Assert;
-
-import com.google.common.io.Files;
 
 /**
  * Asserts on the content of integration tests' log file.
@@ -15,7 +14,7 @@ public class LogAssert {
   private String logFile;
 
   public LogAssert(File buildLog) throws IOException {
-    this.logFile = Files.toString(buildLog, Charset.defaultCharset());
+    this.logFile = new String(Files.readAllBytes(buildLog.toPath()), Charset.defaultCharset());
   }
 
   public void assertLogContains(String text) {

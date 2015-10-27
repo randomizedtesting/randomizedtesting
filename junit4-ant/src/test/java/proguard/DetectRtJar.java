@@ -3,12 +3,11 @@ package proguard;
 import java.io.File;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.TreeSet;
-
-import com.google.common.io.Files;
-
 
 public class DetectRtJar {
   public static void main(String[] args) throws Exception {
@@ -55,7 +54,6 @@ public class DetectRtJar {
     }
 
     System.out.println("Dumping rt.jar path to: "  + args[0]);
-    Files.write(
-        b.toString(), new File(args[0]), Charset.defaultCharset());
+    Files.write(Paths.get(args[0]), b.toString().getBytes(StandardCharsets.UTF_8));
   }
 }

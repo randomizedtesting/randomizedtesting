@@ -3,6 +3,7 @@ package com.carrotsearch.randomizedtesting;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -28,7 +29,6 @@ import org.junit.runners.model.Statement;
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
 import com.carrotsearch.randomizedtesting.rules.SystemPropertiesInvariantRule;
 import com.carrotsearch.randomizedtesting.rules.TestRuleAdapter;
-import com.google.common.collect.Lists;
 
 /**
  * Utility class to surround nested {@link RandomizedRunner} test suites.
@@ -146,7 +146,7 @@ public class WithNestedTestClass {
   /**
    * Zombie threads.
    */
-  private static List<Thread> zombies = Lists.newArrayList();
+  private static List<Thread> zombies = new ArrayList<>();
 
   private static volatile Object zombieToken;
 
