@@ -12,6 +12,8 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 
+import static org.junit.Assert.*;
+
 public class TestRandomizedTest extends RandomizedTest {
   @Test
   public void testRandomInt() {

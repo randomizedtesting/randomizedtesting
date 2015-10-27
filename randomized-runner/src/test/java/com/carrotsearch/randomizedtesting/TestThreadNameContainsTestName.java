@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 
+import static org.junit.Assert.*;
+
 /**
  * Test {@link Test#expected()}.
  */

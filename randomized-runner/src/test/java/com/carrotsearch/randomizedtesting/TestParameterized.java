@@ -14,6 +14,8 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
 
+import static org.junit.Assert.*;
+
 public class TestParameterized extends WithNestedTestClass {
   public static class Nested extends RandomizedTest {
     public Nested(@Name("value") int value, @Name("string") String v) {

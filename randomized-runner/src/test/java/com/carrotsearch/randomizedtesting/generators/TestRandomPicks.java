@@ -8,6 +8,8 @@ import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 
+import static org.junit.Assert.*;
+
 public class TestRandomPicks extends RandomizedTest {
   @Test(expected = IllegalArgumentException.class)
   public void testRandomFromEmptyCollection() {

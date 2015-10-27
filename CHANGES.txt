@@ -11,6 +11,10 @@ Changes in Backwards Compatibility
 
   * PR #178: Move to Java 1.7 and use the java NIO 2 API for temp files.
     (Simon Willnauer) 
+    
+  * GH-184: RandomizedTest should not extend Assert. This permits easier use
+    of other frameworks (like assertj) via static imports without naming conflicts.
+    (Olivier Bourgain, Dawid Weiss)
 
 New Features
 

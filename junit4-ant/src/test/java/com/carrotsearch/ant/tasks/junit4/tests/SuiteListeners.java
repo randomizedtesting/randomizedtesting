@@ -10,6 +10,8 @@ import org.junit.runner.notification.RunListener;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 
+import static org.junit.Assert.*;
+
 @Listeners({
   SuiteListeners.PrintEventListener.class
 })

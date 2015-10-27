@@ -6,6 +6,8 @@ import com.carrotsearch.randomizedtesting.*;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 
+import static org.junit.Assert.*;
+
 /**
  * In example {@link Test005RecoveringRandomSeed} we presented
  * {@link Randomness} contexts and how they are derived from a master seed. Once

@@ -20,6 +20,8 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope.Scope;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import static org.junit.Assert.*;
+
 @ThreadLeakScope(Scope.SUITE)
 @ThreadLeakLingering(linger = 1000)
 public class TestEventBusSanityCheck extends RandomizedTest {

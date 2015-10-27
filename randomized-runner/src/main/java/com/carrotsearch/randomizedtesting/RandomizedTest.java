@@ -16,7 +16,6 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.TimeZone;
 
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.runner.RunWith;
 
@@ -31,7 +30,7 @@ import com.carrotsearch.randomizedtesting.generators.*;
  * @see RandomizedContext
  */
 @RunWith(RandomizedRunner.class)
-public class RandomizedTest extends Assert {
+public class RandomizedTest {
   /**
    * The global multiplier property (Double).
    * 
@@ -257,7 +256,7 @@ public class RandomizedTest extends Assert {
    * Subfolders under {@link #globalTempDir} are created synchronously, so we don't need
    * to mangle filenames.
    */
-  private static int  tempSubFileNameCount;
+  private static int tempSubFileNameCount;
 
   /**
    * Global temporary directory created for the duration of this class's lifespan. If

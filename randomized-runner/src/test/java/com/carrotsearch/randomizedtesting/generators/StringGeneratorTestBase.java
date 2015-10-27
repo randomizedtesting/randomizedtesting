@@ -5,6 +5,8 @@ import org.junit.Test;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
+import static org.junit.Assert.*;
+
 /**
  * Base class for testing {@link StringGenerator}s.
  */

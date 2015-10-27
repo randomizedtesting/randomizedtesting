@@ -12,6 +12,7 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
+import static org.junit.Assert.*;
 
 /**
  * Check out of scope {@link Random} use.

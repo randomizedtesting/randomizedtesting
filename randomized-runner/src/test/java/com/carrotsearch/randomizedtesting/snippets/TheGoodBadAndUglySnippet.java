@@ -11,6 +11,8 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope.Scope;
 
+import static org.junit.Assert.*;
+
 public class TheGoodBadAndUglySnippet extends WithNestedTestClass {
   /**
    * This is cheating so that snippets appear to be extending RandomizedTest

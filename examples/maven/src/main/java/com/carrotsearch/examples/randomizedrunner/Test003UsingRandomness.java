@@ -7,6 +7,8 @@ import org.junit.Test;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 
+import static org.junit.Assert.*;
+
 /**
  * So far we haven't really used the {@link Random} provided by
  * {@link RandomizedRunner}. The idea behind randomized tests is to, for each

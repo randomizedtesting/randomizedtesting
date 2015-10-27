@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import java.util.concurrent.Callable;
 
+import static org.junit.Assert.*;
+
 /**
  */
 public class TestRandomizedContext extends RandomizedTest {

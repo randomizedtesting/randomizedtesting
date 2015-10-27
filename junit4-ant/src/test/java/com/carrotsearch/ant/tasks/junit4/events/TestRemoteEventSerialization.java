@@ -19,6 +19,8 @@ import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 
+import static org.junit.Assert.*;
+
 public class TestRemoteEventSerialization extends RandomizedTest {
   @RunWith(RandomizedRunner.class)
   @Nightly

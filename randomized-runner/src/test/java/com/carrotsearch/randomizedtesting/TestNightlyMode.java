@@ -10,6 +10,8 @@ import org.junit.runner.Result;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 
+import static org.junit.Assert.*;
+
 /**
  * Nightly mode checks.
  */

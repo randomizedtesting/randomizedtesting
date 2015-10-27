@@ -11,6 +11,8 @@ import org.junit.runners.Suite.SuiteClasses;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 
+import static org.junit.Assert.*;
+
 @RunWith(Suite.class)
 @SuiteClasses({
   TestCodepointSetGenerator.CodepointSetOnChars.class,
