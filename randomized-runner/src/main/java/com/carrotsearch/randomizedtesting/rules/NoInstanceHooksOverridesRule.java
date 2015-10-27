@@ -26,7 +26,6 @@ import org.junit.Before;
  * (requires manual chaining). 
  */
 public class NoInstanceHooksOverridesRule extends NoShadowingOrOverridesOnMethodsRule {
-  @SuppressWarnings("unchecked")
   public NoInstanceHooksOverridesRule() {
     super(Before.class, After.class);
   }

@@ -25,7 +25,6 @@ import org.junit.BeforeClass;
  * likely a user error. JUnit rules for shadowed hook methods are weird.
  */
 public class NoClassHooksShadowingRule extends NoShadowingOrOverridesOnMethodsRule {
-  @SuppressWarnings("unchecked")
   public NoClassHooksShadowingRule() {
     super(BeforeClass.class, AfterClass.class);
   }
