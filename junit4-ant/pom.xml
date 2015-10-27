@@ -12,6 +12,11 @@
   <artifactId>junit4-ant</artifactId>
   <name><![CDATA[RandomizedTesting JUnit4 ANT Task]]></name>
 
+  <properties>
+    <proguard.java.home>${java.home}</proguard.java.home>
+    <proguard.rt.jar>${proguard.java.home}/lib/rt.jar</proguard.rt.jar>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.ant</groupId>
@@ -188,27 +193,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>proguard.DetectRtJar</mainClass>
-          <classpathScope>test</classpathScope>
-          <arguments>
-            <argument>${project.build.directory}/rt.jar.pro</argument>
-          </arguments>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
@@ -254,14 +238,15 @@
           <addMavenDescriptor>true</addMavenDescriptor>
           <attach>true</attach>
           <appendClassifier>false</appendClassifier>
-          <!-- <attachArtifactClassifier>standalone</attachArtifactClassifier> -->
           <obfuscate>true</obfuscate>
           <outputDirectory>${project.build.directory}</outputDirectory>
           <proguardInclude>${basedir}/src/proguard/rules.pro</proguardInclude>
           <options>
-            <option>-include ${project.build.directory}/rt.jar.pro</option>
             <option>-printusage ${project.build.directory}/proguard_dead.txt</option>
           </options>
+          <libs>
+            <lib>${proguard.rt.jar}</lib>
+          </libs>
         </configuration>
         <dependencies>
           <dependency>
@@ -285,4 +270,45 @@
         </resource>
     </resources>
   </build>
+  
+  <profiles>
+    <profile>
+      <id>jdk19-compat</id>
+      <activation>
+        <jdk>[1.9,]</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>${version.maven-enforcer-plugin}</version>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>enforce-proguard-java-home</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireFilesExist>
+                      <files>
+                        <file>${proguard.rt.jar}</file>
+                      </files>
+                     <message>
+                     IMPORTANT! You must set proguard.rt.jar or proguard.java.home manually for obfuscation.
+                     </message>
+                     </requireFilesExist>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>  
 </project>
+
