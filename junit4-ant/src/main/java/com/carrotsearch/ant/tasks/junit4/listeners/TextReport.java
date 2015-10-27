@@ -205,6 +205,7 @@ public class TextReport implements AggregatedEventListener {
 
   private int totalSuites;
   private AtomicInteger suitesCompleted = new AtomicInteger();
+  private String seed;
 
   public void setShowStatusError(boolean showStatus)   { displayStatus.put(TestStatus.ERROR, showStatus); }
   public void setShowStatusFailure(boolean showStatus) { displayStatus.put(TestStatus.FAILURE, showStatus); }
@@ -319,6 +320,8 @@ public class TextReport implements AggregatedEventListener {
    */
   @Override
   public void setOuter(JUnit4 task) {
+    this.seed = task.getSeed();
+
     if (outputFile != null) {
       try {
         Files.createParentDirs(outputFile);
@@ -385,7 +388,7 @@ public class TextReport implements AggregatedEventListener {
     if (showNumFailuresAtEnd > 0 && !failedTests.isEmpty()) {
       List<Description> sublist = this.failedTests; 
       StringBuilder b = new StringBuilder();
-      b.append("\nTests with failures");
+      b.append("\nTests with failures [seed: ").append(seed).append("]");
       if (sublist.size() > showNumFailuresAtEnd) {
         sublist = sublist.subList(0, showNumFailuresAtEnd);
         b.append(" (first " + showNumFailuresAtEnd + " out of " + failedTests.size() + ")");

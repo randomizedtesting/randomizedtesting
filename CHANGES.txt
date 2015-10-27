@@ -17,6 +17,9 @@ Changes in Backwards Compatibility
     (Olivier Bourgain, Dawid Weiss)
 
 New Features
+ 
+  * GH-191: "Tests with failures" should repeat the master seed at the end 
+    of the report. (Dawid Weiss)
 
 Bug Fixes
 
