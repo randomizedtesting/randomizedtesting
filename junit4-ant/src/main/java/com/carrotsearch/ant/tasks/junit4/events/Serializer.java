@@ -1,20 +1,17 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-import java.io.*;
-import java.lang.annotation.Annotation;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayDeque;
 
-import org.junit.runner.Description;
-
-import com.carrotsearch.ant.tasks.junit4.events.json.*;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.google.common.base.Charsets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.LongSerializationPolicy;
-import com.google.gson.stream.JsonWriter;
 
 /**
  * Event serializer.
@@ -26,17 +23,18 @@ public class Serializer implements Closeable {
   private final Object lock = new Object();
 
   private Writer writer;
-  private Gson gson;
+  private JsonWriter jsonWriter;
 
-  private final ArrayDeque<IEvent> events = new ArrayDeque<IEvent>();
-  
+  private final ArrayDeque<RemoteEvent> events = new ArrayDeque<RemoteEvent>();
+
   private volatile Throwable doForcedShutdown;
   private Thread forceCloseDaemon;
 
   public Serializer(OutputStream os) throws IOException {
     this.writer = new OutputStreamWriter(os, Charsets.UTF_8);
-    this.gson = createGSon(Thread.currentThread().getContextClassLoader());
-
+    this.jsonWriter = new JsonWriter(writer);
+    this.jsonWriter.setIndent(" ");
+    this.jsonWriter.setLenient(true);
     this.forceCloseDaemon = new Thread("JUnit4-serializer-daemon") {
       {
         this.setDaemon(true);
@@ -64,7 +62,7 @@ public class Serializer implements Closeable {
     forceCloseDaemon.start();
   }
 
-  public Serializer serialize(IEvent event) throws IOException {
+  public Serializer serialize(RemoteEvent event) throws IOException {
     synchronized (lock) {
       if (writer == null) {
         throw new IOException("Serializer already closed.");
@@ -93,23 +91,19 @@ public class Serializer implements Closeable {
           throw new IOException("Serializer already closed, with " + events.size() + " events on queue.");
         }
 
-        final IEvent event = events.removeFirst();
+        final RemoteEvent event = events.removeFirst();
         try {
-          final JsonWriter jsonWriter = new JsonWriter(writer);
-          jsonWriter.setIndent("  ");
-          jsonWriter.beginArray();
-          jsonWriter.value(event.getType().name());
-          // serialization requires suppressing access checks!
-          final Gson gson = this.gson;
           AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
             @Override
             public Void run() throws Exception {
-              gson.toJson(event, event.getClass(), jsonWriter);
+              jsonWriter.beginArray();
+              jsonWriter.value(event.getType().name());
+              event.serialize(jsonWriter);
+              jsonWriter.endArray();
+              writer.write("\n\n");
               return null;
             }
           });
-          jsonWriter.endArray();
-          writer.write("\n\n");
         } catch (Throwable t) {
           // We can't do a stack bang here so any call is a risk of hitting SOE again.
           while (true) {
@@ -157,15 +151,4 @@ public class Serializer implements Closeable {
       }
     }
   }
-
-  public static Gson createGSon(ClassLoader refLoader) {
-    return new GsonBuilder()
-      .registerTypeAdapter(byte[].class, new JsonByteArrayAdapter())
-      .registerTypeHierarchyAdapter(Annotation.class, new JsonAnnotationAdapter(refLoader))
-      .registerTypeHierarchyAdapter(Class.class, new JsonClassAdapter(refLoader))
-      .registerTypeAdapter(Description.class, new JsonDescriptionAdapter())
-      .setLongSerializationPolicy(LongSerializationPolicy.DEFAULT)
-      .disableHtmlEscaping()
-      .create();
-  }  
 }

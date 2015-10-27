@@ -12,6 +12,7 @@ import org.apache.commons.io.output.WriterOutputStream;
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 
 /**
  * Static slave information.
@@ -143,5 +144,22 @@ public final class ForkedJvmInfo {
 
     stdout.flush();
     stderr.flush();
+  }
+
+  public void serialize(JsonWriter w) throws IOException {
+    w.beginObject();
+
+    w.name("id").value(id);
+    w.name("jvmName").value(getJvmName());
+    w.name("charset").value(getCharset().displayName());
+    w.name("commandLine").value(getCommandLine());
+
+    w.name("systemProperties").beginObject();
+    for (Map.Entry<String, String> e : getSystemProperties().entrySet()) {
+      w.name(e.getKey()).value(e.getValue());
+    }
+    w.endObject();
+
+    w.endObject();
   }
 }

@@ -110,7 +110,6 @@ import com.google.common.io.Closeables;
 import com.google.common.io.Closer;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
-import com.google.gson.Gson;
 
 /**
  * An ANT task to run JUnit4 tests. Differences (benefits?) compared to ANT's default JUnit task:
@@ -1768,7 +1767,6 @@ public class JUnit4 extends Task {
         SlaveMain.class.getName(),
         Strings.class.getName(),
         MethodGlobFilter.class.getName(),
-        Gson.class.getName(),
         TeeOutputStream.class.getName()
     };
 

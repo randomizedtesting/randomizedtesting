@@ -1,13 +1,19 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonReader;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonToken;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 
 /**
  * Initial message sent from the slave to the master (if forked locally).
@@ -116,5 +122,37 @@ public class BootstrapEvent extends AbstractEvent {
    */
   public String getPidString() {
     return pidString;
+  }
+  
+  @Override
+  public void serialize(JsonWriter writer) throws IOException {
+    writer.beginObject();
+    writer.name("defaultCharset").value(defaultCharset);
+    writer.name("pidString").value(pidString);
+
+    writer.name("systemProperties").beginObject();
+    for (Map.Entry<String,String> e : systemProperties.entrySet()) {
+      writer.name(e.getKey()).value(e.getValue());
+    }
+    writer.endObject();
+    
+    writer.endObject();
+  }
+
+  @Override
+  public void deserialize(JsonReader reader) throws IOException {
+    reader.beginObject();
+    defaultCharset = readStringProperty(reader, "defaultCharset");
+    pidString = readStringProperty(reader, "pidString");
+
+    expectProperty(reader, "systemProperties");
+    reader.beginObject();
+    systemProperties = new LinkedHashMap<String,String>();
+    while (reader.peek() != JsonToken.END_OBJECT) {
+      systemProperties.put(reader.nextName(), reader.nextString());
+    }
+    reader.endObject();
+
+    reader.endObject();
   }
 }

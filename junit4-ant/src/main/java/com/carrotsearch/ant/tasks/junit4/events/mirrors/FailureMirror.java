@@ -1,7 +1,5 @@
 package com.carrotsearch.ant.tasks.junit4.events.mirrors;
 
-import java.io.*;
-
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -19,14 +17,26 @@ public class FailureMirror {
   private boolean assertionViolation;
   private boolean assumptionViolation;
 
-  /** Serialized byte[] form of the original failure or null if it couldn't be serialized. */
-  private SerializableMirror<Failure> serialized;
-
   /** The test {@link Description} that caused this failure. */
   private Description description;
 
+  public FailureMirror(Description description,
+                       String message, 
+                       String trace,
+                       String throwableString,
+                       String throwableClass,
+                       boolean assertionViolation,
+                       boolean assumptionViolation) {
+    this.message = message;
+    this.trace = trace;
+    this.throwableString = throwableString;
+    this.throwableClass = throwableClass;
+    this.assertionViolation = assertionViolation;
+    this.assumptionViolation = assumptionViolation;
+    this.description = description;
+  }
+
   public FailureMirror(Failure failure) {
-    this.serialized = SerializableMirror.of(failure);
     this.message = failure.getMessage();
     this.description = failure.getDescription();
     this.trace = failure.getTrace();
@@ -52,14 +62,6 @@ public class FailureMirror {
 
   public String getTrace() {
     return trace;
-  }
-
-  /**
-   * Try to deserialize the failure's cause. Context class loader is used
-   * for class lookup. May cause side effects (class loading, static blocks, etc.) 
-   */
-  public Throwable getThrowable() throws ClassNotFoundException, IOException {
-    return serialized.getDeserialized().getException();
   }
 
   public boolean isAssumptionViolation() {

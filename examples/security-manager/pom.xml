@@ -118,6 +118,7 @@
             <!-- run in integration-test phase, so jars are "like production" for permission -->
             <phase>integration-test</phase>
             <configuration>
+              <leaveTemporary>false</leaveTemporary>
               <haltOnFailure>true</haltOnFailure>
               
               <!-- Our tests are in primary classes folder. -->
@@ -140,7 +141,7 @@
                 </report-text>
 
                 <!-- JSON report with HTML scaffolding. -->
-                <report-json file="${dir.ant.tests}/result-json/results.html" />
+                <report-json file="${project.build.directory}/result-json/results.html" />
               </listeners>
 
               <assertions>
@@ -151,7 +152,7 @@
               <jvmArgs>
                 <param>-Djava.security.manager</param>
                 <param>-Djava.security.policy==${project.basedir}/security.policy</param>
-                <!-- pass for debugging <param>-Djava.security.debug=policy</param> -->
+                <param>-Djava.security.debug=all</param>
                 <param>-Djunit.jar.url=${junit.jar.url}</param>
                 <param>-Djunit4.jar.url=${junit4.jar.url}</param>
                 <param>-Drandomizedtesting.jar.url=${randomizedtesting.jar.url}</param>

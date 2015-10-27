@@ -1,24 +1,22 @@
 package com.carrotsearch.ant.tasks.junit4.events;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonReader;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonToken;
 import com.google.common.base.Charsets;
-import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
 
 /**
  * Event deserializer.
  */
 public class Deserializer {
   private JsonReader input;
-  private Gson gson;
 
   public Deserializer(InputStream is, ClassLoader refLoader) throws IOException {
     input = new JsonReader(new InputStreamReader(is, Charsets.UTF_8));
     input.setLenient(true);
-
-    gson = Serializer.createGSon(refLoader);
   }
 
   public IEvent deserialize() throws IOException {
@@ -28,7 +26,7 @@ public class Deserializer {
 
     input.beginArray();
     EventType type = EventType.valueOf(input.nextString());
-    IEvent event = gson.fromJson(input, type.eventClass);
+    IEvent event = type.deserialize(input);
     input.endArray();
     return event;
   }

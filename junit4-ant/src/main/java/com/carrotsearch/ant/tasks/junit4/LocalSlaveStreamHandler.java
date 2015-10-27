@@ -1,6 +1,11 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.RandomAccessFile;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -9,7 +14,12 @@ import java.util.concurrent.TimeUnit;
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
 import org.apache.tools.ant.taskdefs.StreamPumper;
 
-import com.carrotsearch.ant.tasks.junit4.events.*;
+import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
+import com.carrotsearch.ant.tasks.junit4.events.Deserializer;
+import com.carrotsearch.ant.tasks.junit4.events.EventType;
+import com.carrotsearch.ant.tasks.junit4.events.IEvent;
+import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
+import com.carrotsearch.ant.tasks.junit4.events.LowLevelHeartBeatEvent;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 

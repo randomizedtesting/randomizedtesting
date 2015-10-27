@@ -42,5 +42,15 @@ public class TestExample extends Assert {
   public void test() {
     System.out.println("test");
   }
-
+  
+  @Test
+  public void noPermissions() {
+    System.err.println("checking permission system.");
+    try {
+      System.setProperty("foo", "bar");
+      fail();
+    } catch (SecurityException e) {
+      // Expected!
+    }
+  }
 }

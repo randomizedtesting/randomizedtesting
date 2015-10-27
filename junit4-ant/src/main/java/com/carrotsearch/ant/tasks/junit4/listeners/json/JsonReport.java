@@ -1,7 +1,10 @@
 package com.carrotsearch.ant.tasks.junit4.listeners.json;
 
-import java.io.*;
-import java.lang.annotation.Annotation;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Map;
@@ -10,22 +13,20 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
-import org.junit.runner.Description;
 
-import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
-import com.carrotsearch.ant.tasks.junit4.events.aggregated.*;
-import com.carrotsearch.ant.tasks.junit4.events.json.*;
-import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
+import com.carrotsearch.ant.tasks.junit4.JUnit4;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
-import com.google.common.base.*;
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonWriter;
 
 /**
  * A report listener that produces a single JSON file for all suites and tests.
@@ -36,7 +37,6 @@ public class JsonReport implements AggregatedEventListener {
 
   private String jsonpMethod;
   private JsonWriter jsonWriter;
-  private Gson gson;
 
   private String projectName;
   
@@ -131,18 +131,6 @@ public class JsonReport implements AggregatedEventListener {
         setJsonpMethod("testData");
       }
     }
-
-    final ClassLoader refLoader = Thread.currentThread().getContextClassLoader(); 
-    this.gson = new GsonBuilder()
-      .registerTypeAdapter(AggregatedSuiteResultEvent.class, new JsonAggregatedSuiteResultEventAdapter(outputStreams))
-      .registerTypeAdapter(AggregatedTestResultEvent.class, new JsonAggregatedTestResultEventAdapter())
-      .registerTypeAdapter(FailureMirror.class, new JsonFailureMirrorAdapter())
-      .registerTypeAdapter(ForkedJvmInfo.class, new JsonSlaveInfoAdapter())
-      .registerTypeHierarchyAdapter(Annotation.class, new JsonAnnotationAdapter(refLoader))
-      .registerTypeHierarchyAdapter(Class.class, new JsonClassAdapter(refLoader))
-      .registerTypeAdapter(Description.class, new JsonDescriptionAdapter())
-      .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
-      .setPrettyPrinting().create();
     
     try {
       Files.createParentDirs(targetFile);
@@ -203,16 +191,24 @@ public class JsonReport implements AggregatedEventListener {
   @Subscribe
   public void onSuiteResult(AggregatedSuiteResultEvent e) {
     try {
-      if (gson == null)
+      if (jsonWriter == null)
         return;
 
       slaves.put(e.getSlave().id, e.getSlave());
-      gson.toJson(e, e.getClass(), jsonWriter);
+      e.serialize(jsonWriter, outputStreams);
     } catch (Exception ex) {
       ex.printStackTrace();
       junit4.log("Error serializing to JSON file: "
           + Throwables.getStackTraceAsString(ex), Project.MSG_WARN);
-      gson = null;
+      if (jsonWriter != null) {
+        try {
+          jsonWriter.close();
+        } catch (Throwable ignored) {
+          // Ignore.
+        } finally {
+          jsonWriter = null;
+        }
+      }
     }
   }
 
@@ -221,14 +217,19 @@ public class JsonReport implements AggregatedEventListener {
    */
   @Subscribe
   public void onQuit(AggregatedQuitEvent e) {
-    if (gson == null)
+    if (jsonWriter == null)
       return;
 
     try {
       jsonWriter.endArray();
 
       jsonWriter.name("slaves");
-      gson.toJson(slaves, slaves.getClass(), jsonWriter);
+      jsonWriter.beginObject();
+      for (Map.Entry<Integer, ForkedJvmInfo> entry : slaves.entrySet()) {
+        jsonWriter.name(Integer.toString(entry.getKey()));
+        entry.getValue().serialize(jsonWriter);
+      }
+      jsonWriter.endObject();
 
       jsonWriter.endObject();
       jsonWriter.flush();

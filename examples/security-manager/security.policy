@@ -9,9 +9,6 @@ grant codeBase "file:${{java.ext.dirs}}/*" {
 
 //// permission for the junit4 jar
 grant codeBase "${junit4.jar.url}" {
-  // gson serialization requires this
-  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
-  permission java.lang.RuntimePermission "accessDeclaredMembers";
   // needed for io stream handling
   permission java.lang.RuntimePermission "setIO";
 };
@@ -38,7 +35,8 @@ grant codeBase "${junit.jar.url}" {
 
 //// Test class permission: we want this to be minimal!
 grant {
-  permission java.util.PropertyPermission "*", "read,write";
+  permission java.util.PropertyPermission "*", "read";
+
   //// Java7 and up.
   //// permission java.io.FilePermission "<<ALL FILES>>", "read,readlink,write,delete,execute";
   permission java.io.FilePermission "<<ALL FILES>>", "read,write,delete,execute";

@@ -11,12 +11,10 @@ import java.io.OutputStream;
 
 import com.carrotsearch.ant.tasks.junit4.events.EventType;
 import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
-import com.carrotsearch.ant.tasks.junit4.events.Serializer;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonReader;
+import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonToken;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closer;
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
 
 public class DumpStreamsFromEventStream {
   public static void main(String[] args) throws Exception {
@@ -29,8 +27,6 @@ public class DumpStreamsFromEventStream {
     } else {
       inputFile = new File(args[0]);
     }
-
-    Gson gson = Serializer.createGSon(DumpStreamsFromEventStream.class.getClassLoader());
 
     Closer closer = Closer.create();
     try {
@@ -57,11 +53,11 @@ public class DumpStreamsFromEventStream {
         EventType type = EventType.valueOf(input.nextString());
         switch (type) {
           case APPEND_STDERR:
-            ((IStreamEvent) gson.fromJson(input, type.eventClass)).copyTo(syserr);
+            IStreamEvent.class.cast(type.deserialize(input)).copyTo(syserr);
             break;
   
           case APPEND_STDOUT:
-            ((IStreamEvent) gson.fromJson(input, type.eventClass)).copyTo(sysout);
+            IStreamEvent.class.cast(type.deserialize(input)).copyTo(sysout);
             break;
   
           default:

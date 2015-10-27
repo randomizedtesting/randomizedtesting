@@ -6,5 +6,10 @@ import org.junit.runner.Description;
  * An event that carries a {@link Description}.
  */
 public interface IDescribable {
+  /*
+   * NOCOMMIT: we should just pass over the essential information about
+   * a test, without exposing Class<?> or Annotation instances (which
+   * are problematic to serialize, initialize, etc.)
+   */
   Description getDescription();
 }
