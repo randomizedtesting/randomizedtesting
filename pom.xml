@@ -24,6 +24,15 @@
     <url>http://carrotsearch.com</url>
   </organization>
 
+  <developers>
+    <developer>
+      <name>Carrot Search s.c.</name>
+      <email>info@carrotsearch.com</email>
+      <organization>Carrot Search s.c.</organization>
+      <organizationUrl>http://www.carrotsearch.com</organizationUrl>
+    </developer>
+  </developers>  
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -31,6 +40,12 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+  
+  <scm>
+    <connection>scm:git:git@github.com:randomizedtesting/randomizedtesting.git</connection>
+    <developerConnection>scm:git:git@github.com:randomizedtesting/randomizedtesting.git</developerConnection>
+    <url>git@github.com:randomizedtesting/randomizedtesting.git</url>
+  </scm>
 
   <properties>
     <minimum.maven.version>3.2.5</minimum.maven.version>
