@@ -557,7 +557,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Test execution logic for the entire suite. 
    */
   private void runSuite(final RunNotifier notifier) {
-    // TODO: this effectively means we can't run concurrent randomized runners.
+    // NOTE: this effectively means we can't run concurrent randomized runners.
     final UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
     handler = new QueueUncaughtExceptionsHandler();
     AccessController.doPrivileged(new PrivilegedAction<Void>() {
@@ -927,17 +927,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
             }
           }
 
-          // At end, throw the exception or cumulate.
-          //
-          // TODO: this is unfortunate, but we need to propagate exceptions up the stack because
-          // certain rules may choose to... ignore exceptions that happened on the @After hooks.
-          // it really should be a requirement that hook methods do _not_ throw any excepions
-          // and if they do (unchecked), these should be propagated to the notifier and not up
-          // the stack (where they can be ignored or obscured).
+          // At end, throw the exception or propagete.
           if (cumulative.size() == 1) {
             throw cumulative.get(0);
-          }
-          if (cumulative.size() > 1) {
+          } else if (cumulative.size() > 1) {
             throw new MultipleFailureException(cumulative);
           }
         }
@@ -1484,7 +1477,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private String toString(Object value) {
     if (value == null) return "null";
-    // TODO: handle arrays in a nicer way.
+    // TODO: [GH-195] handle arrays in a nicer way.
     return value.toString();
   }
 
@@ -1791,7 +1784,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         .hasArgsCount(0);
     }
 
-    // TODO: Validate @Rule fields (what are the "rules" for these anyway?)
+    // TODO: [GH-214] Validate @Rule fields (what are the "rules" for these anyway?)
   }
 
   /**

@@ -7,8 +7,8 @@ import org.junit.runner.Description;
  */
 public interface IDescribable {
   /*
-   * NOCOMMIT: we should just pass over the essential information about
-   * a test, without exposing Class<?> or Annotation instances (which
+   * TODO: [GH-211] we should just pass over the essential information about
+   * a test, without exposing Class<?>, Description or Annotation instances (which
    * are problematic to serialize, initialize, etc.)
    */
   Description getDescription();

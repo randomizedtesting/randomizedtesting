@@ -7,6 +7,9 @@ import org.junit.runner.Description;
 import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 import static com.carrotsearch.randomizedtesting.RandomizedRunner.*;
 
+// TODO: [GH-212]: how to provide better reproduce messages (especially with
+// external runner tasks that provide system properties, jvm options, etc?)
+
 /**
  * A builder for constructing "reproduce with" message.
  * 
@@ -96,7 +99,6 @@ public class ReproduceErrorMessageBuilder {
       b.append(" ");
     }
 
-    // TODO: quoting in case of spaces, quotes etc?
     b.append("-D").append(sysPropName).append("=").append(value);
     return this;
   }

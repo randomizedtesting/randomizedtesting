@@ -865,7 +865,7 @@ public class JUnit4 extends Task {
     // and referenced classes. This is kind of ugly, but mirroring annotation content will
     // be even worse and Description carries these.
 
-    // TODO: we should NOT be using any actual classes, annotations, etc. 
+    // TODO: [GH-211] we should NOT be using any actual classes, annotations, etc. 
     // from client code. Everything should be a mirror.
     testsClassLoader = new AntClassLoader(
         this.getClass().getClassLoader(),
@@ -1098,8 +1098,6 @@ public class JUnit4 extends Task {
         throw new BuildException("Failed to create temporary directory: " + tempDir.getAbsolutePath());
       }
     }
-    
-    // TODO: we should probably add validation for the entire set of attrs...
   }
 
   /**
@@ -1761,7 +1759,7 @@ public class JUnit4 extends Task {
   /**
    * Adds a classpath source which contains the given resource.
    * 
-   * TODO: this is extremely ugly; separate the code required to run on the
+   * TODO: [GH-213] this is extremely ugly; separate the code required to run on the
    * forked JVM into an isolated bundle and either create it on-demand (in temp.
    * files location?) or locate it in classpath somehow (in a portable way).
    */

@@ -389,8 +389,8 @@ public class SlaveMain {
    * here we're neck deep in sh*t anyway (OOMs all over).
    */
   private static void tryWaitingForGC() {
-    // TODO: we could try to preallocate memory mx bean and count collections.
-    // there is no guarantee it doesn't allocate stuff too though. 
+    // We could try to preallocate memory mx bean and count collections...
+    // there is no guarantee it doesn't allocate stuff too though.
     final long timeout = System.currentTimeMillis() + 2000;
     while (System.currentTimeMillis() < timeout) {
       System.gc(); 

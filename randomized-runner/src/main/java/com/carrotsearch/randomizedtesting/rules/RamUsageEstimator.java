@@ -631,7 +631,7 @@ final class RamUsageEstimator {
           f.getDeclaringClass().getName() + "#" + f.getName(), cause);
       }
     } else {
-      // TODO: No alignments based on field type/ subclass fields alignments?
+      // No alignments based on field type/ subclass fields alignments?
       return sizeSoFar + fsize;
     }
   }

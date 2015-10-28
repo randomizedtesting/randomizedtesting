@@ -21,7 +21,7 @@ final class Rants {
   }
   
   /**
-   * TODO: this if freaking dumb... there's absolutely no way to carry test class/ test name
+   * This if freaking dumb... there's absolutely no way to carry test class/ test name
    * separately from the display name, so we can't easily include seed info on the test
    * case. If we do, Eclipse complains it cannot find the target class/ test name. If we don't,
    * Eclipse's JUnit runner gets confused and doesn't show test case execution properly.
@@ -36,13 +36,13 @@ final class Rants {
   public static RantType RANT_1 = RantType.DAMN_TERRIBLE;
   
   /**
-   * TODO: this if weird default assumption methods (and constructors in AssumptionViolatedException)
+   * This if weird default assumption methods (and constructors in AssumptionViolatedException)
    * do not allow specifying a custom message? 
    */
   public static RantType RANT_2 = RantType.ANNOYANCE;
   
   /**
-   * TODO: Why is failed assumption propagated as a Failure? This is weird an unnatural.
+   * Why is failed assumption propagated as a Failure? This is weird an unnatural.
    */
   public static RantType RANT_3 = RantType.DAMN_TERRIBLE;
 
