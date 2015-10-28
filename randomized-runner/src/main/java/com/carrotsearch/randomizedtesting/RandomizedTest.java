@@ -4,7 +4,11 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.charset.Charset;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -21,7 +25,10 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
-import com.carrotsearch.randomizedtesting.generators.*;
+import com.carrotsearch.randomizedtesting.generators.RandomInts;
+import com.carrotsearch.randomizedtesting.generators.RandomPicks;
+import com.carrotsearch.randomizedtesting.generators.RandomStrings;
+import com.carrotsearch.randomizedtesting.generators.StringGenerator;
 
 /**
  * Common scaffolding for subclassing randomized tests.
@@ -197,7 +204,6 @@ public class RandomizedTest {
    * <p>The default multiplier value is 1.</p>
    *
    * @see #SYSPROP_MULTIPLIER
-   * @see #DEFAULT_MULTIPLIER
    */
   public static double multiplier() {
     checkContext();
@@ -286,18 +292,13 @@ public class RandomizedTest {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
               try {
-                forceDeleteRecursively(globalTempDir);
+                rmDir(globalTempDir);
               } catch (IOException e) {
                 // Not much else to do but to log and quit.
-                System.err.println("Error while deleting temporary folder '" +
-                    globalTempDir.toAbsolutePath() +
-                		"': " + e.getMessage());
+                System.err.println("Could not completely delete temporary folder: " +
+                    globalTempDir.toAbsolutePath() + ". Cause: ");
+                e.printStackTrace(System.err);
               }
-
-              if (Files.exists(globalTempDir)) {
-                System.err.println("Could not delete temporary folder entirely: "
-                    + globalTempDir.toAbsolutePath());
-              }                
             }
           });
       }
@@ -375,37 +376,40 @@ public class RandomizedTest {
   }
 
   /**
-   * Recursively delete a folder (or file). This attempts to delete everything that
-   * can be deleted, but possibly can leave things behind if files are locked for example.
+   * Recursively delete a folder. Throws an exception if any failure occurs.
+   * 
+   * @param path Path to the folder to be (recursively) deleted. The folder must
+   *             exist.
    */
-  static void forceDeleteRecursively(Path fileOrDir) throws IOException {
-    if (Files.isDirectory(fileOrDir)) {
-      Files.walkFileTree(fileOrDir, new FileVisitor<Path>() {
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-          return FileVisitResult.CONTINUE;
-        }
+  public static void rmDir(Path path) throws IOException {
+    if (!Files.isDirectory(path)) {
+      throw new IOException("Not a folder: " + path);
+    }
 
+    try {
+      Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
         @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException impossible) throws IOException {
-          assert impossible == null;
+        public FileVisitResult postVisitDirectory(Path dir, IOException iterationError) throws IOException {
+          if (iterationError != null) {
+            throw iterationError;
+          }
           Files.delete(dir);
           return FileVisitResult.CONTINUE;
         }
-
+  
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
           Files.delete(file);
           return FileVisitResult.CONTINUE;
         }
-
+  
         @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-          return FileVisitResult.CONTINUE;
+        public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
+          throw e;
         }
       });
-    } else {
-      Files.delete(fileOrDir);
+    } catch (IOException e) {
+      throw new IOException("Could not remove directory: " + path, e);
     }
   }
 

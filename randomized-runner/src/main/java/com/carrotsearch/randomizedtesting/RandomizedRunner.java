@@ -81,6 +81,7 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies.Consequence;
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
 
 /**
@@ -1896,7 +1897,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   /**
    * Returns true if any previous (or current) suite marked with 
-   * {@link ThreadLeakZombies.Consequence#IGNORE_REMAINING_TESTS} has
+   * {@link Consequence#IGNORE_REMAINING_TESTS} has
    * left zombie threads.
    */
   public static boolean hasZombieThreads() {

@@ -82,6 +82,7 @@ import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.ClassGlobFilter;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
+import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SeedUtils;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.TeeOutputStream;
@@ -816,7 +817,7 @@ public class JUnit4 extends Task {
   /**
    * Sets the heartbeat used to detect inactive/ hung forked tests (JVMs) to the given
    * number of seconds. The heartbeat detects
-   * no-event intervals and will report them to listeners. Notably, {@link TextReport} report will
+   * no-event intervals and will report them to listeners. Notably, text report report will
    * emit heartbeat information (to a file or console).
    * 
    * <p>Setting the heartbeat to zero means no detection.

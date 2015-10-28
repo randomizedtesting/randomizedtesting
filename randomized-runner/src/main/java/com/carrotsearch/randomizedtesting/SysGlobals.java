@@ -171,16 +171,12 @@ public final class SysGlobals {
   /**
    * If there's a runaway thread, how many times do we try to interrupt and
    * then kill it before we give up? Runaway threads may affect other tests (bad idea).
-   *  
-   * @see #SYSPROP_KILLWAIT
    */
   public static String SYSPROP_KILLATTEMPTS() { return singleton().SYSPROP_KILLATTEMPTS; }
 
   /**
    * If there's a runaway thread, how long should we wait between iterations of 
    * putting a silver bullet through its heart?
-   * 
-   * @see #SYSPROP_KILLATTEMPTS
    */
   public static String SYSPROP_KILLWAIT() { return singleton().SYSPROP_KILLWAIT; }
 
@@ -220,7 +216,7 @@ public final class SysGlobals {
 
   /**
    * Prefix a given property name with a common prefix. The prefix itself can be overridden
-   * using {@link #SYSPROP_PREFIX}. This method initializes static singleton property
+   * using <code>SYSPROP_PREFIX</code>. This method initializes static singleton property
    * names so it shouldn't be called on class initialization anywhere.
    */
   public static String prefixProperty(String propertyName) {

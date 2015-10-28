@@ -18,9 +18,10 @@ public class TempPathResource implements Closeable {
   }
 
   public void close() throws IOException {
-    RandomizedTest.forceDeleteRecursively(location);
-    if (Files.exists(location))
-      throw new IOException("Could not remove path: "
-          + location.toAbsolutePath());
+    if (Files.isDirectory(location)) {
+      RandomizedTest.rmDir(location);
+    } else {
+      Files.deleteIfExists(location);
+    }
   }
 }

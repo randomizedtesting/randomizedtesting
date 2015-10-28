@@ -41,9 +41,7 @@ public final class Randomness {
   }
 
   /**
-   * Invalidate the underling {@link #random}.
-   * 
-   * @see AssertingRandom#valid
+   * Invalidate the underling randomness.
    */
   void destroy() {
     this.random.destroy();
