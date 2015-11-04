@@ -23,6 +23,8 @@ public class TestJ9SysThreads extends WithNestedTestClass {
   public static class Nested extends RandomizedTest {
     @Test
     public void testMethod1() {
+      assumeRunningNested();
+
       for (MemoryPoolMXBean mbean : ManagementFactory.getMemoryPoolMXBeans()) {
         mbean.getUsage();
         sysout.println(mbean.getClass().getName());

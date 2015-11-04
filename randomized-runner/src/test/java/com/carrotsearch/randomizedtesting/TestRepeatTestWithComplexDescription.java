@@ -49,6 +49,8 @@ public class TestRepeatTestWithComplexDescription extends WithNestedTestClass {
 
     @ParametersFactory()
     public static Iterable<Object[]> parameters() {
+      assumeRunningNested();
+
       List<Object[]> params = new ArrayList<Object[]>();
       params.add($(""));
       params.add($("a/b/c"));

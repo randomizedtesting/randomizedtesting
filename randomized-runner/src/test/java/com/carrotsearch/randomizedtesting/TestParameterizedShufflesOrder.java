@@ -15,7 +15,7 @@ import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 public class TestParameterizedShufflesOrder extends WithNestedTestClass {
   static StringBuilder buf;
 
-  public static class Base extends RandomizedTest {
+  public static abstract class Base extends RandomizedTest {
     private final int value;
 
     public Base(int value) {
@@ -50,6 +50,8 @@ public class TestParameterizedShufflesOrder extends WithNestedTestClass {
 
     @ParametersFactory()
     public static Iterable<Object[]> parameters() {
+      assumeRunningNested();
+
       List<Object[]> params = new ArrayList<Object[]>();
       for (int i = 0; i < 10; i++) {
         params.add($(i));

@@ -58,6 +58,7 @@ import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
+import com.carrotsearch.randomizedtesting.ClassModel.MethodModel;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Name;
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
@@ -1522,10 +1523,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
 
   @SuppressWarnings("unchecked")
-  public ArrayList<Object[]> collectFactoryParameters() {
-    ArrayList<Object[]> parameters = new ArrayList<Object[]>();
+  public List<Object[]> collectFactoryParameters() {
+    Map<Method,MethodModel> parameterFactoryMethods = classModel.getAnnotatedLeafMethods(ParametersFactory.class);
+    if (parameterFactoryMethods.isEmpty()) {
+      return Arrays.<Object[]> asList(new Object [] {});  
+    }
 
-    for (Method m : classModel.getAnnotatedLeafMethods(ParametersFactory.class).keySet()) {
+    ArrayList<Object[]> parameters = new ArrayList<Object[]>();
+    for (Method m : parameterFactoryMethods.keySet()) {
       Validation.checkThat(m)
         .isStatic()
         .isPublic();

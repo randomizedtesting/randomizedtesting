@@ -25,7 +25,7 @@ import com.carrotsearch.randomizedtesting.annotations.TestCaseOrdering;
  */
 @TestCaseOrdering(TestCaseOrdering.AlphabeticOrder.class)
 public class Test016TestCaseOrderingExtreme extends RandomizedTest {
-  private String p;
+  public String p;
 
   public Test016TestCaseOrderingExtreme(@Name("p") String p) {
     this.p = p;
