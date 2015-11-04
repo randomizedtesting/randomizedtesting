@@ -1,11 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_APPEND_SEED;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_ITERATIONS;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_RANDOM_SEED;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_STACKFILTERING;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTCLASS;
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_TESTMETHOD;
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.annotation.Annotation;
@@ -36,8 +31,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-
-import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -72,6 +65,7 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.annotations.TestCaseOrdering;
 import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakFilters;
@@ -79,10 +73,12 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeakGroup;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies;
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies.Consequence;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies.Consequence;
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
+
+import junit.framework.Assert;
 
 /**
  * A {@link Runner} implementation for running randomized test cases with 
@@ -1325,34 +1321,25 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // Perform candidate method validation.
     validateTestMethods(testMethods);
 
-    // Shuffle at real test-case level, don't shuffle iterations or explicit @Seeds order.
+    // Random (but consistent) shuffle.
     Collections.shuffle(testMethods, new Random(runnerRandomness.getSeed()));
 
     final Constructor<?> constructor = suiteClass.getConstructors()[0];
 
-    // Collect parameters.
-    ArrayList<Object[]> parameters = new ArrayList<Object[]>();
-    if (constructor.getParameterTypes().length == 0) {
-      parameters.add(new Object[] {});
-    } else {
-      try {
-        parameters = collectFactoryParameters();
-      } catch (AssumptionViolatedException e) {
-        return Collections.emptyList();
-      }
+    // Collect constructor parameters, if any.
+    List<Object[]> parameters;
+    try {
+      parameters = collectFactoryParameters();
+    } catch (AssumptionViolatedException e) {
+      /*
+       * On a violated assumption from the factory method 
+       * we skip all the tests.
+       */
+      return Collections.emptyList();
     }
 
     // TODO: The loops and conditions below are truly horrible...
     List<TestCandidate> allTests = new ArrayList<TestCandidate>();
-    Map<Method, Description> subNodes = new HashMap<Method, Description>();
-
-    if (parameters.size() > 1) {
-      for (Method method : testMethods) {
-        Description tmp = Description.createSuiteDescription(method.getName());
-        subNodes.put(method, tmp);
-        suiteDescription.addChild(tmp);
-      }
-    }
 
     // Collect annotated parameter names. We could use .class file parsing to get at
     // the local variables table, but this seems like an overkill.
@@ -1371,33 +1358,53 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
 
-    for (Object [] params : parameters) {
-      final LinkedHashMap<String, Object> parameterizedArgs = new LinkedHashMap<String, Object>();
-      for (int i = 0; i < params.length; i++) {
-        parameterizedArgs.put(
-            i < parameterNames.length ? parameterNames[i] : "p" + i + "=", params[i]);
+    // Collect test method-parameters pairs.
+    List<TestMethodExecution> testCases = new ArrayList<>();
+    for (Method m : testMethods) {
+      for (Object[] params : parameters) {
+        testCases.add(new TestMethodExecution(m, params));
       }
+    }
 
-      for (Method method : testMethods) {
-        final List<TestCandidate> methodTests = 
-            collectCandidatesForMethod(constructor, params, method, parameterizedArgs);
-        final Description parent;
+    // Test case ordering. Shuffle only real test cases, don't allow shuffling
+    // or changing the order of reiterations or explicit @Seed annotations that
+    // multiply a given test.
+    TestCaseOrdering methodOrder = suiteClass.getAnnotation(TestCaseOrdering.class);
+    if (methodOrder != null) {
+      try {
+        Collections.sort(testCases, methodOrder.value().newInstance());
+      } catch (InstantiationException | IllegalAccessException e) {
+        throw new RuntimeException("Could not sort test methods.", e);
+      }
+    }
 
-        Description tmp = subNodes.get(method);
-        if (tmp == null && methodTests.size() > 1) {
-          tmp = Description.createSuiteDescription(method.getName()); 
-          subNodes.put(method, tmp);
-          suiteDescription.addChild(tmp);
-        } else {
-          if (tmp == null)
-            tmp = suiteDescription;
+    // Collect all variants of execution for a single method/ parameters pair.
+    Map<Method, List<TestCandidate>> sameMethodVariants = new LinkedHashMap<Method, List<TestCandidate>>();
+    for (TestMethodExecution testCase : testCases) {
+      List<TestCandidate> variants = collectCandidatesForMethod(constructor, parameterNames, testCase);
+      allTests.addAll(variants);
+
+      List<TestCandidate> existing = sameMethodVariants.get(testCase.method);
+      if (existing == null) {
+        existing = new ArrayList<>(variants);
+        sameMethodVariants.put(testCase.method, existing);
+      } else {
+        existing.addAll(variants);
+      }
+    }
+
+    // Rearrange JUnit Description into a hierarchy if a given method
+    // has more than one variant (due to multiple repetitions, parameters or seeds).
+    for (Map.Entry<Method, List<TestCandidate>> e : sameMethodVariants.entrySet()) {
+      List<TestCandidate> candidates = e.getValue();
+      if (candidates.size() > 1) {
+        Description methodParent = Description.createSuiteDescription(e.getKey().getName());
+        suiteDescription.addChild(methodParent);
+        for (TestCandidate candidate : candidates) {
+          methodParent.addChild(candidate.description);
         }
-        parent = tmp;
-
-        for (TestCandidate c : methodTests) {
-          parent.addChild(c.description);
-          allTests.add(c);
-        }
+      } else {
+        suiteDescription.addChild(candidates.iterator().next().description);
       }
     }
 
@@ -1405,11 +1412,37 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
+   * Helper tuple (Method, instance params).
+   */
+  static private class TestMethodExecution implements TestMethodAndParams {
+    final Object [] params;
+    final List<Object> paramsWrapper;
+    final Method method;
+
+    public TestMethodExecution(Method m, Object[] params) {
+      this.method = m;
+      this.params = params;
+      this.paramsWrapper = Collections.unmodifiableList(Arrays.asList(params));
+    }
+
+    @Override
+    public Method getTestMethod() {
+      return method;
+    }
+
+    @Override
+    public List<Object> getInstanceArguments() {
+      return paramsWrapper;
+    }
+  }
+  
+  /**
    * Collect test candidates for a single method and the given seed.
    */
   private List<TestCandidate> collectCandidatesForMethod(
-      final Constructor<?> constructor, final Object[] params, Method method, 
-      LinkedHashMap<String, Object> parameterizedArgs) {
+      final Constructor<?> constructor, String [] parameterNames, TestMethodExecution testCase) {
+    final Method method = testCase.method;
+    final Object[] params = testCase.params;
     final List<TestCandidate> candidates = new ArrayList<TestCandidate>();
     final boolean fixedSeed = isConstantSeedForAllIterations(method);
     final int methodIterations = determineMethodIterationCount(method);
@@ -1425,15 +1458,18 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (hasRepetitions) { 
           args.put("#", repetition);
         }
-        args.putAll(parameterizedArgs);
+        for (int x = 0; x < params.length; x++) {
+          args.put(x < parameterNames.length ? parameterNames[x] : "p" + x + "=", params[x]);
+        }
         if (hasRepetitions || appendSeedParameter) {
           args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed)));
         }
+
         Description description = Description.createSuiteDescription(
             String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()),
             method.getAnnotations());
 
-        // Create an instance and delay instantiation exception if not possible.
+        // Create an instance and delay instantiation exception if possible.
         candidates.add(new TestCandidate(method, thisSeed, description, new InstanceProvider() {
           @Override
           public Object newInstance() throws Throwable {
@@ -1484,7 +1520,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Collect parameters from factory methods.
    */
-  @SuppressWarnings("all")
+
+  @SuppressWarnings("unchecked")
   public ArrayList<Object[]> collectFactoryParameters() {
     ArrayList<Object[]> parameters = new ArrayList<Object[]>();
 
@@ -1510,10 +1547,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
         Rethrow.rethrow(e.getCause());
       } catch (Throwable t) {
         throw new RuntimeException("Error collecting parameters from: " + m, t);
-      }
-
-      if (result.isEmpty()) {
-        throw new InternalAssumptionViolatedException("Parameters set should not be empty. Ignoring tests.");
       }
 
       if (pfAnnotation.shuffle()) {

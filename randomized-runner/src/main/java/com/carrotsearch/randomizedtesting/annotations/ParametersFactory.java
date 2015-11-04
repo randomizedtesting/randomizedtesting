@@ -20,8 +20,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 public @interface ParametersFactory {
   /**
-   * Shuffles the order of tests generated for the 
-   * parameter set.
+   * Shuffles the order of tests generated for the parameter set.
    */
   boolean shuffle() default true;
 }

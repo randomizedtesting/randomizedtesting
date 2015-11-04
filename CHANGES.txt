@@ -11,6 +11,9 @@ Changes in Backwards Compatibility
 
 New Features
 
+  * GH-194: Flexible test case ordering via the new annotation 
+    (TestCaseOrdering). (Dawid Weiss)
+
 Bug Fixes
 
 Other Changes
