@@ -1339,8 +1339,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
       return Collections.emptyList();
     }
 
-    // TODO: The loops and conditions below are truly horrible...
-    List<TestCandidate> allTests = new ArrayList<TestCandidate>();
 
     // Collect annotated parameter names. We could use .class file parsing to get at
     // the local variables table, but this seems like an overkill.
@@ -1380,6 +1378,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Collect all variants of execution for a single method/ parameters pair.
+    List<TestCandidate> allTests = new ArrayList<TestCandidate>();
     Map<Method, List<TestCandidate>> sameMethodVariants = new LinkedHashMap<Method, List<TestCandidate>>();
     for (TestMethodExecution testCase : testCases) {
       List<TestCandidate> variants = collectCandidatesForMethod(constructor, parameterNames, testCase);
@@ -1450,15 +1449,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final long[] seeds = determineMethodSeeds(method);
     final boolean hasRepetitions = (methodIterations > 1 || seeds.length > 1);
 
-    int repetition = 0;
+    // TODO: fix description uniqueness here.
     for (final long testSeed : seeds) {
-      for (int i = 0; i < methodIterations; i++, repetition++) {
+      for (int i = 0; i < methodIterations; i++) {
         final long thisSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
 
         final LinkedHashMap<String, Object> args = new LinkedHashMap<String, Object>();
-        if (hasRepetitions) { 
-          args.put("#", repetition);
-        }
         for (int x = 0; x < params.length; x++) {
           args.put(x < parameterNames.length ? parameterNames[x] : "p" + x + "=", params[x]);
         }

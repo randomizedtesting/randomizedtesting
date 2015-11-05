@@ -32,7 +32,8 @@ public class Test016TestCaseOrderingExtreme extends RandomizedTest {
   }
 
   @Test
-  public void testA() {}
+  public void testA() {
+  }
 
   @Test
   @Repeat(iterations = 3)
@@ -51,7 +52,7 @@ public class Test016TestCaseOrderingExtreme extends RandomizedTest {
   public static Iterable<Object[]> parameters() {
     return Arrays.asList(
         $("p1"),
-        $("p3"),
-        $("p2"));
+        $("p1"),
+        $("p1"));
   }
 }
