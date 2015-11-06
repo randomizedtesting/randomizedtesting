@@ -1,13 +1,18 @@
 package com.carrotsearch.examples.randomizedrunner;
 
 import java.util.Arrays;
+import java.util.Formatter;
 
 import org.junit.Test;
 import org.junit.runners.Parameterized;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
-import com.carrotsearch.randomizedtesting.annotations.*;
+import com.carrotsearch.randomizedtesting.annotations.Name;
+import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Seeds;
 
 /**
  * Parameterized tests are tricky. JUnit's {@link Parameterized} runner is
@@ -42,6 +47,9 @@ import com.carrotsearch.randomizedtesting.annotations.*;
  * 
  * <p>{@link ParametersFactory} can be combined with other annotations such as 
  * {@link Repeat} or {@link Seeds} as shown in {@link #paramsWithRepeatAndSeeds()}.
+ * 
+ * <p>Note that {@link ParametersFactory#argumentFormatting()} permits custom 
+ * test case naming, see the example factory in this class.
  */
 public class Test007ParameterizedTests extends RandomizedTest {
   private int value;
@@ -59,7 +67,7 @@ public class Test007ParameterizedTests extends RandomizedTest {
     System.out.println(value + " " + string + " "
         + getContext().getRandomness());
   }
-  
+
   @Seeds({@Seed("deadbeef"), @Seed("cafebabe")})
   @Test
   @Repeat(iterations = 2, useConstantSeed = true)
@@ -74,4 +82,16 @@ public class Test007ParameterizedTests extends RandomizedTest {
         $(1, "abc"), 
         $(2, "def")));
   }
+  
+  /**
+   * A factory with custom test name formatting. Note parameters
+   * are reversed and referenced from the formatting string via
+   * {@link Formatter} positional order syntax
+   */
+  @ParametersFactory(argumentFormatting = "param2:%2$s param1:%1$04d")
+  public static Iterable<Object[]> parametersWithCustomName() {
+    return Arrays.asList($$(
+        $(3, "foo"), 
+        $(4, "bar")));
+  }  
 }

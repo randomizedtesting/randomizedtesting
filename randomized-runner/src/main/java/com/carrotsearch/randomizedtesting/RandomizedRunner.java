@@ -23,6 +23,7 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -1325,45 +1326,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // Random (but consistent) shuffle.
     Collections.shuffle(testMethods, new Random(runnerRandomness.getSeed()));
 
-    final Constructor<?> constructor = suiteClass.getConstructors()[0];
-
-    // Collect constructor parameters, if any.
-    List<Object[]> parameters;
-    try {
-      parameters = collectFactoryParameters();
-    } catch (AssumptionViolatedException e) {
-      /*
-       * On a violated assumption from the factory method 
-       * we skip all the tests.
-       */
-      return Collections.emptyList();
+    Constructor<?>[] constructors = suiteClass.getConstructors();
+    if (constructors.length != 1) {
+      throw new RuntimeException("There must be exactly one constructor: " + constructors.length);
     }
-
-
-    // Collect annotated parameter names. We could use .class file parsing to get at
-    // the local variables table, but this seems like an overkill.
-    String [] parameterNames = new String [constructor.getParameterTypes().length];
-    Annotation [][] anns = constructor.getParameterAnnotations();
-    for (int i = 0; i < parameterNames.length; i++) {
-      for (Annotation ann : anns[i]) {
-        if (ann != null && ann.annotationType().equals(Name.class)) {
-          parameterNames[i] = ((Name) ann).value() + "=";
-          break;
-        }
-      }
-
-      if (parameterNames[i] == null) {
-        parameterNames[i] = "p" + i + "=";
-      }
-    }
+    final Constructor<?> constructor = constructors[0];
 
     // Collect test method-parameters pairs.
-    List<TestMethodExecution> testCases = new ArrayList<>();
-    for (Method m : testMethods) {
-      for (Object[] params : parameters) {
-        testCases.add(new TestMethodExecution(m, params));
-      }
-    }
+    List<TestMethodExecution> testCases = collectMethodExecutions(constructor, testMethods);
 
     // Test case ordering. Shuffle only real test cases, don't allow shuffling
     // or changing the order of reiterations or explicit @Seed annotations that
@@ -1378,10 +1348,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     // Collect all variants of execution for a single method/ parameters pair.
+    Map<String, Integer> descriptionRepetitions = new HashMap<>();
     List<TestCandidate> allTests = new ArrayList<TestCandidate>();
     Map<Method, List<TestCandidate>> sameMethodVariants = new LinkedHashMap<Method, List<TestCandidate>>();
     for (TestMethodExecution testCase : testCases) {
-      List<TestCandidate> variants = collectCandidatesForMethod(constructor, parameterNames, testCase);
+      List<TestCandidate> variants = collectCandidatesForMethod(descriptionRepetitions, constructor, testCase);
       allTests.addAll(variants);
 
       List<TestCandidate> existing = sameMethodVariants.get(testCase.method);
@@ -1418,11 +1389,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final Object [] params;
     final List<Object> paramsWrapper;
     final Method method;
+    final String argFormattingTemplate;
 
-    public TestMethodExecution(Method m, Object[] params) {
+    public TestMethodExecution(Method m, String argFormattingTemplate, Object[] params) {
       this.method = m;
       this.params = params;
       this.paramsWrapper = Collections.unmodifiableList(Arrays.asList(params));
+      this.argFormattingTemplate = argFormattingTemplate;
     }
 
     @Override
@@ -1440,30 +1413,43 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Collect test candidates for a single method and the given seed.
    */
   private List<TestCandidate> collectCandidatesForMethod(
-      final Constructor<?> constructor, String [] parameterNames, TestMethodExecution testCase) {
+      Map<String,Integer> descriptionRepetitions, final Constructor<?> constructor, TestMethodExecution testCase) {
     final Method method = testCase.method;
     final Object[] params = testCase.params;
-    final List<TestCandidate> candidates = new ArrayList<TestCandidate>();
     final boolean fixedSeed = isConstantSeedForAllIterations(method);
     final int methodIterations = determineMethodIterationCount(method);
     final long[] seeds = determineMethodSeeds(method);
-    final boolean hasRepetitions = (methodIterations > 1 || seeds.length > 1);
 
-    // TODO: fix description uniqueness here.
+    final List<TestCandidate> candidates = new ArrayList<TestCandidate>();
+
+    String argFormattingTemplate = testCase.argFormattingTemplate;
+    if (methodIterations > 1 || seeds.length > 1 || appendSeedParameter) {
+      final int seedParamIndex = params.length + 1;
+      argFormattingTemplate += " seed=%" + seedParamIndex + "$s";
+    }
+
     for (final long testSeed : seeds) {
       for (int i = 0; i < methodIterations; i++) {
-        final long thisSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));        
+        final long thisSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));
 
-        final LinkedHashMap<String, Object> args = new LinkedHashMap<String, Object>();
-        for (int x = 0; x < params.length; x++) {
-          args.put(x < parameterNames.length ? parameterNames[x] : "p" + x + "=", params[x]);
+        // Format constructor arguments.
+        Object [] args = Arrays.copyOf(testCase.params, testCase.params.length + 1);
+        args[args.length - 1] = SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed));
+        String formattedArguments = String.format(Locale.ROOT, argFormattingTemplate, args);
+
+        String key = method.getName() + "::" + formattedArguments;
+        int cnt = 1 + zeroForNull(descriptionRepetitions.get(key));
+        descriptionRepetitions.put(key, cnt);
+        if (cnt > 1) {
+          formattedArguments += " #" + cnt;
         }
-        if (hasRepetitions || appendSeedParameter) {
-          args.put("seed=", SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed)));
+
+        if (!formattedArguments.trim().isEmpty()) {
+          formattedArguments = " {" + formattedArguments + "}";
         }
 
         Description description = Description.createSuiteDescription(
-            String.format("%s%s(%s)", method.getName(), formatMethodArgs(args), suiteClass.getName()),
+            String.format("%s%s(%s)", method.getName(), formattedArguments, suiteClass.getName()),
             method.getAnnotations());
 
         // Create an instance and delay instantiation exception if possible.
@@ -1491,73 +1477,100 @@ public final class RandomizedRunner extends Runner implements Filterable {
     return candidates;
   }
 
-  private String formatMethodArgs(LinkedHashMap<String, Object> args) {
-    if (args.isEmpty()) return "";
-
-    StringBuilder b = new StringBuilder();
-    b.append(" {");
-    for (Iterator<Map.Entry<String, Object>> i = args.entrySet().iterator(); i.hasNext();) {
-      Map.Entry<String, Object> e = i.next();
-      b.append(e.getKey()).append(toString(e.getValue()));
-      if (i.hasNext()) b.append(" ");
-    }
-    b.append("}");
-    return b.toString();
+  /** Replace null with zero. */
+  private static int zeroForNull(Integer v) {
+    return v == null ? 0 : v;
   }
 
   /**
-   * Convert value to a stringified form for naming parameterized methods.
+   * Collect test method executions from list of test methods and
+   * potentially parameters from parameter factory methods. 
    */
-  private String toString(Object value) {
-    if (value == null) return "null";
-    // TODO: [GH-195] handle arrays in a nicer way.
-    return value.toString();
-  }
+  public List<TestMethodExecution> collectMethodExecutions(Constructor<?> constructor, List<Method> testMethods) {
+    final List<TestMethodExecution> testCases = new ArrayList<>();
+    String argFormattingTemplate = createDefaultArgumentFormatting(constructor);
+    final Map<Method, MethodModel> factoryMethods = classModel.getAnnotatedLeafMethods(ParametersFactory.class);
 
-  /**
-   * Collect parameters from factory methods.
-   */
-
-  @SuppressWarnings("unchecked")
-  public List<Object[]> collectFactoryParameters() {
-    Map<Method,MethodModel> parameterFactoryMethods = classModel.getAnnotatedLeafMethods(ParametersFactory.class);
-    if (parameterFactoryMethods.isEmpty()) {
-      return Arrays.<Object[]> asList(new Object [] {});  
-    }
-
-    ArrayList<Object[]> parameters = new ArrayList<Object[]>();
-    for (Method m : parameterFactoryMethods.keySet()) {
-      Validation.checkThat(m)
-        .isStatic()
-        .isPublic();
-
-      ParametersFactory pfAnnotation = m.getAnnotation(ParametersFactory.class);
-      assert pfAnnotation != null;
-
-      if (!Iterable.class.isAssignableFrom(m.getReturnType())) {
-        throw new RuntimeException("@" + ParametersFactory.class.getSimpleName() + " annotated " +
-        		"methods must be public, static and returning Iterable<Object[]>:" + m);
+    if (factoryMethods.isEmpty()) {
+      Object[] noArgs = new Object [0];
+      for (Method testMethod : testMethods) {
+        testCases.add(new TestMethodExecution(testMethod, argFormattingTemplate, noArgs));
       }
+    } else {
+      for (Method factoryMethod : factoryMethods.keySet()) {
+        Validation.checkThat(factoryMethod)
+          .isStatic()
+          .isPublic();
 
-      List<Object[]> result = new ArrayList<Object[]>();
-      try {
-        for (Object [] p : (Iterable<Object[]>) m.invoke(null)) {
-          result.add(p);
+        if (!Iterable.class.isAssignableFrom(factoryMethod.getReturnType())) {
+          throw new RuntimeException("@" + ParametersFactory.class.getSimpleName() + " annotated " +
+              "methods must be public, static and returning Iterable<Object[]>:" + factoryMethod);
         }
-      } catch (InvocationTargetException e) {
-        Rethrow.rethrow(e.getCause());
-      } catch (Throwable t) {
-        throw new RuntimeException("Error collecting parameters from: " + m, t);
+
+        ParametersFactory pfAnnotation = factoryMethod.getAnnotation(ParametersFactory.class);
+        if (!pfAnnotation.argumentFormatting().equals(ParametersFactory.DEFAULT_FORMATTING)) {
+          argFormattingTemplate = pfAnnotation.argumentFormatting();
+        }
+
+        List<Object[]> args = new ArrayList<>();
+        try {
+          Iterable<?> factoryArguments = Iterable.class.cast(factoryMethod.invoke(null));
+          for (Object o : factoryArguments) {
+            if (!(o instanceof Object[])) {
+              throw new RuntimeException("Expected Object[] for each set of constructor arguments: " + o);
+            }
+            args.add((Object[]) o);
+          }
+        } catch (InvocationTargetException e) {
+          if (AssumptionViolatedException.class.isInstance(e.getCause())) {
+            return Collections.emptyList();
+          }
+          Rethrow.rethrow(e.getCause());
+        } catch (Throwable t) {
+          throw new RuntimeException("Error collecting parameters from: " + factoryMethod, t);
+        }
+
+        if (pfAnnotation.shuffle()) {
+          Collections.shuffle(args, new Random(runnerRandomness.getSeed()));
+        }
+
+        for (Method testMethod : testMethods) {
+          for (Object[] constructorArgs : args) {
+            testCases.add(new TestMethodExecution(testMethod, argFormattingTemplate, constructorArgs));
+          }
+        }
+      }
+    }
+    return testCases;  
+  }
+
+  /**
+   * Default formatting string for constructor arguments.
+   */
+  private static String createDefaultArgumentFormatting(Constructor<?> constructor) {
+    StringBuilder b = new StringBuilder();
+    final int argCount = constructor.getParameterTypes().length;
+    Annotation [][] anns = constructor.getParameterAnnotations();
+    for (int i = 0; i < argCount; i++) {
+      String argName = null;
+
+      for (Annotation ann : anns[i]) {
+        if (ann != null && ann.annotationType().equals(Name.class)) {
+          argName = ((Name) ann).value();
+          break;
+        }
       }
 
-      if (pfAnnotation.shuffle()) {
-        Collections.shuffle(result, new Random(runnerRandomness.getSeed()));
+      if (argName == null) {
+        argName = "p" + i;
       }
 
-      parameters.addAll(result);
+      b.append(i > 0 ? " " : "")
+       .append(argName)
+       .append("=%s");
     }
 
-    return parameters;
+    return b.toString();
   }
 
   /**

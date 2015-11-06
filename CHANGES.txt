@@ -11,10 +11,17 @@ Changes in Backwards Compatibility
 
 New Features
 
+  * GH-216: Custom test case argument formatters in parameter factories.
+    See ParametersFactory.argumentFormatting and Test007ParameterizedTests
+    example. (Dawid Weiss).
+
   * GH-194: Flexible test case ordering via the new annotation 
     (TestCaseOrdering). (Dawid Weiss)
 
 Bug Fixes
+
+  * GH-215: In certain cases test case names could be duplicated (be 
+    identical), which could confuse IDEs. (Dawid Weiss) 
 
 Other Changes
 
