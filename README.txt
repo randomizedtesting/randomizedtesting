@@ -6,8 +6,7 @@ JUnit test runner and plugins for running JUnit tests
 with pseudo-randomness.
 
 See the following for more information:
-  Docs: http://labs.carrotsearch.com/randomizedtesting.html
-  Wiki: https://github.com/randomizedtesting/randomizedtesting/wiki
+  Docs: https://github.com/randomizedtesting/randomizedtesting/wiki
   Bugs: https://github.com/randomizedtesting/randomizedtesting/issues
   CI:   http://builds.carrot2.org/browse/RNDTEST
 
