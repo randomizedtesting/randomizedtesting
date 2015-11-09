@@ -73,6 +73,7 @@ public class RandomizedTest {
   /**
    * Returns true if we're running nightly tests.
    * @see Nightly
+   * @deprecated Will be removed in 2.4.0
    */
   public static boolean isNightly() {
     return getContext().isNightly();
