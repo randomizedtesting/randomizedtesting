@@ -9,6 +9,10 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 New Features
 
+  * GH-190: RandomizedContext should provide the current test 
+    case method (via RandomizedContext.current().getTargetMethod()). 
+    (Dawid Weiss)
+
   * GH-217: Permit running tests on the same instance of the suite 
     class via TestCaseInstanceProvider annotation. See
     Test018TestCaseInstanceProviders example. (Dawid Weiss).

@@ -2,6 +2,7 @@ package com.carrotsearch.randomizedtesting;
 
 import java.io.Closeable;
 import java.lang.Thread.State;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -61,8 +62,11 @@ public final class RandomizedContext {
   
   /**
    * Nightly mode?
+   * @deprecated [GH-218] Will be removed.
    */
   private final boolean nightly;
+  
+  private Method currentMethod;
 
   /** */
   private RandomizedContext(ThreadGroup tg, Class<?> suiteClass, RandomizedRunner runner) {
@@ -130,6 +134,8 @@ public final class RandomizedContext {
 
   /**
    * Return <code>true</code> if tests are running in nightly mode.
+   * 
+   * @deprecated [GH-218] will be removed. Use {@link #getGroupEvaluator()}.
    */
   public boolean isNightly() {
     checkDisposed();
@@ -167,6 +173,37 @@ public final class RandomizedContext {
       resources.add(new CloseableResourceInfo(
           resource, scope, Thread.currentThread(), Thread.currentThread().getStackTrace()));
       return resource;
+    }
+  }
+
+  /**
+   * Provide access to {@link GroupEvaluator}.
+   */
+  public GroupEvaluator getGroupEvaluator() {
+    return runner.groupEvaluator;
+  }
+
+  /**
+   * Pushes the given randomness to the top of the stack, runs the {@link Callable} and disposes
+   * the randomness before the this method returns.
+   * <p>
+   * This utility method can be used to initialize resources in a reproducible way since all calls to utility methods
+   * like {@link com.carrotsearch.randomizedtesting.RandomizedTest#randomInt()} et.al. are forwarded to the current
+   * RandomContext which uses the provided randomness from the top of the stack.
+   * </p>
+   *
+   * @param randomness the randomness to push to the top of the stack
+   * @param callable the callable to execute
+   * @param <T> the return type of the callable
+   * @return the result of the call to {@link java.util.concurrent.Callable#call()}
+   * @throws Exception if {@link java.util.concurrent.Callable#call()} throws an exception
+   */
+  public <T> T runWithPrivateRandomness(Randomness randomness, Callable<T> callable) throws Exception {
+    push(randomness);
+    try {
+      return callable.call();
+    } finally {
+      popAndDestroy();
     }
   }
 
@@ -290,13 +327,6 @@ public final class RandomizedContext {
   }
 
   /**
-   * Provide access to {@link GroupEvaluator}.
-   */
-  public GroupEvaluator getGroupEvaluator() {
-    return runner.groupEvaluator;
-  }
-
-  /**
    * Clone context information between the current thread and another thread.
    * This is for internal use only to propagate context information when forking.
    */
@@ -339,28 +369,18 @@ public final class RandomizedContext {
     }
   }
 
+  void setTargetMethod(Method method) {
+    this.currentMethod = method;
+  }
+  
   /**
-   * Pushes the given randomness to the top of the stack, runs the {@link Callable} and disposes
-   * the randomness before the this method returns.
-   * <p>
-   * This utility method can be used to initialize resources in a reproducible way since all calls to utility methods
-   * like {@link com.carrotsearch.randomizedtesting.RandomizedTest#randomInt()} et.al. are forwarded to the current
-   * RandomContext which uses the provided randomness from the top of the stack.
-   * </p>
-   *
-   * @param randomness the randomness to push to the top of the stack
-   * @param callable the callable to execute
-   * @param <T> the return type of the callable
-   * @return the result of the call to {@link java.util.concurrent.Callable#call()}
-   * @throws Exception if {@link java.util.concurrent.Callable#call()} throws an exception
+   * @return Return the currently executing test case method (the thread may still 
+   * be within test rules and may never actually hit the method). This method may return
+   * <code>null</code> if called from the static context (no test case is being executed at
+   * the moment).
    */
-  public <T> T runWithPrivateRandomness(Randomness randomness, Callable<T> callable) throws Exception {
-    push(randomness);
-    try {
-      return callable.call();
-    } finally {
-      popAndDestroy();
-    }
+  public Method getTargetMethod() {
+    checkDisposed();
+    return currentMethod;
   }
 }
-

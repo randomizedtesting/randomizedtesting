@@ -767,19 +767,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
             continue;
           }
 
-          // Run the test.
+          // Setup test thread's name so that stack dumps produce seed, test method, etc.
           final String testThreadName = "TEST-" + Classes.simpleName(suiteClass) +
               "." + c.method.getName() + "-seed#" + SeedUtils.formatSeedChain(runnerRandomness);
+          final String restoreName = Thread.currentThread().getName();
 
           // This has a side effect of setting up a nested context for the test thread.
-          final String restoreName = Thread.currentThread().getName();
           final RandomizedContext current = RandomizedContext.current();
           try {
             Thread.currentThread().setName(testThreadName);
             current.push(new Randomness(c.seed));
+            current.setTargetMethod(c.method);
             runSingleTest(notifier, c, threadLeakControl);
           } finally {
             Thread.currentThread().setName(restoreName);
+            current.setTargetMethod(null);
             current.popAndDestroy();
           }
         }              
