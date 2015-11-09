@@ -9,6 +9,8 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 New Features
 
+  * GH-219: Add randomBytes generator utility. (Dawid Weiss)
+
   * GH-190: RandomizedContext should provide the current test 
     case method (via RandomizedContext.current().getTargetMethod()). 
     (Dawid Weiss)

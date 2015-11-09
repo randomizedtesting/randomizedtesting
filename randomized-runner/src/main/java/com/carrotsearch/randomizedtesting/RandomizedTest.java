@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.generators.RandomBytes;
 import com.carrotsearch.randomizedtesting.generators.RandomInts;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.carrotsearch.randomizedtesting.generators.RandomStrings;
@@ -104,6 +105,31 @@ public class RandomizedTest {
 
   /** @see Random#nextGaussian() */
   public static double  randomGaussian() { return getRandom().nextGaussian(); }
+
+  //
+  // Delegates to RandomBytes.
+  //
+
+  /** 
+   * Returns a byte array with random content.
+   * 
+   * @param length The length of the byte array. Can be zero.
+   * @return Returns a byte array with random content. 
+   */
+  public static byte[] randomBytesOfLength(int length) { 
+    return RandomBytes.randomBytesOfLength(new Random(getRandom().nextLong()), length); 
+  }  
+
+  /** 
+   * Returns a byte array with random content.
+   * 
+   * @param minLength The minimum length of the byte array. Can be zero.
+   * @param maxLength The maximum length of the byte array. Can be zero.
+   * @return Returns a byte array with random content. 
+   */
+  public static byte[] randomBytesOfLength(int minLength, int maxLength) { 
+    return RandomBytes.randomBytesOfLengthBetween(new Random(getRandom().nextLong()), minLength, maxLength); 
+  }  
 
   //
   // Delegates to RandomInts.
