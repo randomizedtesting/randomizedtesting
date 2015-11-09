@@ -5,5 +5,4 @@ package com.carrotsearch.randomizedtesting;
  */
 interface InstanceProvider {
   Object newInstance() throws Throwable;
-  Class<?> getTestClass();
 }

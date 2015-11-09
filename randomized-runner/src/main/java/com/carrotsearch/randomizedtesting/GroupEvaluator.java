@@ -61,7 +61,7 @@ class GroupEvaluator {
     HashSet<Class<?>> clazzes = new HashSet<Class<?>>();
     HashSet<Annotation> annotations = new HashSet<Annotation>();
     for (TestCandidate c : testCandidates) {
-      final Class<?> testClass = c.instanceProvider.getTestClass();
+      final Class<?> testClass = c.getTestClass();
       if (!clazzes.contains(testClass)) {
         clazzes.add(testClass);
         annotations.addAll(Arrays.asList(testClass.getAnnotations()));

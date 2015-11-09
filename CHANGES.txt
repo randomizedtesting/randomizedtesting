@@ -5,9 +5,15 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.3.0 ====================
+======================= randomizedtesting 2.3.1 ====================
 
-Changes in Backwards Compatibility
+New Features
+
+  * GH-217: Permit running tests on the same instance of the suite 
+    class via TestCaseInstanceProvider annotation. See
+    Test018TestCaseInstanceProviders example. (Dawid Weiss).
+
+======================= randomizedtesting 2.3.0 ====================
 
 New Features
 
@@ -22,8 +28,6 @@ Bug Fixes
 
   * GH-215: In certain cases test case names could be duplicated (be 
     identical), which could confuse IDEs. (Dawid Weiss) 
-
-Other Changes
 
 ======================= randomizedtesting 2.2.0 ====================
 

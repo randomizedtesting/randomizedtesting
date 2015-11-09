@@ -67,6 +67,7 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.annotations.TestCaseInstanceProvider;
 import com.carrotsearch.randomizedtesting.annotations.TestCaseOrdering;
 import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
@@ -184,17 +185,21 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Test candidate (model).
    */
-  static class TestCandidate {
+  class TestCandidate {
     public final long seed;
     public final Description description;
     public final Method method;
     public final InstanceProvider instanceProvider;
 
-    public TestCandidate(Method method, long seed, Description description, InstanceProvider provider) {
+    public TestCandidate(Method method, long seed, Description description, InstanceProvider instanceProvider) {
       this.seed = seed;
       this.description = description;
       this.method = method;
-      this.instanceProvider = provider;
+      this.instanceProvider = instanceProvider;
+    }
+
+    public Class<?> getTestClass() {
+      return suiteClass;
     }
   }
 
@@ -849,14 +854,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Runs a single test in the "master" test thread.
    */
-  void runSingleTest(final RunNotifier notifier, final TestCandidate c, 
-      final ThreadLeakControl threadLeakControl) {
+  void runSingleTest(final RunNotifier notifier, 
+                     final TestCandidate c,
+                     final ThreadLeakControl threadLeakControl) {
     notifier.fireTestStarted(c.description);
 
-    final Object instance;
     try {
       // Get the test instance.
-      instance = c.instanceProvider.newInstance();
+      final Object instance = c.instanceProvider.newInstance();
 
       // Collect rules and execute wrapped method.
       Statement s = new Statement() {
@@ -1117,7 +1122,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         // and simplified description (just method name).
         if (f.shouldRun(candidate.description) ||
             f.shouldRun(Description.createTestDescription(
-                candidate.instanceProvider.getTestClass(), candidate.method.getName()))) {
+                suiteClass, candidate.method.getName()))) {
           continue;
         }
 
@@ -1390,12 +1395,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
     final List<Object> paramsWrapper;
     final Method method;
     final String argFormattingTemplate;
+    final InstanceProvider instanceProvider;
 
-    public TestMethodExecution(Method m, String argFormattingTemplate, Object[] params) {
+    public TestMethodExecution(Method m, String argFormattingTemplate, Object[] params, InstanceProvider instanceProvider) {
       this.method = m;
       this.params = params;
       this.paramsWrapper = Collections.unmodifiableList(Arrays.asList(params));
       this.argFormattingTemplate = argFormattingTemplate;
+      this.instanceProvider = instanceProvider;
     }
 
     @Override
@@ -1413,7 +1420,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Collect test candidates for a single method and the given seed.
    */
   private List<TestCandidate> collectCandidatesForMethod(
-      Map<String,Integer> descriptionRepetitions, final Constructor<?> constructor, TestMethodExecution testCase) {
+      Map<String,Integer> descriptionRepetitions, 
+      final Constructor<?> constructor, 
+      TestMethodExecution testCase) {
     final Method method = testCase.method;
     final Object[] params = testCase.params;
     final boolean fixedSeed = isConstantSeedForAllIterations(method);
@@ -1453,24 +1462,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
             method.getAnnotations());
 
         // Create an instance and delay instantiation exception if possible.
-        candidates.add(new TestCandidate(method, thisSeed, description, new InstanceProvider() {
-          @Override
-          public Object newInstance() throws Throwable {
-            try {
-              return constructor.newInstance(params);
-            } catch (InvocationTargetException e) {
-              throw ((InvocationTargetException) e).getTargetException();
-            } catch (IllegalArgumentException e) {
-              throw new IllegalArgumentException(
-                  "Constructor arguments do not match provider parameters?", e);
-            }
-          }
-
-          @Override
-          public Class<?> getTestClass() {
-            return suiteClass;
-          }
-        }));
+        candidates.add(new TestCandidate(method, thisSeed, description, testCase.instanceProvider));
       }
     }
 
@@ -1493,8 +1485,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
     if (factoryMethods.isEmpty()) {
       Object[] noArgs = new Object [0];
+      InstanceProvider instanceProvider = getInstanceProvider(constructor, noArgs);
       for (Method testMethod : testMethods) {
-        testCases.add(new TestMethodExecution(testMethod, argFormattingTemplate, noArgs));
+        testCases.add(new TestMethodExecution(testMethod, argFormattingTemplate, noArgs, instanceProvider));
       }
     } else {
       for (Method factoryMethod : factoryMethods.keySet()) {
@@ -1534,14 +1527,76 @@ public final class RandomizedRunner extends Runner implements Filterable {
           Collections.shuffle(args, new Random(runnerRandomness.getSeed()));
         }
 
-        for (Method testMethod : testMethods) {
-          for (Object[] constructorArgs : args) {
-            testCases.add(new TestMethodExecution(testMethod, argFormattingTemplate, constructorArgs));
+        for (Object[] constructorArgs : args) {
+          InstanceProvider instanceProvider = getInstanceProvider(constructor, constructorArgs);
+          for (Method testMethod : testMethods) {
+            testCases.add(new TestMethodExecution(testMethod, argFormattingTemplate, constructorArgs, instanceProvider));
           }
         }
       }
     }
     return testCases;  
+  }
+
+  /**
+   * Determine instance provider. 
+   */
+  private InstanceProvider getInstanceProvider(Constructor<?> constructor, Object[] args) {
+    TestCaseInstanceProvider.Type type = TestCaseInstanceProvider.Type.INSTANCE_PER_TEST_METHOD; 
+    TestCaseInstanceProvider providerAnn = suiteClass.getAnnotation(TestCaseInstanceProvider.class);
+    if (providerAnn != null) {
+      type = providerAnn.value();
+    }
+
+    switch (type) {
+      case INSTANCE_PER_CONSTRUCTOR_ARGS:
+        return new SameInstanceProvider(new NewInstanceProvider(constructor, args));
+      case INSTANCE_PER_TEST_METHOD:
+        return new NewInstanceProvider(constructor, args);
+      default:
+        throw new RuntimeException();
+    }
+  }
+  
+  private static class SameInstanceProvider implements InstanceProvider {
+    private final InstanceProvider delegate;
+    private volatile Object instance;
+
+    public SameInstanceProvider(InstanceProvider delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public Object newInstance() throws Throwable {
+      // There should be no concurrent-threaded access to this method, ever,
+      // but we can be called from multiple threads sequentially.
+      if (instance == null) {
+        instance = delegate.newInstance();
+      }
+      return instance;
+    }
+  }
+
+  private static class NewInstanceProvider implements InstanceProvider {
+    private final Constructor<?> constructor;
+    private final Object[] args;
+
+    public NewInstanceProvider(Constructor<?> constructor, Object[] args) {
+      this.constructor = constructor;
+      this.args = args;
+    }
+
+    @Override
+    public Object newInstance() throws Throwable {
+      try {
+        return constructor.newInstance(args);
+      } catch (InvocationTargetException e) {
+        throw ((InvocationTargetException) e).getTargetException();
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException(
+            "Constructor arguments do not match provider parameters?", e);
+      }
+    }
   }
 
   /**

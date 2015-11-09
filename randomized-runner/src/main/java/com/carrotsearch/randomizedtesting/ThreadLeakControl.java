@@ -473,7 +473,7 @@ class ThreadLeakControl {
         }
 
         final AnnotatedElement [] chain = 
-          { c.method, c.instanceProvider.getTestClass(), DefaultAnnotationValues.class };
+          { c.method, c.getTestClass(), DefaultAnnotationValues.class };
         List<Throwable> threadLeakErrors = timedOut ? new ArrayList<Throwable>() : errors;
         checkThreadLeaks(beforeTestState, threadLeakErrors, LifecycleScope.TEST, c.description, chain);
         processUncaught(errors, runner.handler.getUncaughtAndClear());
@@ -852,7 +852,7 @@ class ThreadLeakControl {
   private int determineTimeout(TestCandidate c) {
     Integer timeout = null;
 
-    Timeout timeoutAnn = c.instanceProvider.getTestClass().getAnnotation(Timeout.class);
+    Timeout timeoutAnn = c.getTestClass().getAnnotation(Timeout.class);
     if (timeoutAnn != null) {
       timeout = (int) Math.min(Integer.MAX_VALUE, timeoutAnn.millis());
     }
