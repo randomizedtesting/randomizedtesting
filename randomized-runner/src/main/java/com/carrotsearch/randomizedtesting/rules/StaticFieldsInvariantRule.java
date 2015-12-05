@@ -93,7 +93,14 @@ public class StaticFieldsInvariantRule implements TestRule {
         ArrayList<Entry> fieldsAndValues = new ArrayList<Entry>();
         ArrayList<Object> values = new ArrayList<Object>();
         for (Class<?> c = testClass; countSuperclasses && c.getSuperclass() != null; c = c.getSuperclass()) {
-          for (final Field field : c.getDeclaredFields()) {
+          final Class<?> target = c;
+          Field[] allFields = AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
+            @Override
+            public Field[] run() {
+              return target.getDeclaredFields();
+            }
+          });
+          for (final Field field : allFields) {
             if (Modifier.isStatic(field.getModifiers()) && 
                 !field.getType().isPrimitive() &&
                 accept(field)) {

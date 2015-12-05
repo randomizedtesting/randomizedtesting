@@ -444,7 +444,13 @@ final class RamUsageEstimator {
     
     // Walk type hierarchy
     for (;clazz != null; clazz = clazz.getSuperclass()) {
-      final Field[] fields = clazz.getDeclaredFields();
+      final Class<?> target = clazz;
+      final Field[] fields = AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
+        @Override
+        public Field[] run() {
+          return target.getDeclaredFields();
+        }
+      });
       for (Field f : fields) {
         if (!Modifier.isStatic(f.getModifiers())) {
           size = adjustForField(size, f);
@@ -572,7 +578,13 @@ final class RamUsageEstimator {
     long shallowInstanceSize = NUM_BYTES_OBJECT_HEADER;
     final ArrayList<Field> referenceFields = new ArrayList<Field>(32);
     for (Class<?> c = clazz; c != null; c = c.getSuperclass()) {
-      final Field[] fields = c.getDeclaredFields();
+      final Class<?> target = clazz;
+      final Field[] fields = AccessController.doPrivileged(new PrivilegedAction<Field[]>() {
+        @Override
+        public Field[] run() {
+          return target.getDeclaredFields();
+        }
+      });
       for (final Field f : fields) {
         if (!Modifier.isStatic(f.getModifiers())) {
           shallowInstanceSize = adjustForField(shallowInstanceSize, f);
