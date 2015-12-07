@@ -9,6 +9,8 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Other Changes
 
+  * GH-224: Remove excess use of Guava's collections. (Dawid Weiss)
+
   * GH-221: Upgrade to Guava 19.0-rc3. (Dawid Weiss, Ryan Ernst)
 
 Bug Fixes
