@@ -5,7 +5,13 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.3.2-SNAPSHOT ====================
+======================= randomizedtesting 2.3.3-SNAPSHOT ====================
+
+Other Changes
+
+Bug Fixes
+
+======================= randomizedtesting 2.3.2 ====================
 
 Changes in Backwards Compatibility
 
