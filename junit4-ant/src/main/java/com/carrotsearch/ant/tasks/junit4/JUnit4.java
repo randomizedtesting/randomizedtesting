@@ -74,6 +74,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedStartEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.ChildBootstrap;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.JvmOutputEvent;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
@@ -189,9 +190,10 @@ public class JUnit4 extends Task {
     PIPE,
     IGNORE,
     FAIL,
-    WARN
+    WARN,
+    LISTENERS
   }
-  
+
   /** What to do when there were no executed tests (all ignored or none at all?). */
   public static enum NoTestsAction {
     IGNORE,
@@ -203,7 +205,7 @@ public class JUnit4 extends Task {
    * @see #setJvmOutputAction(String)
    */
   public EnumSet<JvmOutputAction> jvmOutputAction = EnumSet.of(
-      JvmOutputAction.PIPE,
+      JvmOutputAction.LISTENERS,
       JvmOutputAction.WARN);
 
   /**
@@ -1488,10 +1490,10 @@ public class JUnit4 extends Task {
         Files.asByteSource(classNamesDynamic).copyTo(Files.asByteSink(classNamesFile, FileWriteMode.APPEND));
         classNamesDynamic.delete();
         streamsBufferFile.delete();
-        
+
         // Check sysout/syserr lengths.
-        checkJvmOutput(sysoutFile, slave, "stdout");
-        checkJvmOutput(syserrFile, slave, "stderr");        
+        checkJvmOutput(aggregatedBus, sysoutFile, slave, "stdout");
+        checkJvmOutput(aggregatedBus, syserrFile, slave, "stderr");        
       }
     }
 
@@ -1506,11 +1508,14 @@ public class JUnit4 extends Task {
     }
   }
 
-  private void checkJvmOutput(File file, ForkedJvmInfo slave, String fileName) {
+  private void checkJvmOutput(EventBus aggregatedBus, File file, ForkedJvmInfo slave, String fileName) {
     if (file.length() > 0) {
       String message = "JVM J" + slave.id + ": " + fileName + " was not empty, see: " + file;
       if (jvmOutputAction.contains(JvmOutputAction.WARN)) {
         log(message, Project.MSG_WARN);
+      }
+      if (jvmOutputAction.contains(JvmOutputAction.LISTENERS)) {
+        aggregatedBus.post(new JvmOutputEvent(slave, file));
       }
       if (jvmOutputAction.contains(JvmOutputAction.PIPE)) {
         log(">>> JVM J" + slave.id + ": " + fileName + " (verbatim) ----", Project.MSG_INFO);

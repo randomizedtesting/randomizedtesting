@@ -5,6 +5,7 @@ import static com.carrotsearch.ant.tasks.junit4.FormattingUtils.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
@@ -37,6 +38,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteStarte
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedTestResultEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.ChildBootstrap;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.HeartBeatEvent;
+import com.carrotsearch.ant.tasks.junit4.events.aggregated.JvmOutputEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.PartialOutputEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
@@ -46,6 +48,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharSink;
+import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
@@ -433,6 +436,18 @@ public class TextReport implements AggregatedEventListener {
           break;
       }
     }
+  }
+
+  @Subscribe
+  public void onJvmOutput(JvmOutputEvent e) throws IOException {
+    final String id = Integer.toString(e.getSlave().id);
+    output.append(">>> JVM J").append(id)
+          .append(" emitted unexpected output (verbatim) ----\n");
+
+    try (Reader r = Files.newReader(e.getJvmOutputFile(), e.getSlave().getCharset())) {
+      CharStreams.copy(r, output);
+    }
+    output.append("<<< JVM J" + id + ": EOF ----\n");    
   }
 
   @Subscribe

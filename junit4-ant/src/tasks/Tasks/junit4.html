@@ -286,9 +286,10 @@ that make little sense have been deprecated and are ignored. Attributes specific
       compiler errors, crash dumps). However, certain legitimate logs (gc activity, class loading
       logs) are also printed to these streams so sometimes the output can be ignored.
 
-      <p>Allowed values (any comma-delimited combination of): ignore, pipe, fail, warn.</p>
+      <p>Allowed values (any comma-delimited combination of): ignore, listeners, pipe, fail, warn.</p>
     </td>
-    <td align="center" valign="top">No; default is 'pipe,warn'.</td>
+    <td align="center" valign="top">No; default is 'warn, listeners'; append text report listener
+    to get the actual JVM output or change to 'warn, pipe' to get the output piped to system out.</td>
   </tr>
   
   <tr class="junit4">

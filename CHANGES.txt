@@ -7,6 +7,17 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.3.2-SNAPSHOT ====================
 
+Changes in Backwards Compatibility
+
+  * GH-222: Make unexpected JVM output available to listeners. This issue
+    makes JVM output available to ANT JUnit4's listeners so that they can
+    log it properly. Previously the JVM output was copied to System.out 
+    which could be hard to work with. See TextReport.onJvmOutput for
+    an example. The default value of 'jvmOutputAction' has been changed
+    from 'pipe, warn' to 'listeners, warn' so that listeners get 
+    notified about JVM output instead of it being copied directly to 
+    sysout. (Dawid Weiss, Ryan Ernst).
+
 Other Changes
 
   * GH-224: Remove excess use of Guava's collections. (Dawid Weiss)
