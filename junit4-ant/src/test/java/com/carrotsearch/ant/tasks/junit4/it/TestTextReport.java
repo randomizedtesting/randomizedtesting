@@ -88,7 +88,6 @@ public class TestTextReport extends JUnit4XmlTestBase {
     super.executeTarget("failureslist");
     assertLogContains("Tests with failures");
   }
-  
 
   @Test 
   public void filtertrace_default() {
@@ -108,5 +107,11 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogContains("at java.lang.reflect.Method");
     assertLogDoesNotContain("at org.junit.");
     assertLogDoesNotContain(".SlaveMain.");
+  }
+  
+  @Test 
+  public void errorsSoFarIndicator() {
+    super.executeTarget("errorsSoFar");
+    assertLogContains("Completed [1/1 (1!)]");
   }  
 }

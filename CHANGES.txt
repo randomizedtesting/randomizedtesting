@@ -20,6 +20,9 @@ Changes in Backwards Compatibility
 
 Other Changes
 
+  * GH-220: Add an indication of the number of failed suites so far to text 
+    report. (Dawid Weiss, Chris Hostetter).
+
   * GH-224: Remove excess use of Guava's collections. (Dawid Weiss)
 
   * GH-221: Upgrade to Guava 19.0-rc3. (Dawid Weiss, Ryan Ernst)

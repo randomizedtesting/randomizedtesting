@@ -207,6 +207,7 @@ public class TextReport implements AggregatedEventListener {
   private List<StackTraceFilter> stackFilters = new ArrayList<>();
 
   private int totalSuites;
+  private AtomicInteger totalErrors = new AtomicInteger();
   private AtomicInteger suitesCompleted = new AtomicInteger();
   private String seed;
 
@@ -566,10 +567,12 @@ public class TextReport implements AggregatedEventListener {
     assert showSuiteSummary;
 
     final StringBuilder b = new StringBuilder();
-    b.append(String.format(Locale.ENGLISH, "%sCompleted [%d/%d]%s in %.2fs, ",
+    final int totalErrors = this.totalErrors.addAndGet(e.isSuccessful() ? 0 : 1);
+    b.append(String.format(Locale.ENGLISH, "%sCompleted [%d/%d%s]%s in %.2fs, ",
         shortTimestamp(e.getStartTimestamp() + e.getExecutionTime()),
         suitesCompleted,
         totalSuites,
+        totalErrors == 0 ? "" : " (" + totalErrors + "!)",
         e.getSlave().slaves > 1 ? " on J" + e.getSlave().id : "",
         e.getExecutionTime() / 1000.0d));
     b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));

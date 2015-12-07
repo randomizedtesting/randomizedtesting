@@ -1403,5 +1403,20 @@
           <junit4:report-text showOutput="always" showStatusOk="true" showSuiteSummary="true" />
       </listeners>      
     </junit4:junit4>
-  </target> 
+  </target>
+
+  <target name="errorsSoFar">
+    <junit4:junit4 haltonfailure="false">
+      <classpath refid="tests.classpath" />
+
+      <fileset dir="${basedir}">
+        <include name="**/TestStatuses.class" />
+      </fileset>
+
+      <listeners>
+        <junit4:report-text showSuiteSummary="true">
+        </junit4:report-text>
+      </listeners>
+    </junit4:junit4>
+  </target>  
 </project>
