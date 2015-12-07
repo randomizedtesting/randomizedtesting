@@ -1,17 +1,20 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_RANDOM_SEED;
+import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.tools.ant.*;
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectComponent;
+import org.apache.tools.ant.Task;
 
 import com.carrotsearch.randomizedtesting.SeedUtils;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 
 /**
  * An ANT task to pick and fix the random seed in advance (for selecting
@@ -53,7 +56,7 @@ public class PickFromListTask extends Task {
   /**
    * Values to pick from.
    */
-  private List<StringValue> values = Lists.newArrayList();
+  private List<StringValue> values = new ArrayList<>();
 
   /**
    * Execution ID used to permute the pick order for lists of identical length

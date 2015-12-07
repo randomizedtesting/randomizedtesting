@@ -13,7 +13,6 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.ResourceCollection;
 
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
-import com.google.common.collect.Lists;
 
 /**
  * Display the slowest test suites based on hints files.
@@ -42,7 +41,7 @@ public class TopHints extends Task {
   /**
    * All included execution time dumps.
    */
-  private List<ResourceCollection> resources = Lists.newArrayList();
+  private List<ResourceCollection> resources = new ArrayList<>();
 
   /**
    * Max entries to display.

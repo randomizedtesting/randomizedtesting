@@ -7,7 +7,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +26,6 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Closer;
 import com.google.common.io.Files;
@@ -87,7 +87,7 @@ public class ExecutionTimesReport implements AggregatedEventListener {
     
     List<Long> values = hints.get(suiteName);
     if (values == null) {
-      hints.put(suiteName, values = Lists.newArrayList());
+      hints.put(suiteName, values = new ArrayList<>());
     }
     values.add(millis);
     while (values.size() > historyLength)
@@ -122,7 +122,7 @@ public class ExecutionTimesReport implements AggregatedEventListener {
             throw new BuildException("Could not create file: "
                 + hintsFile.getAbsolutePath());
           }
-          hints = Maps.newHashMap();
+          hints = new HashMap<>();
       }
     } catch (IOException e) {
       throw new BuildException("Could not read or create hints file: " + hintsFile.getAbsolutePath(), e);
@@ -135,7 +135,7 @@ public class ExecutionTimesReport implements AggregatedEventListener {
    * Read hints from a file.
    */
   public static Map<String,List<Long>> readHints(File hints) throws IOException {
-    Map<String,List<Long>> result = Maps.newHashMap();
+    Map<String,List<Long>> result = new HashMap<>();
     InputStream is = new FileInputStream(hints);
     mergeHints(is, result);
     return result;
@@ -161,7 +161,7 @@ public class ExecutionTimesReport implements AggregatedEventListener {
         String key = line.substring(0, equals);
         List<Long> values = hints.get(key);
         if (values == null) {
-          hints.put(key, values = Lists.newArrayList());
+          hints.put(key, values = new ArrayList<>());
         }
         for (String v : line.substring(equals + 1).split("[\\,]")) {
           if (!v.isEmpty()) values.add(Long.parseLong(v));
@@ -202,7 +202,7 @@ public class ExecutionTimesReport implements AggregatedEventListener {
    */
   public static Map<String,List<Long>> mergeHints(
       Collection<ResourceCollection> resources, Collection<String> suiteNames) {
-    final Map<String,List<Long>> hints = Maps.newHashMap();
+    final Map<String,List<Long>> hints = new HashMap<>();
     for (ResourceCollection rc : resources) {
       Iterator<Resource> i = rc.iterator();
       while (i.hasNext()) {

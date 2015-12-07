@@ -1,13 +1,17 @@
 package com.carrotsearch.maven.plugins.junit4;
 
+import static com.google.common.base.MoreObjects.*;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,11 +53,7 @@ import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
-
-import static com.google.common.base.MoreObjects.*;
 
 /**
  * Run tests using a delegation to <a
@@ -761,7 +761,7 @@ public class JUnit4Mojo extends AbstractMojo {
   private ArtifactResolutionResult resolveArtifact(Artifact artifact, Artifact... filtered) {
     final ArtifactFilter filter;
     if (filtered.length > 0) {
-      List<String> exclusions = Lists.newArrayListWithExpectedSize(filtered.length);
+      List<String> exclusions = new ArrayList<>(filtered.length);
       for (Artifact filteredArtifact : filtered) {
         exclusions.add(filteredArtifact.getGroupId() + ":"
             + filteredArtifact.getArtifactId());
@@ -841,7 +841,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * Return a new set containing only the artifacts accepted by the given filter.
    */
   private Set<Artifact> filterArtifacts(Element cp, Set<Artifact> artifacts, ArtifactFilter filter) {
-    Set<Artifact> filteredArtifacts = Sets.newLinkedHashSet();
+    Set<Artifact> filteredArtifacts = new LinkedHashSet<>();
     for (Artifact artifact : artifacts) {
       if (!filter.include(artifact)) {
         filteredArtifacts.add(artifact);

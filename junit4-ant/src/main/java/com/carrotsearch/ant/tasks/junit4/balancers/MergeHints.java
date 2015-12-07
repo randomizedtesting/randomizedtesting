@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.balancers;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +12,6 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.ResourceCollection;
 
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
-import com.google.common.collect.Lists;
 
 /**
  * Merge execution hints emitted by {@link ExecutionTimeBalancer} to one file.
@@ -20,7 +20,7 @@ public class MergeHints extends Task {
   /**
    * All included execution time dumps.
    */
-  private List<ResourceCollection> resources = Lists.newArrayList();
+  private List<ResourceCollection> resources = new ArrayList<>();
 
   /**
    * @see ExecutionTimesReport#setHistoryLength(int)

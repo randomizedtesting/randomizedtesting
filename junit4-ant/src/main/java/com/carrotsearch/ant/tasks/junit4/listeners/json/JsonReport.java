@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import org.apache.tools.ant.BuildException;
@@ -22,7 +23,6 @@ import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -39,7 +39,7 @@ public class JsonReport implements AggregatedEventListener {
 
   private String projectName;
   
-  private Map<Integer, ForkedJvmInfo> slaves = Maps.newTreeMap();
+  private Map<Integer, ForkedJvmInfo> slaves = new TreeMap<>();
   private OutputStreamWriter writer;
 
   private static enum OutputMethod {

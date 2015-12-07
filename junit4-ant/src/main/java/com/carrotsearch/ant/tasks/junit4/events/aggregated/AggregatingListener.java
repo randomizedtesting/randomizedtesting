@@ -87,8 +87,8 @@ public class AggregatingListener {
     assert startEvent == null;
 
     tests = new ArrayDeque<AggregatedTestResultEvent>();
-    suiteFailures = Lists.newArrayList();
-    eventStream = Lists.newArrayList();
+    suiteFailures = new ArrayList<>();
+    eventStream = new ArrayList<>();
     lastSuite = e.getDescription();
     startEvent = new AggregatedSuiteStartedEvent(slave, e);
 
@@ -149,7 +149,7 @@ public class AggregatingListener {
   @Subscribe
   public void receiveTestEnd(TestFinishedEvent e) {
     assert e.getDescription().equals(tests.peek().getDescription());
-    tests.peek().complete(e, Lists.newArrayList(eventStream.subList(testStartStreamMarker, eventStream.size())));
+    tests.peek().complete(e, new ArrayList<>(eventStream.subList(testStartStreamMarker, eventStream.size())));
     target.post(tests.peek());
   }
 

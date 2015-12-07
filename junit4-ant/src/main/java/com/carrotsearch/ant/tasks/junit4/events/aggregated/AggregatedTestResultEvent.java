@@ -1,5 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.events.aggregated;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -9,7 +10,6 @@ import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
 import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.TestFinishedEvent;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
-import com.google.common.collect.Lists;
 
 /**
  * A single test's execution information.
@@ -20,7 +20,7 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   private final ForkedJvmInfo slave;
 
   private TestStatus status = TestStatus.OK;
-  private List<FailureMirror> failures = Lists.newArrayList();
+  private List<FailureMirror> failures = new ArrayList<>();
 
   private List<IEvent> eventStream;
 

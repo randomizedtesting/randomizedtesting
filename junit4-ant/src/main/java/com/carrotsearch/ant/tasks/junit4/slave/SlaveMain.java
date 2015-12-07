@@ -40,7 +40,6 @@ import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 
 /**
  * A slave process running the actual tests on the target JVM.
@@ -301,7 +300,7 @@ public class SlaveMain {
       boolean flushFrequently = false;
       File  eventsFile = null;
       boolean suitesOnStdin = false;
-      List<String> testClasses = Lists.newArrayList();
+      List<String> testClasses = new ArrayList<>();
 
       while (!args.isEmpty()) {
         String option = args.pop();

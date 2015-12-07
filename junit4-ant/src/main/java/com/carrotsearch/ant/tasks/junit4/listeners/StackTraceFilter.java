@@ -1,5 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.listeners;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -7,7 +8,6 @@ import java.util.regex.Pattern;
 import org.apache.tools.ant.filters.TokenFilter;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 
 /**
  * Stack trace filtering.
@@ -42,7 +42,7 @@ public class StackTraceFilter {
   /**
    * Custom filters (from ANT's own TokenFilter).
    */
-  private List<TokenFilter.Filter> customFilters = Lists.newArrayList();
+  private List<TokenFilter.Filter> customFilters = new ArrayList<>();
   
   /**
    * Use default filters (JUnit, randomized testing, some of the reflection stuff). 
@@ -79,7 +79,7 @@ public class StackTraceFilter {
     if (!enabled) return trace;
 
     List<String> lines = Arrays.asList(trace.split("[\r\n]+"));
-    List<String> out = Lists.newArrayList();
+    List<String> out = new ArrayList<>();
     
     nextLine: for (String line : lines) {
       if (useDefaults) {

@@ -6,7 +6,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,8 +30,6 @@ import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
@@ -44,8 +44,8 @@ public class AntXmlReport implements AggregatedEventListener {
   private File dir;
   private boolean mavenExtensions = true;
   private File summaryFile;
-  private List<TokenFilter> filters = Lists.newArrayList();
-  private Map<String,Integer> suiteCounts = Maps.newHashMap();
+  private List<TokenFilter> filters = new ArrayList<>();
+  private Map<String,Integer> suiteCounts = new HashMap<>();
   private boolean ignoreDuplicateSuites;
   
   /**
@@ -243,7 +243,7 @@ public class AntXmlReport implements AggregatedEventListener {
 
   /* */
   private List<TestCaseModel> buildModel(List<AggregatedTestResultEvent> testEvents) {
-    List<TestCaseModel> tests = Lists.newArrayList();
+    List<TestCaseModel> tests = new ArrayList<>();
     for (AggregatedTestResultEvent e : testEvents) {
       TestCaseModel model = new TestCaseModel();
 
@@ -312,7 +312,7 @@ public class AntXmlReport implements AggregatedEventListener {
 
   /* */
   private List<PropertyModel> buildModel(Map<String,String> properties) {
-    List<PropertyModel> props = Lists.newArrayList();
+    List<PropertyModel> props = new ArrayList<>();
     for (Map.Entry<String,String> e : properties.entrySet()) {
       props.add(new PropertyModel(e.getKey(), e.getValue()));
     }

@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -43,8 +44,6 @@ import com.carrotsearch.randomizedtesting.WriterOutputStream;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.CharSink;
 import com.google.common.io.Closeables;
@@ -105,7 +104,7 @@ public class TextReport implements AggregatedEventListener {
    */
   private static EnumMap<TestStatus, String> statusNames;
   static {
-    statusNames = Maps.newEnumMap(TestStatus.class);
+    statusNames = new EnumMap<>(TestStatus.class);
     for (TestStatus s : TestStatus.values()) {
       statusNames.put(s,
           s == TestStatus.IGNORED_ASSUMPTION
@@ -137,7 +136,7 @@ public class TextReport implements AggregatedEventListener {
    * Initialize {@link #displayStatus}.
    */
   {
-    displayStatus = Maps.newEnumMap(TestStatus.class);
+    displayStatus = new EnumMap<>(TestStatus.class);
     for (TestStatus s : TestStatus.values()) {
       displayStatus.put(s, true);
     }
@@ -199,10 +198,10 @@ public class TextReport implements AggregatedEventListener {
   private int showNumFailuresAtEnd = 3;
   
   /** A list of failed tests, if to be displayed at the end. */
-  private List<Description> failedTests = Lists.newArrayList();
+  private List<Description> failedTests = new ArrayList<>();
 
   /** Stack trace filters. */
-  private List<StackTraceFilter> stackFilters = Lists.newArrayList();
+  private List<StackTraceFilter> stackFilters = new ArrayList<>();
 
   private int totalSuites;
   private AtomicInteger suitesCompleted = new AtomicInteger();
@@ -482,7 +481,7 @@ public class TextReport implements AggregatedEventListener {
   }
 
   private void emitBufferedEvents(AggregatedSuiteResultEvent e) throws IOException {
-    final IdentityHashMap<TestFinishedEvent,AggregatedTestResultEvent> eventMap = Maps.newIdentityHashMap();
+    final IdentityHashMap<TestFinishedEvent,AggregatedTestResultEvent> eventMap = new IdentityHashMap<>();
     for (AggregatedTestResultEvent tre : e.getTests()) {
       eventMap.put(tre.getTestFinishedEvent(), tre);
     }

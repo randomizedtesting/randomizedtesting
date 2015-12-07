@@ -9,7 +9,6 @@ import org.apache.tools.ant.types.ResourceCollection;
 
 import com.carrotsearch.ant.tasks.junit4.*;
 import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
-import com.google.common.collect.Lists;
 
 /**
  * A test suite balancer based on past execution times saved using
@@ -41,7 +40,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
   /**
    * All included execution time dumps.
    */
-  private List<ResourceCollection> resources = Lists.newArrayList();
+  private List<ResourceCollection> resources = new ArrayList<>();
 
   /** Owning task (logging). */
   private JUnit4 owner;
@@ -81,7 +80,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
 
     // Preprocess and sort costs. Take the median for each suite's measurements as the 
     // weight to avoid extreme measurements from screwing up the average.
-    final List<SuiteHint> costs = Lists.newArrayList();
+    final List<SuiteHint> costs = new ArrayList<>();
     for (String suiteName : suiteNames) {
       final List<Long> suiteHint = hints.get(suiteName);
       if (suiteHint != null) {
@@ -101,7 +100,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
       pq.add(new SlaveLoad(i));
     }
 
-    final List<Assignment> assignments = Lists.newArrayList();
+    final List<Assignment> assignments = new ArrayList<>();
     for (SuiteHint hint : costs) {
       SlaveLoad slave = pq.remove();
       slave.estimatedFinish += hint.cost;

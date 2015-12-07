@@ -2,6 +2,7 @@ package com.carrotsearch.ant.tasks.junit4.events;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -11,7 +12,6 @@ import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonReader;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonToken;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 
 public final class JsonHelpers {
   public static void writeDescription(JsonWriter writer, Description e) throws IOException {
@@ -50,7 +50,7 @@ public final class JsonHelpers {
       String methodName = AbstractEvent.readStringOrNullProperty(reader, "methodName");
       String className = AbstractEvent.readStringOrNullProperty(reader, "className");
     
-      List<Description> children = Lists.newArrayList();
+      List<Description> children = new ArrayList<>();
       AbstractEvent.expectProperty(reader, "children").beginArray();
       while (reader.peek() != JsonToken.END_ARRAY) {
         children.add(readDescription(reader));

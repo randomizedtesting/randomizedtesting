@@ -1,13 +1,12 @@
 package com.carrotsearch.ant.tasks.junit4.listeners.antxml;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
-
-import com.google.common.collect.Lists;
 
 /**
  * Suite model of ANT-JUnit XML.
@@ -43,10 +42,10 @@ public class TestSuiteModel
     public String timestamp;
 
     @ElementList(type = PropertyModel.class)
-    public List<PropertyModel> properties = Lists.newArrayList();
+    public List<PropertyModel> properties = new ArrayList<>();
 
     @ElementList(inline = true, type = TestCaseModel.class)
-    public List<TestCaseModel> testcases = Lists.newArrayList();
+    public List<TestCaseModel> testcases = new ArrayList<>();
 
     @Element(name = "system-out", data = true, required = true)
     public String sysout = "";
