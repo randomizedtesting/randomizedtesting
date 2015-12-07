@@ -91,6 +91,7 @@ import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Collections2;
@@ -840,7 +841,7 @@ public class JUnit4 extends Task {
 
     // Initialize random if not already provided.
     if (random == null) {
-      this.random = com.google.common.base.Objects.firstNonNull( 
+      this.random = MoreObjects.firstNonNull( 
           Strings.emptyToNull(getProject().getProperty(SYSPROP_RANDOM_SEED())),
           SeedUtils.formatSeed(new Random().nextLong()));
     }

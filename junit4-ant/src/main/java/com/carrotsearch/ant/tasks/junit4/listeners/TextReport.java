@@ -41,6 +41,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.randomizedtesting.WriterOutputStream;
 import com.google.common.base.Charsets;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -623,7 +624,7 @@ public class TextReport implements AggregatedEventListener {
             if (fm.isAssumptionViolation()) {
                 pos.write(String.format(Locale.ENGLISH, 
                     "Assumption #%d: %s",
-                    count, com.google.common.base.Objects.firstNonNull(fm.getMessage(), "(no message)")));
+                    count, MoreObjects.firstNonNull(fm.getMessage(), "(no message)")));
             } else {
                 pos.write(String.format(Locale.ENGLISH, 
                     "Throwable #%d: %s",

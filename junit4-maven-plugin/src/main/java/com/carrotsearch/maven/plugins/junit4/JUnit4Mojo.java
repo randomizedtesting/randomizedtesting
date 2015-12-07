@@ -48,11 +48,12 @@ import org.dom4j.io.XMLWriter;
 import com.carrotsearch.ant.tasks.junit4.JUnit4;
 import com.carrotsearch.ant.tasks.junit4.listeners.TextReport;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;
+
+import static com.google.common.base.MoreObjects.*;
 
 /**
  * Run tests using a delegation to <a
@@ -605,7 +606,7 @@ public class JUnit4Mojo extends AbstractMojo {
 
 
     // JVM args.
-    for (String jvmArg : Objects.firstNonNull(jvmArgs, EMPTY_STRING_ARRAY)) {
+    for (String jvmArg : firstNonNull(jvmArgs, EMPTY_STRING_ARRAY)) {
       junit4.addElement("jvmarg").addAttribute("value", jvmArg);
     }
     
@@ -615,7 +616,7 @@ public class JUnit4Mojo extends AbstractMojo {
 
     // System properties
     for (Map.Entry<String,String> e : 
-      Objects.firstNonNull(systemProperties, EMPTY_STRING_STRING_MAP).entrySet()) {
+      firstNonNull(systemProperties, EMPTY_STRING_STRING_MAP).entrySet()) {
       Element sysproperty = junit4.addElement("sysproperty");
       sysproperty.addAttribute("key", Strings.nullToEmpty(e.getKey()));
       sysproperty.addAttribute("value", Strings.nullToEmpty(e.getValue()));
@@ -623,7 +624,7 @@ public class JUnit4Mojo extends AbstractMojo {
     
     // Environment variables.
     for (Map.Entry<String,String> e : 
-      Objects.firstNonNull(environmentVariables, EMPTY_STRING_STRING_MAP).entrySet()) {
+      firstNonNull(environmentVariables, EMPTY_STRING_STRING_MAP).entrySet()) {
       Element sysproperty = junit4.addElement("env");
       sysproperty.addAttribute("key", Strings.nullToEmpty(e.getKey()));
       sysproperty.addAttribute("value", Strings.nullToEmpty(e.getValue()));

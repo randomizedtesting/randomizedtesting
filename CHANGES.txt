@@ -7,6 +7,10 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.3.2-SNAPSHOT ====================
 
+Other Changes
+
+  * GH-221: Upgrade to Guava 19.0-rc3. (Dawid Weiss, Ryan Ernst)
+
 Bug Fixes
 
   * PR #223: Access prviate fields within doPrivileged (Robert Muir)
