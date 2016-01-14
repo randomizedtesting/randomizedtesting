@@ -11,6 +11,9 @@ Other Changes
 
 Bug Fixes
 
+  * GH-225: Maven mojo's additionalClasspathElements option only adds 
+    empty strings to classpath. (@Anaros via Dawid Weiss).
+
 ======================= randomizedtesting 2.3.2 ====================
 
 Changes in Backwards Compatibility

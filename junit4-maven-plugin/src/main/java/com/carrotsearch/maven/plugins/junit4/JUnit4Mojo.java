@@ -829,9 +829,8 @@ public class JUnit4Mojo extends AbstractMojo {
     cp.addComment("Additional classpath elements.");
     if (additionalClasspathElements != null && !additionalClasspathElements.isEmpty()) {
       for (String classpathElement : additionalClasspathElements) {
-        if (Strings.isNullOrEmpty(classpathElement)) {
-          cp.addElement("pathelement").addAttribute("location",
-              classpathElement);
+        if (!Strings.isNullOrEmpty(classpathElement)) {
+          cp.addElement("pathelement").addAttribute("location", classpathElement);
         }
       }
     }
