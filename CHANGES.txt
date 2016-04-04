@@ -11,6 +11,9 @@ Changes in Backwards Compatibility
 
 Bug Fixes
 
+  * GH-227: Static leak detector should print the "original" field in the 
+    test class that lead to ram usage tester failure (PR #227, Uwe Schindler)
+
 Other Changes
 
 ======================= randomizedtesting 2.3.3 ====================
