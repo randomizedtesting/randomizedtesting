@@ -1,0 +1,12 @@
+
+span.junit4 {
+  background-color: #e0f0cc;
+}
+
+tr.junit4 td:first-child {
+  background-color: #e0f0cc;
+}
+
+.junitcompat td {
+  color: #a0a0a0;
+}
