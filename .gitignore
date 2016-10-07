@@ -6,7 +6,7 @@ target/
 
 # IntelliJ
 .idea
-.iml
+*.iml
 
 # Maven
 *.versionsBackup
