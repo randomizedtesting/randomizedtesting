@@ -9,8 +9,6 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
-
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.TestCaseOrdering;
@@ -78,13 +76,13 @@ public class TestTestCaseOrdering extends WithNestedTestClass {
 
   @Test
   public void testAlphabetical() {
-    JUnitCore.runClasses(Alphabetical.class);
+    runClasses(Alphabetical.class);
     assertThat(buf).containsExactly("a", "b", "c", "d");
   }
 
   @Test
   public void testAlphabeticalWithRepetitions() {
-    JUnitCore.runClasses(AlphabeticalWithRepetitions.class);
+    runClasses(AlphabeticalWithRepetitions.class);
     assertThat(buf).containsExactly(
         "a", "a", "a",
         "b", "b", "b",
@@ -94,7 +92,7 @@ public class TestTestCaseOrdering extends WithNestedTestClass {
 
   @Test
   public void testAlphabeticalWithParameters() {
-    JUnitCore.runClasses(AlphabeticalWithParameters.class);
+    runClasses(AlphabeticalWithParameters.class);
     assertThat(buf).containsExactly(
         "a:1", "a:2", "a:3",
         "b:1", "b:2", "b:3",

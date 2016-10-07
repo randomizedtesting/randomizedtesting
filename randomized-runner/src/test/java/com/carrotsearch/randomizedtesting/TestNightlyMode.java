@@ -1,5 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
+import static org.junit.Assert.*;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -9,8 +11,6 @@ import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
-
-import static org.junit.Assert.*;
 
 /**
  * Nightly mode checks.
@@ -31,26 +31,26 @@ public class TestNightlyMode extends WithNestedTestClass {
   @Test
   public void invalidValueNightly() {
     System.setProperty(TestGroup.Utilities.getSysProperty(Nightly.class), "invalid-value");
-    Result result = JUnitCore.runClasses(Nested.class);
-    Assert.assertEquals(2, result.getRunCount());
-    Assert.assertEquals(1, result.getFailureCount());
-    Assert.assertEquals(1, result.getIgnoreCount());
+    checkRunClasses(1, 0, 1, Nested.class);
   }
 
   @Test
   public void nightly() {
     System.setProperty(TestGroup.Utilities.getSysProperty(Nightly.class), "yes");
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(0, result.getFailureCount());
   }
 
   @Test
   public void dailyDefault() {
-    Result result = JUnitCore.runClasses(Nested.class);
+    JUnitCore core = new JUnitCore();
+    core.addListener(new PrintEventListener());
+    Result result = core.run(Nested.class);
+    
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(1, result.getFailureCount());
-    Assert.assertEquals(1, result.getIgnoreCount());
+    Assert.assertEquals(0, result.getIgnoreCount());
   }
 
   @Before
@@ -61,5 +61,5 @@ public class TestNightlyMode extends WithNestedTestClass {
   @After
   public void cleanupAfter() {
     System.clearProperty(TestGroup.Utilities.getSysProperty(Nightly.class));
-  }
+  }  
 }

@@ -7,7 +7,6 @@ import junit.framework.Assert;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
@@ -43,7 +42,7 @@ public class Test008SeedsAnnotation extends WithNestedTestClass {
     int N = 4;
     for (int i = 0; i < N; i++) {
       seeds.clear();
-      Result result = JUnitCore.runClasses(Nested.class);
+      Result result = runClasses(Nested.class);
       Assert.assertEquals(3 * 2, result.getRunCount());
       Assertions.assertThat(result.getFailures()).isEmpty();
       for (String s : seeds) {

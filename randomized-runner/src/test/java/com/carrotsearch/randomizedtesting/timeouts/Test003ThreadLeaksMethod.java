@@ -3,7 +3,6 @@ package com.carrotsearch.randomizedtesting.timeouts;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.LifecycleScope;
@@ -50,7 +49,7 @@ public class Test003ThreadLeaksMethod extends WithNestedTestClass {
       }
     };
 
-    Result r = JUnitCore.runClasses(Nested.class);
+    Result r = runClasses(Nested.class);
     Utils.assertFailureWithMessage(r, "1 thread leaked from " + scope.toString() + " scope at");
     Assert.assertEquals(1, r.getFailureCount());
     Utils.assertFailuresContainSeeds(r);

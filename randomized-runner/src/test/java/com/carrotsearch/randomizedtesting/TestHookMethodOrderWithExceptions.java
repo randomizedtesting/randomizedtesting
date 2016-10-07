@@ -10,7 +10,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.Runner;
@@ -26,16 +25,10 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
 public class TestHookMethodOrderWithExceptions extends RandomizedTest {
   static final List<String> callOrder = new ArrayList<String>();
 
-  /*
-   * We don't want to run nested classes as separate tests, but eclipse still
-   * wants to run them. this is a hack, but I don't know how to do it cleaner.
-   */
-  static boolean testExecution;
-  
   /**
    * Test superclass.
    */
-  public static class Super {
+  public abstract static class Super {
     static Random rnd; 
     
     @BeforeClass
@@ -64,7 +57,7 @@ public class TestHookMethodOrderWithExceptions extends RandomizedTest {
     }
     
     public static void maybeThrowException() {
-      if (testExecution && rnd.nextInt(10) == 0) {
+      if (rnd != null && rnd.nextInt(10) == 0) {
         throw new RuntimeException();
       }
     }
@@ -108,13 +101,11 @@ public class TestHookMethodOrderWithExceptions extends RandomizedTest {
   @Before
   public void setup() {
     callOrder.clear();
-    testExecution = true;
   }
   
   @After
   public void cleanup() {
     callOrder.clear();
-    testExecution = false;
   }
 
   @Test @Repeat(iterations = 20)
@@ -123,7 +114,7 @@ public class TestHookMethodOrderWithExceptions extends RandomizedTest {
 
     callOrder.clear();
     Super.rnd = new Random(seed);
-    Result junit = JUnitCore.runClasses(SubSub.class);
+    Result junit = WithNestedTestClass.runClasses(SubSub.class);
     List<String> junitOrder = new ArrayList<String>(callOrder);
 
     callOrder.clear();

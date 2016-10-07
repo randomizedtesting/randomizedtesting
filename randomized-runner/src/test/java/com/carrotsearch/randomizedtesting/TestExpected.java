@@ -3,7 +3,6 @@ package com.carrotsearch.randomizedtesting;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 /**
@@ -34,7 +33,7 @@ public class TestExpected extends WithNestedTestClass {
 
   @Test
   public void testSameMethodRandomnessWithFixedRunner() {
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     Assert.assertEquals(0, result.getIgnoreCount());
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(1, result.getFailureCount());
@@ -45,7 +44,7 @@ public class TestExpected extends WithNestedTestClass {
   
   @Test
   public void testSuccessfulExceptedFailure() {
-    Result result = JUnitCore.runClasses(Nested2.class);
+    Result result = runClasses(Nested2.class);
     Assert.assertEquals(1, result.getRunCount());
     Assert.assertEquals(1, result.getFailureCount());
   }

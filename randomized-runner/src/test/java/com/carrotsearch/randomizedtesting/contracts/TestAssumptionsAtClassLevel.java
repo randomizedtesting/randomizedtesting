@@ -12,7 +12,6 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
@@ -78,7 +77,7 @@ public class TestAssumptionsAtClassLevel extends WithNestedTestClass {
 
   @Test
   public void checkOrder() {
-    Result result = JUnitCore.runClasses(SubSub.class);
+    Result result = runClasses(SubSub.class);
 
     assertEquals(0, result.getRunCount());
     assertEquals(1, result.getIgnoreCount());

@@ -19,7 +19,7 @@ public class TestIgnoredRunCount extends WithNestedTestClass {
   }
 
   private void assertSameExecution(Class<?> clazz) throws Exception {
-    Result result1 = JUnitCore.runClasses(clazz);
+    Result result1 = runClasses(clazz);
     Result result2 = new JUnitCore().run(Request.runner(new RandomizedRunner(clazz)));
 
     Assert.assertEquals(result1.getRunCount(), result2.getRunCount());

@@ -8,7 +8,6 @@ import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.Description;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -89,7 +88,7 @@ public class TestListenersAnnotation extends WithNestedTestClass {
 
   @Test
   public void checkListeners() {
-    JUnitCore.runClasses(Nested2.class);
+    runClasses(Nested2.class);
     // Perhaps this is overly simple, but we just want to know that it executed.
     Assert.assertTrue(buffer.size() > 0);
   }

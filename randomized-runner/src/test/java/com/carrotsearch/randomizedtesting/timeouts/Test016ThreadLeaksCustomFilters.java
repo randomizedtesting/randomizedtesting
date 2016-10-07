@@ -2,7 +2,6 @@ package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
@@ -39,7 +38,7 @@ public class Test016ThreadLeaksCustomFilters extends WithNestedTestClass {
 
   @Test
   public void testFilteredOnly() throws Throwable {
-    Result r = JUnitCore.runClasses(Nested1.class);
+    Result r = runClasses(Nested1.class);
     Assertions.assertThat(r.getFailures()).isEmpty();
 
     Assertions.assertThat(getLoggingMessages()).isEmpty();

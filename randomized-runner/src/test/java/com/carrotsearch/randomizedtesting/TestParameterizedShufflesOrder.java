@@ -7,7 +7,6 @@ import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
@@ -65,7 +64,7 @@ public class TestParameterizedShufflesOrder extends WithNestedTestClass {
     Set<String> runs = new HashSet<String>();
     for (int i = 0; i < 10; i++) {
       buf = new StringBuilder();
-      Result result = JUnitCore.runClasses(NoShuffle.class);
+      Result result = runClasses(NoShuffle.class);
       Assertions.assertThat(result.wasSuccessful()).isTrue();
       runs.add(buf.toString());
     }
@@ -78,7 +77,7 @@ public class TestParameterizedShufflesOrder extends WithNestedTestClass {
     int iters = 10;
     for (int i = 0; i < iters; i++) {
       buf = new StringBuilder();
-      Result result = JUnitCore.runClasses(WithShuffle.class);
+      Result result = runClasses(WithShuffle.class);
       Assertions.assertThat(result.wasSuccessful()).isTrue();
       runs.add(buf.toString());
     }

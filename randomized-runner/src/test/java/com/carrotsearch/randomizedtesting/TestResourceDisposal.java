@@ -8,7 +8,6 @@ import java.util.List;
 import junit.framework.Assert;
 
 import org.junit.*;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 
@@ -76,7 +75,7 @@ public class TestResourceDisposal extends WithNestedTestClass {
 
   @Test
   public void testResourceDisposalTestScope() {
-    Result r = JUnitCore.runClasses(Nested.class);
+    Result r = runClasses(Nested.class);
     for (DummyCloseable c : Nested.testScope) {
       Assert.assertTrue(c.closed);
     }
@@ -86,7 +85,7 @@ public class TestResourceDisposal extends WithNestedTestClass {
 
   @Test
   public void testResourceDisposalSuiteScope() {
-    JUnitCore.runClasses(Nested.class);
+    runClasses(Nested.class);
     for (DummyCloseable c : Nested.suiteScope) {
       Assert.assertTrue(c.closed);
     }
@@ -103,7 +102,7 @@ public class TestResourceDisposal extends WithNestedTestClass {
 
   @Test
   public void testFailedDisposalBreaksTestCase() {
-    Result r = JUnitCore.runClasses(Nested2.class);
+    Result r = runClasses(Nested2.class);
     Assert.assertEquals(1, r.getRunCount());
     Assert.assertEquals(1, r.getFailureCount());
     Assert.assertTrue(r.getFailures().get(0).getException() instanceof ResourceDisposalError);

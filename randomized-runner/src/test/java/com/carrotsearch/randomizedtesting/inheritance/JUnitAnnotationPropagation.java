@@ -17,6 +17,7 @@ import org.junit.runner.Request;
 import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 
 public class JUnitAnnotationPropagation {
   final static List<String> order = new ArrayList<>();
@@ -77,7 +78,7 @@ public class JUnitAnnotationPropagation {
 
   private void assertSameExecution(Class<?> clazz) throws Exception {
     order.clear();
-    JUnitCore.runClasses(clazz);
+    WithNestedTestClass.runClasses(clazz);
     List<String> order1 = new ArrayList<>(order);
     order.clear();
 

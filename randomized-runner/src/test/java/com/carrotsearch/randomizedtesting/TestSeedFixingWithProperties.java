@@ -8,7 +8,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 
@@ -44,7 +43,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   public void testRunnerAndMethodProperty() {
     System.setProperty(SYSPROP_RANDOM_SEED(), "deadbeef:cafebabe");
     System.setProperty(SYSPROP_ITERATIONS(), "3");
-    JUnitCore.runClasses(Nested.class);
+    runClasses(Nested.class);
     assertEquals(Arrays.asList(0xdeadbeefL, 0xcafebabeL, 0xcafebabeL, 0xcafebabeL), seeds);
   }
 
@@ -56,7 +55,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   public void testFixedRunnerPropertyOnly() {
     System.setProperty(SYSPROP_RANDOM_SEED(), "deadbeef");
     System.setProperty(SYSPROP_ITERATIONS(), "3");
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     assertEquals(3, result.getRunCount());
     assertEquals(0xdeadbeefL, seeds.get(0).longValue());
     // _very_ slim chances of this actually being true...
@@ -68,7 +67,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
     // so check if this is indeed true.
     List<Long> copy = new ArrayList<Long>(seeds);
     seeds.clear();
-    JUnitCore.runClasses(Nested.class);
+    runClasses(Nested.class);
     assertEquals(copy, seeds);
   }
 

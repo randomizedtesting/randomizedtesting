@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 
 import org.junit.*;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
@@ -89,7 +88,7 @@ public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
 
   @Test
   public void testExceptionInBeforeClassFailsTheTest() {
-    Result runClasses = JUnitCore.runClasses(Nested1.class);
+    Result runClasses = runClasses(Nested1.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertEquals(1, runClasses.getRunCount());
     Assert.assertTrue(runClasses.getFailures().get(0).getTrace().contains("foobar"));
@@ -97,7 +96,7 @@ public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
 
   @Test
   public void testExceptionWithinTestFailsTheTest() {
-    Result runClasses = JUnitCore.runClasses(Nested2.class);
+    Result runClasses = runClasses(Nested2.class);
     Assert.assertEquals(3, runClasses.getFailureCount());
     Assert.assertEquals(3, runClasses.getRunCount());
 
@@ -116,7 +115,7 @@ public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
 
   @Test
   public void testExceptionWithinBeforeFailsTheTest() {
-    Result runClasses = JUnitCore.runClasses(Nested3.class);
+    Result runClasses = runClasses(Nested3.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertEquals(1, runClasses.getRunCount());
     Assert.assertTrue(runClasses.getFailures().get(0).getTrace().contains("foobar"));

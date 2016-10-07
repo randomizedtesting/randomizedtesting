@@ -120,7 +120,7 @@ public class TestRules extends WithNestedTestClass {
 
   private void assertSameExecution(Class<?> clazz) throws Exception {
     order = new ArrayList<>();
-    JUnitCore.runClasses(clazz);
+    runClasses(clazz);
     List<String> order1 = order;
     order = new ArrayList<>();
 

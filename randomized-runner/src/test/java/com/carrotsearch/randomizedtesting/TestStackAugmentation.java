@@ -3,7 +3,6 @@ package com.carrotsearch.randomizedtesting;
 import static org.junit.Assert.*;
 
 import org.junit.*;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.Failure;
@@ -33,7 +32,7 @@ public class TestStackAugmentation extends WithNestedTestClass {
 
   @Test
   public void testMethodLevel() {
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     assertEquals(1, result.getFailureCount());
 
     Failure f = result.getFailures().get(0);
@@ -58,7 +57,7 @@ public class TestStackAugmentation extends WithNestedTestClass {
 
   @Test
   public void testBeforeClass() {
-    Result result = JUnitCore.runClasses(Nested2.class);
+    Result result = runClasses(Nested2.class);
     assertEquals(1, result.getFailureCount());
 
     Failure f = result.getFailures().get(0);
@@ -83,7 +82,7 @@ public class TestStackAugmentation extends WithNestedTestClass {
 
   @Test
   public void testAfterClass() {
-    Result result = JUnitCore.runClasses(Nested3.class);
+    Result result = runClasses(Nested3.class);
     assertEquals(1, result.getFailureCount());
 
     Failure f = result.getFailures().get(0);

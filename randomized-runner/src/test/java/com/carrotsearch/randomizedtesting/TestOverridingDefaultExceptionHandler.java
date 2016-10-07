@@ -8,7 +8,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 
 public class TestOverridingDefaultExceptionHandler extends WithNestedTestClass {
   static List<String> throwableMessages = new CopyOnWriteArrayList<>();
@@ -70,7 +69,7 @@ public class TestOverridingDefaultExceptionHandler extends WithNestedTestClass {
 
   @Test
   public void testHandlerPropagation() {
-    JUnitCore.runClasses(Nested.class);
+    runClasses(Nested.class);
 
     Assertions.assertThat(throwableMessages).contains("exceptionFromChildThread");
     Assertions.assertThat(throwableMessages).contains("exceptionFromSubGroup");

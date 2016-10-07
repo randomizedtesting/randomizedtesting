@@ -3,7 +3,6 @@ package com.carrotsearch.randomizedtesting;
 import java.util.logging.*;
 
 import org.junit.*;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.manipulation.Filterable;
 
@@ -68,54 +67,10 @@ public class TestFilteringWarnings extends WithNestedTestClass {
    * Filter contains a seed but random seed will generate unique repetitions.
    */
   @Test
-  public void testItersWithRandomSeed() {
-    System.setProperty(SysGlobals.SYSPROP_ITERATIONS(), "5");
-    System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), "method {#1 seed=[614CDBEAE7160809:AE4F94CE0834589A]}");
-    Result result = JUnitCore.runClasses(Nested.class);
-    if (result.getIgnoreCount() == 0) {
-      Assert.assertTrue(result.getFailures().isEmpty());
-      Assert.assertTrue(getOutput().contains("Empty set of tests for suite class Nested after filters applied"));
-    }
-  }
-
-  /**
-   * Filter contains a seed but random seed will generate unique repetitions.
-   */
-  @Test
-  public void testItersWithFixedSeed() {
-    System.setProperty(SysGlobals.SYSPROP_ITERATIONS(), "5");
-    System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), "method {#1 seed=[614CDBEAE7160809:AE4F94CE0834589A]}");
-    System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), "deadbeef");
-    Result result = JUnitCore.runClasses(Nested.class);
-    if (result.getIgnoreCount() == 0) {
-      Assert.assertTrue(result.getFailures().isEmpty());
-      Assert.assertTrue(getOutput().contains("Empty set of tests for suite class Nested after filters applied"));
-    }
-  }
-
-  /**
-   * 
-   */
-  @Test
-  public void testItersWithFixedMethodName() {
-    System.setProperty(SysGlobals.SYSPROP_ITERATIONS(), "5");
-    System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), "foo");
-    Result result = JUnitCore.runClasses(Nested.class);
-    if (result.getIgnoreCount() == 0) {
-      Assert.assertTrue(result.getFailures().isEmpty());
-      Assert.assertTrue(getOutput().contains("Empty set of tests for suite class Nested after filters applied"));
-    }
-  }
-
-
-  /**
-   * Filter contains a seed but random seed will generate unique repetitions.
-   */
-  @Test
   public void testNoIters() {
     System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), "method");
     System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), "deadbeef");
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     if (result.getIgnoreCount() == 0) {
       Assert.assertTrue(result.getFailures().isEmpty());
       Assert.assertTrue(getOutput().isEmpty());

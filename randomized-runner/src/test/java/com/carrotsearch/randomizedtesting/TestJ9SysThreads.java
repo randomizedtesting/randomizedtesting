@@ -6,7 +6,6 @@ import java.lang.management.MemoryPoolMXBean;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
@@ -34,7 +33,7 @@ public class TestJ9SysThreads extends WithNestedTestClass {
 
   @Test
   public void testSuccessfulExceptedFailure() {
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     Assert.assertEquals(0, result.getFailureCount());
   }
 }

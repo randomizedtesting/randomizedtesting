@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runners.model.Statement;
 
@@ -86,19 +85,19 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
 
   @Test
   public void testReferencesCountedMultipleTimes() {
-    Result runClasses = JUnitCore.runClasses(MultipleReferences.class);
+    Result runClasses = runClasses(MultipleReferences.class);
     Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }
 
   @Test
   public void testPassingUnderThreshold() {
-    Result runClasses = JUnitCore.runClasses(Smaller.class);
+    Result runClasses = runClasses(Smaller.class);
     Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }
   
   @Test
   public void testFailingAboveThreshold() {
-    Result runClasses = JUnitCore.runClasses(Exceeding.class);
+    Result runClasses = runClasses(Exceeding.class);
     Assertions.assertThat(runClasses.getFailures()).hasSize(1);
     
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())
@@ -138,7 +137,7 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
       RandomizedTest.assumeTrue("This test requires Java 9 module system (Jigsaw)", false);
     }
   
-    Result runClasses = JUnitCore.runClasses(FailsJava9.class);
+    Result runClasses = runClasses(FailsJava9.class);
     Assertions.assertThat(runClasses.getFailures()).hasSize(1);
     
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())

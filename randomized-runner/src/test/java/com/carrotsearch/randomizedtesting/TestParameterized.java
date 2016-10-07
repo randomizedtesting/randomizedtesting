@@ -5,7 +5,6 @@ import java.util.Collections;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.Name;
@@ -46,7 +45,7 @@ public class TestParameterized extends WithNestedTestClass {
 
   @Test
   public void testWithRepeatsAndSeeds() {
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     Assert.assertEquals(16, result.getRunCount());
   }
 
@@ -69,7 +68,7 @@ public class TestParameterized extends WithNestedTestClass {
 
   @Test
   public void testNameAnnotation() {
-    Result result = JUnitCore.runClasses(Nested2.class);
+    Result result = runClasses(Nested2.class);
     Assert.assertEquals(1, result.getFailureCount());
     Assert.assertTrue(result.getFailures().get(0).getDescription().getMethodName().contains("paramName=xyz"));
     Assert.assertEquals("failing", RandomizedRunner.methodName(result.getFailures().get(0).getDescription()));
@@ -100,11 +99,11 @@ public class TestParameterized extends WithNestedTestClass {
 
   @Test
   public void testEmptyParamsList() {
-    Result result = JUnitCore.runClasses(Nested3.class);
+    Result result = runClasses(Nested3.class);
     Assert.assertEquals(0, result.getRunCount());
     Assert.assertEquals(0, result.getIgnoreCount());
     
-    result = JUnitCore.runClasses(Nested4.class);
+    result = runClasses(Nested4.class);
     Assert.assertEquals(0, result.getRunCount());
     Assert.assertEquals(0, result.getIgnoreCount());    
   }  

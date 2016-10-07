@@ -6,7 +6,6 @@ import java.util.IdentityHashMap;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
@@ -53,7 +52,7 @@ public class TestTestCaseInstanceProviders extends WithNestedTestClass {
 
   @Test
   public void testDefaultConstructor() {
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     Assertions.assertThat(result.getFailureCount()).isEqualTo(0);
     Assertions.assertThat(result.getRunCount()).isEqualTo(3 + 1 + 2 * 2);
     Assertions.assertThat(set).hasSize(1);
@@ -71,7 +70,7 @@ public class TestTestCaseInstanceProviders extends WithNestedTestClass {
   
   @Test
   public void testParameterProviders() {
-    Result result = JUnitCore.runClasses(Nested2.class);
+    Result result = runClasses(Nested2.class);
     Assertions.assertThat(set).hasSize(3);
     Assertions.assertThat(result.getFailureCount()).isEqualTo(0);
     Assertions.assertThat(result.getRunCount()).isEqualTo(3 * (3 + 1 + 2 * 2));

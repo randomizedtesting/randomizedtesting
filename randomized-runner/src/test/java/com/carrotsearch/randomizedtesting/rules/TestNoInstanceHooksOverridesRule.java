@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runners.model.Statement;
 
@@ -75,7 +74,7 @@ public class TestNoInstanceHooksOverridesRule extends WithNestedTestClass {
   @Test
   public void testOverrideNoAnnotation() {
 
-    Result runClasses = JUnitCore.runClasses(Sub1.class);
+    Result runClasses = runClasses(Sub1.class);
     Assertions.assertThat(runClasses.getFailures()).isNotEmpty();
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())
     .contains("shadow or override each other");
@@ -83,7 +82,7 @@ public class TestNoInstanceHooksOverridesRule extends WithNestedTestClass {
   
   @Test
   public void testOverrideWithAnnotation() {
-    Result runClasses = JUnitCore.runClasses(Sub2.class);
+    Result runClasses = runClasses(Sub2.class);
     Assertions.assertThat(runClasses.getFailures()).isNotEmpty();
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())
     .contains("shadow or override each other");
@@ -91,13 +90,13 @@ public class TestNoInstanceHooksOverridesRule extends WithNestedTestClass {
 
   @Test
   public void testIndependentChains() {
-    Result runClasses = JUnitCore.runClasses(Sub3.class);
+    Result runClasses = runClasses(Sub3.class);
     Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }
   
   @Test
   public void testFiltering() {
-    Result runClasses = JUnitCore.runClasses(Sub4.class);
+    Result runClasses = runClasses(Sub4.class);
     Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }    
 }

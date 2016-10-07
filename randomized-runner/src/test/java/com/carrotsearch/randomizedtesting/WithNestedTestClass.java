@@ -8,11 +8,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -24,6 +26,8 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
 import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
@@ -279,5 +283,39 @@ public class WithNestedTestClass {
       throw new RuntimeException(e);
     }
     return t;
+  }
+
+  public static Result runClasses(final Class<?>... classes) {
+    try {
+      final AtomicReference<Result> r = new AtomicReference<Result>();
+      // Run on a separate thread so that it appears as we're not running in an IDE. 
+      Thread thread = new Thread() {
+        @Override
+        public void run() {
+          final JUnitCore core = new JUnitCore();
+          core.addListener(new PrintEventListener());
+          r.set(core.run(classes));
+        }
+      };
+      thread.start();
+      thread.join();
+      return r.get();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  public static void checkRunClasses(int run, int ignored, int failures, Class<?>... classes) {
+    checkResult(runClasses(classes), run, ignored, failures);
+  }
+
+  public static void checkResult(Result result, int run, int ignored, int failures) {
+    if (result.getRunCount() != run ||
+        result.getIgnoreCount() != ignored ||
+        result.getFailureCount() != failures) {
+      Assertions.fail("Different result. [run,ign,fail] Expected: "
+          + run + "," + ignored + "," + failures + ", Actual: " +
+          + result.getRunCount() + "," + result.getIgnoreCount() + "," + result.getFailureCount());
+    }
   }
 }

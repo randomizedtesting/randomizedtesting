@@ -7,7 +7,6 @@ import javax.management.MBeanServer;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
@@ -32,7 +31,7 @@ public class TestMacSysThreads extends WithNestedTestClass {
 
   @Test
   public void testSuccessful() {
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     Assert.assertEquals(0, result.getFailureCount());
   }
 }

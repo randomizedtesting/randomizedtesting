@@ -4,7 +4,6 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
@@ -38,7 +37,7 @@ public class Test015TimeoutOverride extends WithNestedTestClass {
   public void testTimeoutOverride() {
     System.setProperty(SysGlobals.SYSPROP_TIMEOUT(), "200!");
     long start = System.currentTimeMillis();
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     long end = System.currentTimeMillis();
     Assert.assertEquals(1, result.getFailureCount());
     Assert.assertTrue(end - start < 3000);
@@ -49,7 +48,7 @@ public class Test015TimeoutOverride extends WithNestedTestClass {
     System.setProperty(SysGlobals.SYSPROP_TIMEOUT(), "0!");
 
     long start = System.currentTimeMillis();
-    Result result = JUnitCore.runClasses(Nested2.class);
+    Result result = runClasses(Nested2.class);
     long end = System.currentTimeMillis();
     Assert.assertEquals(0, result.getFailureCount());
     Assert.assertTrue(end - start > 900);

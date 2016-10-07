@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 
@@ -13,7 +12,7 @@ import org.junit.runner.RunWith;
  * Hooks should _not_ execute if there are no test cases to run. Note that
  * ignored test cases behave as if there was something to execute (!).
  */
-public class TestHooksWithEmptyTestSet {
+public class TestHooksWithEmptyTestSet extends WithNestedTestClass {
   @RunWith(RandomizedRunner.class)
   public static class Nested {
     static boolean beforeClassExecuted;
@@ -21,6 +20,7 @@ public class TestHooksWithEmptyTestSet {
 
     @BeforeClass
     public static void beforeClass() {
+      assumeRunningNested();
       beforeClassExecuted = true;
     }
 
@@ -37,7 +37,7 @@ public class TestHooksWithEmptyTestSet {
   public void testSameMethodRandomnessWithFixedRunner() {
     Nested.beforeClassExecuted = false;
     Nested.afterClassExecuted = false;
-    Result result = JUnitCore.runClasses(Nested.class);
+    Result result = runClasses(Nested.class);
     assertEquals(0, result.getRunCount());
     assertFalse(Nested.beforeClassExecuted);
     assertFalse(Nested.afterClassExecuted);

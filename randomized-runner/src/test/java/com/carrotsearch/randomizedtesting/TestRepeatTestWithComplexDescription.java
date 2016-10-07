@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.Description;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
 
@@ -64,13 +63,13 @@ public class TestRepeatTestWithComplexDescription extends WithNestedTestClass {
   public void checkFilteringByName() {
     // Collect all test names first.
     buf = new ArrayList<String>();
-    JUnitCore.runClasses(Nested.class);
+    runClasses(Nested.class);
     
     for (String testName : buf) {
       buf = new ArrayList<String>();
       System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), testName);
 
-      Result result = JUnitCore.runClasses(Nested.class);
+      Result result = runClasses(Nested.class);
       Assertions.assertThat(result.wasSuccessful()).as(result.getFailures().toString()).isTrue();
       Assertions.assertThat(buf).containsOnly(testName);
     }

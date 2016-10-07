@@ -6,8 +6,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
-
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 
 /**
@@ -62,27 +60,27 @@ public class TestContextRandom extends WithNestedTestClass {
   @Test
   @Ignore("Forked threads get the master seed (by-design).")
   public void testFixedSeedSubthreads() {
-    JUnitCore.runClasses(Nested3.class);
+    runClasses(Nested3.class);
     List<Integer> run1 = new ArrayList<Integer>(numbers);
-    JUnitCore.runClasses(Nested3.class);
+    runClasses(Nested3.class);
     List<Integer> run2 = new ArrayList<Integer>(numbers);
     Assert.assertEquals(run1, run2);
   }
 
   @Test
   public void testFixedSeed() {
-    JUnitCore.runClasses(Nested1.class);
+    runClasses(Nested1.class);
     List<Integer> run1 = new ArrayList<Integer>(numbers);
-    JUnitCore.runClasses(Nested1.class);
+    runClasses(Nested1.class);
     List<Integer> run2 = new ArrayList<Integer>(numbers);
     Assert.assertEquals(run1, run2);
   }
 
   @Test
   public void testRandomSeed() {
-    JUnitCore.runClasses(Nested2.class);
+    runClasses(Nested2.class);
     List<Integer> run1 = new ArrayList<Integer>(numbers);
-    JUnitCore.runClasses(Nested2.class);
+    runClasses(Nested2.class);
     List<Integer> run2 = new ArrayList<Integer>(numbers);
     Assert.assertFalse(run1.equals(run2));
   }

@@ -8,7 +8,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
@@ -109,7 +108,7 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
 
   @Test
   public void testCrossTestCaseIsolation() throws Throwable {
-    Result runClasses = JUnitCore.runClasses(Nested.class);
+    Result runClasses = runClasses(Nested.class);
     if (!runClasses.getFailures().isEmpty()) {
       throw runClasses.getFailures().get(0).getException();
     }
@@ -118,7 +117,7 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
 
   @Test
   public void testCrossTestSuiteIsolation() {
-    JUnitCore.runClasses(Nested.class);
+    runClasses(Nested.class);
     try {
       Nested.staticContextRandom.nextBoolean();
       Assert.fail("Shouldn't be able to use another suite's Random.");

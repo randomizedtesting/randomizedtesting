@@ -309,16 +309,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   public GroupEvaluator groupEvaluator;
 
-  /**
-   * What kind of container are we in? Unfortunately we need to adjust
-   * to some "assumptions" containers make about runners.
-   */
-  private static enum RunnerContainer {
-    ECLIPSE,
-    IDEA,
-    UNKNOWN
-  }
-
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     appendSeedParameter = RandomizedTest.systemPropertyAsBoolean(SYSPROP_APPEND_SEED(), false);
@@ -332,10 +322,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     this.suiteClass = testClass;
     this.classModel = new ClassModel(testClass);
 
-    // Try to detect the container.
-    {
-      this.containerRunner = detectContainer();
-    }
+    // Try to detect the JUnit runner's container. This changes reporting 
+    // behavior slightly.
+    this.containerRunner = detectContainer();
 
     // Initialize the runner's master seed/ randomness source.
     {
@@ -406,7 +395,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   private static RunnerContainer detectContainer() {
     StackTraceElement [] stack = Thread.currentThread().getStackTrace();
-
     if (stack.length > 0) {
       String topClass = stack[stack.length - 1].getClassName();
 
@@ -418,7 +406,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
         return RunnerContainer.IDEA;
       }
     }
-
     return RunnerContainer.UNKNOWN;
   }
 
@@ -645,15 +632,31 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
       }
 
+      /*
+       * TODO: the logic here should be changed:
+       * - if it's an @Ignored test or it is ignored due to a disabled test group:
+       *     remove from the set
+       *     markAsIgnored(t);
+       * - else, if it's a test that is ignored due to filtering expression:
+       *     remove from the set
+       *     markAsIgnored(t) if running under IDE (only)
+       *     
+       * - there is no need to check filtering rules again in runTestsStatement
+       */
+
       // Filter out test candidates to see if there's anything left. If not,
       // don't bother running class hooks.
       final List<TestCandidate> filtered = getFilteredTestCandidates();
-
-      // Filter out any tests ignored by filtering expression
-      final GroupEvaluator evaluator = RandomizedContext.current().getGroupEvaluator();
       for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext();) {
         TestCandidate c = i.next();
-        if (evaluator.getIgnoreReason(c.method, suiteClass) != null) {
+        if (isTestIgnored(c)) {
+          i.remove();
+          markAsIgnored(notifier, c);
+        } else if (isTestFiltered(groupEvaluator, c)) {
+          // If there is an explicit tests.filter expression, we remove the tests
+          // entirely from the run (so that they don't obscure the view of actual
+          // tests that were executed). For IDEs we need to make an exception, however,
+          // because IDEs expect those tests to be reported back.
           i.remove();
           if (containerRunner == RunnerContainer.ECLIPSE ||
               containerRunner == RunnerContainer.IDEA) {
@@ -663,36 +666,28 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
 
       if (!filtered.isEmpty()) {
-        if (areAllRemainingIgnored(filtered)) {
-          for (TestCandidate candidate : filtered) {
-            if (!isTestIgnored(candidate)) {
-              throw new RuntimeException("Should not reach here.");
+        ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
+        Statement s = runTestsStatement(threadLeakControl.notifier(), filtered, threadLeakControl);
+        s = withClassBefores(s);
+        s = withClassAfters(s);
+        s = withClassRules(s);
+        s = withCloseContextResources(s, LifecycleScope.SUITE);
+        s = threadLeakControl.forSuite(s, suiteDescription);
+        try {
+          s.evaluate();
+        } catch (Throwable t) {
+          t = augmentStackTrace(t, runnerRandomness);
+          if (t instanceof AssumptionViolatedException) {
+            // Fire assumption failure before method ignores. (GH-103).
+            notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
+
+            // Class level assumptions cause all tests to be ignored.
+            // see Rants#RANT_3
+            for (final TestCandidate c : filtered) {
+              notifier.fireTestIgnored(c.description);
             }
-          }
-        } else {
-          ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
-          Statement s = runTestsStatement(threadLeakControl.notifier(), filtered, threadLeakControl);
-          s = withClassBefores(s);
-          s = withClassAfters(s);
-          s = withClassRules(s);
-          s = withCloseContextResources(s, LifecycleScope.SUITE);
-          s = threadLeakControl.forSuite(s, suiteDescription);
-          try {
-            s.evaluate();
-          } catch (Throwable t) {
-            t = augmentStackTrace(t, runnerRandomness);
-            if (t instanceof AssumptionViolatedException) {
-              // Fire assumption failure before method ignores. (GH-103).
-              notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
-  
-              // Class level assumptions cause all tests to be ignored.
-              // see Rants#RANT_3
-              for (final TestCandidate c : filtered) {
-                notifier.fireTestIgnored(c.description);
-              }
-            } else {
-              fireTestFailure(notifier, suiteDescription, t);
-            }
+          } else {
+            fireTestFailure(notifier, suiteDescription, t);
           }
         }
       }
@@ -713,15 +708,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     notifier.removeListener(accounting);
     unsubscribeListeners(notifier);
     context.popAndDestroy();    
-  }
-
-  private boolean areAllRemainingIgnored(List<TestCandidate> filtered) {
-    for (TestCandidate candidate : filtered) {
-      if (!isTestIgnored(candidate)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /**
@@ -763,7 +749,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
             break;
           }
 
-          if (isTestIgnored(c)) {
+          if (isTestIgnored(c) ||
+              isTestFiltered(groupEvaluator, c)) {
             markAsIgnored(notifier, c);
             continue;
           }
@@ -799,24 +786,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
     GroupEvaluator ge = RandomizedContext.current().getGroupEvaluator();
     String ignoreReason = ge.getIgnoreReason(c.method, suiteClass);
     if (ignoreReason != null) {
-      /*
-       * This is mighty weird but it's a workaround for JUnit's limitations in passing the
-       * cause of an ignored test and at the same time mark a test as ignored in certain IDEs.
-       */
-
-      switch (containerRunner) {
-        case ECLIPSE:
-          notifier.fireTestIgnored(c.description);
-          break;
-
-        case UNKNOWN:
-        case IDEA:
-        default:
-          notifier.fireTestStarted(c.description);
-          notifier.fireTestAssumptionFailed(new Failure(c.description, new InternalAssumptionViolatedException(ignoreReason)));
-          notifier.fireTestFinished(c.description);
-          break;
-      }
+      notifier.fireTestStarted(c.description);
+      notifier.fireTestAssumptionFailed(new Failure(c.description, new InternalAssumptionViolatedException(ignoreReason)));
+      notifier.fireTestFinished(c.description);
     }
   }
 
@@ -943,13 +915,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // Process @After hooks. All @After hooks are processed, regardless of their own exceptions.
     final List<Method> afters = getShuffledMethods(After.class);
     if (!afters.isEmpty()) {
-      final Statement afterAfters = s;
+      final Statement beforeAfters = s;
       s = new Statement() {
         @Override
         public void evaluate() throws Throwable {
           List<Throwable> cumulative = new ArrayList<Throwable>();
           try {
-            afterAfters.evaluate();
+            beforeAfters.evaluate();
           } catch (Throwable t) {
             cumulative.add(t);
           }
@@ -1180,13 +1152,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Returns true if we should ignore this test candidate.
    */
   private boolean isTestIgnored(TestCandidate c) {
-    // Check for @Ignore on method early on, like JUnit.
-    if (c.method.getAnnotation(Ignore.class) != null) {
-      return true;
-    }
+    return c.method.getAnnotation(Ignore.class) != null;
+  }
 
-    return RandomizedContext.current().getGroupEvaluator()
-        .getIgnoreReason(c.method, suiteClass) != null;
+  private boolean isTestFiltered(GroupEvaluator ev, TestCandidate c) {
+    return ev.getIgnoreReason(c.method, suiteClass) != null;
   }
 
   /**

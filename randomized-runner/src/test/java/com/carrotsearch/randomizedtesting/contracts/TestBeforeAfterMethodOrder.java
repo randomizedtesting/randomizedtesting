@@ -199,7 +199,7 @@ public class TestBeforeAfterMethodOrder extends WithNestedTestClass {
   @Test
   public void checkOrder() throws Exception {
     // Normal JUnit.
-    Result result = JUnitCore.runClasses(SubSub.class);
+    Result result = runClasses(SubSub.class);
     assertEquals(1, result.getRunCount());
 
     // Save order.

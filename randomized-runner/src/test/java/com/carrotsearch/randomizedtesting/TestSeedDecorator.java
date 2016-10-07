@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.assertj.core.api.Assertions;
 import org.junit.*;
-import org.junit.runner.JUnitCore;
 import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
@@ -57,7 +56,7 @@ public class TestSeedDecorator extends WithNestedTestClass {
     System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), masterSeed);
 
     // These classes should get a different master seed (perturbed by decorator).
-    JUnitCore.runClasses(Nested1.class, Nested2.class, Nested3.class, Nested4.class);
+    runClasses(Nested1.class, Nested2.class, Nested3.class, Nested4.class);
 
     // All four classes get the same initial "runner" seed.
     Assert.assertEquals(4, runnerSeeds.size());
