@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.*;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 
 /**
  * Running tests on a developer machine is often a pain, in particular when
@@ -14,13 +15,11 @@ import com.carrotsearch.randomizedtesting.annotations.Nightly;
  * is nice to be able to "stress" your tests a bit more during nightly or server
  * runs compared to normal developer runs.
  * 
- * <p>{@link RandomizedRunner} has a notion of a {@link Nightly} test and a few methods
+ * <p>{@link RandomizedRunner} has a built-in {@link TestGroup} called {@link Nightly}
  * for "scaling" the execution depending if is in nightly mode or not. In the simplest
  * case (see {@link #nightlyOnly()} a test case is run in nightly mode and ignored in 
  * normal runs. This can be done by annotating a test case or suite using {@link Nightly}
- * or by assuming nightly mode (using the result of {@link RandomizedContext#isNightly()}
- * as the condition). There is a difference between these two methods and it is left as an
- * exercise for the reader to discover what this difference is.
+ * or by checking for nightly mode explicitly.
  * 
  * <p>For tests whose runtime depends on the amount of input data or other varying complexity,
  * one can use {@link RandomizedTest#scaledRandomIntBetween(int, int)} method or the current
@@ -36,8 +35,8 @@ public class Test011NightlyTests extends RandomizedTest {
 
   @Test
   public void nightlyOnlyWithAssume() throws Exception {
-    Assume.assumeTrue(isNightly());
-    // Do nothing, but pretend we're long and slow.
+    // Only run if Nightly test group is explicitly enabled using -Dtests.nightly=true
+    Assume.assumeTrue(RandomizedContext.current().getGroupEvaluator().isGroupEnabled(Nightly.class));
   }
 
   @Test

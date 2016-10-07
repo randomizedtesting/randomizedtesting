@@ -5,13 +5,18 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.3.5-SNAPSHOT ====================
+======================= randomizedtesting 2.4.0-SNAPSHOT ====================
 
 Changes in Backwards Compatibility
 
 Bug Fixes
 
 Other Changes
+
+  * GH-218: There are some internal changes in handling @Nightly annotation.
+    The support for @Nightly is now provided via GroupEvaluator (and this
+    class is now public, with methods allowing inspection of whether a test
+    would be filtered out or not).
 
 ======================= randomizedtesting 2.3.4 ====================
 

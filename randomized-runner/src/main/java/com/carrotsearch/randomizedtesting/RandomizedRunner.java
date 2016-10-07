@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -408,7 +407,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private static RunnerContainer detectContainer() {
     StackTraceElement [] stack = Thread.currentThread().getStackTrace();
 
-    // Look for Eclipse first.
     if (stack.length > 0) {
       String topClass = stack[stack.length - 1].getClassName();
 
@@ -653,11 +651,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
       // Filter out any tests ignored by filtering expression
       final GroupEvaluator evaluator = RandomizedContext.current().getGroupEvaluator();
-      if (evaluator.hasFilteringExpression()) {
-        for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext();) {
-          TestCandidate c = i.next();
-          if (evaluator.isTestIgnored(c.method, suiteClass) != null) {
-            i.remove();
+      for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext();) {
+        TestCandidate c = i.next();
+        if (evaluator.getIgnoreReason(c.method, suiteClass) != null) {
+          i.remove();
+          if (containerRunner == RunnerContainer.ECLIPSE ||
+              containerRunner == RunnerContainer.IDEA) {
+            markAsIgnored(notifier, c);
           }
         }
       }
@@ -665,7 +665,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       if (!filtered.isEmpty()) {
         if (areAllRemainingIgnored(filtered)) {
           for (TestCandidate candidate : filtered) {
-            if (!isTestIgnored(notifier, candidate)) {
+            if (!isTestIgnored(candidate)) {
               throw new RuntimeException("Should not reach here.");
             }
           }
@@ -716,9 +716,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   private boolean areAllRemainingIgnored(List<TestCandidate> filtered) {
-    RunNotifier fake = new RunNotifier();
     for (TestCandidate candidate : filtered) {
-      if (!isTestIgnored(fake, candidate)) {
+      if (!isTestIgnored(candidate)) {
         return false;
       }
     }
@@ -763,7 +762,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
           if (threadLeakControl.isTimedOut()) {
             break;
           }
-          if (isTestIgnored(notifier, c)) {
+
+          if (isTestIgnored(c)) {
+            markAsIgnored(notifier, c);
             continue;
           }
 
@@ -787,6 +788,36 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }              
       }
     };
+  }
+
+  void markAsIgnored(RunNotifier notifier, TestCandidate c) {
+    if (c.method.getAnnotation(Ignore.class) != null) {
+      notifier.fireTestIgnored(c.description);
+      return;
+    }
+
+    GroupEvaluator ge = RandomizedContext.current().getGroupEvaluator();
+    String ignoreReason = ge.getIgnoreReason(c.method, suiteClass);
+    if (ignoreReason != null) {
+      /*
+       * This is mighty weird but it's a workaround for JUnit's limitations in passing the
+       * cause of an ignored test and at the same time mark a test as ignored in certain IDEs.
+       */
+
+      switch (containerRunner) {
+        case ECLIPSE:
+          notifier.fireTestIgnored(c.description);
+          break;
+
+        case UNKNOWN:
+        case IDEA:
+        default:
+          notifier.fireTestStarted(c.description);
+          notifier.fireTestAssumptionFailed(new Failure(c.description, new InternalAssumptionViolatedException(ignoreReason)));
+          notifier.fireTestFinished(c.description);
+          break;
+      }
+    }
   }
 
   private void fireTestFailure(RunNotifier notifier, Description description, Throwable t) {
@@ -1133,73 +1164,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
 
-    // GH-89.
-    if (testCandidates.size() > 0 && filtered.isEmpty()) {
-      final boolean expandedCandidates = candidatesWithRandomSeeds(testCandidates); 
-      final boolean filtersIncludeSeed = filtersIncludeSeed(testFilters);
-
-      if (expandedCandidates && filtersIncludeSeed) {
-          Logger.getAnonymousLogger().warning(
-              "Empty set of tests for suite class " + suiteClass.getSimpleName() +
-              " after filters applied. This can be caused by an attempt to filter tests with a random" +
-              " or fixed seed different than the filter's. Use the same constant seed " +
-              "(-Dtests.seed=deadbeef) to get a reproducible (and filterable)" +
-              " set of tests.");
-      }
-
-      if (expandedCandidates && !filtersIncludeSeed) {
-        String warningMessage = "Empty set of tests for suite class " + 
-            suiteClass.getSimpleName() +
-            " after filters applied.";
-
-        if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD())) != null) {
-          warningMessage += " Your method filter property should be a glob pattern to cater for" +
-          		" the random seed appended to each expanded test repetition. Use -D" +
-              SysGlobals.SYSPROP_TESTMETHOD() + "=" +
-              System.getProperty(SYSPROP_TESTMETHOD()) + "*";
-        } else {
-          warningMessage += " This can be caused by an attempt to filter tests by fixed method name" +
-          		" when their repetitions are expanded with a random seed to make their names unique. Use" +
-          		" a globbing pattern in your filters to ignore anything after the method name, for example:" +
-          		" -D" + SysGlobals.SYSPROP_TESTMETHOD() + "=method*";
-        }
-        Logger.getAnonymousLogger().warning(warningMessage);
-      }      
-    }
-
     return filtered;
-  }
-
-  /**
-   * Check if any of the filters includes a description that would suggest it's looking
-   * for a filter with seed. 
-   */
-  private boolean filtersIncludeSeed(List<Filter> filters) {
-    for (Filter f : filters) {
-      if (hasSeedPattern(f.describe()))
-        return true;
-    }
-    return false;
-  }
-
-  /**
-   * Check if this string has a pattern of containing seed.
-   */
-  private boolean hasSeedPattern(String description) {
-    Pattern p = Pattern.compile("seed=\\[");
-    return p.matcher(description).find();
-  }
-
-  /**
-   * Check if the set of test candidates contains tests with seeds. 
-   */
-  private boolean candidatesWithRandomSeeds(List<TestCandidate> testCandidates) {
-    for (TestCandidate tc : testCandidates) {
-      if (hasSeedPattern(tc.description.getMethodName())) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -1214,31 +1179,14 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** 
    * Returns true if we should ignore this test candidate.
    */
-  private boolean isTestIgnored(RunNotifier notifier, TestCandidate c) {
+  private boolean isTestIgnored(TestCandidate c) {
     // Check for @Ignore on method early on, like JUnit.
     if (c.method.getAnnotation(Ignore.class) != null) {
-      notifier.fireTestIgnored(c.description);
       return true;
     }
 
-    final GroupEvaluator evaluator = RandomizedContext.current().getGroupEvaluator();
-    String reasonIgnored = evaluator.isTestIgnored(c.method, suiteClass);
-    if (reasonIgnored != null) {
-      /*
-       * This is mighty weird but it's a workaround for JUnit's limitations in passing the
-       * cause of an ignored test and at the same time mark a test as ignored in certain IDEs
-       * (Eclipse).
-       */
-      notifier.fireTestStarted(c.description);
-      if (containerRunner != RunnerContainer.IDEA) {
-        notifier.fireTestIgnored(c.description);
-      }
-      notifier.fireTestAssumptionFailed(new Failure(c.description, new InternalAssumptionViolatedException(reasonIgnored)));
-      notifier.fireTestFinished(c.description);
-      return true;
-    }
-    
-    return false;
+    return RandomizedContext.current().getGroupEvaluator()
+        .getIgnoreReason(c.method, suiteClass) != null;
   }
 
   /**

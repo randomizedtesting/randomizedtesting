@@ -72,14 +72,14 @@ public class RandomizedTest {
   }
 
   /**
-   * Returns true if we're running nightly tests.
+   * Returns true if {@link Nightly} test group is enabled.
+   * 
    * @see Nightly
-   * @deprecated Will be removed in 2.4.0
    */
   public static boolean isNightly() {
     return getContext().isNightly();
   }
-  
+
   /**
    * Shortcut for {@link RandomizedContext#getRandom()}. Even though this method
    * is static, it returns per-thread {@link Random} instance, so no race conditions

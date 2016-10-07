@@ -16,7 +16,7 @@ import com.carrotsearch.randomizedtesting.annotations.TestGroup;
 /**
  * Evaluates enabled/ disabled state for a given test group.
  */
-class GroupEvaluator {
+public final class GroupEvaluator {
   private static class TestGroupInfo {
     final TestGroup group;
     final String name;
@@ -92,11 +92,16 @@ class GroupEvaluator {
     }
   }
 
-  public boolean hasFilteringExpression() {
+  boolean hasFilteringExpression() {
     return filterExpression != null;
   }  
 
-  String isTestIgnored(AnnotatedElement... elements) {
+  /**
+   * @return Returns a non-null string with the reason why the annotated element (class, test or test-class pair) 
+   *         should be ignored in the execution. This is an expert-level method, typically tests 
+   *         shouldn't be concerned with this.
+   */
+  public String getIgnoreReason(AnnotatedElement... elements) {
     final Map<String, Annotation> annotations = new HashMap<String,Annotation>();
 
     for (AnnotatedElement element : elements) {
@@ -150,5 +155,24 @@ class GroupEvaluator {
     return ann.toString().replace(
         ann.annotationType().getName(), 
         ann.annotationType().getSimpleName());
+  }
+
+  /**
+   * @return Returns the current state of the an annotation marked with 
+   *         {@link TestGroup}. Note that tests may be enabled or disabled using filtering
+   *         expressions so an enabled group does not necessarily mean a test marked with
+   *         this group will be executed.
+   */
+  public boolean isGroupEnabled(Class<? extends Annotation> testGroupAnnotation) {
+    if (!testGroups.containsKey(testGroupAnnotation)) {
+      if (!testGroupAnnotation.isAnnotationPresent(TestGroup.class)) {
+        throw new IllegalArgumentException("This annotation is not marked with @"
+            + TestGroup.class.getName() + ": " + testGroupAnnotation.getName());
+      }
+
+      testGroups.put(testGroupAnnotation, new TestGroupInfo(testGroupAnnotation));
+    }
+
+    return testGroups.get(testGroupAnnotation).enabled;
   }
 }
