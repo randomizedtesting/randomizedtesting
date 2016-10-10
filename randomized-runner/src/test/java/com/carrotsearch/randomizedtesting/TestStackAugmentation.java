@@ -1,9 +1,12 @@
 package com.carrotsearch.randomizedtesting;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.*;
-import org.junit.runner.Result;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.Failure;
 
@@ -32,8 +35,7 @@ public class TestStackAugmentation extends WithNestedTestClass {
 
   @Test
   public void testMethodLevel() {
-    Result result = runClasses(Nested.class);
-    assertEquals(1, result.getFailureCount());
+    FullResult result = checkTestsOutput(1, 0, 1, 0, Nested.class);
 
     Failure f = result.getFailures().get(0);
     String seedFromThrowable = RandomizedRunner.seedFromThrowable(f.getException());
@@ -57,7 +59,7 @@ public class TestStackAugmentation extends WithNestedTestClass {
 
   @Test
   public void testBeforeClass() {
-    Result result = runClasses(Nested2.class);
+    FullResult result = checkTestsOutput(0, 0, 1, 0, Nested2.class);
     assertEquals(1, result.getFailureCount());
 
     Failure f = result.getFailures().get(0);
@@ -65,7 +67,7 @@ public class TestStackAugmentation extends WithNestedTestClass {
     assertNotNull(seedFromThrowable);
     assertTrue(f.getTrace(), "[DEADBEEF]".compareToIgnoreCase(seedFromThrowable) == 0);
   }
-  
+
   @RunWith(RandomizedRunner.class)
   @Seed("deadbeef")
   public static class Nested3 {
@@ -82,8 +84,7 @@ public class TestStackAugmentation extends WithNestedTestClass {
 
   @Test
   public void testAfterClass() {
-    Result result = runClasses(Nested3.class);
-    assertEquals(1, result.getFailureCount());
+    FullResult result = checkTestsOutput(1, 0, 1, 0, Nested3.class);
 
     Failure f = result.getFailures().get(0);
     String seedFromThrowable = RandomizedRunner.seedFromThrowable(f.getException());

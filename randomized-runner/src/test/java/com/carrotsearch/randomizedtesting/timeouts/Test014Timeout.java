@@ -1,12 +1,11 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
-import junit.framework.Assert;
-
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
+
+import junit.framework.Assert;
 
 /**
  * Test {@link Test#timeout()}.
@@ -30,10 +29,11 @@ public class Test014Timeout extends WithNestedTestClass {
 
   @Test
   public void testTimeoutInTestAnnotation() {
-    Result result = runClasses(Nested.class);
+    FullResult result = runTests(Nested.class);
 
     Assert.assertEquals(0, result.getIgnoreCount());
     Assert.assertEquals(2, result.getRunCount());
     Assert.assertEquals(2, result.getFailureCount());
+    Assert.assertEquals(0, result.getAssumptionIgnored());
   }
 }

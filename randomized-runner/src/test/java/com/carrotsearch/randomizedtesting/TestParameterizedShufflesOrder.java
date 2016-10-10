@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 
@@ -19,6 +19,11 @@ public class TestParameterizedShufflesOrder extends WithNestedTestClass {
 
     public Base(int value) {
       this.value = value;
+    }
+
+    @BeforeClass
+    public static void checkNested() {
+      assumeRunningNested();
     }
 
     @Test
@@ -49,8 +54,6 @@ public class TestParameterizedShufflesOrder extends WithNestedTestClass {
 
     @ParametersFactory()
     public static Iterable<Object[]> parameters() {
-      assumeRunningNested();
-
       List<Object[]> params = new ArrayList<Object[]>();
       for (int i = 0; i < 10; i++) {
         params.add($(i));
@@ -64,8 +67,7 @@ public class TestParameterizedShufflesOrder extends WithNestedTestClass {
     Set<String> runs = new HashSet<String>();
     for (int i = 0; i < 10; i++) {
       buf = new StringBuilder();
-      Result result = runClasses(NoShuffle.class);
-      Assertions.assertThat(result.wasSuccessful()).isTrue();
+      Assertions.assertThat(runTests(NoShuffle.class).wasSuccessful()).isTrue();
       runs.add(buf.toString());
     }
     Assertions.assertThat(runs).hasSize(1);
@@ -77,8 +79,7 @@ public class TestParameterizedShufflesOrder extends WithNestedTestClass {
     int iters = 10;
     for (int i = 0; i < iters; i++) {
       buf = new StringBuilder();
-      Result result = runClasses(WithShuffle.class);
-      Assertions.assertThat(result.wasSuccessful()).isTrue();
+      Assertions.assertThat(runTests(WithShuffle.class).wasSuccessful()).isTrue();
       runs.add(buf.toString());
     }
     Assertions.assertThat(runs).hasSize(iters);

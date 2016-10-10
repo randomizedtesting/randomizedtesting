@@ -78,7 +78,7 @@ public class JUnitAnnotationPropagation {
 
   private void assertSameExecution(Class<?> clazz) throws Exception {
     order.clear();
-    WithNestedTestClass.runClasses(clazz);
+    WithNestedTestClass.runTests(clazz);
     List<String> order1 = new ArrayList<>(order);
     order.clear();
 

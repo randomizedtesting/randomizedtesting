@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.Description;
-import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
@@ -63,14 +62,13 @@ public class TestRepeatTestWithComplexDescription extends WithNestedTestClass {
   public void checkFilteringByName() {
     // Collect all test names first.
     buf = new ArrayList<String>();
-    runClasses(Nested.class);
+    runTests(Nested.class);
     
     for (String testName : buf) {
       buf = new ArrayList<String>();
       System.setProperty(SysGlobals.SYSPROP_TESTMETHOD(), testName);
 
-      Result result = runClasses(Nested.class);
-      Assertions.assertThat(result.wasSuccessful()).as(result.getFailures().toString()).isTrue();
+      Assertions.assertThat(runTests(Nested.class).wasSuccessful()).isTrue();
       Assertions.assertThat(buf).containsOnly(testName);
     }
   }

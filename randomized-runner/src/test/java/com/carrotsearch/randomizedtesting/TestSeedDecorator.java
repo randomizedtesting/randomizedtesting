@@ -56,7 +56,7 @@ public class TestSeedDecorator extends WithNestedTestClass {
     System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), masterSeed);
 
     // These classes should get a different master seed (perturbed by decorator).
-    runClasses(Nested1.class, Nested2.class, Nested3.class, Nested4.class);
+    runTests(Nested1.class, Nested2.class, Nested3.class, Nested4.class);
 
     // All four classes get the same initial "runner" seed.
     Assert.assertEquals(4, runnerSeeds.size());

@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
-import org.junit.runner.Result;
 import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
@@ -58,7 +57,7 @@ public class TestNoClassHooksShadowingRule extends WithNestedTestClass {
 
   @Test
   public void testShadowingNoAnnotation() {
-    Result runClasses = runClasses(Sub1.class);
+    FullResult runClasses = runTests(Sub1.class);
     Assertions.assertThat(runClasses.getFailures()).isNotEmpty();
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())
     .contains("shadow or override each other");
@@ -66,7 +65,7 @@ public class TestNoClassHooksShadowingRule extends WithNestedTestClass {
   
   @Test
   public void testShadowingWithAnnotation() {
-    Result runClasses = runClasses(Sub2.class);
+    FullResult runClasses = runTests(Sub2.class);
     Assertions.assertThat(runClasses.getFailures()).isNotEmpty();
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())
     .contains("shadow or override each other");
@@ -74,7 +73,7 @@ public class TestNoClassHooksShadowingRule extends WithNestedTestClass {
 
   @Test
   public void testIndependentChains() {
-    Result runClasses = runClasses(Sub3.class);
+    FullResult runClasses = runTests(Sub3.class);
     Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }  
 }

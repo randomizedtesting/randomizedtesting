@@ -76,13 +76,13 @@ public class TestTestCaseOrdering extends WithNestedTestClass {
 
   @Test
   public void testAlphabetical() {
-    runClasses(Alphabetical.class);
+    runTests(Alphabetical.class);
     assertThat(buf).containsExactly("a", "b", "c", "d");
   }
 
   @Test
   public void testAlphabeticalWithRepetitions() {
-    runClasses(AlphabeticalWithRepetitions.class);
+    runTests(AlphabeticalWithRepetitions.class);
     assertThat(buf).containsExactly(
         "a", "a", "a",
         "b", "b", "b",
@@ -92,7 +92,7 @@ public class TestTestCaseOrdering extends WithNestedTestClass {
 
   @Test
   public void testAlphabeticalWithParameters() {
-    runClasses(AlphabeticalWithParameters.class);
+    runTests(AlphabeticalWithParameters.class);
     assertThat(buf).containsExactly(
         "a:1", "a:2", "a:3",
         "b:1", "b:2", "b:3",

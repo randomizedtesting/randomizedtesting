@@ -98,7 +98,7 @@ public class TestSystemPropertiesInvariantRule extends WithNestedTestClass {
 
   @Test
   public void testRuleInvariantBeforeClass() {
-    Result runClasses = runClasses(InBeforeClass.class);
+    FullResult runClasses = runTests(InBeforeClass.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertTrue(runClasses.getFailures().get(0).getMessage()
         .contains(PROP_KEY1));
@@ -107,7 +107,7 @@ public class TestSystemPropertiesInvariantRule extends WithNestedTestClass {
   
   @Test
   public void testRuleInvariantAfterClass() {
-    Result runClasses = runClasses(InAfterClass.class);
+    FullResult runClasses = runTests(InAfterClass.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertTrue(runClasses.getFailures().get(0).getMessage()
         .contains(PROP_KEY1));
@@ -116,7 +116,7 @@ public class TestSystemPropertiesInvariantRule extends WithNestedTestClass {
   
   @Test
   public void testRuleInvariantInTestMethod() {
-    Result runClasses = runClasses(InTestMethod.class);
+    FullResult runClasses = runTests(InTestMethod.class);
     Assert.assertEquals(2, runClasses.getFailureCount());
     for (Failure f : runClasses.getFailures()) {
       Assert.assertTrue(f.getMessage().contains(PROP_KEY1));
@@ -126,7 +126,7 @@ public class TestSystemPropertiesInvariantRule extends WithNestedTestClass {
   
   @Test
   public void testNonStringProperties() {
-    Result runClasses = runClasses(NonStringProperties.class);
+    FullResult runClasses = runTests(NonStringProperties.class);
     Assert.assertEquals(1, runClasses.getFailureCount());
     Assert.assertTrue(runClasses.getFailures().get(0).getMessage().contains("Will pass"));
     Assert.assertEquals(3, runClasses.getRunCount());

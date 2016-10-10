@@ -1,7 +1,7 @@
 package com.carrotsearch.randomizedtesting.contracts;
 
-import org.junit.*;
-import org.junit.runner.Result;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
@@ -19,9 +19,6 @@ public class TestClassLevelIgnore extends WithNestedTestClass {
 
   @Test
   public void allIgnored() {
-    Result result = runClasses(Nested.class);
-    Assert.assertEquals(0, result.getRunCount());
-    Assert.assertEquals(0, result.getFailureCount());
-    Assert.assertEquals(1, result.getIgnoreCount());
+    checkTestsOutput(0, 1, 0, 0, Nested.class);
   }
 }

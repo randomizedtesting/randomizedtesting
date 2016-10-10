@@ -1,7 +1,6 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.Utils;
@@ -29,7 +28,7 @@ public class Test002TimeoutMethod extends WithNestedTestClass {
       }
     };
 
-    Result r = runClasses(Nested.class);
+    FullResult r = runTests(Nested.class);
     Utils.assertFailureWithMessage(r, "Test timeout exceeded");
     Utils.assertFailuresContainSeeds(r);
   }

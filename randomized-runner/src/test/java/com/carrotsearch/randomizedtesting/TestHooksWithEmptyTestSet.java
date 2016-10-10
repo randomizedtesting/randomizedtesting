@@ -1,11 +1,10 @@
 package com.carrotsearch.randomizedtesting;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 
 /**
@@ -37,8 +36,7 @@ public class TestHooksWithEmptyTestSet extends WithNestedTestClass {
   public void testSameMethodRandomnessWithFixedRunner() {
     Nested.beforeClassExecuted = false;
     Nested.afterClassExecuted = false;
-    Result result = runClasses(Nested.class);
-    assertEquals(0, result.getRunCount());
+    checkTestsOutput(0, 0, 0, 0, Nested.class);
     assertFalse(Nested.beforeClassExecuted);
     assertFalse(Nested.afterClassExecuted);
   }

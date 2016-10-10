@@ -5,7 +5,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
@@ -39,8 +38,6 @@ public class TestTargetMethod extends WithNestedTestClass {
 
   @Test
   public void testTargetMethodAvailable() {
-    Result result = runClasses(Nested.class);
-    Assertions.assertThat(result.getFailureCount()).isEqualTo(0);
-    Assertions.assertThat(result.getRunCount()).isEqualTo(4);
+    checkTestsOutput(4, 0, 0, 0, Nested.class);
   }
 }

@@ -18,7 +18,6 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
@@ -199,12 +198,9 @@ public class TestBeforeAfterMethodOrder extends WithNestedTestClass {
   @Test
   public void checkOrder() throws Exception {
     // Normal JUnit.
-    Result result = runClasses(SubSub.class);
-    assertEquals(1, result.getRunCount());
-
-    // Save order.
+    checkTestsOutput(1, 0, 0, 0, SubSub.class);
     ArrayList<String> junitOrder = new ArrayList<String>(callOrder);
-
+    
     callOrder.clear();
     new JUnitCore().run(new RandomizedRunner(SubSub.class));
 

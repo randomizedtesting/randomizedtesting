@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
@@ -51,7 +50,7 @@ public class Test005ThreadLeaksSystemThreads extends WithNestedTestClass {
   
   @Test
   public void leftOverThread() throws Throwable {
-    Result r = runClasses(Nested.class);
+    FullResult r = runTests(Nested.class);
     Assertions.assertThat(r.getFailures()).isEmpty();
 
     Assertions.assertThat(getLoggingMessages())

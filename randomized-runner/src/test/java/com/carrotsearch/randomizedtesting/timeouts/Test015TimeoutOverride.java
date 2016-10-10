@@ -1,15 +1,14 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
-import junit.framework.Assert;
-
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
+
+import junit.framework.Assert;
 
 /**
  * Test global timeout override (-Dtests.timeout=1000!).
@@ -37,7 +36,7 @@ public class Test015TimeoutOverride extends WithNestedTestClass {
   public void testTimeoutOverride() {
     System.setProperty(SysGlobals.SYSPROP_TIMEOUT(), "200!");
     long start = System.currentTimeMillis();
-    Result result = runClasses(Nested.class);
+    FullResult result = runTests(Nested.class);
     long end = System.currentTimeMillis();
     Assert.assertEquals(1, result.getFailureCount());
     Assert.assertTrue(end - start < 3000);
@@ -48,7 +47,7 @@ public class Test015TimeoutOverride extends WithNestedTestClass {
     System.setProperty(SysGlobals.SYSPROP_TIMEOUT(), "0!");
 
     long start = System.currentTimeMillis();
-    Result result = runClasses(Nested2.class);
+    FullResult result = runTests(Nested2.class);
     long end = System.currentTimeMillis();
     Assert.assertEquals(0, result.getFailureCount());
     Assert.assertTrue(end - start > 900);

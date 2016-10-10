@@ -36,7 +36,7 @@ final class Rants {
   public static RantType RANT_1 = RantType.DAMN_TERRIBLE;
   
   /**
-   * This if weird default assumption methods (and constructors in AssumptionViolatedException)
+   * Default assumption methods (and constructors in AssumptionViolatedException)
    * do not allow specifying a custom message? 
    */
   public static RantType RANT_2 = RantType.ANNOYANCE;

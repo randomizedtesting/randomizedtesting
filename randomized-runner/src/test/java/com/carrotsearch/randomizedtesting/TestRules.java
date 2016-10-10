@@ -120,7 +120,7 @@ public class TestRules extends WithNestedTestClass {
 
   private void assertSameExecution(Class<?> clazz) throws Exception {
     order = new ArrayList<>();
-    runClasses(clazz);
+    runTests(clazz);
     List<String> order1 = order;
     order = new ArrayList<>();
 

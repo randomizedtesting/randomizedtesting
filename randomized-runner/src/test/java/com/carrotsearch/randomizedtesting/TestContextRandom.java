@@ -60,27 +60,27 @@ public class TestContextRandom extends WithNestedTestClass {
   @Test
   @Ignore("Forked threads get the master seed (by-design).")
   public void testFixedSeedSubthreads() {
-    runClasses(Nested3.class);
+    runTests(Nested3.class);
     List<Integer> run1 = new ArrayList<Integer>(numbers);
-    runClasses(Nested3.class);
+    runTests(Nested3.class);
     List<Integer> run2 = new ArrayList<Integer>(numbers);
     Assert.assertEquals(run1, run2);
   }
 
   @Test
   public void testFixedSeed() {
-    runClasses(Nested1.class);
+    runTests(Nested1.class);
     List<Integer> run1 = new ArrayList<Integer>(numbers);
-    runClasses(Nested1.class);
+    runTests(Nested1.class);
     List<Integer> run2 = new ArrayList<Integer>(numbers);
     Assert.assertEquals(run1, run2);
   }
 
   @Test
   public void testRandomSeed() {
-    runClasses(Nested2.class);
+    runTests(Nested2.class);
     List<Integer> run1 = new ArrayList<Integer>(numbers);
-    runClasses(Nested2.class);
+    runTests(Nested2.class);
     List<Integer> run2 = new ArrayList<Integer>(numbers);
     Assert.assertFalse(run1.equals(run2));
   }

@@ -4,18 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Request;
-import org.junit.runner.Result;
-import org.junit.runner.Runner;
-import org.junit.runner.notification.RunListener;
-import org.junit.runner.notification.RunNotifier;
+import org.junit.runner.RunWith;
 
+import com.carrotsearch.randomizedtesting.WithNestedTestClass.FullResult;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 
 /**
@@ -108,37 +106,26 @@ public class TestHookMethodOrderWithExceptions extends RandomizedTest {
     callOrder.clear();
   }
 
+  @RunWith(RandomizedRunner.class)
+  public static class WithRandomizedRunner extends SubSub {}
+  public static class WithRegularRunner extends SubSub {}
+  
   @Test @Repeat(iterations = 20)
   public void checkOrderSameAsJUnit() throws Exception {
     long seed = RandomizedContext.current().getRandomness().getSeed();
 
     callOrder.clear();
     Super.rnd = new Random(seed);
-    Result junit = WithNestedTestClass.runClasses(SubSub.class);
+
+    FullResult r1 = WithNestedTestClass.runTests(WithRegularRunner.class);
     List<String> junitOrder = new ArrayList<String>(callOrder);
 
     callOrder.clear();
     Super.rnd = new Random(seed);
-    Result rrunner = runRequest(Request.runner(new RandomizedRunner(SubSub.class)));
+    FullResult r2 = WithNestedTestClass.runTests(WithRandomizedRunner.class);
     List<String> rrunnerOrder = new ArrayList<String>(callOrder);
 
     Assert.assertEquals(junitOrder, rrunnerOrder);
-    Assert.assertEquals(junit.getRunCount(), rrunner.getRunCount());
-  }
-
-  private Result runRequest(Request request) {
-    Result result = new Result();
-    RunNotifier notifier = new RunNotifier();
-    RunListener listener = result.createListener();
-    notifier.addFirstListener(listener);
-    try {
-      Runner runner = request.getRunner();
-      notifier.fireTestRunStarted(runner.getDescription());
-      runner.run(notifier);
-      notifier.fireTestRunFinished(result);
-    } finally {
-      notifier.removeListener(listener);
-    }
-    return result;
+    Assertions.assertThat(r1.getRunCount()).isEqualTo(r2.getRunCount());    
   }
 }

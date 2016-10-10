@@ -12,7 +12,6 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
@@ -29,8 +28,8 @@ public class TestAssumptionsAtClassLevel extends WithNestedTestClass {
   public static class Super extends RandomizedTest {
     @BeforeClass
     public static void beforeClassSuper() {
-      callOrder.add("beforeClassSuper");
       assumeRunningNested();
+      callOrder.add("beforeClassSuper");
       Assume.assumeTrue(false);
     }
 
@@ -77,11 +76,7 @@ public class TestAssumptionsAtClassLevel extends WithNestedTestClass {
 
   @Test
   public void checkOrder() {
-    Result result = runClasses(SubSub.class);
-
-    assertEquals(0, result.getRunCount());
-    assertEquals(1, result.getIgnoreCount());
-    assertEquals(0, result.getFailureCount());
+    checkTestsOutput(0, 1, 0, 1, SubSub.class);
 
     List<String> expected = Arrays.asList(
         "beforeClassSuper",

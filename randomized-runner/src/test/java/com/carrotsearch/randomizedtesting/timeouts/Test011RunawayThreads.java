@@ -109,7 +109,7 @@ public class Test011RunawayThreads extends WithNestedTestClass {
 
   @Test
   public void subUncaughtExceptionInSpunOffThread() throws Throwable {
-    Result r = runClasses(Nested.class);
+    FullResult r = runTests(Nested.class);
     Assert.assertEquals(1, r.getFailureCount());
     Failure testFailure = r.getFailures().get(0);
     Throwable testException = testFailure.getException();
@@ -120,7 +120,7 @@ public class Test011RunawayThreads extends WithNestedTestClass {
 
   @Test
   public void subNotJoined() throws Throwable {
-    Result r = runClasses(NestedNoJoin.class);
+    FullResult r = runTests(NestedNoJoin.class);
     Assert.assertEquals(1, r.getFailureCount());
     Failure testFailure = r.getFailures().get(0);
     Throwable testException = testFailure.getException();
@@ -149,7 +149,7 @@ public class Test011RunawayThreads extends WithNestedTestClass {
   
   @Test
   public void subNotJoinOnClassLevel() throws Throwable {
-    Result r = runClasses(NestedClassScope.class);
+    FullResult r = runTests(NestedClassScope.class);
     Assert.assertEquals(1, r.getFailureCount());
     Failure testFailure = r.getFailures().get(0);
     Throwable testException = testFailure.getException();

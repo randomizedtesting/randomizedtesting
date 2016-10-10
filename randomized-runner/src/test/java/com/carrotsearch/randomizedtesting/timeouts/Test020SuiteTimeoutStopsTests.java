@@ -5,9 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.core.api.Assertions;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
 
-import com.carrotsearch.randomizedtesting.RandomizedRunner;
+import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakLingering;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
@@ -21,7 +20,7 @@ public class Test020SuiteTimeoutStopsTests extends WithNestedTestClass {
   @ThreadLeakScope(Scope.SUITE)
   @TimeoutSuite(millis = 500)
   @ThreadLeakLingering(linger = 0)
-  public static class Nested1 {
+  public static class Nested1 extends RandomizedTest {
     @Test
     public void test001() { idle("1"); }
     @Test
@@ -39,6 +38,7 @@ public class Test020SuiteTimeoutStopsTests extends WithNestedTestClass {
 
     @BeforeClass
     private static void setup() {
+      assumeRunningNested();
       executedTests = new AtomicInteger();
     }
 
@@ -60,7 +60,7 @@ public class Test020SuiteTimeoutStopsTests extends WithNestedTestClass {
 
   @Test
   public void testExceptionInFilter() throws Throwable {
-    new JUnitCore().run(new RandomizedRunner(Nested1.class));
+    runTests(Nested1.class);
     Assertions.assertThat(getSysouts()).doesNotContain("after timeout");
     sysout.println(getLoggingMessages());
   }    

@@ -7,23 +7,20 @@ import org.junit.runner.*;
  * Test {@link Result}'s run count for ignored tests.
  */
 public class TestIgnoredRunCount extends WithNestedTestClass {
-  public static class Nested {
+  public static class Nested1 {
     @Test @Ignore
-    public void ignored() {
-    }
+    public void ignored() {}
+  }
+
+  @RunWith(RandomizedRunner.class)
+  public static class Nested2 {
+    @Test @Ignore
+    public void ignored() {}
   }
 
   @Test
   public void checkIgnoredCount() throws Exception {
-    assertSameExecution(Nested.class);
-  }
-
-  private void assertSameExecution(Class<?> clazz) throws Exception {
-    Result result1 = runClasses(clazz);
-    Result result2 = new JUnitCore().run(Request.runner(new RandomizedRunner(clazz)));
-
-    Assert.assertEquals(result1.getRunCount(), result2.getRunCount());
-    Assert.assertEquals(result1.getFailureCount(), result2.getFailureCount());
-    Assert.assertEquals(result1.getIgnoreCount(), result2.getIgnoreCount());
+    checkTestsOutput(0, 1, 0, 0, Nested1.class);
+    checkTestsOutput(0, 1, 0, 0, Nested2.class);
   }
 }

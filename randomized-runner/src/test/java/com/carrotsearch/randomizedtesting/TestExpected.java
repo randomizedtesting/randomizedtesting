@@ -1,15 +1,13 @@
 package com.carrotsearch.randomizedtesting;
 
-import junit.framework.Assert;
-
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 /**
  * Test {@link Test#expected()}.
  */
 public class TestExpected extends WithNestedTestClass {
-  public static class Nested extends RandomizedTest {
+  public static class Nested1 extends RandomizedTest {
     @Test(expected = RuntimeException.class)
     public void testMethod1() {
       throw new RuntimeException();
@@ -32,20 +30,14 @@ public class TestExpected extends WithNestedTestClass {
   }
 
   @Test
-  public void testSameMethodRandomnessWithFixedRunner() {
-    Result result = runClasses(Nested.class);
-    Assert.assertEquals(0, result.getIgnoreCount());
-    Assert.assertEquals(2, result.getRunCount());
-    Assert.assertEquals(1, result.getFailureCount());
-    
-    Assert.assertSame(Error.class, result.getFailures().get(0).getException()
-        .getClass());
+  public void testExpectedFailureDifferentException() {
+    FullResult f = checkTestsOutput(2, 0, 1, 0, Nested1.class);
+    Assertions.assertThat(f.getFailures().get(0).getException())
+      .isInstanceOf(Error.class);
   }
-  
+
   @Test
-  public void testSuccessfulExceptedFailure() {
-    Result result = runClasses(Nested2.class);
-    Assert.assertEquals(1, result.getRunCount());
-    Assert.assertEquals(1, result.getFailureCount());
+  public void testExpectedFailurePassed() {
+    checkTestsOutput(1, 0, 1, 0, Nested2.class);
   }
 }

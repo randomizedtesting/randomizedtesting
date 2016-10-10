@@ -1,14 +1,17 @@
 package com.carrotsearch.randomizedtesting;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import junit.framework.Assert;
-
-import org.junit.*;
-import org.junit.runner.Result;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.notification.Failure;
+
+import junit.framework.Assert;
 
 public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
   public static class Nested1 extends RandomizedTest {
@@ -88,20 +91,16 @@ public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
 
   @Test
   public void testExceptionInBeforeClassFailsTheTest() {
-    Result runClasses = runClasses(Nested1.class);
-    Assert.assertEquals(1, runClasses.getFailureCount());
-    Assert.assertEquals(1, runClasses.getRunCount());
-    Assert.assertTrue(runClasses.getFailures().get(0).getTrace().contains("foobar"));
+    FullResult r = checkTestsOutput(1, 0, 1, 0, Nested1.class);
+    Assert.assertTrue(r.getFailures().get(0).getTrace().contains("foobar"));
   }
 
   @Test
   public void testExceptionWithinTestFailsTheTest() {
-    Result runClasses = runClasses(Nested2.class);
-    Assert.assertEquals(3, runClasses.getFailureCount());
-    Assert.assertEquals(3, runClasses.getRunCount());
+    FullResult r = checkTestsOutput(3, 0, 3, 0, Nested2.class);
 
     ArrayList<String> foobars = new ArrayList<String>();
-    for (Failure f : runClasses.getFailures()) {
+    for (Failure f : r.getFailures()) {
       Matcher m = Pattern.compile("foobar[0-9]+").matcher(f.getTrace());
       while (m.find()) {
         foobars.add(m.group());
@@ -115,9 +114,7 @@ public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
 
   @Test
   public void testExceptionWithinBeforeFailsTheTest() {
-    Result runClasses = runClasses(Nested3.class);
-    Assert.assertEquals(1, runClasses.getFailureCount());
-    Assert.assertEquals(1, runClasses.getRunCount());
-    Assert.assertTrue(runClasses.getFailures().get(0).getTrace().contains("foobar"));
+    FullResult r = checkTestsOutput(1, 0, 1, 0, Nested3.class);
+    Assert.assertTrue(r.getFailures().get(0).getTrace().contains("foobar"));
   }
 }

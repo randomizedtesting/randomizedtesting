@@ -1,5 +1,10 @@
 package com.carrotsearch.randomizedtesting;
 
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_ITERATIONS;
+import static com.carrotsearch.randomizedtesting.SysGlobals.SYSPROP_RANDOM_SEED;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -8,14 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Result;
 import org.junit.runner.RunWith;
-
-import com.carrotsearch.randomizedtesting.RandomizedContext;
-import com.carrotsearch.randomizedtesting.RandomizedRunner;
-
-import static com.carrotsearch.randomizedtesting.SysGlobals.*;
-import static org.junit.Assert.*;
 
 /**
  * Seed fixing for static fixtures and/or methods using system properties.
@@ -43,7 +41,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   public void testRunnerAndMethodProperty() {
     System.setProperty(SYSPROP_RANDOM_SEED(), "deadbeef:cafebabe");
     System.setProperty(SYSPROP_ITERATIONS(), "3");
-    runClasses(Nested.class);
+    runTests(Nested.class);
     assertEquals(Arrays.asList(0xdeadbeefL, 0xcafebabeL, 0xcafebabeL, 0xcafebabeL), seeds);
   }
 
@@ -55,8 +53,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
   public void testFixedRunnerPropertyOnly() {
     System.setProperty(SYSPROP_RANDOM_SEED(), "deadbeef");
     System.setProperty(SYSPROP_ITERATIONS(), "3");
-    Result result = runClasses(Nested.class);
-    assertEquals(3, result.getRunCount());
+    checkTestsOutput(3, 0, 0, 0, Nested.class);
     assertEquals(0xdeadbeefL, seeds.get(0).longValue());
     // _very_ slim chances of this actually being true...
     assertFalse(
@@ -67,7 +64,7 @@ public class TestSeedFixingWithProperties extends WithNestedTestClass {
     // so check if this is indeed true.
     List<Long> copy = new ArrayList<Long>(seeds);
     seeds.clear();
-    runClasses(Nested.class);
+    runTests(Nested.class);
     assertEquals(copy, seeds);
   }
 

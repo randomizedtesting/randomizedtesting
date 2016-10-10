@@ -5,10 +5,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import org.junit.*;
-import org.junit.runner.Result;
+import junit.framework.Assert;
 
 
 /**
@@ -75,17 +76,16 @@ public class TestResourceDisposal extends WithNestedTestClass {
 
   @Test
   public void testResourceDisposalTestScope() {
-    Result r = runClasses(Nested.class);
+    checkTestsOutput(3, 0, 1, 0, Nested.class);
     for (DummyCloseable c : Nested.testScope) {
       Assert.assertTrue(c.closed);
     }
-    Assert.assertEquals(1, r.getFailureCount());
     Assert.assertTrue(Nested.allTestScopeClosed);
   }
 
   @Test
   public void testResourceDisposalSuiteScope() {
-    runClasses(Nested.class);
+    runTests(Nested.class);
     for (DummyCloseable c : Nested.suiteScope) {
       Assert.assertTrue(c.closed);
     }
@@ -102,9 +102,7 @@ public class TestResourceDisposal extends WithNestedTestClass {
 
   @Test
   public void testFailedDisposalBreaksTestCase() {
-    Result r = runClasses(Nested2.class);
-    Assert.assertEquals(1, r.getRunCount());
-    Assert.assertEquals(1, r.getFailureCount());
+    FullResult r = checkTestsOutput(1, 0, 1, 0, Nested2.class);
     Assert.assertTrue(r.getFailures().get(0).getException() instanceof ResourceDisposalError);
   }
 }

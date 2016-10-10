@@ -43,7 +43,7 @@ public class Test012RunawayThreadsKilledAtOnce extends WithNestedTestClass {
   @Test
   public void testLotsOfStubbornThreads() {
     long start = System.currentTimeMillis();
-    Result result = runClasses(NestedClass.class);
+    FullResult result = runTests(NestedClass.class);
     long end = System.currentTimeMillis();
 
     Assert.assertEquals(1, result.getFailureCount());

@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -27,7 +27,10 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
+import org.junit.runner.Request;
 import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunListener;
 import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
@@ -285,37 +288,79 @@ public class WithNestedTestClass {
     return t;
   }
 
-  public static Result runClasses(final Class<?>... classes) {
+  public static class FullResult {
+    private AtomicInteger assumptionIgnored = new AtomicInteger();
+    private Result result;
+    
+    public int getRunCount() {
+      return result.getRunCount();
+    }
+
+    public int getIgnoreCount() {
+      return result.getIgnoreCount();
+    }
+    
+    public int getFailureCount() {
+      return result.getFailureCount();
+    }
+
+    public int getAssumptionIgnored() {
+      return assumptionIgnored.get();
+    }
+
+    public List<Failure> getFailures() {
+      return result.getFailures();
+    }
+
+    public boolean wasSuccessful() {
+      return result.wasSuccessful();
+    }
+  }
+
+  public static FullResult runTests(final Request request) {
     try {
-      final AtomicReference<Result> r = new AtomicReference<Result>();
+      final FullResult fullResult = new FullResult();
+      
       // Run on a separate thread so that it appears as we're not running in an IDE. 
       Thread thread = new Thread() {
         @Override
         public void run() {
           final JUnitCore core = new JUnitCore();
-          core.addListener(new PrintEventListener());
-          r.set(core.run(classes));
+          core.addListener(new PrintEventListener(sysout));
+          core.addListener(new RunListener() {
+            @Override
+            public void testAssumptionFailure(Failure failure) {
+              fullResult.assumptionIgnored.incrementAndGet();
+            }
+          });
+
+          fullResult.result = core.run(request);
         }
       };
+
       thread.start();
       thread.join();
-      return r.get();
+      return fullResult;
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
   
-  public static void checkRunClasses(int run, int ignored, int failures, Class<?>... classes) {
-    checkResult(runClasses(classes), run, ignored, failures);
+  public static FullResult runTests(Class<?>... classes) {
+    return runTests(Request.classes(classes));
   }
 
-  public static void checkResult(Result result, int run, int ignored, int failures) {
+  public static FullResult checkTestsOutput(int run, int ignored, int failures, int assumptions, Class<?> classes) {
+    FullResult result = runTests(classes);
     if (result.getRunCount() != run ||
         result.getIgnoreCount() != ignored ||
-        result.getFailureCount() != failures) {
-      Assertions.fail("Different result. [run,ign,fail] Expected: "
-          + run + "," + ignored + "," + failures + ", Actual: " +
-          + result.getRunCount() + "," + result.getIgnoreCount() + "," + result.getFailureCount());
+        result.getFailureCount() != failures ||
+        result.getAssumptionIgnored() != assumptions) {
+      Assertions.fail("Different result. [run,ign,fail,ass] Expected: "
+          + run + "," + ignored + "," + failures + "," + assumptions + 
+          ", Actual: " + result.getRunCount() + "," + result.getIgnoreCount() + "," + result.getFailureCount()
+          + "," + result.getAssumptionIgnored());
     }
+    return result;
   }
 }

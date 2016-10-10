@@ -88,7 +88,7 @@ public class TestListenersAnnotation extends WithNestedTestClass {
 
   @Test
   public void checkListeners() {
-    runClasses(Nested2.class);
+    runTests(Nested2.class);
     // Perhaps this is overly simple, but we just want to know that it executed.
     Assert.assertTrue(buffer.size() > 0);
   }

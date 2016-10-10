@@ -1,8 +1,7 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.junit.Test;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
+import org.junit.runner.Request;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.ThreadFilter;
@@ -39,7 +38,7 @@ public class Test017ThreadLeaksCustomFiltersException extends WithNestedTestClas
 
   @Test
   public void testExceptionInFilter() throws Throwable {
-    Result r = new JUnitCore().run(new RandomizedRunner(Nested1.class));
+    FullResult r = runTests(Request.runner(new RandomizedRunner(Nested1.class)));
     Utils.assertFailureWithMessage(r, "filter-exception");
   }    
 }

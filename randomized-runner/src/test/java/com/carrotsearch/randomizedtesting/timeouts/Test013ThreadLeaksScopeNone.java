@@ -3,7 +3,6 @@ package com.carrotsearch.randomizedtesting.timeouts;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
@@ -31,7 +30,7 @@ public class Test013ThreadLeaksScopeNone extends WithNestedTestClass {
       }
     };
 
-    Result r = runClasses(Nested.class);
+    FullResult r = runTests(Nested.class);
     Assert.assertEquals(0, r.getFailureCount());
 
     Assertions.assertThat(getLoggingMessages()).isEmpty();

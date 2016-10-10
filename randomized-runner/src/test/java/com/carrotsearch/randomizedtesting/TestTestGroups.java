@@ -92,25 +92,25 @@ public class TestTestGroups extends WithNestedTestClass {
     String group2Property = getSysProperty(Group2.class);
     try {
       afterClassRan = beforeClassRan = false;
-      checkResult(runClasses(Nested1.class), 1, 1, 0);
+      checkTestsOutput(1, 0, 0, 1, Nested1.class);
       Assert.assertFalse(afterClassRan);
       Assert.assertFalse(beforeClassRan);
       
       afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "true");
-      checkResult(runClasses(Nested1.class), 1, 1, 0);
+      checkTestsOutput(1, 0, 0, 1, Nested1.class);
       Assert.assertFalse(afterClassRan);
       Assert.assertFalse(beforeClassRan);
 
       afterClassRan = beforeClassRan = false;
       System.setProperty(group2Property, "true");
-      checkResult(runClasses(Nested1.class), 1, 0, 0);
+      checkTestsOutput(1, 0, 0, 0, Nested1.class);
       Assert.assertTrue(afterClassRan);
       Assert.assertTrue(beforeClassRan);
 
       afterClassRan = beforeClassRan = false;
-      System.setProperty(group1Property, "false");      
-      checkResult(runClasses(Nested1.class), 1, 1, 0);
+      System.setProperty(group1Property, "false");
+      checkTestsOutput(1, 0, 0, 1, Nested1.class);
       Assert.assertFalse(afterClassRan);
       Assert.assertFalse(beforeClassRan);
     } finally {
@@ -125,25 +125,25 @@ public class TestTestGroups extends WithNestedTestClass {
     String group2Property = getSysProperty(Group2.class);
     try {
       afterClassRan = beforeClassRan = false;
-      checkResult(runClasses(Nested3.class), 2, 1, 0);
+      checkTestsOutput(2, 0, 0, 1, Nested3.class);
       Assert.assertTrue(afterClassRan);
       Assert.assertTrue(beforeClassRan);
       
       afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "true");
-      checkResult(runClasses(Nested3.class), 2, 1, 0);
+      checkTestsOutput(2, 0, 0, 1, Nested3.class);
       Assert.assertTrue(afterClassRan);
       Assert.assertTrue(beforeClassRan);
 
       afterClassRan = beforeClassRan = false;
       System.setProperty(group2Property, "true");
-      checkResult(runClasses(Nested3.class), 2, 0, 0);
+      checkTestsOutput(2, 0, 0, 0, Nested3.class);
       Assert.assertTrue(afterClassRan);
       Assert.assertTrue(beforeClassRan);
 
       afterClassRan = beforeClassRan = false;
-      System.setProperty(group1Property, "false");      
-      checkResult(runClasses(Nested3.class), 2, 1, 0);
+      System.setProperty(group1Property, "false");
+      checkTestsOutput(2, 0, 0, 1, Nested3.class);
       Assert.assertTrue(afterClassRan);
       Assert.assertTrue(beforeClassRan);
     } finally {
@@ -158,25 +158,25 @@ public class TestTestGroups extends WithNestedTestClass {
     String group2Property = getSysProperty(Group2.class);
     try {
       afterClassRan = beforeClassRan = false;
-      checkResult(runClasses(Nested2.class), 1, 1, 0);
+      checkTestsOutput(1, 0, 0, 1, Nested2.class);
       Assert.assertFalse(afterClassRan);
       Assert.assertFalse(beforeClassRan);
 
       afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "true");
-      checkResult(runClasses(Nested2.class), 1, 1, 0);
+      checkTestsOutput(1, 0, 0, 1, Nested2.class);
       Assert.assertFalse(afterClassRan);
       Assert.assertFalse(beforeClassRan);
 
       afterClassRan = beforeClassRan = false;
       System.setProperty(group2Property, "true");
-      checkResult(runClasses(Nested2.class), 1, 0, 0);
+      checkTestsOutput(1, 0, 0, 0, Nested2.class);
       Assert.assertTrue(afterClassRan);
       Assert.assertTrue(beforeClassRan);
 
       afterClassRan = beforeClassRan = false;
       System.setProperty(group1Property, "false");      
-      checkResult(runClasses(Nested2.class), 1, 1, 0);
+      checkTestsOutput(1, 0, 0, 1, Nested2.class);
       Assert.assertFalse(afterClassRan);
       Assert.assertFalse(beforeClassRan);
     } finally {

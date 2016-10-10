@@ -5,7 +5,6 @@ import java.util.concurrent.CountDownLatch;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.Utils;
@@ -54,21 +53,21 @@ public class Test019ThreadLeakGroup extends WithNestedTestClass {
 
   @Test
   public void testTestGroup() throws Throwable {
-    Result r = runClasses(Nested1.class);
+    FullResult r = runTests(Nested1.class);
     Assertions.assertThat(r.getFailures()).isEmpty();
     Assertions.assertThat(t != null && t.isAlive()).isTrue();
   }
 
   @Test
   public void testMainGroup() throws Throwable {
-    Result r = runClasses(Nested2.class);
+    FullResult r = runTests(Nested2.class);
     Assertions.assertThat(r.getFailures()).isEmpty();
     Assertions.assertThat(t != null && t.isAlive()).isTrue();
   }
 
   @Test
   public void testAll() throws Throwable {
-    Result r = runClasses(Nested3.class);
+    FullResult r = runTests(Nested3.class);
     Utils.assertNoLiveThreadsContaining("foobar");
     Utils.assertFailureWithMessage(r, "1 thread leaked from TEST");
   }

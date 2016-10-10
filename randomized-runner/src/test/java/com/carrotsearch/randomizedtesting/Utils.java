@@ -8,11 +8,13 @@ import org.junit.Assert;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
+import com.carrotsearch.randomizedtesting.WithNestedTestClass.FullResult;
+
 public class Utils {
   /**
    * Assert a result has at least one failure with message.
    */
-  public static void assertFailureWithMessage(Result r, String message) {
+  public static void assertFailureWithMessage(FullResult r, String message) {
     for (Failure f : r.getFailures()) {
       if (f.getTrace().contains(message)) {
         return;
@@ -51,7 +53,7 @@ public class Utils {
    * Check that all thrown failures have been augmented and contain
    * a synthetic seed frame.
    */
-  public static void assertFailuresContainSeeds(Result r) {
+  public static void assertFailuresContainSeeds(FullResult r) {
     for (Failure f : r.getFailures()) {
       String seed = RandomizedRunner.seedFromThrowable(f.getException());
       Assert.assertTrue("Not augmented: " + f.getTrace(), seed != null);

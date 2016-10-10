@@ -1,17 +1,20 @@
 package com.carrotsearch.randomizedtesting;
 
+import static org.junit.Assert.fail;
+
+import java.util.List;
 import java.util.Random;
 
-import junit.framework.Assert;
-
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
-import static org.junit.Assert.*;
+
+import junit.framework.Assert;
 
 /**
  * Check out of scope {@link Random} use.
@@ -108,16 +111,13 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
 
   @Test
   public void testCrossTestCaseIsolation() throws Throwable {
-    Result runClasses = runClasses(Nested.class);
-    if (!runClasses.getFailures().isEmpty()) {
-      throw runClasses.getFailures().get(0).getException();
-    }
-    Assert.assertEquals(0, runClasses.getFailureCount());
+    List<Failure> failures = runTests(Nested.class).getFailures();
+    Assertions.assertThat(failures).isEmpty();
   }
 
   @Test
   public void testCrossTestSuiteIsolation() {
-    runClasses(Nested.class);
+    runTests(Nested.class);
     try {
       Nested.staticContextRandom.nextBoolean();
       Assert.fail("Shouldn't be able to use another suite's Random.");

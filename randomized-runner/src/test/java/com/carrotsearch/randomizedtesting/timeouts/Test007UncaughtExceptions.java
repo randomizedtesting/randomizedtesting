@@ -2,7 +2,6 @@ package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.Utils;
@@ -47,7 +46,7 @@ public class Test007UncaughtExceptions extends WithNestedTestClass {
    * Apply assertions. 
    */
   private void check() throws Exception {
-    Result r = runClasses(Nested.class);
+    FullResult r = runTests(Nested.class);
 
     Utils.assertFailureWithMessage(r, "Captured an uncaught exception in thread: ");
     Utils.assertFailureWithMessage(r, "Yoda died.");

@@ -59,7 +59,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
   @Test
   public void testClassFilter() {
     System.setProperty(SYSPROP_TESTCLASS(), Nested1.class.getName());
-    runClasses(Nested1.class, Nested2.class);
+    runTests(Nested1.class, Nested2.class);
     assertTrue(
         Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
         Arrays.asList("beforeClass1", "method2", "method1").equals(methods));
@@ -72,7 +72,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
   public void testClassMethodFilter() {
     System.setProperty(SYSPROP_TESTCLASS(), Nested1.class.getName());
     System.setProperty(SYSPROP_TESTMETHOD(), "method2");
-    runClasses(Nested1.class, Nested2.class);
+    runTests(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method2"), methods);
   }
 
@@ -82,7 +82,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
   @Test
   public void testMethodFilter() {
     System.setProperty(SYSPROP_TESTMETHOD(), "method1");
-    runClasses(Nested1.class, Nested2.class);
+    runTests(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
   }
 
@@ -92,7 +92,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
   @Test
   public void testGlobClassName() {
     System.setProperty(SYSPROP_TESTCLASS(), "*Nested1");
-    runClasses(Nested1.class, Nested2.class);
+    runTests(Nested1.class, Nested2.class);
     assertTrue(
         Arrays.asList("beforeClass1", "method1", "method2").equals(methods) ||
         Arrays.asList("beforeClass1", "method2", "method1").equals(methods));
@@ -104,7 +104,7 @@ public class TestClassMethodFiltering extends WithNestedTestClass {
   @Test
   public void testGlobMethodName() {
     System.setProperty(SYSPROP_TESTMETHOD(), "*hod1");
-    runClasses(Nested1.class, Nested2.class);
+    runTests(Nested1.class, Nested2.class);
     assertEquals(Arrays.asList("beforeClass1", "method1", "beforeClass2", "method1"), methods);
   }
 

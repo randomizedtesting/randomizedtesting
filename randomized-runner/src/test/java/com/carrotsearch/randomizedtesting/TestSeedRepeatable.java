@@ -1,13 +1,12 @@
 package com.carrotsearch.randomizedtesting;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Seed;
@@ -49,11 +48,8 @@ public class TestSeedRepeatable extends WithNestedTestClass {
   @Test
   public void testSameMethodRandomnessWithFixedRunner() {
     Nested.seeds.clear();
-    Result result = runClasses(Nested.class);
-    assertTrue(result.getFailures().toString(), result.wasSuccessful());
-    result = runClasses(Nested.class);
-    assertTrue(result.wasSuccessful());
-    result = runClasses(Nested.class);    
-    assertTrue(result.wasSuccessful());
+    checkTestsOutput(2, 0, 0, 0, Nested.class);
+    checkTestsOutput(2, 0, 0, 0, Nested.class);
+    checkTestsOutput(2, 0, 0, 0, Nested.class);
   }  
 }

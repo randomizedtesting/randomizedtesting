@@ -69,7 +69,7 @@ public class TestOverridingDefaultExceptionHandler extends WithNestedTestClass {
 
   @Test
   public void testHandlerPropagation() {
-    runClasses(Nested.class);
+    runTests(Nested.class);
 
     Assertions.assertThat(throwableMessages).contains("exceptionFromChildThread");
     Assertions.assertThat(throwableMessages).contains("exceptionFromSubGroup");

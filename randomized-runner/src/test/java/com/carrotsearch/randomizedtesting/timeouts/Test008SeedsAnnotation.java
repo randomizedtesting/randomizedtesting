@@ -1,20 +1,21 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
+import static org.assertj.core.data.MapEntry.entry;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import junit.framework.Assert;
-
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.Utils;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
-import com.carrotsearch.randomizedtesting.annotations.*;
+import com.carrotsearch.randomizedtesting.annotations.Repeat;
+import com.carrotsearch.randomizedtesting.annotations.Seed;
+import com.carrotsearch.randomizedtesting.annotations.Seeds;
 
-import static org.assertj.core.data.MapEntry.*;
+import junit.framework.Assert;
 
 /**
  * Check {@link Seeds}.
@@ -42,7 +43,7 @@ public class Test008SeedsAnnotation extends WithNestedTestClass {
     int N = 4;
     for (int i = 0; i < N; i++) {
       seeds.clear();
-      Result result = runClasses(Nested.class);
+      FullResult result = runTests(Nested.class);
       Assert.assertEquals(3 * 2, result.getRunCount());
       Assertions.assertThat(result.getFailures()).isEmpty();
       for (String s : seeds) {

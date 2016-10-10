@@ -1,6 +1,6 @@
 package com.carrotsearch.randomizedtesting;
 
-import static com.carrotsearch.randomizedtesting.annotations.TestGroup.Utilities.*;
+import static com.carrotsearch.randomizedtesting.annotations.TestGroup.Utilities.getSysProperty;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -46,19 +46,19 @@ public class TestTestFiltering extends WithNestedTestClass {
     // Don't run by default (group is disabled by default).
     counter.set(0);
     System.setProperty(SysGlobals.SYSPROP_TESTFILTER(), "");
-    checkResult(runClasses(Nested1.class), 0, 0, 0);
+    checkTestsOutput(1, 0, 0, 1, Nested1.class);
     Assertions.assertThat(counter.get()).isEqualTo(0);
 
     // Run @foo methods even though the group is disabled (but the filtering rule takes priority).
     counter.set(0);
     System.setProperty(SysGlobals.SYSPROP_TESTFILTER(), "@foo");
-    checkResult(runClasses(Nested1.class), 1, 0, 0);
+    checkTestsOutput(1, 0, 0, 0, Nested1.class);
     Assertions.assertThat(counter.get()).isEqualTo(1);
 
     // Run the "default" filter.
     counter.set(0);
     System.setProperty(SysGlobals.SYSPROP_TESTFILTER(), "default");
-    checkResult(runClasses(Nested1.class), 0, 0, 0);
+    checkTestsOutput(0, 0, 0, 0, Nested1.class);
     Assertions.assertThat(counter.get()).isEqualTo(0);
   }
 }

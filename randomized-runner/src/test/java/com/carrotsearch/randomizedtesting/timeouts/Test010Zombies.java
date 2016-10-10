@@ -3,7 +3,6 @@ package com.carrotsearch.randomizedtesting.timeouts;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.Utils;
@@ -52,7 +51,7 @@ public class Test010Zombies extends WithNestedTestClass {
     };
 
     // Run a class spawning zombie threads.
-    Result r = runClasses(Nested.class);
+    FullResult r = runTests(Nested.class);
 
     Utils.assertFailureWithMessage(r, "1 thread leaked");
     Utils.assertFailureWithMessage(r, "foobarZombie");
@@ -71,7 +70,7 @@ public class Test010Zombies extends WithNestedTestClass {
         }
       };
 
-      r = runClasses(Nested.class);
+      r = runTests(Nested.class);
       Assertions.assertThat(r.wasSuccessful()).as("At: " + p2).isTrue();
     }
   }

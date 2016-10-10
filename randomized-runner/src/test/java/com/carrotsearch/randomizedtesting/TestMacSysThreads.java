@@ -4,10 +4,7 @@ import java.lang.management.ManagementFactory;
 
 import javax.management.MBeanServer;
 
-import junit.framework.Assert;
-
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction.Action;
@@ -25,13 +22,12 @@ public class TestMacSysThreads extends WithNestedTestClass {
     public void testMethod1() {
       MBeanServer mb = ManagementFactory.getPlatformMBeanServer();
       mb.getMBeanCount();
-      RandomizedTest.sleep(5000);
+      RandomizedTest.sleep(2500);
     }
   }
 
   @Test
   public void testSuccessful() {
-    Result result = runClasses(Nested.class);
-    Assert.assertEquals(0, result.getFailureCount());
+    checkTestsOutput(1, 0, 0, 0, Nested.class);
   }
 }

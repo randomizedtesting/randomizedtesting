@@ -2,7 +2,6 @@ package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.Utils;
@@ -39,7 +38,7 @@ public class Test001TimeoutSuite extends WithNestedTestClass {
       }
     };
 
-    Result r = runClasses(Nested.class);
+    FullResult r = runTests(Nested.class);
     Utils.assertFailureWithMessage(r, "Suite timeout exceeded");
     Utils.assertFailuresContainSeeds(r);
 

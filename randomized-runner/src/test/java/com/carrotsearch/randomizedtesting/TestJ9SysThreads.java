@@ -3,10 +3,7 @@ package com.carrotsearch.randomizedtesting;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 
-import junit.framework.Assert;
-
 import org.junit.Test;
-import org.junit.runner.Result;
 
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction.Action;
@@ -33,7 +30,6 @@ public class TestJ9SysThreads extends WithNestedTestClass {
 
   @Test
   public void testSuccessfulExceptedFailure() {
-    Result result = runClasses(Nested.class);
-    Assert.assertEquals(0, result.getFailureCount());
+    checkTestsOutput(1, 0, 0, 0, Nested.class);
   }
 }
