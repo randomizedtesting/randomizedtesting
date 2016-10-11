@@ -190,6 +190,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     public final Method method;
     public final InstanceProvider instanceProvider;
 
+    boolean ignored;
+
     public TestCandidate(Method method, long seed, Description description, InstanceProvider instanceProvider) {
       this.seed = seed;
       this.description = description;
@@ -632,32 +634,40 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
       }
 
-      // Filter out test candidates to see if there's anything left. If not,
-      // don't bother running class hooks.
-      final List<TestCandidate> filtered = getFilteredTestCandidates(notifier);
-      if (!filtered.isEmpty()) {
-        ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
-        Statement s = runTestsStatement(threadLeakControl.notifier(), filtered, threadLeakControl);
-        s = withClassBefores(s);
-        s = withClassAfters(s);
-        s = withClassRules(s);
-        s = withCloseContextResources(s, LifecycleScope.SUITE);
-        s = threadLeakControl.forSuite(s, suiteDescription);
-        try {
-          s.evaluate();
-        } catch (Throwable t) {
-          t = augmentStackTrace(t, runnerRandomness);
-          if (t instanceof AssumptionViolatedException) {
-            // Fire assumption failure before method ignores. (GH-103).
-            notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
-
-            // Class level assumptions cause all tests to be ignored.
-            // see Rants#RANT_3
-            for (final TestCandidate c : filtered) {
-              notifier.fireTestIgnored(c.description);
+      // Filter out test candidates to see if there's anything left.
+      // If not, don't bother running class hooks.
+      final List<TestCandidate> tests = getFilteredTestCandidates(notifier);
+      if (!tests.isEmpty()) {
+        Map<TestCandidate, Boolean> ignored = determineIgnoredTests(tests);
+        if (ignored.size() == tests.size()) {
+          // All tests ignored, ignore class hooks but report all the ignored tests.
+          for (TestCandidate c : tests) {
+            reportAsIgnored(notifier, groupEvaluator, c);
+          }
+        } else {
+          ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
+          Statement s = runTestsStatement(threadLeakControl.notifier(), tests, ignored, threadLeakControl);
+          s = withClassBefores(s);
+          s = withClassAfters(s);
+          s = withClassRules(s);
+          s = withCloseContextResources(s, LifecycleScope.SUITE);
+          s = threadLeakControl.forSuite(s, suiteDescription);
+          try {
+            s.evaluate();
+          } catch (Throwable t) {
+            t = augmentStackTrace(t, runnerRandomness);
+            if (t instanceof AssumptionViolatedException) {
+              // Fire assumption failure before method ignores. (GH-103).
+              notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
+  
+              // Class level assumptions cause all tests to be ignored.
+              // see Rants#RANT_3
+              for (final TestCandidate c : tests) {
+                notifier.fireTestIgnored(c.description);
+              }
+            } else {
+              fireTestFailure(notifier, suiteDescription, t);
             }
-          } else {
-            fireTestFailure(notifier, suiteDescription, t);
           }
         }
       }
@@ -678,6 +688,35 @@ public final class RandomizedRunner extends Runner implements Filterable {
     notifier.removeListener(accounting);
     unsubscribeListeners(notifier);
     context.popAndDestroy();    
+  }
+
+  /**
+   * Determine the set of ignored tests.
+   */
+  private Map<TestCandidate, Boolean> determineIgnoredTests(List<TestCandidate> tests) {
+    Map<TestCandidate, Boolean> ignoredTests = new IdentityHashMap<>();
+    for (TestCandidate c : tests) {
+      // If it's an @Ignore-marked test, always report it as ignored, remove it from execution.
+      if (hasIgnoreAnnotation(c) ) {
+        ignoredTests.put(c, true);
+      }
+
+      // Otherwise, check if the test should be ignored due to test group annotations or filtering
+      // expression
+      if (isTestFiltered(groupEvaluator, c)) {
+        // If we're running under an IDE, report the test back as ignored. Otherwise
+        // check if filtering expression is being used. If not, report the test as ignored
+        // (test group exclusion at work).
+        if (containerRunner == RunnerContainer.ECLIPSE ||
+            containerRunner == RunnerContainer.IDEA ||
+            !groupEvaluator.hasFilteringExpression()) {
+          ignoredTests.put(c, true);
+        } else {
+          ignoredTests.put(c, false);
+        }
+      }
+    }
+    return ignoredTests;
   }
 
   /**
@@ -710,15 +749,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
   private Statement runTestsStatement(
       final RunNotifier notifier, 
-      final List<TestCandidate> filtered, 
+      final List<TestCandidate> tests, 
+      final Map<TestCandidate, Boolean> ignored, 
       final ThreadLeakControl threadLeakControl) {
     return new Statement() {
       public void evaluate() throws Throwable {
-        for (final TestCandidate c : filtered) {
+        for (final TestCandidate c : tests) {
           if (threadLeakControl.isTimedOut()) {
             break;
           }
-
+          
           // Setup test thread's name so that stack dumps produce seed, test method, etc.
           final String testThreadName = "TEST-" + Classes.simpleName(suiteClass) +
               "." + c.method.getName() + "-seed#" + SeedUtils.formatSeedChain(runnerRandomness);
@@ -730,7 +770,13 @@ public final class RandomizedRunner extends Runner implements Filterable {
             Thread.currentThread().setName(testThreadName);
             current.push(new Randomness(c.seed));
             current.setTargetMethod(c.method);
-            runSingleTest(notifier, c, threadLeakControl);
+            
+            Boolean ignoredTest = ignored.get(c);
+            if (ignoredTest != null && ignoredTest) {
+              reportAsIgnored(notifier, groupEvaluator, c);
+            } else {
+              runSingleTest(notifier, c, threadLeakControl);
+            }
           } finally {
             Thread.currentThread().setName(restoreName);
             current.setTargetMethod(null);
@@ -1093,58 +1139,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   
           i.remove();
           break;
-        }
-      }
-    }
-
-    /*
-     * The logic for filtering tests marked with @Ignore, marked with an 
-     * annotation that forms a test groups, or controlled via tests.filtering
-     * is quite complex.
-     * 
-     * We want tests.filtering to *not* report any tests that are excluded because
-     * if we reported them back, they would obscure the view of what was actually
-     * executed (the point of tests.filtering is to "hide" the excluded tests).
-     * 
-     * Contrary to the above, we typically do want to know which tests were
-     * @Ignored and for what reason. The same applies to test groups that 
-     * are disabled.
-     * 
-     * To add additional complexity, IDEs will show all methods of a class as tests,
-     * even if they're not reported. So we report all methods if we're running under 
-     * an IDE, even if tests.filtering is used.   
-     * 
-     * - if it's an @Ignored test or it is ignored due to a disabled test group:
-     *     remove from the set
-     *     markAsIgnored(t);
-     * - else, if it's a test that is ignored due to filtering expression:
-     *     remove from the set
-     *     markAsIgnored(t) if running under IDE (only)
-     *     
-     * - there is no need to check filtering rules again in runTestsStatement
-     */
-    for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext();) {
-      TestCandidate c = i.next();
-
-      // If it's an @Ignore-marked test, always report it as ignored, remove it from execution.
-      if (hasIgnoreAnnotation(c)) {
-        i.remove();
-        reportAsIgnored(notifier, groupEvaluator, c);
-        continue;
-      }
-
-      // Otherwise, check if the test should be ignored due to test group annotations or filtering
-      // expression
-      if (isTestFiltered(groupEvaluator, c)) {
-        i.remove();
-
-        // If we're running under an IDE, report the test back as ignored. Otherwise
-        // check if filtering expression is being used. If not, report the test as ignored
-        // (test group exclusion at work).
-        if (containerRunner == RunnerContainer.ECLIPSE ||
-            containerRunner == RunnerContainer.IDEA ||
-            !groupEvaluator.hasFilteringExpression()) {
-          reportAsIgnored(notifier, groupEvaluator, c);
         }
       }
     }
