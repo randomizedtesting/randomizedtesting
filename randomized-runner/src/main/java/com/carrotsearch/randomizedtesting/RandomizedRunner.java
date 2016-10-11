@@ -190,8 +190,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
     public final Method method;
     public final InstanceProvider instanceProvider;
 
-    boolean ignored;
-
     public TestCandidate(Method method, long seed, Description description, InstanceProvider instanceProvider) {
       this.seed = seed;
       this.description = description;
@@ -642,7 +640,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (ignored.size() == tests.size()) {
           // All tests ignored, ignore class hooks but report all the ignored tests.
           for (TestCandidate c : tests) {
-            reportAsIgnored(notifier, groupEvaluator, c);
+            if (ignored.get(c)) {
+              reportAsIgnored(notifier, groupEvaluator, c);
+            }
           }
         } else {
           ThreadLeakControl threadLeakControl = new ThreadLeakControl(notifier, this);
