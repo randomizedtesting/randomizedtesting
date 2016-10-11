@@ -58,7 +58,7 @@ public class TestTestFiltering extends WithNestedTestClass {
     // Run the "default" filter.
     counter.set(0);
     System.setProperty(SysGlobals.SYSPROP_TESTFILTER(), "default");
-    checkTestsOutput(0, 0, 0, 0, Nested1.class);
+    checkTestsOutput(1, 0, 0, 1, Nested1.class);
     Assertions.assertThat(counter.get()).isEqualTo(0);
   }
 }
