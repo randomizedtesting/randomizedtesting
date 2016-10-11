@@ -27,7 +27,6 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
-import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
@@ -316,8 +315,8 @@ public class WithNestedTestClass {
       return result.wasSuccessful();
     }
   }
-
-  public static FullResult runTests(final Request request) {
+  
+  public static FullResult runTests(final Class<?>... classes) {
     try {
       final FullResult fullResult = new FullResult();
       
@@ -334,7 +333,7 @@ public class WithNestedTestClass {
             }
           });
 
-          fullResult.result = core.run(request);
+          fullResult.result = core.run(classes);
         }
       };
 
@@ -344,10 +343,6 @@ public class WithNestedTestClass {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
-  }
-  
-  public static FullResult runTests(Class<?>... classes) {
-    return runTests(Request.classes(classes));
   }
 
   public static FullResult checkTestsOutput(int run, int ignored, int failures, int assumptions, Class<?> classes) {
