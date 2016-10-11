@@ -771,9 +771,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
             current.push(new Randomness(c.seed));
             current.setTargetMethod(c.method);
             
-            Boolean ignoredTest = ignored.get(c);
-            if (ignoredTest != null && ignoredTest) {
-              reportAsIgnored(notifier, groupEvaluator, c);
+            if (ignored.containsKey(c)) {
+              // Ignore the test, but report only if requested.
+              if (ignored.get(c)) {
+                reportAsIgnored(notifier, groupEvaluator, c);
+              }
             } else {
               runSingleTest(notifier, c, threadLeakControl);
             }
