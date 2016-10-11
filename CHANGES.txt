@@ -11,7 +11,14 @@ Changes in Backwards Compatibility
 
 Bug Fixes
 
+  * GH-233: some adjustments and refactorings in an attempt to avoid deadlocks
+    on suite timeouts. Very hard to reproduce (i.e., impossible) and some very 
+    odd stack traces too.
+
 Other Changes
+
+  * GH-232: Rework reporting of ignored, assumption-ignored, 
+    filtering-expression ignored tests.
 
   * GH-218: There are some internal changes in handling @Nightly annotation.
     The support for @Nightly is now provided via GroupEvaluator (and this

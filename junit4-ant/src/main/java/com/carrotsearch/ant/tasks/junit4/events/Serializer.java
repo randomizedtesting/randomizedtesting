@@ -8,6 +8,7 @@ import java.io.Writer;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
@@ -29,6 +30,7 @@ public class Serializer implements Closeable {
 
   private volatile Throwable doForcedShutdown;
   private Thread forceCloseDaemon;
+  private AtomicBoolean forceCloseDaemonQuit = new AtomicBoolean();
 
   public Serializer(OutputStream os) throws IOException {
     this.writer = new OutputStreamWriter(os, Charsets.UTF_8);
@@ -43,8 +45,13 @@ public class Serializer implements Closeable {
       @Override
       public void run() {
         try {
-          while (true) {
-            Thread.sleep(1000);
+          while (!forceCloseDaemonQuit.get()) {
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              // Ignore.
+            }
+
             Throwable reason = doForcedShutdown;
             if (reason != null) {
               try {
@@ -54,11 +61,22 @@ public class Serializer implements Closeable {
               }
             }
           }
-        } catch (InterruptedException e) {
-          // Ignore and exit.
+        } catch (Throwable t) {
+          SlaveMain.warn("Unreachable code. Complete panic.", t);
         }
       }
+      
+      @Override
+      public UncaughtExceptionHandler getUncaughtExceptionHandler() {
+        return new UncaughtExceptionHandler() {
+          @Override
+          public void uncaughtException(Thread t, Throwable e) {
+            SlaveMain.warn("Unreachable code. Complete panic.", e);
+          }
+        };
+      }
     };
+
     forceCloseDaemon.start();
   }
 
@@ -105,15 +123,19 @@ public class Serializer implements Closeable {
             }
           });
         } catch (Throwable t) {
-          // We can't do a stack bang here so any call is a risk of hitting SOE again.
-          while (true) {
-            doForcedShutdown = t;
-            try {
-              forceCloseDaemon.join();
-            } catch (Throwable ignored) {
-              // Ignore.
-            }
-          }
+          doForcedShutdown = t;
+          break;
+        }
+      }
+    }
+
+    if (doForcedShutdown != null) {
+      // We can't do a stack bang here so any call is a risk of hitting SOE again.
+      while (true) {
+        try {
+          forceCloseDaemon.join();
+        } catch (Throwable ignored) {
+          // Ignore.
         }
       }
     }
@@ -142,13 +164,14 @@ public class Serializer implements Closeable {
         writer.close();
         writer = null;
       }
-
-      try {
-        forceCloseDaemon.interrupt();
-        forceCloseDaemon.join();
-      } catch (InterruptedException e) {
-        // Ignore, can't do much about it (shouldn't happen).
-      }
+      forceCloseDaemonQuit.set(true);
     }
+
+    try {
+      forceCloseDaemon.interrupt();
+      forceCloseDaemon.join();
+    } catch (InterruptedException e) {
+      // Ignore, can't do much about it (shouldn't happen).
+    }    
   }
 }
