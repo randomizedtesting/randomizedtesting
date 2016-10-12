@@ -13,26 +13,43 @@ import java.util.Random;
  */
 public final class Randomness {
   private final long seed;
-  private final AssertingRandom random;
-  private SeedDecorator[] decorators;
+  private final Random random;
 
-  public Randomness(Thread owner, long seed, SeedDecorator... decorators) {
+  private final RandomSupplier supplier;
+  private final SeedDecorator[] decorators;
+
+  public Randomness(Thread owner, RandomSupplier supplier, long seed, SeedDecorator... decorators) {
     this.seed = seed;
     this.decorators = decorators;
-    this.random = new AssertingRandom(owner, new Random(decorate(seed, decorators)));
+    this.supplier = supplier;
+
+    Random delegate = supplier.get(decorate(seed, decorators));
+    if (AssertingRandom.isVerifying()) {
+      this.random = new AssertingRandom(owner, delegate);
+    } else {
+      this.random = delegate;
+    }
   }
 
-  public Randomness(long seed, SeedDecorator...decorators) {
-    this(Thread.currentThread(), seed, decorators);
+  public Randomness(long seed, RandomSupplier supplier, SeedDecorator...decorators) {
+    this(Thread.currentThread(), supplier, seed, decorators);
   }
 
   /** Random instance for this randomness. */
   public Random getRandom() {
     return random;
   }
+  
+  RandomSupplier getRandomSupplier() {
+    return supplier;
+  }
+
+  SeedDecorator[] getDecorators() {
+    return decorators;
+  }
 
   Randomness clone(Thread newOwner) {
-    return new Randomness(newOwner, seed, decorators);
+    return new Randomness(newOwner, supplier, seed, decorators);
   }
 
   @Override
@@ -44,9 +61,11 @@ public final class Randomness {
    * Invalidate the underling randomness.
    */
   void destroy() {
-    this.random.destroy();
+    if (random instanceof AssertingRandom) {
+      ((AssertingRandom) random).destroy();
+    }
   }
-  
+
   /** Starting seed, read-only for tests. */
   long getSeed() {
     return seed;

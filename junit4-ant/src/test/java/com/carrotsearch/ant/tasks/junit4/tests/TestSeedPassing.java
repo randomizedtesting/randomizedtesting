@@ -11,11 +11,13 @@ import static com.carrotsearch.randomizedtesting.SysGlobals.*;
 public class TestSeedPassing extends RandomizedTest {
   @Test
   public void checkSeedSet() throws IOException {
-    Assert.assertEquals(System.getProperty(SYSPROP_RANDOM_SEED()),
-        SeedUtils.formatSeedChain(
-            new Randomness(0xdeadbeefL),
-            new Randomness(0xcafebabeL)), 
-            System.getProperty(SYSPROP_RANDOM_SEED()));
+    String expected = SeedUtils.formatSeedChain(
+        new Randomness(0xdeadbeefL, RandomSupplier.DEFAULT),
+        new Randomness(0xcafebabeL, RandomSupplier.DEFAULT));
+
+    Assert.assertEquals(
+        expected, 
+        System.getProperty(SYSPROP_RANDOM_SEED()));
 
     Assert.assertEquals(
         "[CAFEBABE]",
@@ -25,6 +27,7 @@ public class TestSeedPassing extends RandomizedTest {
         "[DEADBEEF]",
         SeedUtils.formatSeedChain(
             new Randomness(
-                SeedUtils.parseSeed(getContext().getRunnerSeedAsString()))));
+                SeedUtils.parseSeed(getContext().getRunnerSeedAsString()),
+                RandomSupplier.DEFAULT)));
   }
 }

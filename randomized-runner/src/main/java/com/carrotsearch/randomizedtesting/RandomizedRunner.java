@@ -69,6 +69,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
 import com.carrotsearch.randomizedtesting.annotations.TestCaseInstanceProvider;
 import com.carrotsearch.randomizedtesting.annotations.TestCaseOrdering;
 import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
+import com.carrotsearch.randomizedtesting.annotations.TestContextRandomSupplier;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakFilters;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakGroup;
@@ -291,6 +292,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private ClassModel classModel;
 
   /**
+   * Random class implementation supplier.
+   */
+  private final RandomSupplier randomSupplier;
+  
+  /**
    * Methods cache.
    */
   private Map<Class<? extends Annotation>,List<Method>> shuffledMethodsCache = new HashMap<Class<? extends Annotation>,List<Method>>();
@@ -344,6 +350,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
       SeedDecorator[] decArray = decorators.toArray(new SeedDecorator [decorators.size()]);
 
+      randomSupplier = determineRandomSupplier(testClass);
+
       final long randomSeed = MurmurHash3.hash(sequencer.getAndIncrement() + System.nanoTime());
       final String globalSeed = emptyToNull(System.getProperty(SYSPROP_RANDOM_SEED()));
       final long initialSeed;
@@ -355,7 +363,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
 
         if (seedChain.length > 1) {
-          testCaseRandomnessOverride = new Randomness(seedChain[1]);
+          testCaseRandomnessOverride = new Randomness(seedChain[1], randomSupplier);
         }
 
         initialSeed = seedChain[0];
@@ -364,7 +372,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       } else {
         initialSeed = randomSeed;
       }
-      runnerRandomness = new Randomness(initialSeed, decArray);
+      runnerRandomness = new Randomness(initialSeed, randomSupplier, decArray);
     }
 
     // Iterations property is primary wrt to annotations, so we leave an "undefined" value as null.
@@ -387,6 +395,20 @@ public final class RandomizedRunner extends Runner implements Filterable {
       this.groupEvaluator = new GroupEvaluator(testCandidates);
     } catch (Throwable t) {
       throw new InitializationError(t);
+    }
+  }
+
+  private RandomSupplier determineRandomSupplier(Class<?> testClass) {
+    List<TestContextRandomSupplier> randomImpl = getAnnotationsFromClassHierarchy(testClass, TestContextRandomSupplier.class);
+    if (randomImpl.size() == 0) {
+      return RandomSupplier.DEFAULT;
+    } else {
+      Class<? extends RandomSupplier> clazz = randomImpl.get(randomImpl.size() - 1).value();
+      try {
+        return clazz.newInstance();
+      } catch (InstantiationException | IllegalAccessException e) {
+        throw new IllegalArgumentException("Could not instantiate random supplier of class: " + clazz, e);
+      }
     }
   }
 
@@ -768,7 +790,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
           final RandomizedContext current = RandomizedContext.current();
           try {
             Thread.currentThread().setName(testThreadName);
-            current.push(new Randomness(c.seed));
+            current.push(new Randomness(c.seed, randomSupplier));
             current.setTargetMethod(c.method);
             
             if (ignored.containsKey(c)) {
@@ -1372,7 +1394,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
         // Format constructor arguments.
         Object [] args = Arrays.copyOf(testCase.params, testCase.params.length + 1);
-        args[args.length - 1] = SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed));
+        args[args.length - 1] = SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed, randomSupplier));
         String formattedArguments = String.format(Locale.ROOT, argFormattingTemplate, args);
 
         String key = method.getName() + "::" + formattedArguments;

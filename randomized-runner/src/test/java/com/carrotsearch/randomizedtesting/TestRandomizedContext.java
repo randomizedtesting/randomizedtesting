@@ -15,7 +15,7 @@ public class TestRandomizedContext extends RandomizedTest {
     final int iters = randomIntBetween(1, 10);
     for (int j = 0; j < iters; j++) {
       final long seed = randomLong();
-      final int[] first = RandomizedContext.current().runWithPrivateRandomness(new Randomness(seed), new Callable<int[]>() {
+      final int[] first = RandomizedContext.current().runWithPrivateRandomness(seed, new Callable<int[]>() {
         @Override
         public int[] call() throws Exception {
           final int size = randomIntBetween(10, 1000);
@@ -27,7 +27,7 @@ public class TestRandomizedContext extends RandomizedTest {
         }
       });
       assertNotNull(first);
-      final int[] second = RandomizedContext.current().runWithPrivateRandomness(new Randomness(seed), new Callable<int[]>() {
+      final int[] second = RandomizedContext.current().runWithPrivateRandomness(seed, new Callable<int[]>() {
         @Override
         public int[] call() throws Exception {
           final int size = randomIntBetween(10, 1000);

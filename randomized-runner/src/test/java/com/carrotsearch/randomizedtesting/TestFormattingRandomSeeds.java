@@ -31,7 +31,7 @@ public class TestFormattingRandomSeeds {
   }
 
   private void check(long seed) {
-    String asString = SeedUtils.formatSeedChain(new Randomness(seed));
+    String asString = SeedUtils.formatSeedChain(new Randomness(seed, RandomSupplier.DEFAULT));
     Assert.assertEquals(seed, SeedUtils.parseSeedChain(asString)[0]);
   }
 }

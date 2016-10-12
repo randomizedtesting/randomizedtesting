@@ -191,6 +191,27 @@ public final class RandomizedContext {
   }
 
   /**
+   * Pushes the given randomness to the top of the stack, runs the {@link Callable} and disposes
+   * the randomness before the this method returns.
+   * <p>
+   * This utility method can be used to initialize resources in a reproducible way since all calls to utility methods
+   * like {@link com.carrotsearch.randomizedtesting.RandomizedTest#randomInt()} et.al. are forwarded to the current
+   * RandomContext which uses the provided randomness from the top of the stack.
+   * </p>
+   *
+   * @param seed The initial seed for the new, private randomness
+   * @param callable the callable to execute
+   * @param <T> the return type of the callable
+   * @return the result of the call to {@link java.util.concurrent.Callable#call()}
+   * @throws Exception if {@link java.util.concurrent.Callable#call()} throws an exception
+   */
+  public <T> T runWithPrivateRandomness(long seed, Callable<T> callable) throws Exception {
+    Randomness randomness = getRandomness();
+    Randomness prv = new Randomness(seed, randomness.getRandomSupplier(), randomness.getDecorators());
+    return runWithPrivateRandomness(prv, callable);
+  }
+
+  /**
    * Dispose of any resources registered in the given scope.
    */
   void closeResources(ObjectProcedure<CloseableResourceInfo> consumer, LifecycleScope scope) {
