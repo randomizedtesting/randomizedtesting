@@ -40,7 +40,14 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-  
+
+  <distributionManagement>
+      <site>
+      <id>site</id>
+      <url>scm:git:git@github.com:randomizedtesting/randomizedtesting.git</url>
+    </site>
+  </distributionManagement>
+
   <scm>
     <connection>scm:git:git@github.com:randomizedtesting/randomizedtesting.git</connection>
     <developerConnection>scm:git:git@github.com:randomizedtesting/randomizedtesting.git</developerConnection>
@@ -155,6 +162,21 @@
   </dependencyManagement>
 
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.3</version>
+        <executions>
+          <execution>
+            <id>attach-descriptor</id>
+            <goals>
+              <goal>attach-descriptor</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -184,6 +206,12 @@
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>3.4</version> 
+        </plugin>
+        
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <version>2.4</version>
         </plugin>
@@ -191,7 +219,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.3</version>
+          <version>2.10.4</version>
         </plugin>
 
         <plugin>
@@ -356,6 +384,26 @@
                 </lifecycleMappingMetadata>
               </configuration>
             </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.3</version>
+          <configuration>
+            <chmod>true</chmod>
+            <inputEncoding>UTF-8</inputEncoding>
+            <outputEncoding>UTF-8</outputEncoding>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-publish-plugin</artifactId>
+          <version>1.0</version>
+          <configuration>
+            <scmBranch>gh-pages</scmBranch>
+          </configuration>
+        </plugin>
           </plugins>
         </pluginManagement>
       </build>
@@ -519,4 +567,49 @@
       </build>
     </profile>
   </profiles>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>summary</report>
+                            <report>index</report>
+                            <report>dependencies</report>
+                            <report>issue-tracking</report>
+                            <report>scm</report>
+                            <report>plugins</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <attach>true</attach>
+                    <quiet>true</quiet>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <id>non-aggregate</id>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+              <artifactId>maven-plugin-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
