@@ -43,20 +43,18 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <!-- We don't want to use surefire to run our tests so we skip it. -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <skipTests>true</skipTests>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- 
          Set property of the url to each dependency
          We use antrun to turn path into a proper URL (for windows with spaces etc)
@@ -104,6 +102,7 @@
           </execution>
         </executions>
       </plugin>
+
       <!-- Run tests with JUnit4 under security manager -->
       <plugin>
         <groupId>com.carrotsearch.randomizedtesting</groupId>

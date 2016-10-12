@@ -24,15 +24,16 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
-    </dependency> 
+    </dependency>
   </dependencies>
-  
+
   <build>
     <pluginManagement>
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.maven-javadoc-plugin}</version>
           <configuration>
             <groups>
               <group>
@@ -42,7 +43,7 @@
               <group>
                 <title>Annotations</title>
                 <packages>com.carrotsearch.randomizedtesting.annotations</packages>
-              </group>              
+              </group>
               <group>
                 <title>Listeners, Generators and Validators</title>
                 <packages>com.carrotsearch.randomizedtesting.generators:com.carrotsearch.randomizedtesting.listeners:com.carrotsearch.randomizedtesting.validators</packages>

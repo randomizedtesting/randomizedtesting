@@ -73,6 +73,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
+          <version>${version.maven-surefire-plugin}</version>
 
           <configuration>
             <basedir>${project.build.directory}/test-classes</basedir>
@@ -141,6 +142,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.maven-javadoc-plugin}</version>
           <configuration>
             <overview>${basedir}/src/main/java/com/carrotsearch/ant/tasks/junit4/package.html</overview>
             <groups>

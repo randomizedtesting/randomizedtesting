@@ -40,7 +40,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
-        <version>1.5</version>
         <configuration>
           <debug>true</debug>
           <projectsDirectory>src/it</projectsDirectory>

@@ -37,20 +37,19 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <!-- We don't want to use surefire to run our tests so we skip it. -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-            <skipTests>true</skipTests>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
     <plugins>
+      <!-- We don't want to use surefire to run our tests so we skip it. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- 
        !!! LOOK HERE !!!
        Run tests with JUnit4 instead. A simple configuration here. 
