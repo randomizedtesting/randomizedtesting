@@ -109,6 +109,13 @@ public class TestOutOfScopeRandomUse extends WithNestedTestClass {
     }    
   }
 
+  @Before
+  public void checkRunningWithAssertions() {
+    // Sharing Random is only checked with -ea
+    // https://github.com/randomizedtesting/randomizedtesting/issues/234
+    RandomizedTest.assumeTrue("AssertionRandom not verifying sharing.", AssertingRandom.isVerifying());
+  }
+  
   @Test
   public void testCrossTestCaseIsolation() throws Throwable {
     List<Failure> failures = runTests(Nested.class).getFailures();

@@ -9,6 +9,15 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Changes in Backwards Compatibility
 
+  * GH-234: Run strict validation (thread-ownership, lifecycle) in 
+    AssertingRandom only with assertions enabled. This change means that running
+    without -ea will from now on ignore the fact that random context's Random
+    instance is shared where it shouldn't be. On the other hand, using the Random
+    won't issue additional memory barriers.
+
+    To enable consistent checking, enable assertions selectively (for 
+    com.carrotsearch.randomizedtesting package only).
+
 Bug Fixes
 
   * GH-233: some adjustments and refactorings in an attempt to avoid deadlocks
