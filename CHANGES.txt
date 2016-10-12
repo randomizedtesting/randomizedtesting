@@ -17,37 +17,38 @@ Changes in Backwards Compatibility
     conjunction with @TestContextRandomSupplier (see GH-235 below).  
 
     To enable consistent checking, enable assertions selectively (for 
-    com.carrotsearch.randomizedtesting package only).
-    
+    com.carrotsearch.randomizedtesting package only). (Dawid Weiss)
+
   * GH-229: The default implementation of the Random instance returned from
     the randomization context has been changed to Xoroshiro128P, details here:
     http://xoroshiro.di.unimi.it/
-    
+
     The returned Random isn't synchronized and should yield much better
-    pseudo-random sequences than the default Java's Random.
+    pseudo-random sequences than the default Java's Random. (Dawid Weiss)
 
 New Features
 
   * GH-235: A new class annotation was added: @TestContextRandomSupplier allows
     declaring a custom class (RandomSupplier) that supplies a Random for the given
     seed. This supplier can return any Random instance for the given initial 
-    seed (secure random, faster-than-jdk random, non-random random...).  
+    seed (secure random, faster-than-jdk random, non-random random...).
+    (Dawid Weiss)  
 
 Bug Fixes
 
   * GH-233: some adjustments and refactorings in an attempt to avoid deadlocks
     on suite timeouts. Very hard to reproduce (i.e., impossible) and some very 
-    odd stack traces too.
+    odd stack traces too. (Dawid Weiss)
 
 Other Changes
 
   * GH-232: Rework reporting of ignored, assumption-ignored, 
-    filtering-expression ignored tests.
+    filtering-expression ignored tests. (Dawid Weiss)
 
   * GH-218: There are some internal changes in handling @Nightly annotation.
     The support for @Nightly is now provided via GroupEvaluator (and this
     class is now public, with methods allowing inspection of whether a test
-    would be filtered out or not).
+    would be filtered out or not). (Dawid Weiss)
 
 ======================= randomizedtesting 2.3.4 ====================
 
