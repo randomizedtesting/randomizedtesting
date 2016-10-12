@@ -33,7 +33,7 @@ public final class AssertingRandom extends Random {
   public AssertingRandom(Thread owner, Random delegate) {
     // Must be here, the only Random constructor. Has side-effects on setSeed, see below.
     super(0);
-    
+
     this.delegate = delegate;
     this.ownerRef = new WeakReference<Thread>(owner);
     this.ownerName = owner.toString();
@@ -101,11 +101,7 @@ public final class AssertingRandom extends Random {
       return;
     }
 
-    throw new RuntimeException(
-        RandomizedRunner.class.getSimpleName() + 
-        " prevents changing the seed of its random generators to assure repeatability" +
-        " of tests. If you need a mutable instance of Random, create a new instance," +
-        " preferably with the initial seed aquired from this Random instance."); 
+    throw noSetSeet();
   }
 
   @Override
@@ -169,6 +165,14 @@ public final class AssertingRandom extends Random {
    */
   public static boolean isVerifying() {
     return assertionsEnabled;
+  }
+
+  static RuntimeException noSetSeet() {
+    return new RuntimeException(
+        RandomizedRunner.class.getSimpleName() + 
+        " prevents changing the seed of its random generators to assure repeatability" +
+        " of tests. If you need a mutable instance of Random, create a new (local) instance," +
+        " preferably with the initial seed aquired from this Random instance."); 
   }
 
   // Overriding this has side effects on the GC; let's not be paranoid. 

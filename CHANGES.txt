@@ -19,6 +19,13 @@ Changes in Backwards Compatibility
     To enable consistent checking, enable assertions selectively (for 
     com.carrotsearch.randomizedtesting package only).
     
+  * GH-229: The default implementation of the Random instance returned from
+    the randomization context has been changed to Xoroshiro128P, details here:
+    http://xoroshiro.di.unimi.it/
+    
+    The returned Random isn't synchronized and should yield much better
+    pseudo-random sequences than the default Java's Random.
+
 New Features
 
   * GH-235: A new class annotation was added: @TestContextRandomSupplier allows
