@@ -31,7 +31,7 @@ public class Xoroshiro128PlusRandom extends Random {
       return;
     }
 
-    throw AssertingRandom.noSetSeet();
+    throw AssertingRandom.noSetSeed();
   }
   
   @Override

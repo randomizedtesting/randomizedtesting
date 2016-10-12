@@ -101,7 +101,7 @@ public final class AssertingRandom extends Random {
       return;
     }
 
-    throw noSetSeet();
+    throw noSetSeed();
   }
 
   @Override
@@ -167,7 +167,7 @@ public final class AssertingRandom extends Random {
     return assertionsEnabled;
   }
 
-  static RuntimeException noSetSeet() {
+  static RuntimeException noSetSeed() {
     return new RuntimeException(
         RandomizedRunner.class.getSimpleName() + 
         " prevents changing the seed of its random generators to assure repeatability" +
