@@ -9,6 +9,9 @@ import java.util.Random;
  */
 @SuppressWarnings("serial")
 public class Xoroshiro128PlusRandom extends Random {
+  private static final double DOUBLE_UNIT = 0x1.0p-53; // 1.0 / (1L << 53);
+  private static final float  FLOAT_UNIT  = 0x1.0p-24f; // 1.0 / (1L << 24);
+
   private long s0, s1;
 
   public Xoroshiro128PlusRandom(long seed) {
@@ -51,12 +54,12 @@ public class Xoroshiro128PlusRandom extends Random {
 
   @Override
   public double nextDouble() {
-    return Double.longBitsToDouble((nextLong() >>> 12) | (0x3FFL << 52)) - 1.0d; 
+    return (nextLong() >>> 11) * DOUBLE_UNIT; 
   }
 
   @Override
   public float nextFloat() {
-    return Float.intBitsToFloat(((int)(nextLong() >>> 41)) | (0x3F8 << 20)) - 1.0f; 
+    return (nextInt() >>> 8) * FLOAT_UNIT; 
   }
   
   @Override

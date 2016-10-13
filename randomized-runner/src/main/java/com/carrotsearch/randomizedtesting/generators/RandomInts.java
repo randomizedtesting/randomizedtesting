@@ -9,7 +9,7 @@ public final class RandomInts {
   /** 
    * A random integer from <code>min</code> to <code>max</code> (inclusive).
    */
-  public static int     randomIntBetween(Random r, int min, int max) {
+  public static int randomIntBetween(Random r, int min, int max) {
     assert max >= min : "max must be >= min: " + min + ", " + max;
     long range = (long) max - (long) min;
     if (range < Integer.MAX_VALUE) {
