@@ -70,7 +70,7 @@ public class CodepointSetGenerator extends StringGenerator {
 
   @Override
   public String ofCodeUnitsLength(Random r, int minCodeUnits, int maxCodeUnits) {
-    int length = RandomInts.randomIntBetween(r, minCodeUnits, maxCodeUnits);
+    int length = RandomNumbers.randomIntBetween(r, minCodeUnits, maxCodeUnits);
 
     // Check and cater for odd number of code units if no bmp characters are given.
     if (bmp.length == 0 && isOdd(length)) { 
@@ -108,7 +108,7 @@ public class CodepointSetGenerator extends StringGenerator {
 
   @Override
   public String ofCodePointsLength(Random r, int minCodePoints, int maxCodePoints) {
-    int length = RandomInts.randomIntBetween(r, minCodePoints, maxCodePoints);
+    int length = RandomNumbers.randomIntBetween(r, minCodePoints, maxCodePoints);
     int [] codepoints = new int [length];
     while (length > 0) {
       codepoints[--length] = all[r.nextInt(all.length)];

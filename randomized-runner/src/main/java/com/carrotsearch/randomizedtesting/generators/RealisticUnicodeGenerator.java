@@ -62,12 +62,12 @@ public class RealisticUnicodeGenerator extends StringGenerator {
 
   @Override
   public String ofCodeUnitsLength(Random r, int minCodeUnits, int maxCodeUnits) {
-    int length = RandomInts.randomIntBetween(r, minCodeUnits, maxCodeUnits);
+    int length = RandomNumbers.randomIntBetween(r, minCodeUnits, maxCodeUnits);
     final int block = r.nextInt(blockStarts.length);
 
     final StringBuilder sb = new StringBuilder();
     while (length > 0) {
-      int cp = RandomInts.randomIntBetween(r, blockStarts[block], blockEnds[block]);
+      int cp = RandomNumbers.randomIntBetween(r, blockStarts[block], blockEnds[block]);
       if (length > Character.charCount(cp)) {
         sb.appendCodePoint(cp);
         length -= Character.charCount(cp);
@@ -82,11 +82,11 @@ public class RealisticUnicodeGenerator extends StringGenerator {
 
   @Override
   public String ofCodePointsLength(Random r, int minCodePoints, int maxCodePoints) {
-    final int length = RandomInts.randomIntBetween(r, minCodePoints, maxCodePoints);
+    final int length = RandomNumbers.randomIntBetween(r, minCodePoints, maxCodePoints);
     final int block = r.nextInt(blockStarts.length);
     final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++)
-      sb.appendCodePoint(RandomInts.randomIntBetween(r, blockStarts[block], blockEnds[block]));
+      sb.appendCodePoint(RandomNumbers.randomIntBetween(r, blockStarts[block], blockEnds[block]));
     return sb.toString();
   }
 }

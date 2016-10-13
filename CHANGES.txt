@@ -9,6 +9,9 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Changes in Backwards Compatibility
 
+  * GH-237: Methods previously found in RandomInts have been moved to 
+    RandomNumbers. (Dawid Weiss)
+
   * GH-234: Run strict validation (thread-ownership, lifecycle) in 
     AssertingRandom only with assertions enabled. This change means that running
     without -ea will from now on ignore the fact that random context's Random
@@ -27,6 +30,9 @@ Changes in Backwards Compatibility
     pseudo-random sequences than the default Java's Random. (Dawid Weiss)
 
 New Features
+
+  * GH-237: Rename RandomInts to RandomNumbers and add methods operating 
+    on longs. (Dawid Weiss).
 
   * GH-235: A new class annotation was added: @TestContextRandomSupplier allows
     declaring a custom class (RandomSupplier) that supplies a Random for the given

@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
 import com.carrotsearch.randomizedtesting.generators.RandomBytes;
-import com.carrotsearch.randomizedtesting.generators.RandomInts;
+import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.carrotsearch.randomizedtesting.generators.RandomStrings;
 import com.carrotsearch.randomizedtesting.generators.StringGenerator;
@@ -132,14 +132,21 @@ public class RandomizedTest {
   }  
 
   //
-  // Delegates to RandomInts.
+  // Delegates to RandomNumbers.
   //
 
   /** 
    * A random integer from 0..max (inclusive). 
    */
-  public static int randomInt(int max) { 
-    return RandomInts.randomInt(getRandom(), max); 
+  public static int randomInt(int max) {
+    return RandomNumbers.randomIntBetween(getRandom(), 0, max);
+  }
+
+  /** 
+   * A random long from 0..max (inclusive). 
+   */
+  public static long randomLong(long max) {
+    return RandomNumbers.randomLongBetween(getRandom(), 0, max);
   }
 
   /** 
@@ -148,7 +155,7 @@ public class RandomizedTest {
    * @see #scaledRandomIntBetween(int, int)
    */
   public static int randomIntBetween(int min, int max) {
-    return RandomInts.randomIntBetween(getRandom(), min, max);
+    return RandomNumbers.randomIntBetween(getRandom(), min, max);
   }
 
   /** 
@@ -158,6 +165,20 @@ public class RandomizedTest {
    */
   public static int between(int min, int max) {
     return randomIntBetween(min, max);
+  }
+
+  /** 
+   * A random long from <code>min</code> to <code>max</code> (inclusive).
+   */
+  public static long randomLongBetween(long min, long max) {
+    return RandomNumbers.randomLongBetween(getRandom(), min, max);
+  }
+
+  /** 
+   * An alias for {@link #randomLongBetween}. 
+   */
+  public static long between(long min, long max) {
+    return randomLongBetween(min, max);
   }
 
   /** 

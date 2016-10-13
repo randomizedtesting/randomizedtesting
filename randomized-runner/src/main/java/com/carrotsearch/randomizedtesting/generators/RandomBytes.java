@@ -22,7 +22,7 @@ public final class RandomBytes {
    * @return Returns a byte array with random content.
    */
   public static byte[] randomBytesOfLengthBetween(Random r, int minLength, int maxLength) {
-    byte[] bytes = new byte[RandomInts.randomIntBetween(r, minLength, maxLength)];
+    byte[] bytes = new byte[RandomNumbers.randomIntBetween(r, minLength, maxLength)];
     for (int i = 0; i < bytes.length; i++) {
       bytes[i] = (byte) r.nextInt();
     }

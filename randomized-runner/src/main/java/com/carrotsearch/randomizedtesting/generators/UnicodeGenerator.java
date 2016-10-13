@@ -11,22 +11,22 @@ public class UnicodeGenerator extends StringGenerator {
 
   @Override
   public String ofCodeUnitsLength(Random r, int minCodeUnits, int maxCodeUnits) {
-    int length = RandomInts.randomIntBetween(r, minCodeUnits, maxCodeUnits);
+    int length = RandomNumbers.randomIntBetween(r, minCodeUnits, maxCodeUnits);
     char [] chars = new char [length];
     for (int i = 0; i < chars.length;) {
-      final int t = RandomInts.randomIntBetween(r, 0, 4);
+      final int t = RandomNumbers.randomIntBetween(r, 0, 4);
       if (t == 0 && i < length - 1) {
         // Make a surrogate pair
-        chars[i++] = (char) RandomInts.randomIntBetween(r, 0xd800, 0xdbff); // high
-        chars[i++] = (char) RandomInts.randomIntBetween(r, 0xdc00, 0xdfff); // low
+        chars[i++] = (char) RandomNumbers.randomIntBetween(r, 0xd800, 0xdbff); // high
+        chars[i++] = (char) RandomNumbers.randomIntBetween(r, 0xdc00, 0xdfff); // low
       } else if (t <= 1) {
-        chars[i++] = (char) RandomInts.randomIntBetween(r,      0, 0x007f);
+        chars[i++] = (char) RandomNumbers.randomIntBetween(r,      0, 0x007f);
       } else if (t == 2) {
-        chars[i++] = (char) RandomInts.randomIntBetween(r,   0x80, 0x07ff);
+        chars[i++] = (char) RandomNumbers.randomIntBetween(r,   0x80, 0x07ff);
       } else if (t == 3) {
-        chars[i++] = (char) RandomInts.randomIntBetween(r,  0x800, 0xd7ff);
+        chars[i++] = (char) RandomNumbers.randomIntBetween(r,  0x800, 0xd7ff);
       } else if (t == 4) {
-        chars[i++] = (char) RandomInts.randomIntBetween(r, 0xe000, 0xffff);
+        chars[i++] = (char) RandomNumbers.randomIntBetween(r, 0xe000, 0xffff);
       }
     }
     return new String(chars);
@@ -34,10 +34,10 @@ public class UnicodeGenerator extends StringGenerator {
 
   @Override
   public String ofCodePointsLength(Random r, int minCodePoints, int maxCodePoints) {
-    int length = RandomInts.randomIntBetween(r, minCodePoints, maxCodePoints);
+    int length = RandomNumbers.randomIntBetween(r, minCodePoints, maxCodePoints);
     int [] chars = new int [length];
     for (int i = 0; i < chars.length; i++) {
-      int v = RandomInts.randomIntBetween(r, 0, CODEPOINT_RANGE);
+      int v = RandomNumbers.randomIntBetween(r, 0, CODEPOINT_RANGE);
       if (v >= Character.MIN_SURROGATE)
         v += SURROGATE_RANGE;
       chars[i] = v;
@@ -53,7 +53,7 @@ public class UnicodeGenerator extends StringGenerator {
    * @param maxUtf8Length Maximum UTF-8 representation length (inclusive).
    */
   public String ofUtf8Length(Random r, int minUtf8Length, int maxUtf8Length) {
-    final int length = RandomInts.randomIntBetween(r, minUtf8Length, maxUtf8Length);
+    final int length = RandomNumbers.randomIntBetween(r, minUtf8Length, maxUtf8Length);
     final char[] buffer = new char [length * 3];
     int bytes = length;
     int i = 0;
@@ -69,21 +69,21 @@ public class UnicodeGenerator extends StringGenerator {
         t = 0;
       }
       if (t == 0) {
-        buffer[i] = (char) RandomInts.randomIntBetween(r, 0, 0x7f);
+        buffer[i] = (char) RandomNumbers.randomIntBetween(r, 0, 0x7f);
         bytes--;
       } else if (1 == t) {
-        buffer[i] = (char) RandomInts.randomIntBetween(r, 0x80, 0x7ff);
+        buffer[i] = (char) RandomNumbers.randomIntBetween(r, 0x80, 0x7ff);
         bytes -= 2;
       } else if (2 == t) {
-        buffer[i] = (char) RandomInts.randomIntBetween(r, 0x800, 0xd7ff);
+        buffer[i] = (char) RandomNumbers.randomIntBetween(r, 0x800, 0xd7ff);
         bytes -= 3;
       } else if (3 == t) {
-        buffer[i] = (char) RandomInts.randomIntBetween(r, 0xe000, 0xffff);
+        buffer[i] = (char) RandomNumbers.randomIntBetween(r, 0xe000, 0xffff);
         bytes -= 3;
       } else if (4 == t) {
         // Make a surrogate pair
-        buffer[i++] = (char) RandomInts.randomIntBetween(r, 0xd800, 0xdbff); // high
-        buffer[i] = (char) RandomInts.randomIntBetween(r, 0xdc00, 0xdfff);   // low
+        buffer[i++] = (char) RandomNumbers.randomIntBetween(r, 0xd800, 0xdbff); // high
+        buffer[i] = (char) RandomNumbers.randomIntBetween(r, 0xdc00, 0xdfff);   // low
         bytes -= 4;
       }
     }
