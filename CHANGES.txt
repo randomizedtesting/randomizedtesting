@@ -5,7 +5,7 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.4.0-SNAPSHOT ====================
+======================= randomizedtesting 2.4.0 ====================
 
 Changes in Backwards Compatibility
 
@@ -33,6 +33,7 @@ New Features
 
   * GH-238: Add BiasedNumbers (random selection with bias towards "evil"
     numbers, in particular floats) as an alternative to RandomNumbers.
+    (Dawid Weiss)
 
   * GH-237: Rename RandomInts to RandomNumbers and add methods operating 
     on longs. (Dawid Weiss).

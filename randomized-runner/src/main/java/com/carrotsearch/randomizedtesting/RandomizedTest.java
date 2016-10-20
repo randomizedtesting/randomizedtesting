@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.generators.BiasedNumbers;
 import com.carrotsearch.randomizedtesting.generators.RandomBytes;
 import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
@@ -105,6 +106,24 @@ public class RandomizedTest {
 
   /** @see Random#nextGaussian() */
   public static double  randomGaussian() { return getRandom().nextGaussian(); }
+
+  //
+  // Biased value pickers. 
+  //
+  
+  /**
+   * A biased "evil" random float between min and max (inclusive).
+   * 
+   * @see BiasedNumbers#randomFloatBetween(Random, float, float)
+   */
+  public static float  biasedFloatBetween(float min, float max) { return BiasedNumbers.randomFloatBetween(getRandom(), min, max); }
+
+  /**
+   * A biased "evil" random double between min and max (inclusive).
+   * 
+   * @see BiasedNumbers#randomDoubleBetween(Random, double, double)
+   */
+  public static double biasedDoubleBetween(double min, double max) { return BiasedNumbers.randomDoubleBetween(getRandom(), min, max); }
 
   //
   // Delegates to RandomBytes.
