@@ -5,6 +5,8 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
+======================= randomizedtesting 2.4.1-SNAPSHOT ====================
+
 ======================= randomizedtesting 2.4.0 ====================
 
 Changes in Backwards Compatibility
