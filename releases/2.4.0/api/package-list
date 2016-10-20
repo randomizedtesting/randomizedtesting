@@ -1,0 +1,5 @@
+com.carrotsearch.randomizedtesting
+com.carrotsearch.randomizedtesting.annotations
+com.carrotsearch.randomizedtesting.generators
+com.carrotsearch.randomizedtesting.listeners
+com.carrotsearch.randomizedtesting.rules
