@@ -36,6 +36,10 @@ public class FloatSampling extends RandomizedTest {
     float from = -Float.MAX_VALUE, 
           to   = Float.MAX_VALUE;
     System.out.println("R=" + info(randomBetween(rnd, from, to)));
+    
+    System.out.println(info(-0.0f));
+    System.out.println(info(Math.nextAfter(0f, Double.NEGATIVE_INFINITY)));
+    System.out.println(info(Math.nextAfter(-0.0f, Double.NEGATIVE_INFINITY)));
   }
 
   public static float randomBetween(Random rnd, float from, float to) {

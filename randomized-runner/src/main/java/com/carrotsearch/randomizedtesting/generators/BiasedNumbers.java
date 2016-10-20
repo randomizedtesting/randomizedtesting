@@ -34,11 +34,13 @@ public final class BiasedNumbers {
     final int EVIL_SIMPLE_PROPORTION = 3;
     final int EVIL_RANDOM_REPRESENTATION_BITS = 10;
 
+    boolean hasZero = min <= 0 && max >= 0;
+
     int pick = r.nextInt(
         EVIL_RANGE_LEFT + 
         EVIL_RANGE_RIGHT +
         EVIL_VERY_CLOSE_RANGE_ENDS + 
-        EVIL_ZERO_OR_NEAR + 
+        (hasZero ? EVIL_ZERO_OR_NEAR : 0) +  
         EVIL_SIMPLE_PROPORTION +
         EVIL_RANDOM_REPRESENTATION_BITS);
 
@@ -74,15 +76,19 @@ public final class BiasedNumbers {
     }
 
     // Zero or near-zero values, if within the range.
-    pick -= EVIL_ZERO_OR_NEAR;
-    if (pick < 0 && min <= 0 && max >= 0) {
-      int v = r.nextInt(3);
-      if (v == 0) {
-        return 0f;
-      } else if (v == 1) {
-        return fuzzyDown(r, 0f, min);
-      } else if (v == 2) {
-        return fuzzyUp(r, 0f, max);
+    if (hasZero) {
+      pick -= EVIL_ZERO_OR_NEAR;
+      if (pick < 0) {
+        int v = r.nextInt(4);
+        if (v == 0) {
+          return 0f;
+        } else if (v == 1) {
+          return -0.0f;
+        } else if (v == 2) {
+          return fuzzyDown(r, 0f, min);
+        } else if (v == 3) {
+          return fuzzyUp(r, 0f, max);
+        }
       }
     }
 
