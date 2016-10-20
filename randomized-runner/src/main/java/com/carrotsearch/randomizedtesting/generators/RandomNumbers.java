@@ -5,6 +5,8 @@ import java.util.Random;
 /**
  * Utility classes for selecting random numbers from within a range or the 
  * numeric domain for a given type.
+ * 
+ * @see BiasedNumbers
  */
 public final class RandomNumbers {
   /** 
