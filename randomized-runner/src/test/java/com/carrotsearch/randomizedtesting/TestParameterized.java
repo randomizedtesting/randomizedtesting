@@ -1,5 +1,7 @@
 package com.carrotsearch.randomizedtesting;
 
+import static org.junit.Assert.*;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -12,8 +14,6 @@ import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
-
-import static org.junit.Assert.*;
 
 public class TestParameterized extends WithNestedTestClass {
   public static class Nested extends RandomizedTest {
@@ -97,9 +97,28 @@ public class TestParameterized extends WithNestedTestClass {
     }
   }
 
+
+  public static class Nested5 extends RandomizedTest {
+    public Nested5() {}
+
+    @Test
+    public void testMe() {}
+    
+    @ParametersFactory
+    public static Iterable<Object[]> parameters() {
+      return Arrays.asList(new Object[] {},
+                           new Integer[] {});
+    }
+  }
+
   @Test
   public void testEmptyParamsList() {
     checkTestsOutput(0, 0, 0, 0, Nested3.class);
     checkTestsOutput(0, 0, 0, 0, Nested4.class);
-  }  
+  }
+
+  @Test
+  public void testNonObjectArray() {
+    checkTestsOutput(2, 0, 0, 0, Nested5.class);
+  }
 }

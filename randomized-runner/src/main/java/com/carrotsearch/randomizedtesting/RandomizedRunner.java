@@ -1393,7 +1393,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         final long thisSeed = (fixedSeed ? testSeed : testSeed ^ MurmurHash3.hash((long) i));
 
         // Format constructor arguments.
-        Object [] args = Arrays.copyOf(testCase.params, testCase.params.length + 1);
+        Object [] args = Arrays.copyOf(testCase.params, testCase.params.length + 1, Object[].class);
         args[args.length - 1] = SeedUtils.formatSeedChain(runnerRandomness, new Randomness(thisSeed, randomSupplier));
         String formattedArguments = String.format(Locale.ROOT, argFormattingTemplate, args);
 
