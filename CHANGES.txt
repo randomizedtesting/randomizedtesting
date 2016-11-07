@@ -7,6 +7,10 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.4.1-SNAPSHOT ====================
 
+New Features
+
+  * GH-240: Add RandomPicks.randomFrom on primitive arrays. (Dawid Weiss)
+
 ======================= randomizedtesting 2.4.0 ====================
 
 Changes in Backwards Compatibility

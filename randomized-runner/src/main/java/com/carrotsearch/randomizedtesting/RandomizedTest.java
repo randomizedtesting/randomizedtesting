@@ -260,6 +260,14 @@ public class RandomizedTest {
     return RandomPicks.randomFrom(getRandom(), list);
   }
 
+  public static byte randomFrom(byte [] array)     { return RandomPicks.randomFrom(getRandom(), array); }
+  public static short randomFrom(short [] array)   { return RandomPicks.randomFrom(getRandom(), array); }
+  public static int randomFrom(int [] array)       { return RandomPicks.randomFrom(getRandom(), array); }
+  public static char randomFrom(char [] array)     { return RandomPicks.randomFrom(getRandom(), array); }
+  public static float randomFrom(float [] array)   { return RandomPicks.randomFrom(getRandom(), array); }
+  public static long randomFrom(long [] array)     { return RandomPicks.randomFrom(getRandom(), array); }
+  public static double randomFrom(double [] array) { return RandomPicks.randomFrom(getRandom(), array); }
+
   //
   // "multiplied" or scaled value pickers. These will be affected by global multiplier.
   //
