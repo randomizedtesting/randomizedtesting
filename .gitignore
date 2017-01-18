@@ -1,0 +1,10 @@
+.idea/
+.project
+.settings/
+examples/
+junit4-ant/
+junit4-maven*
+*.versionsBackup
+randomized-runner*
+*.iml
+target/
