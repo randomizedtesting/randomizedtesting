@@ -85,7 +85,7 @@ public class TopHints extends Task {
     Collections.sort(entries, byDescHint);
     final int j = Math.min(max, entries.size());
     for (int i = 0; i < j; i++) {
-      log(String.format(Locale.ENGLISH, "%6.2fs | %s", 
+      log(String.format(Locale.ROOT, "%6.2fs | %s", 
           entries.get(i).averageHint / 1000.0,
           entries.get(i).suiteName));
     }

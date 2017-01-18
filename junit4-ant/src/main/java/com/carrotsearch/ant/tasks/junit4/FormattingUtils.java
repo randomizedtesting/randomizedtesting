@@ -37,7 +37,7 @@ public final class FormattingUtils {
     } else {
       precision = 2;
     }
-    return String.format(Locale.ENGLISH, "%4." + precision + "fs", timeMillis / 1000.0);
+    return String.format(Locale.ROOT, "%4." + precision + "fs", timeMillis / 1000.0);
   }
 
   public static String formatDescription(Description description) {

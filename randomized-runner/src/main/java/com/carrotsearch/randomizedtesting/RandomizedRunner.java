@@ -1409,7 +1409,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
 
         Description description = Description.createSuiteDescription(
-            String.format("%s%s(%s)", method.getName(), formattedArguments, suiteClass.getName()),
+            String.format(Locale.ROOT, "%s%s(%s)", method.getName(), formattedArguments, suiteClass.getName()),
             method.getAnnotations());
 
         // Create an instance and delay instantiation exception if possible.

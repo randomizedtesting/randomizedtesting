@@ -568,7 +568,7 @@ public class TextReport implements AggregatedEventListener {
 
     final StringBuilder b = new StringBuilder();
     final int totalErrors = this.totalErrors.addAndGet(e.isSuccessful() ? 0 : 1);
-    b.append(String.format(Locale.ENGLISH, "%sCompleted [%d/%d%s]%s in %.2fs, ",
+    b.append(String.format(Locale.ROOT, "%sCompleted [%d/%d%s]%s in %.2fs, ",
         shortTimestamp(e.getStartTimestamp() + e.getExecutionTime()),
         suitesCompleted,
         totalSuites,
@@ -610,7 +610,7 @@ public class TextReport implements AggregatedEventListener {
     line.append(Strings.padEnd(statusNames.get(status), 8, ' '));
     line.append(formatDurationInSeconds(timeMillis));
     if (forkedJvmCount > 1) {
-      line.append(String.format(Locale.ENGLISH, jvmIdFormat, result.getSlave().id));
+      line.append(String.format(Locale.ROOT, jvmIdFormat, result.getSlave().id));
     }
     line.append(" | ");
 
@@ -639,11 +639,11 @@ public class TextReport implements AggregatedEventListener {
         for (FailureMirror fm : failures) {
           count++;
             if (fm.isAssumptionViolation()) {
-                pos.write(String.format(Locale.ENGLISH, 
+                pos.write(String.format(Locale.ROOT, 
                     "Assumption #%d: %s",
                     count, MoreObjects.firstNonNull(fm.getMessage(), "(no message)")));
             } else {
-                pos.write(String.format(Locale.ENGLISH, 
+                pos.write(String.format(Locale.ROOT, 
                     "Throwable #%d: %s",
                     count,
                     showStackTraces ? filterStackTrace(fm.getTrace()) : fm.getThrowableString()));

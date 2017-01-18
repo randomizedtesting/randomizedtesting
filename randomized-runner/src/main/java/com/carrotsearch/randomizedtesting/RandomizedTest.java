@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assume;
 import org.junit.runner.RunWith;
@@ -333,11 +334,8 @@ public class RandomizedTest {
    */
   private static Path globalTempDir;
   
-  /**
-   * Subfolders under {@link #globalTempDir} are created synchronously, so we don't need
-   * to mangle filenames.
-   */
-  private static int tempSubFileNameCount;
+  /** */
+  private static AtomicInteger tempSubFileNameCount = new AtomicInteger(0);
 
   /**
    * Global temporary directory created for the duration of this class's lifespan. If
@@ -370,8 +368,8 @@ public class RandomizedTest {
                 rmDir(globalTempDir);
               } catch (IOException e) {
                 // Not much else to do but to log and quit.
-                System.err.println("Could not completely delete temporary folder: " +
-                    globalTempDir.toAbsolutePath() + ". Cause: ");
+                System.err.println("Could not delete temporary folder: " 
+                    + globalTempDir.toAbsolutePath() + ". Cause: ");
                 e.printStackTrace(System.err);
               }
             }
@@ -446,8 +444,8 @@ public class RandomizedTest {
   }
 
   /** Next temporary filename. */
-  private static String nextTempName() {
-    return String.format("%04d has-space", tempSubFileNameCount++);
+  protected static String nextTempName() {
+    return String.format(Locale.ROOT, "%04d has-space", tempSubFileNameCount.getAndIncrement());
   }
 
   /**

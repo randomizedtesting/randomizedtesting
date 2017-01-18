@@ -157,13 +157,13 @@ public class StaticFieldsInvariantRule implements TestRule {
           Collections.sort(fieldsAndValues);
           
           StringBuilder b = new StringBuilder();
-          b.append(String.format(Locale.ENGLISH, "Clean up static fields (in @AfterClass?), "
+          b.append(String.format(Locale.ROOT, "Clean up static fields (in @AfterClass?), "
               + "your test seems to hang on to approximately %,d bytes (threshold is %,d). " +
               "Field reference sizes (counted individually):",
               ramUsage, leakThreshold));
 
           for (Entry e : fieldsAndValues) {
-            b.append(String.format(Locale.ENGLISH, "\n  - %,d bytes, %s", e.ramUsed,
+            b.append(String.format(Locale.ROOT, "\n  - %,d bytes, %s", e.ramUsed,
                 e.field.toString()));
           }
 

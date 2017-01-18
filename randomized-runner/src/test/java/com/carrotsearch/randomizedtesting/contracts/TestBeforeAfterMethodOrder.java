@@ -208,10 +208,10 @@ public class TestBeforeAfterMethodOrder extends WithNestedTestClass {
       final int i = junitOrder.size();
       final int j = callOrder.size();
       
-      System.out.println(String.format(Locale.ENGLISH,
+      System.out.println(String.format(Locale.ROOT,
           "%-30s | %-30s", "JUnit4", "RR"));
       for (int k = 0; k < Math.max(i, j); k++) {
-        System.out.println(String.format(Locale.ENGLISH,
+        System.out.println(String.format(Locale.ROOT,
             "%-30s | %-30s",
             k < i ? junitOrder.get(k) : "--",
             k < j ? callOrder.get(k) : "--"));

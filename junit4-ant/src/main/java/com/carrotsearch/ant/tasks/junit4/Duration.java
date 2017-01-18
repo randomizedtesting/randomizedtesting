@@ -21,7 +21,7 @@ public final class Duration {
     if (longTime) {
       duration = emitOrSkip(duration, str, MILLIS_IN_A_SECOND, " second", true);
     } else {
-      str.append(String.format(Locale.ENGLISH, "%.2f sec.", (duration / 1000.0f)));
+      str.append(String.format(Locale.ROOT, "%.2f sec.", (duration / 1000.0f)));
     }
     return str;
   }

@@ -912,7 +912,7 @@ public class JUnit4 extends Task {
 
       
       if (jvmCount > 1 && uniqueSuiteNames && testCollection.hasReplicatedSuites()) {
-        throw new BuildException(String.format(Locale.ENGLISH,
+        throw new BuildException(String.format(Locale.ROOT,
             "There are test suites that request JVM replication and the number of forked JVMs %d is larger than 1. Run on a single JVM.",
             jvmCount));
       }
@@ -1147,7 +1147,7 @@ public class JUnit4 extends Task {
           throw new RuntimeException("Balancer must return suite name as a key: " + e.suiteName);
         }
 
-        log(String.format(Locale.ENGLISH,
+        log(String.format(Locale.ROOT,
             "Assignment hint: J%-2d (cost %5d) %s (by %s)",
             e.slaveId,
             e.estimatedCost,

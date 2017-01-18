@@ -28,13 +28,13 @@ public class TestPseudoLoadBalancing extends RandomizedTest {
     jvms = Integer.parseInt(System.getProperty("junit4.childvm.count"));
 
     assumeTrue(
-        String.format(Locale.ENGLISH, "Test %d ignored on VM %d.", id, jvmId),
+        String.format(Locale.ROOT, "Test %d ignored on VM %d.", id, jvmId),
         (id % jvms) == jvmId);
   }
 
   @Test
   public void replicatedTest() {
-    System.out.println(String.format(Locale.ENGLISH, "Test %d executed on VM %d.", id, jvmId));
+    System.out.println(String.format(Locale.ROOT, "Test %d executed on VM %d.", id, jvmId));
   }
 
   @ParametersFactory

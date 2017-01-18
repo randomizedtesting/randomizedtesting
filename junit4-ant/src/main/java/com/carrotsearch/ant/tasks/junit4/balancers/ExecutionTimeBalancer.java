@@ -121,7 +121,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
     }
     for (Integer id : ordered.keySet()) {
       final SlaveLoad slave = ordered.get(id);
-      owner.log(String.format(Locale.ENGLISH, 
+      owner.log(String.format(Locale.ROOT, 
           "Expected execution time on JVM J%d: %8.2fs",
           slave.id,
           slave.estimatedFinish / 1000.0f), 

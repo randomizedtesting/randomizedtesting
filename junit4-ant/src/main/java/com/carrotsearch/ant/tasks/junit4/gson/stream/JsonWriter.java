@@ -22,6 +22,7 @@ import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Locale;
 
 /**
  * Writes a JSON (<a href="http://www.ietf.org/rfc/rfc4627.txt">RFC 4627</a>)
@@ -139,7 +140,7 @@ public class JsonWriter extends IOContext implements Closeable, Flushable {
   static {
     REPLACEMENT_CHARS = new String[128];
     for (int i = 0; i <= 0x1f; i++) {
-      REPLACEMENT_CHARS[i] = String.format("\\u%04x", (int) i);
+      REPLACEMENT_CHARS[i] = String.format(Locale.ROOT, "\\u%04x", (int) i);
     }
     REPLACEMENT_CHARS['"'] = "\\\"";
     REPLACEMENT_CHARS['\\'] = "\\\\";

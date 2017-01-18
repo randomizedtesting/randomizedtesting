@@ -11,6 +11,11 @@ New Features
 
   * GH-240: Add RandomPicks.randomFrom on primitive arrays. (Dawid Weiss)
 
+Bug Fixes
+
+  * GH-242: RandomizedTest.nextTempName uses locale-sensitive String.format.
+    (Dawid Weiss)
+
 ======================= randomizedtesting 2.4.0 ====================
 
 Changes in Backwards Compatibility
