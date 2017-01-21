@@ -5,15 +5,22 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.4.2-SNAPSHOT ====================
+======================= randomizedtesting 2.5.0-SNAPSHOT ====================
 
 Changes in Backwards Compatibility
+
+  * GH-243: Switches from File to NIO (Path) APIs in a few places may result
+    in slightly different runner's behavior (on exceptional conditions).
 
 New Features
 
 Bug Fixes
 
 Other Changes
+
+  * GH-243: Switches from File to NIO (Path) APIs in a few places in the ANT
+    runner. Improved messages concerning non-empty temporary JVM folder
+    (both initially and at the end of the tests' run).
 
 ======================= randomizedtesting 2.4.1 ====================
 

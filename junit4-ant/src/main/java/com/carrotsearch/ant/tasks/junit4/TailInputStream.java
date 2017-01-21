@@ -1,6 +1,10 @@
 package com.carrotsearch.ant.tasks.junit4;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.file.Path;
 
 /**
  * An input stream that tails from a random access file as new input appears there.
@@ -14,8 +18,8 @@ class TailInputStream extends InputStream {
 
   private volatile boolean closed;
 
-  public TailInputStream(File file) throws FileNotFoundException {
-    this.raf = new RandomAccessFile(file, "r");
+  public TailInputStream(Path file) throws FileNotFoundException {
+    this.raf = new RandomAccessFile(file.toFile(), "r");
   }
 
   @Override
