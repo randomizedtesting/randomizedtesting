@@ -158,6 +158,54 @@
         </fail>
     </target>
 
+    <target name="onNonEmptyWorkDirectory-fail">
+        <delete dir="empty" failonerror="false" />
+        <touch file="empty/J0/existing-dir/garbage.txt" mkdirs="true" />
+
+        <!-- the default behavior (fail) -->
+        <junit4.preconf dir="empty">
+            <fileset dir="${basedir}">
+                <include name="**/tests/TestDir.class" />
+            </fileset>
+        </junit4.preconf>
+    </target>
+
+    <target name="onNonEmptyWorkDirectory-wipe">
+      <delete dir="empty" failonerror="false" />
+      <touch file="empty/J0/existing-dir/garbage.txt" mkdirs="true" />
+
+      <junit4.preconf dir="empty" leaveTemporary="false" onNonEmptyWorkDirectory="wipe">
+          <fileset dir="${basedir}">
+              <include name="**/tests/TestDir.class" />
+          </fileset>
+      </junit4.preconf>
+
+      <fail message="Expected garbage file to be deleted.">
+          <condition>
+            <available file="empty/J0/existing-dir" type="dir" />
+          </condition>
+      </fail>
+    </target>
+
+    <target name="onNonEmptyWorkDirectory-ignore">
+      <delete dir="empty" failonerror="false" />
+      <touch file="empty/J0/existing-dir/garbage.txt" mkdirs="true" />
+
+      <junit4.preconf dir="empty" leaveTemporary="true" onNonEmptyWorkDirectory="ignore">
+        <fileset dir="${basedir}">
+            <include name="**/tests/TestDir.class" />
+        </fileset>
+      </junit4.preconf>
+
+      <fail message="Expected garbage file to stay untouched.">
+        <condition>
+          <not>
+            <available file="empty/J0/existing-dir/garbage.txt" type="file" />
+          </not>
+        </condition>
+      </fail>
+    </target>
+
     <target name="maxmem">
         <junit4.preconf maxmemory="100m">
             <fileset dir="${basedir}">

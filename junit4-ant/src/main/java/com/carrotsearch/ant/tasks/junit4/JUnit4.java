@@ -15,8 +15,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -171,6 +174,9 @@ public class JUnit4 extends Task {
   /** Default value of {@link #setIsolateWorkingDirectories(boolean)}. */
   public static final boolean DEFAULT_ISOLATE_WORKING_DIRECTORIES = true;
 
+  /** Default valkue of {@link #setOnNonEmptyWorkDirectory}. */
+  public static final NonEmptyWorkDirectoryAction DEFAULT_NON_EMPTY_WORKDIR_ACTION = NonEmptyWorkDirectoryAction.FAIL;
+
   /** Default value of {@link #setDynamicAssignmentRatio(float)} */
   public static final float DEFAULT_DYNAMIC_ASSIGNMENT_RATIO = .25f;
 
@@ -310,6 +316,11 @@ public class JUnit4 extends Task {
    * @see #setIsolateWorkingDirectories(boolean)
    */
   private boolean isolateWorkingDirectories = DEFAULT_ISOLATE_WORKING_DIRECTORIES;
+
+  /**
+   * @see #setIsolateWorkingDirectories(boolean)
+   */
+  private NonEmptyWorkDirectoryAction nonEmptyWorkDirAction = DEFAULT_NON_EMPTY_WORKDIR_ACTION;
 
   /**
    * Multiple path resolution in {@link CommandlineJava#getCommandline()} is very slow
@@ -666,6 +677,20 @@ public class JUnit4 extends Task {
    */
   public void setIsolateWorkingDirectories(boolean isolateWorkingDirectories) {
     this.isolateWorkingDirectories = isolateWorkingDirectories;
+  }
+
+  /**
+   * Determines the behavior on detecting non-empty existing current working
+   * directory for a forked JVM, before the tests commence. This action is performed
+   * only if work directory isolation is set to true (see {@link #setIsolateWorkingDirectories(boolean)}).
+   */
+  public void setOnNonEmptyWorkDirectory(String value) {
+    try {
+      this.nonEmptyWorkDirAction = NonEmptyWorkDirectoryAction.valueOf(value.toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("OnNonEmptyWorkDirectory accepts any of: "
+          + Arrays.toString(NonEmptyWorkDirectoryAction.values()) + ", value is not valid: " + value);
+    }
   }
 
   /**
@@ -1636,17 +1661,67 @@ public class JUnit4 extends Task {
     }
   }
 
-  private Path getWorkingDirectory(ForkedJvmInfo slaveInfo) throws IOException {
+  private Path getWorkingDirectory(ForkedJvmInfo jvmInfo) throws IOException {
     Path baseDir = (dir == null ? getProject().getBaseDir().toPath() : dir);
     final Path forkedDir;
     if (isolateWorkingDirectories) {
-      forkedDir = baseDir.resolve("J" + slaveInfo.id);
+      forkedDir = baseDir.resolve("J" + jvmInfo.id);
       if (Files.isDirectory(forkedDir)) {
         // If there are any files inside the forkedDir, issue a warning.
         List<String> existingFiles = listFiles(forkedDir);
         if (!existingFiles.isEmpty()) {
-          log("Cwd of a forked JVM already exists and is not empty: " 
-              + existingFiles, Project.MSG_WARN);
+          switch (nonEmptyWorkDirAction) {
+            case IGNORE:
+              log("Cwd of a forked JVM already exists and is not empty: " 
+                  + existingFiles + " (ignoring).", Project.MSG_DEBUG);
+              break;
+  
+            case WIPE:
+              log("Cwd of a forked JVM already exists and is not empty, trying to wipe: " 
+                  + existingFiles, Project.MSG_DEBUG);
+              try {
+                Files.walkFileTree(forkedDir, new SimpleFileVisitor<Path>() {
+                  @Override
+                  public FileVisitResult postVisitDirectory(Path dir, IOException iterationError) throws IOException {
+                    if (iterationError != null) {
+                      throw iterationError;
+                    }
+                    if (forkedDir != dir) {
+                      Files.delete(dir);
+                    }
+                    return FileVisitResult.CONTINUE;
+                  }
+            
+                  @Override
+                  public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                  }
+
+                  @Override
+                  public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
+                    throw e;
+                  }
+                });
+              } catch (IOException e) {
+                throw new BuildException("An exception occurred while trying to wipe the working directory: "
+                    + forkedDir, e);
+              }
+
+              existingFiles = listFiles(forkedDir);
+              if (existingFiles.isEmpty()) {
+                break;
+              } else {
+                // Intentional fall-through.
+              }
+
+            case FAIL:
+              throw new BuildException("Cwd of a forked JVM already exists and is not empty "
+                  + "and setOnNonEmptyWorkDirectory=" + nonEmptyWorkDirAction + ": " + existingFiles);
+
+            default:
+              throw new RuntimeException("Unreachable.");
+          }
         }
       } else {
         Files.createDirectories(forkedDir);

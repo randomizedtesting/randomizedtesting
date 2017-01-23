@@ -94,12 +94,15 @@ public class AntBuildFileTestBase {
   }
 
   protected final void expectBuildExceptionContaining(String target,
-      String message) {
+      String message, String... additionalMessages) {
         try {
           executeTarget(target);
           Assert.fail("Expected a build failure with message: " + message);
         } catch (BuildException e) {
           Assert.assertThat(e.getMessage(), containsString(message));
+          for (String m : additionalMessages) {
+            Assert.assertThat(e.getMessage(), containsString(m));
+          }
         }
       }
 

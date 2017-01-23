@@ -130,10 +130,16 @@ that make little sense have been deprecated and are ignored. Attributes specific
 
   <tr>
     <td valign="top">dir</td>
-    <td valign="top">The directory in which to invoke the forked JVMs in. This is by default the project's <code>basedir</code>.
-    Because multiple JVMs may clash if they are generating files in the current working directory, one can use per-JVM directory
-    by setting <code>isolateWorkingDirectories</code> attribute to <code>true</code>; in such case each JVM gets a sub-directory
-    under whatever <code>dir</code> is defined.
+    <td valign="top">
+     <p>The directory in which to invoke the forked JVMs in. This is by default the project's <code>basedir</code>.
+        Because multiple JVMs may clash if they are generating files in the current working directory, one can use per-JVM directory
+        by setting <code>isolateWorkingDirectories</code> attribute to <code>true</code>; in such case each JVM gets a sub-directory
+        the provided <code>dir</code>.
+     </p>
+     <p>
+        See <code>onNonEmptyWorkDirectory</code> attribute for action taken when the forked JVM's work directory is not initially 
+        empty.
+     </p>
     </td>
     <td align="center" valign="top">No</td>
   </tr>
@@ -142,6 +148,24 @@ that make little sense have been deprecated and are ignored. Attributes specific
     <td valign="top">isolateWorkingDirectories</td>
     <td valign="top">If <code>true</code> current working directories are isolated for each forked JVM. See <code>dir</code> attribute too.</td>
     <td align="center" valign="top">No; default is <code>true</code>.</td>
+  </tr>
+
+  <tr class="junit4">
+    <td valign="top">onNonEmptyWorkDirectory</td>
+    <td valign="top">
+      <p>[Since version 2.5.0]. Specifies the action taken when forked JVM's work directory is not initially empty (contains files
+      or directories, possibly from a previous run). The values permitted are:
+      </p>
+      <dl>
+        <dt><code>fail</code></dt>
+        <dd>Fails the build.</dd>
+        <dt><code>wipe</code></dt>
+        <dd>Tries to wipe the work directory clean before tests begin. Fails the build if unsuccessful.</dd>
+        <dt><code>ignore</code></dt>
+        <dd>Ignores any existing files and proceeds (not recommended).</dd>
+      </dl>
+    </td>
+    <td align="center" valign="top">No; default is <code>fail</code>.</td>
   </tr>
 
   <tr>

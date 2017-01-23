@@ -12,7 +12,15 @@ Changes in Backwards Compatibility
   * GH-243: Switches from File to NIO (Path) APIs in a few places may result
     in slightly different runner's behavior (on exceptional conditions).
 
+  * GH-244: the new onNonEmptyWorkDirectory attribute's default value is 
+    'fail' which may break existing builds that have garbage in work directories
+    of forked JVMs. Change explicitly to any of the alternatives ('ignore' or
+    'wipe') or fix your build to wipe the temporary folders yourself.
+
 New Features
+
+  * GH-244: A new attribute "onNonEmptyWorkDirectory" controls the action to
+    take on non-empty initial work directory (for isolated JVMs).
 
 Bug Fixes
 
