@@ -4,6 +4,7 @@ import org.junit.runners.JUnit4;
 
 import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
+import com.carrotsearch.randomizedtesting.rules.RequireAssertionsRule;
 
 /**
  * Global names for system properties controlling the behavior of {@link JUnit4} ANT task
@@ -55,6 +56,7 @@ public final class SysGlobals {
   private final String SYSPROP_TIMEOUT;
   private final String SYSPROP_TIMEOUT_SUITE;
   private final String SYSPROP_APPEND_SEED;
+  private final String SYSPROP_ASSERTS;
 
   // Singleton constructor.
   private SysGlobals(String prefix) {
@@ -70,7 +72,8 @@ public final class SysGlobals {
     this.SYSPROP_KILLWAIT       = prefixWith(prefix, "killwait");
     this.SYSPROP_TIMEOUT        = prefixWith(prefix, "timeout");
     this.SYSPROP_TIMEOUT_SUITE  = prefixWith(prefix, "timeoutSuite");
-    this.SYSPROP_APPEND_SEED    = prefixWith(prefix, "appendseed");    
+    this.SYSPROP_APPEND_SEED    = prefixWith(prefix, "appendseed");
+    this.SYSPROP_ASSERTS        = prefixWith(prefix, "asserts");
   }
 
   /** */
@@ -213,6 +216,13 @@ public final class SysGlobals {
    * GUI clients have a problem in telling which test result was which.
    */
   public static String SYSPROP_APPEND_SEED() { return singleton().SYSPROP_APPEND_SEED; } 
+
+  /**
+   * Returns the property name to express the desired status of assertions during tests.
+   * 
+   * @see RequireAssertionsRule
+   */
+  public static String SYSPROP_ASSERTS() { return singleton().SYSPROP_ASSERTS; } 
 
   /**
    * Prefix a given property name with a common prefix. The prefix itself can be overridden

@@ -17,6 +17,9 @@ Changes in Backwards Compatibility
     of forked JVMs. Change explicitly to any of the alternatives ('ignore' or
     'wipe') or fix your build to wipe the temporary folders yourself.
 
+  * GH-246: RequireAssertionsRule enforcement optional (consistent with 
+    "-Dtests.asserts"); explicit target class is also required. (Dawid Weiss)
+
 New Features
 
   * GH-244: A new attribute "onNonEmptyWorkDirectory" controls the action to
@@ -25,6 +28,9 @@ New Features
 Bug Fixes
 
 Other Changes
+
+  * GH-246: RequireAssertionsRule enforcement optional (consistent with 
+    "-Dtests.asserts"); explicit target class is also required. (Dawid Weiss)
 
   * GH-243: Switches from File to NIO (Path) APIs in a few places in the ANT
     runner. Improved messages concerning non-empty temporary JVM folder
