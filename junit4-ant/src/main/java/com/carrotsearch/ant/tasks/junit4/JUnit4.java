@@ -87,6 +87,7 @@ import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.ClassGlobFilter;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser.Node;
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import com.carrotsearch.randomizedtesting.SeedUtils;
@@ -374,7 +375,7 @@ public class JUnit4 extends Task {
   public void setJvmOutputAction(String jvmOutputActions) {
     EnumSet<JvmOutputAction> actions = EnumSet.noneOf(JvmOutputAction.class); 
     for (String s : jvmOutputActions.split("[\\,\\ ]+")) {
-      s = s.trim().toUpperCase(Locale.ENGLISH);
+      s = s.trim().toUpperCase(Locale.ROOT);
       actions.add(JvmOutputAction.valueOf(s));
     }
     this.jvmOutputAction = actions;
@@ -1008,7 +1009,7 @@ public class JUnit4 extends Task {
 
       for (ForkedJvmInfo si : slaveInfos) {
         if (si.start > 0 && si.end > 0) {
-          log(String.format(Locale.ENGLISH, "JVM J%d: %8.2f .. %8.2f = %8.2fs",
+          log(String.format(Locale.ROOT, "JVM J%d: %8.2f .. %8.2f = %8.2fs",
               si.id,
               (si.start - start) / 1000.0f,
               (si.end - start) / 1000.0f,
@@ -1546,30 +1547,31 @@ public class JUnit4 extends Task {
     }
   }
 
-  private void checkJvmOutput(EventBus aggregatedBus, Path file, ForkedJvmInfo slave, String fileName) throws IOException {
+  @SuppressForbidden("legitimate sysout.")
+  private void checkJvmOutput(EventBus aggregatedBus, Path file, ForkedJvmInfo forked, String fileName) throws IOException {
     if (Files.size(file) > 0) {
-      String message = "JVM J" + slave.id + ": " + fileName + " was not empty, see: " + file;
+      String message = "JVM J" + forked.id + ": " + fileName + " was not empty, see: " + file;
       if (jvmOutputAction.contains(JvmOutputAction.WARN)) {
         log(message, Project.MSG_WARN);
       }
       if (jvmOutputAction.contains(JvmOutputAction.LISTENERS)) {
-        aggregatedBus.post(new JvmOutputEvent(slave, file.toFile()));
+        aggregatedBus.post(new JvmOutputEvent(forked, file.toFile()));
       }
       if (jvmOutputAction.contains(JvmOutputAction.PIPE)) {
-        log(">>> JVM J" + slave.id + ": " + fileName + " (verbatim) ----", Project.MSG_INFO);
+        log(">>> JVM J" + forked.id + ": " + fileName + " (verbatim) ----", Project.MSG_INFO);
         try {
           // If file > 10 mb, stream directly. Otherwise use the logger.
           if (Files.size(file) < 10 * (1024 * 1024)) {
             // Append to logger.
-            log(new String(Files.readAllBytes(file), slave.getCharset()), Project.MSG_INFO);
+            log(new String(Files.readAllBytes(file), forked.getCharset()), Project.MSG_INFO);
           } else {
             // Stream directly.
-            CharStreams.copy(Files.newBufferedReader(file, slave.getCharset()), System.out);
+            CharStreams.copy(Files.newBufferedReader(file, forked.getCharset()), System.out);
           }
         } catch (IOException e) {
           log("Couldn't pipe file " + file + ": " + e.toString(), Project.MSG_INFO);
         }
-        log("<<< JVM J" + slave.id + ": EOF ----", Project.MSG_INFO);
+        log("<<< JVM J" + forked.id + ": EOF ----", Project.MSG_INFO);
       }
       if (jvmOutputAction.contains(JvmOutputAction.IGNORE)) {
         Files.delete(file);
@@ -1610,6 +1612,7 @@ public class JUnit4 extends Task {
   /**
    * Execute a slave process. Pump events to the given event bus.
    */
+  @SuppressForbidden("legitimate sysstreams.")
   private Execute forkProcess(ForkedJvmInfo slaveInfo, EventBus eventBus, 
       CommandlineJava commandline, 
       InputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {

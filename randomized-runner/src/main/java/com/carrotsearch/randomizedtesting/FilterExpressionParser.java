@@ -119,7 +119,7 @@ public final class FilterExpressionParser {
     Node led(Node left) {
       if (!nodes.hasNext()) {
         throw new SyntaxException(this, "Missing argument for " 
-            + toString().toUpperCase(Locale.ENGLISH) + ".");
+            + toString().toUpperCase(Locale.ROOT) + ".");
       }
 
       args = new Node [] {left, expression(lbp)};

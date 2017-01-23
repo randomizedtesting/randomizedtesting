@@ -20,6 +20,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedQuitEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatedSuiteResultEvent;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -68,7 +69,7 @@ public class JsonReport implements AggregatedEventListener {
    * If the name of the file ends with ".json(p)?" a JSON file is written. 
    */
   public void setFile(File file) {
-    String fileName = file.getName().toLowerCase(Locale.ENGLISH);
+    String fileName = file.getName().toLowerCase(Locale.ROOT);
     if (fileName.matches(".*\\.htm(l)?$")) {
       method = OutputMethod.HTML;
     } else {
@@ -195,6 +196,7 @@ public class JsonReport implements AggregatedEventListener {
    * Emit information about a single suite and all of its tests. 
    */
   @Subscribe
+  @SuppressForbidden("legitimate printStackTrace().")
   public void onSuiteResult(AggregatedSuiteResultEvent e) {
     try {
       if (jsonWriter == null)

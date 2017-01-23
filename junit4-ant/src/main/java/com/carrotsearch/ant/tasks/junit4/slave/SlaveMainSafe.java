@@ -2,6 +2,9 @@ package com.carrotsearch.ant.tasks.junit4.slave;
 
 import java.io.Serializable;
 
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
+
+@SuppressForbidden("legitimate sysstreams.")
 public class SlaveMainSafe {
   public static void main(String[] args) {
     verifyJUnit4Present();

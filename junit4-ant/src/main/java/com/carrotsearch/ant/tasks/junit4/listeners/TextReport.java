@@ -43,6 +43,7 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.PartialOutputEvent;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.TestStatus;
 import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 import com.carrotsearch.randomizedtesting.WriterOutputStream;
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
@@ -269,7 +270,7 @@ public class TextReport implements AggregatedEventListener {
    */
   public void setShowOutput(String mode) {
     try {
-      this.outputMode = OutputMode.valueOf(mode.toUpperCase());
+      this.outputMode = OutputMode.valueOf(mode.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("showOutput accepts any of: "
           + Arrays.toString(OutputMode.values()) + ", value is not valid: " + mode);
@@ -323,6 +324,7 @@ public class TextReport implements AggregatedEventListener {
    * Initialization by container task {@link JUnit4}.
    */
   @Override
+  @SuppressForbidden("legitimate sysstreams.")
   public void setOuter(JUnit4 task) {
     this.seed = task.getSeed();
 

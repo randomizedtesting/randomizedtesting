@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
@@ -150,7 +151,7 @@ public final class ForkedJvmInfo {
 
     w.name("id").value(id);
     w.name("jvmName").value(getJvmName());
-    w.name("charset").value(getCharset().displayName());
+    w.name("charset").value(getCharset().displayName(Locale.ROOT));
     w.name("commandLine").value(getCommandLine());
 
     w.name("systemProperties").beginObject();

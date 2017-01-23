@@ -38,6 +38,7 @@ import com.carrotsearch.ant.tasks.junit4.events.Serializer;
 import com.carrotsearch.ant.tasks.junit4.events.SuiteFailureEvent;
 import com.carrotsearch.randomizedtesting.MethodGlobFilter;
 import com.carrotsearch.randomizedtesting.SysGlobals;
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 
@@ -427,6 +428,7 @@ public class SlaveMain {
   /**
    * Redirect standard streams so that the output can be passed to listeners.
    */
+  @SuppressForbidden("legitimate sysstreams.")
   private static void redirectStreams(final Serializer serializer, final boolean flushFrequently) {
     final PrintStream origSysOut = System.out;
     final PrintStream origSysErr = System.err;
@@ -434,6 +436,7 @@ public class SlaveMain {
     // Set warnings stream to System.err.
     warnings = System.err;
     AccessController.doPrivileged(new PrivilegedAction<Void>() {
+      @SuppressForbidden("legitimate PrintStream with default charset.")
       @Override
       public Void run() {
         System.setOut(new PrintStream(new BufferedOutputStream(new ChunkedStream() {
@@ -465,6 +468,7 @@ public class SlaveMain {
   /**
    * Warning emitter. Uses whatever alternative non-event communication channel is.
    */
+  @SuppressForbidden("legitimate sysstreams.")
   public static void warn(String message, Throwable t) {
     PrintStream w = (warnings == null ? System.err : warnings);
     try {

@@ -26,6 +26,7 @@ import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
 import com.carrotsearch.randomizedtesting.annotations.Nightly;
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
 import com.carrotsearch.randomizedtesting.generators.BiasedNumbers;
 import com.carrotsearch.randomizedtesting.generators.RandomBytes;
 import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
@@ -363,6 +364,7 @@ public class RandomizedTest {
         Files.createDirectories(tmpFolder);
         globalTempDir = tmpFolder;
         Runtime.getRuntime().addShutdownHook(new Thread() {
+            @SuppressForbidden("Legitimate use of syserr.")
             public void run() {
               try {
                 rmDir(globalTempDir);

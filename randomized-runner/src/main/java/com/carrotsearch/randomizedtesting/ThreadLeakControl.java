@@ -45,6 +45,7 @@ import org.junit.runners.model.Statement;
 
 import com.carrotsearch.randomizedtesting.RandomizedRunner.TestCandidate;
 import com.carrotsearch.randomizedtesting.RandomizedRunner.UncaughtException;
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction.Action;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakFilters;
@@ -408,8 +409,7 @@ class ThreadLeakControl {
             suiteTimedOut.set(true);
 
             // Flush streams so that we don't get warning outputs before sysout buffers.
-            System.out.flush();
-            System.err.flush();
+            flushStreams();
 
             // Emit a warning.
             LOGGER.warning("Suite execution timed out: " + suiteDescription + formatThreadStacksFull());
@@ -441,6 +441,12 @@ class ThreadLeakControl {
         processUncaught(errors, runner.handler.getUncaughtAndClear());
 
         MultipleFailureException.assertEmpty(errors);
+      }
+
+      @SuppressForbidden("Legitimate use of syserr.")
+      private void flushStreams() {
+        System.out.flush();
+        System.err.flush();
       }
     };
   }
@@ -642,9 +648,9 @@ class ThreadLeakControl {
   private String formatThreadStacks(Map<Thread,StackTraceElement[]> threads) {
     StringBuilder message = new StringBuilder();
     int cnt = 1;
-    final Formatter f = new Formatter(message);
+    final Formatter f = new Formatter(message, Locale.ROOT);
     for (Map.Entry<Thread,StackTraceElement[]> e : threads.entrySet()) {
-      f.format(Locale.ENGLISH, "\n  %2d) %s", cnt++, Threads.threadName(e.getKey())).flush();
+      f.format(Locale.ROOT, "\n  %2d) %s", cnt++, Threads.threadName(e.getKey())).flush();
       if (e.getValue().length == 0) {
         message.append("\n        at (empty stack)");
       } else {
@@ -659,10 +665,10 @@ class ThreadLeakControl {
   /** Collect thread names. */
   private String threadNames(Collection<Thread> threads) {
     StringBuilder b = new StringBuilder();
-    final Formatter f = new Formatter(b);
+    final Formatter f = new Formatter(b, Locale.ROOT);
     int cnt = 1;
     for (Thread t : threads) {
-      f.format(Locale.ENGLISH, "\n  %2d) %s", cnt++, Threads.threadName(t));
+      f.format(Locale.ROOT, "\n  %2d) %s", cnt++, Threads.threadName(t));
     }
     return b.toString();
   }

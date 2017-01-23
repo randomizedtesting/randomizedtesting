@@ -59,7 +59,7 @@ public @interface TestGroup {
             + annotationClass);
 
       String tmp = emptyToNull(testGroup.name());
-      return tmp == null ? annotationClass.getSimpleName().toLowerCase(Locale.ENGLISH) : tmp;
+      return tmp == null ? annotationClass.getSimpleName().toLowerCase(Locale.ROOT) : tmp;
     }
 
     public static String getSysProperty(Class<? extends Annotation> annotationClass) {

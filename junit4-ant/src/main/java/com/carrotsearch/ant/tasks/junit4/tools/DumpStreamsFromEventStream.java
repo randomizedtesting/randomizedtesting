@@ -13,9 +13,11 @@ import com.carrotsearch.ant.tasks.junit4.events.EventType;
 import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonReader;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonToken;
+import com.carrotsearch.randomizedtesting.annotations.SuppressForbidden;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closer;
 
+@SuppressForbidden("legitimate sysstreams.")
 public class DumpStreamsFromEventStream {
   public static void main(String[] args) throws Exception {
     File inputFile;

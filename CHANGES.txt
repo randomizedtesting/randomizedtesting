@@ -20,7 +20,7 @@ Changes in Backwards Compatibility
 New Features
 
   * GH-244: A new attribute "onNonEmptyWorkDirectory" controls the action to
-    take on non-empty initial work directory (for isolated JVMs).
+    take on non-empty initial work directory (for isolated JVMs). (Dawid Weiss)
 
 Bug Fixes
 
@@ -28,7 +28,10 @@ Other Changes
 
   * GH-243: Switches from File to NIO (Path) APIs in a few places in the ANT
     runner. Improved messages concerning non-empty temporary JVM folder
-    (both initially and at the end of the tests' run).
+    (both initially and at the end of the tests' run). (Dawid Weiss)
+
+  * GH-245: Integrate Forbidden-APIs check and fix follow-up issues. 
+    (Dawid Weiss)
 
 ======================= randomizedtesting 2.4.1 ====================
 
