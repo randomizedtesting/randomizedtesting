@@ -206,6 +206,23 @@
       </fail>
     </target>
 
+    <target name="onNonEmptyWorkDirectory-tmpDirUnderCwd">
+      <delete dir="empty" failonerror="false" />
+      <mkdir  dir="empty/J0/temp" />
+
+      <junit4.preconf dir="empty"
+                      tempdir="./temp-junit4"
+                      leaveTemporary="true"
+                      onNonEmptyWorkDirectory="wipe">
+
+        <sysproperty key="java.io.tmpdir" value="./temp" /> 
+
+        <fileset dir="${basedir}">
+          <include name="**/tests/TestCreateTmpFile.class" />
+        </fileset>
+      </junit4.preconf>
+    </target>
+
     <target name="maxmem">
         <junit4.preconf maxmemory="100m">
             <fileset dir="${basedir}">
