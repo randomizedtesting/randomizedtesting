@@ -284,9 +284,8 @@ public class JUnit4Mojo extends AbstractMojo {
    * This parameter adds a listener emitting surefire-compatible XMLs if no other listeners
    * are added. If there are any configured listeners, this parameter is omitted (you can
    * add a maven-compatible listener manually).
-   * 
-   * @parameter default-value="${project.build.directory}/surefire-reports"
    */
+  @Parameter(defaultValue = "${project.build.directory}/surefire-reports")
   private File surefireReportsDirectory;
 
   /**
@@ -358,8 +357,6 @@ public class JUnit4Mojo extends AbstractMojo {
   /**
    * Set this to "true" to skip running tests, but still compile them. Its use
    * is NOT RECOMMENDED, but quite convenient on occasion.
-   * 
-   * @parameter default-value="false" property="skipTests"
    */
   @Parameter(
       property = "skipTests",
