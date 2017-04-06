@@ -150,11 +150,23 @@ public class TestRandomizedTest extends RandomizedTest {
 
   @Test
   public void testRandomAsciiOfLength() {
-    assertTrue(randomAsciiOfLength(0).isEmpty());
+    assertTrue(randomAsciiLettersOfLength(0).isEmpty());
 
     for (int i = 0; i < 1000; i++) { 
       int maxLength = randomInt(20);
-      String str = randomAsciiOfLength(maxLength);
+      String str = randomAsciiLettersOfLength(maxLength);
+      assertTrue(str.matches("[a-zA-Z]*"));
+      assertTrue(str.length() <= maxLength);
+    }
+  }
+
+  @Test
+  public void testRandomAlphanumOfLength() {
+    assertTrue(randomAsciiAlphanumOfLength(0).isEmpty());
+
+    for (int i = 0; i < 1000; i++) { 
+      int maxLength = randomInt(20);
+      String str = randomAsciiAlphanumOfLength(maxLength);
       assertTrue(str.matches("[a-zA-Z0-9]*"));
       assertTrue(str.length() <= maxLength);
     }

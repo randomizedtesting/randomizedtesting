@@ -32,7 +32,6 @@ import com.carrotsearch.randomizedtesting.generators.RandomBytes;
 import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
 import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 import com.carrotsearch.randomizedtesting.generators.RandomStrings;
-import com.carrotsearch.randomizedtesting.generators.StringGenerator;
 
 /**
  * Common scaffolding for subclassing randomized tests.
@@ -543,59 +542,107 @@ public class RandomizedTest {
   // Characters and strings. Delegates to RandomStrings and that in turn to StringGenerators.
   //
 
-  /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
+  /** 
+   * @deprecated Use {@link #randomAsciiLettersOfLengthBetween} instead.  
+   */
+  @Deprecated
   public static String randomAsciiOfLengthBetween(int minCodeUnits, int maxCodeUnits) {
-    return RandomStrings.randomAsciiOfLengthBetween(getRandom(), minCodeUnits,
-        maxCodeUnits);
+    return randomAsciiLettersOfLengthBetween(minCodeUnits, maxCodeUnits);
   }
-  
-  /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
+
+  /** 
+   * @deprecated Use {@link #randomAsciiLettersOfLength} instead.  
+   */
+  @Deprecated
   public static String randomAsciiOfLength(int codeUnits) {
-    return RandomStrings.randomAsciiOfLength(getRandom(), codeUnits);
+    return randomAsciiLettersOfLength(codeUnits);
   }
-  
-  /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
+
+  /**
+   * @see RandomStrings#randomAsciiLettersOfLengthBetween
+   */
+  public static String randomAsciiLettersOfLengthBetween(int minLetters, int maxLetters) {
+    return RandomStrings.randomAsciiLettersOfLengthBetween(getRandom(), minLetters, maxLetters);
+  }
+
+  /**
+   * @see RandomStrings#randomAsciiLettersOfLength
+   */
+  public static String randomAsciiLettersOfLength(int codeUnits) {
+    return RandomStrings.randomAsciiLettersOfLength(getRandom(), codeUnits);
+  }
+
+  /**
+   * @see RandomStrings#randomAsciiAlphanumOfLengthBetween
+   */
+  public static String randomAsciiAlphanumOfLengthBetween(int minCodeUnits, int maxCodeUnits) {
+    return RandomStrings.randomAsciiAlphanumOfLengthBetween(getRandom(), minCodeUnits, maxCodeUnits);
+  }
+
+  /**
+   * @see RandomStrings#randomAsciiAlphanumOfLength
+   */
+  public static String randomAsciiAlphanumOfLength(int codeUnits) {
+    return RandomStrings.randomAsciiAlphanumOfLength(getRandom(), codeUnits);
+  }
+
+  /**
+   * @see RandomStrings#randomUnicodeOfLengthBetween
+   */
   public static String randomUnicodeOfLengthBetween(int minCodeUnits, int maxCodeUnits) {
     return RandomStrings.randomUnicodeOfLengthBetween(getRandom(),
         minCodeUnits, maxCodeUnits);
   }
-  
-  /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
+
+  /**
+   * @see RandomStrings#randomUnicodeOfLength
+   */
   public static String randomUnicodeOfLength(int codeUnits) {
     return RandomStrings.randomUnicodeOfLength(getRandom(), codeUnits);
   }
   
-  /** @see StringGenerator#ofCodePointsLength(Random, int, int) */
+  /**
+   * @see RandomStrings#randomUnicodeOfCodepointLengthBetween
+   */
   public static String randomUnicodeOfCodepointLengthBetween(int minCodePoints, int maxCodePoints) {
     return RandomStrings.randomUnicodeOfCodepointLengthBetween(getRandom(),
         minCodePoints, maxCodePoints);
   }
   
-  /** @see StringGenerator#ofCodePointsLength(Random, int, int) */
+  /**
+   * @see RandomStrings#randomUnicodeOfCodepointLength
+   */
   public static String randomUnicodeOfCodepointLength(int codePoints) {
-    return RandomStrings
-        .randomUnicodeOfCodepointLength(getRandom(), codePoints);
+    return RandomStrings.randomUnicodeOfCodepointLength(getRandom(), codePoints);
   }
   
-  /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
+  /**
+   * @see RandomStrings#randomRealisticUnicodeOfLengthBetween
+   */
   public static String randomRealisticUnicodeOfLengthBetween(int minCodeUnits, int maxCodeUnits) {
     return RandomStrings.randomRealisticUnicodeOfLengthBetween(getRandom(),
         minCodeUnits, maxCodeUnits);
   }
   
-  /** @see StringGenerator#ofCodeUnitsLength(Random, int, int) */
+  /**
+   * @see RandomStrings#randomRealisticUnicodeOfLength
+   */
   public static String randomRealisticUnicodeOfLength(int codeUnits) {
     return RandomStrings.randomRealisticUnicodeOfLength(getRandom(), codeUnits);
   }
   
-  /** @see StringGenerator#ofCodePointsLength(Random, int, int) */
+  /**
+   * @see RandomStrings#randomRealisticUnicodeOfCodepointLengthBetween
+   */
   public static String randomRealisticUnicodeOfCodepointLengthBetween(
       int minCodePoints, int maxCodePoints) {
     return RandomStrings.randomRealisticUnicodeOfCodepointLengthBetween(
         getRandom(), minCodePoints, maxCodePoints);
   }
   
-  /** @see StringGenerator#ofCodePointsLength(Random, int, int) */
+  /**
+   * @see RandomStrings#randomRealisticUnicodeOfCodepointLength
+   */
   public static String randomRealisticUnicodeOfCodepointLength(int codePoints) {
     return RandomStrings.randomRealisticUnicodeOfCodepointLength(getRandom(),
         codePoints);

@@ -7,6 +7,20 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.5.1-SNAPSHOT ====================
 
+Changes in Backwards Compatibility
+
+  * GH-248: Cleaning up some confusion on RandomizedTest.randomAscii* and
+    RandomStrings.randomAscii* methods. These methods generated 
+    random strings based on letters from the Unicode basic latin block (C0).
+    All these methods are now deprecated and will be removed in favor of
+    more explicit methods that tell exactly (?) what kind of letters are 
+    involved (Ryan Ernst, Dawid Weiss). For details, see:
+
+    RandomStrings.randomAsciiLettersOfLength(..)
+    RandomStrings.randomAsciiLettersOfLengthBetween(..)
+    RandomStrings.randomAsciiAlphanumOfLength(..)
+    RandomStrings.randomAsciiAlphanumOfLengthBetween(..)
+
 ======================= randomizedtesting 2.5.0 ====================
 
 Changes in Backwards Compatibility

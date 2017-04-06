@@ -8,12 +8,30 @@ import java.util.Random;
 public final class RandomStrings {
   public final static RealisticUnicodeGenerator realisticUnicodeGenerator = new RealisticUnicodeGenerator();
   public final static UnicodeGenerator unicodeGenerator = new UnicodeGenerator();
+  public final static AsciiLettersGenerator asciiLettersGenerator = new AsciiLettersGenerator();
+  public final static AsciiAlphanumGenerator asciiAlphanumGenerator = new AsciiAlphanumGenerator();
+
+  /**
+   * @deprecated Use {@link RandomStrings#asciiLettersGenerator} instead.
+   */
+  @Deprecated
   public final static ASCIIGenerator asciiGenerator = new ASCIIGenerator();
 
   // Ultra wide monitor required to read the source code :)
 
+  /** @deprecated Use {@link #randomAsciiLettersOfLengthBetween} instead. */
+  @Deprecated
   public static String randomAsciiOfLengthBetween                     (Random r, int minCodeUnits, int maxCodeUnits)   {return asciiGenerator.ofCodeUnitsLength(r, minCodeUnits, maxCodeUnits); }
+
+  /** @deprecated Use {@link #randomAsciiLettersOfLength} instead. */
+  @Deprecated
   public static String randomAsciiOfLength                            (Random r, int codeUnits)                        {return asciiGenerator.ofCodeUnitsLength(r, codeUnits, codeUnits); }
+
+  public static String randomAsciiLettersOfLengthBetween              (Random r, int minCodeUnits, int maxCodeUnits)   {return asciiLettersGenerator.ofCodeUnitsLength(r, minCodeUnits, maxCodeUnits); }
+  public static String randomAsciiLettersOfLength                     (Random r, int codeUnits)                        {return asciiLettersGenerator.ofCodeUnitsLength(r, codeUnits, codeUnits); }
+
+  public static String randomAsciiAlphanumOfLengthBetween             (Random r, int minCodeUnits, int maxCodeUnits)   {return asciiAlphanumGenerator.ofCodeUnitsLength(r, minCodeUnits, maxCodeUnits); }
+  public static String randomAsciiAlphanumOfLength                    (Random r, int codeUnits)                        {return asciiAlphanumGenerator.ofCodeUnitsLength(r, codeUnits, codeUnits); }
 
   public static String randomUnicodeOfLengthBetween                   (Random r, int minCodeUnits, int maxCodeUnits)   {return unicodeGenerator.ofCodeUnitsLength(r, minCodeUnits, maxCodeUnits); }
   public static String randomUnicodeOfLength                          (Random r, int codeUnits)                        {return unicodeGenerator.ofCodeUnitsLength(r, codeUnits, codeUnits); }

@@ -20,8 +20,7 @@ public class TestSeedDecorator extends WithNestedTestClass {
   public static class Nested1 {
     @BeforeClass
     public static void generateSequence() {
-      strings.add(
-          RandomStrings.randomAsciiOfLength(RandomizedContext.current().getRandom(), 200));
+      strings.add(RandomStrings.randomAsciiLettersOfLength(RandomizedContext.current().getRandom(), 200));
     }
 
     @Test

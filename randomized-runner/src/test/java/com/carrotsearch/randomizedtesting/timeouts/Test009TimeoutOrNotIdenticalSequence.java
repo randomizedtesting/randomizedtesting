@@ -24,7 +24,7 @@ public class Test009TimeoutOrNotIdenticalSequence extends WithNestedTestClass {
     @Repeat(iterations = 2, useConstantSeed = false)
     public void testNoTimeout() {
       assumeRunningNested();
-      seeds.add(randomAsciiOfLength(20));
+      seeds.add(randomAsciiLettersOfLength(20));
     }
   }
   

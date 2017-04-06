@@ -41,7 +41,7 @@ public class TestEventBusSanityCheck extends RandomizedTest {
     // Mockups.
     final List<String> foo = new ArrayList<>();
     for (int i = randomIntBetween(2, 1000); --i > 0;) {
-      foo.add(randomAsciiOfLength(20));
+      foo.add(randomAsciiLettersOfLength(20));
     }
     final EventBus aggregatedBus = new EventBus("aggregated");
 

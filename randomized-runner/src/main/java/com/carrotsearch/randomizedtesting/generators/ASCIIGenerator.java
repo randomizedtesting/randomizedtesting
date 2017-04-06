@@ -7,11 +7,10 @@ package com.carrotsearch.randomizedtesting.generators;
  * abcdefghijklmnopqrstuvwxyz
  * ABCDEFGHIJKLMNOPQRSTUVWXYZ
  * </pre>
+ * 
+ * @deprecated Use {@link AsciiLettersGenerator} instead.
  */
-public class ASCIIGenerator extends CodepointSetGenerator {
-  private final static char [] ASCII_SET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-
-  public ASCIIGenerator() {
-    super(ASCII_SET);
-  }
+@Deprecated
+public class ASCIIGenerator extends AsciiLettersGenerator {
+  
 }
