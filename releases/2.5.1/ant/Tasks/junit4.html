@@ -1,0 +1,684 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../stylesheets/style.css">
+  <link rel="stylesheet" type="text/css" href="../stylesheets/junit4.css">
+  
+  <link type="text/css" rel="stylesheet" href="../js/google-code-prettify/prettify.css" />
+  <script type="text/javascript" src="../js/google-code-prettify/prettify.js"></script>
+
+  <script type="text/javascript">
+  function appendText(id,txt) {
+    document.getElementById(id).appendChild(document.createTextNode(txt));
+  }
+  </script>
+
+  <title>JUnit4 Task</title>
+</head>
+
+<body onload="prettyPrint()">
+
+<h2><a name="junit">JUnit4</a></h2>
+<h3>Description</h3>
+
+<p>This task runs tests from the JUnit testing framework in versions 4.10 and above. It to some extent 
+mimics the style of the default ANT's <code>junit</code> task, but adds the following features:
+<ul>
+  <li>ability to run tests in multiple forked JVMs (isolated JVMs),</li>
+  <li>ability to load-balance tests based on previous execution history or job-stealing,</li>
+  <li>seamless integration with <a href="http://labs.carrotsearch.com/randomizedtesting.html">randomized runner</a>
+      to support a global seed for randomized tests and proper seed reporting,</li>
+  <li>Synchronized and decluttered console output from child JVMs,</li>
+  <li>Built-in reporting to HTML, JSON and various forms of plain text.</li>
+</ul>
+
+<p><strong>Note</strong>: The latest version of the JUnit framework can be found at
+<a href="http://www.junit.org">http://www.junit.org</a>.
+This task has been tested with JUnit 4.10 and later.
+Appropriate <code>junit*.jar</code> must be available in the task's classpath and in the
+tested code's classpath. See the examples below.
+</p>
+
+<p><strong>External references</strong>: <a href="http://labs.carrotsearch.com/randomizedtesting.html">More information about randomized testing.</a>
+</p>
+
+<h3>Parameters</h3>
+
+<p><code>junit4</code> attempts to be a drop-in replacement for ANT's default <code>junit</code> task, but so attributes
+that make little sense have been deprecated and are ignored. Attributes specific to <code>junit4</code> are highlighted in
+<span class="junit4">light green</span>.</p>
+
+<table border="1" cellpadding="2" cellspacing="0">
+  <tr>
+    <td width="12%" valign="top"><b>Attribute</b></td>
+    <td width="78%" valign="top"><b>Description</b></td>
+    <td width="10%" valign="top"><b>Required</b></td>
+  </tr>
+
+  <tr>
+    <td valign="top">printsummary</td>
+    <td valign="top">Prints the summary of all executed, ignored and failed tests after all suites have been
+      executed. To get per-suite summaries, configure a console report properly (see below).</td>
+    <td align="center" valign="top">No; default is <code>on</code>.</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">fork</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Tests are always forked.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">forkmode</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Tests are always forked into one more more
+     forked JVMs. Each suite is executed entirely on a single JVM.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">haltonerror</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Use <code>haltonfailure</code> which handles both errors and failures.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">errorproperty</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Use <code>failureproperty</code> which handles both errors and failures.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr>
+    <td valign="top">haltonfailure</td>
+    <td valign="top">Stop the build process if a test fails (errors are considered failures as well). </td>
+    <td align="center" valign="top">No; default is <code>on</code> (<strong>ANT's junit has the default set to 'off'</strong>).</td>
+  </tr>
+
+  <tr>
+    <td valign="top">failureproperty</td>
+    <td valign="top">The name of a property to set in the event of a failure
+      (errors are considered failures as well).</td>
+    <td align="center" valign="top">No.</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">filtertrace</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Reports may provide their own filtering capabilities.</td> 
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">timeout</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Test runners provide their own timeout facilities.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr>
+    <td valign="top">maxmemory</td>
+    <td valign="top">Maximum amount of memory to allocate to <strong>each</strong> forked VM (be careful if using lots of forks).
+      <strong>Note</strong>: 
+      If you get <code>java.lang.OutOfMemoryError: Java heap space</code>
+      in some of your tests then you need to raise the size like
+      <code>maxmemory="128m"</code></td>
+    <td align="center" valign="top">No</td>
+  </tr>
+
+  <tr>
+    <td valign="top">jvm</td>
+    <td valign="top">The command used to invoke the forked java virtual machines, the default is 'java'.  The command is resolved by
+      <code>java.lang.Runtime.exec()</code>.</td>
+    <td align="center" valign="top">No; default is <code>java</code>.</td>
+  </tr>
+
+  <tr>
+    <td valign="top">dir</td>
+    <td valign="top">
+     <p>The directory in which to invoke the forked JVMs in. This is by default the project's <code>basedir</code>.
+        Because multiple JVMs may clash if they are generating files in the current working directory, one can use per-JVM directory
+        by setting <code>isolateWorkingDirectories</code> attribute to <code>true</code>; in such case each JVM gets a sub-directory
+        the provided <code>dir</code>.
+     </p>
+     <p>
+        See <code>onNonEmptyWorkDirectory</code> attribute for action taken when the forked JVM's work directory is not initially 
+        empty.
+     </p>
+    </td>
+    <td align="center" valign="top">No</td>
+  </tr>
+
+  <tr class="junit4">
+    <td valign="top">isolateWorkingDirectories</td>
+    <td valign="top">If <code>true</code> current working directories are isolated for each forked JVM. See <code>dir</code> attribute too.</td>
+    <td align="center" valign="top">No; default is <code>true</code>.</td>
+  </tr>
+
+  <tr class="junit4">
+    <td valign="top">onNonEmptyWorkDirectory</td>
+    <td valign="top">
+      <p>[Since version 2.5.0]. Specifies the action taken when forked JVM's work directory is not initially empty (contains files
+      or directories, possibly from a previous run). The values permitted are:
+      </p>
+      <dl>
+        <dt><code>fail</code></dt>
+        <dd>Fails the build.</dd>
+        <dt><code>wipe</code></dt>
+        <dd>Tries to wipe the work directory clean before tests begin. Fails the build if unsuccessful.</dd>
+        <dt><code>ignore</code></dt>
+        <dd>Ignores any existing files and proceeds (not recommended).</dd>
+      </dl>
+    </td>
+    <td align="center" valign="top">No; default is <code>fail</code>.</td>
+  </tr>
+
+  <tr>
+    <td valign="top">newenvironment</td>
+    <td valign="top">Do not propagate the old environment when new
+      environment variables are specified.</td>
+    <td align="center" valign="top">No; default is <code>false</code>.</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">includeantruntime</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">showoutput</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Configure console reports appropriately.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">outputtoformatters</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Configure console reports appropriately.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr>
+    <td valign="top">tempdir</td>
+    <td valign="top">Specify where to store temporary files. These temporary files include a list of suites passed
+      to each slave JVM so it is usually wise to just leave this attribute unset - the default is to take the value of the
+      <code>dir</code> attribute or the project's basedir.
+    </td>
+    <td align="center" valign="top">No</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">reloading</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">clonevm</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">logfailedtests</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only. Configure console reports appropriately to get
+    just the failing tests, their output etc.</td>
+    <td align="center" valign="top">--</td>
+  </tr>
+
+  <tr class="junitcompat">
+    <td valign="top">enableTestListenerEvents</td>
+    <td valign="top"><strong>Not used.</strong> ANT-junit drop-in compatibility only.</td>
+    <td align="center" valign="top">--</td>
+  </tr>    
+
+  <tr class="junit4">
+    <td valign="top">parallelism</td>
+    <td valign="top">
+      The number of parallel slaves. Can be set to a constant <strong><code>max</code></strong> for the
+      maximum number of cores returned from <code>Runtime.availableProcessors</code> or 
+      <strong><code>auto</code></strong> for sensible defaults depending on the number of cores.
+      
+      <p><strong>Note:</strong> this setting forks physical JVM processes so it multiplies the 
+      requirements for heap memory, IO, etc.</p>
+    </td>
+    <td align="center" valign="top">No; Can be set to any integer or: 'max', 'auto'.
+      The default is '1' (sequential execution in a forked JVM).</td>
+  </tr>    
+
+  <tr class="junit4">
+    <td valign="top">dynamicAssignmentRatio</td>
+    <td valign="top">
+      Specifies the ratio of suites moved to dynamic assignment list (job-stealing). A dynamic
+      assignment list dispatches suites to the first idle slave JVM. Theoretically
+      this is an optimal strategy, but it is usually better to have some static assignments
+      to avoid communication costs.
+   
+      <p>A ratio of 0 means only static assignments are used. A ratio of 1 means
+      only dynamic assignments are used.</p>
+    
+      <p>The list of dynamic assignments is sorted by decreasing cost (always) and
+      is inherently prone to race conditions in distributing suites. Should there
+      be an error based on suite-dependency it will not be directly repeatable. In such
+      case use the per-slave-jvm list of suites file dumped to disk for each slave JVM.
+      See <code>leaveTemporary</code> attribute.
+    </td>
+    <td align="center" valign="top">No; default is '0.25' (25% of all suites are assigned dynamically).</td>
+  </tr>
+
+  <tr class="junit4">
+    <td valign="top">seed</td>
+    <td valign="top">
+      Specify random seed for anything that is randomized in <code>junit4</code>. The order of suites
+      execution and suite-JVM assignments are a result of this seed for example.
+
+      <p>The master seed is also passed to slave JVMs as a system property (to bootstrap randomized runner).</p>
+    </td>
+    <td align="center" valign="top">No; default is a randomly generated seed.</td>
+  </tr>
+
+  <tr class="junit4">
+    <td valign="top">prefix</td>
+    <td valign="top">
+      Initializes custom prefix for all randomized runner properties. This must be consistent
+      across all junit4 invocations if done from the same classpath. Use only when REALLY needed.
+    </td>
+    <td align="center" valign="top">No; default is randomized runner's prefix.</td>
+  </tr>
+
+  <tr class="junit4">
+    <td valign="top">shuffleOnSlave</td>
+    <td valign="top">
+    Predictably shuffle tests order after balancing. This will help in spreading
+    lighter and heavier tests over a single slave's execution timeline while
+    still keeping the same tests order depending on the seed. See nested elements
+    for configuring load balancers.
+    </td>
+    <td align="center" valign="top">No; the default is 'true'.</td>
+  </tr>
+
+  <tr class="junit4">
+    <td valign="top">leaveTemporary</td>
+    <td valign="top">
+      Leave temporary <code>junit4</code> files after the task quits. This can be used to trace the exact order
+      of suites executed on each forked JVM for example.
+    </td>
+    <td align="center" valign="top">No; default is 'false'.</td>
+  </tr>
+  
+  <tr class="junit4">
+    <td valign="top">jvmOutputAction</td>
+    <td valign="top">
+      What should be done on unexpected JVM output? JVM may write directly to the 
+      original descriptors, bypassing redirections of System.out and System.err. Typically,
+      these messages will be important and should fail the build (permgen space exceeded,
+      compiler errors, crash dumps). However, certain legitimate logs (gc activity, class loading
+      logs) are also printed to these streams so sometimes the output can be ignored.
+
+      <p>Allowed values (any comma-delimited combination of): ignore, listeners, pipe, fail, warn.</p>
+    </td>
+    <td align="center" valign="top">No; default is 'warn, listeners'; append text report listener
+    to get the actual JVM output or change to 'warn, pipe' to get the output piped to system out.</td>
+  </tr>
+  
+  <tr class="junit4">
+    <td valign="top">sysouts</td>
+    <td valign="top">
+      If set to true, any sysout and syserr calls will be written to original
+      output and error streams (and in effect will appear as "jvm output". By default
+      sysout and syserrs are captured and proxied to the event stream to be synchronized
+      with other test events (and properly handled by reports) but occasionally
+      one may want to synchronize them with direct JVM output (to synchronize 
+      with compiler output or GC output for example).
+
+      <p>See examples below on examples of capturing full JVM output.</p>
+    </td>
+    <td align="center" valign="top">No; default is 'false'.</td>
+  </tr>  
+
+  <tr class="junit4">
+    <td valign="top">heartbeat</td>
+    <td valign="top">
+      A duration (in seconds) before an event is dispatched about forked JVM inactivity.
+      This can be useful to report hung or very long tests. Heartbeat information will
+      include an approximate location inside the non-responding JVM (suite or test case).
+    </td>
+    <td align="center" valign="top">No; default is '0'.</td>
+  </tr>
+  
+  <tr class="junit4">
+    <td valign="top">uniqueSuiteNames</td>
+    <td valign="top">
+      Allow or disallow duplicate suite names in resource collections. By default this option
+      is true because certain ANT-compatible report types (like XML reports)
+      will have a problem with duplicate suite names (will overwrite files).
+    </td>
+    <td align="center" valign="top">No; default is 'true'.</td>
+  </tr>
+  
+  <tr class="junit4">
+    <td valign="top">ifNoTests</td>
+    <td valign="top">
+      Defines the behavior when no tests were executed successfully or failed (either
+      there were no tests at all or all of them were filtered out). One of the following
+      enum constants: 'ignore', 'warn' or 'fail'. 
+    </td>
+    <td align="center" valign="top">No; default is 'ignore'.</td>
+  </tr>  
+</table>
+
+
+<h3><a name="nested">Nested Elements</a></h3>
+
+<p>The <code>&lt;junit4&gt;</code> task supports a nested elements. Some of them are compatible with
+ANT's default <code>&lt;junit&gt;</code> task while others are unique to <code>&lt;junit4&gt;</code>.
+
+
+<h4>Specifying classpath for tests</h4>
+
+The <code>&lt;classpath&gt;</code> element represents a PATH like structure</a> to be used for each
+forked JVM. Note that classpath should include suiteable <code>junit*.jar</code>, otherwise your tests
+wont run.
+
+
+<h4>Specifying test suite classes</h4>
+
+Unlike standard <code>&lt;junit&gt;</code> task, <code>&lt;junit4&gt;</code> defines suite classes as
+resources to <code>.class</code> files. These resources can originate from any resource collection and
+there can be any number of resource collections with such resources. For example this definition
+includes all suite classes from a ZIP file (JAR file), excluding nested classes:
+
+<pre id="snippet-1" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-1", '\
+<junit4>                                   \n\
+  <classpath file="myjarfile.jar" />       \n\
+  <classpath ref="junit.fileset" />        \n\n\
+  <zipfileset src="myjarfile.jar">         \n\
+    <include name="**/Test*.class" />      \n\
+    <exclude name="**/*$*" />              \n\
+  </zipfileset>                            \n\
+</junit4>                                  \n\
+');
+</script>
+</pre>
+
+
+<h4>jvmarg</h4>
+
+<p>Additional parameters may be passed to the new JVM via nested <code>&lt;jvmarg&gt;</code> elements. For example:</p>
+
+<pre id="snippet-2" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-2", '\
+<junit4>                              \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+  <jvmarg value="-XX:+UseSerialGC"/>       \n\
+</junit4>                                        \n\
+');
+</script>
+</pre>
+
+<p>would run the JVM with a serial garbage collector on HotSpot JVM.</p>
+
+
+
+<h4>sysproperty</h4>
+
+<p>Use nested <code>&lt;sysproperty&gt;</code> elements to specify system
+properties required by the tests. These properties will be made available
+to the forked JVMs during their execution. The attributes for this element are the same 
+as for <a href="http://ant.apache.org/manual/Tasks/exec.html#env">environment variables</a>.</p>
+
+<p>An extended attribute <code>&lt;ignoreEmpty&gt;</code> is supported which, if defined,
+causes the property NOT to be defined in the forked JVM (as opposed to passing an empty property
+value).</p>
+
+<pre id="snippet-3" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-3", '\
+<junit4> \n\
+  <sysproperty key="project-basedir" value="${basedir}" />\n\
+  <!-- This property will not be passed to the forked JVM. -->\n\
+  <sysproperty key="my.property" value="" ignoreEmpty="true" />\n\
+</junit4>\n\
+');
+</script></pre>
+
+<p>would run the test in ANT's VM and make the project's <code>basedir</code> property
+available to the test (note the current working directory of a forked JVM will not be the
+ basedir typically).</p>
+
+
+
+<h4>syspropertyset</h4>
+
+<p>You can specify a set of properties to be passed to the target JVM as system properties
+with <a href="http://ant.apache.org/manual/Types/propertyset.html">syspropertyset</a>s.
+This target behaves much like the default in ANT but allows a dynamic set of (remapped)
+properties to be resolved at runtime. Similar to <code>sysproperty</code>, this
+tag also supports <code>ignoreEmpty</code> attribute to work around 
+<a href="https://issues.apache.org/bugzilla/show_bug.cgi?id=50179">bugs 
+with local properties in ANT.</a></p>
+
+<pre id="snippet-10" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-10", '\
+<junit4> \n\
+  <syspropertyset ignoreEmpty="true">\n\
+    <propertyref prefix="propertyprefix." />\n\
+    <mapper type="glob" from="propertyprefix.*" to="replaced.*" />\n\
+  </syspropertyset>\n\
+</junit4>\n\
+');
+</script></pre>
+
+
+<h4>env</h4>
+
+<p>It is possible to specify environment variables to pass to the
+forked VM via nested <code>&lt;env&gt;</code> elements. For a description
+of the <code>&lt;env&gt;</code> element's attributes, see the
+description in the <a href="http://ant.apache.org/manual/Tasks/exec.html#env">exec</a> task.</p>
+
+
+
+<h4>bootclasspath</h4>
+
+<p>The location of bootstrap class files can be specified using this
+<a href="http://ant.apache.org/manual/using.html#path">PATH like structure</a>.</p>
+
+
+
+<h4>assertions</h4>
+
+<p>You can control enablement of Java 1.4 assertions with an
+<a href="http://ant.apache.org/manual/Types/assertions.html"><tt>&lt;assertions&gt;</tt></a>
+subelement.</p>
+ 
+
+
+<h3>listeners and reports</h3>
+
+<p>There is no notion of "reports" in <code>junit4</code>. Reports are just listeners
+that attach to the even stream and can produce something (to the console, file or otherwise). You
+can also attach your own listeners if you like (although you'd have to peek at the code of existing
+listeners to get the feeling how this is done -- communication is via events not interfaces).</p>
+
+<h4>report-text</h4>
+
+<p>There are a few predefined listeners to choose from. By far the most common will be <code>report-text</code>
+which produces console output (or plain text file). A plain text report configuration may look like this:
+</p>
+
+<pre id="snippet-4" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-4", '\
+<junit4>                                              \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+  <listeners>                                         \n\
+    <!-- Put failures to a disk file. -->             \n\
+    <report-text                                      \n\
+        file="tests-failed-only.txt"                  \n\
+        showThrowable="true"                          \n\
+        showStackTraces="true"                        \n\
+        showOutput="onerror"                          \n\
+                                                      \n\
+        showStatusOk="false"                          \n\
+        showStatusIgnored="false"                     \n\
+        showStatusError="true"                        \n\
+        showStatusFailure="true"                      \n\
+                                                      \n\
+        showSuiteSummary="true"                       \n\
+    />                                                \n\
+                                                      \n\
+    <!-- Emit test cases to the console, but filter   \n\
+        out their stdout/stderr streams.              \n\
+        Repeat 5 failed tests at the end of the run.  \n\
+    <report-text                                      \n\
+        showThrowable="true"                          \n\
+        showStackTraces="true"                        \n\
+        showOutput="never"                            \n\
+        showNumFailures="5"                           \n\
+                                                      \n\
+        showStatusOk="true"                           \n\
+        showStatusError="true"                        \n\
+        showStatusFailure="true"                      \n\
+        showStatusIgnored="true"                      \n\
+                                                      \n\
+        showSuiteSummary="false"                      \n\
+    />                                                \n\
+  </listeners>                                        \n\
+</junit4>                                             \n\
+');
+</script></pre>
+
+<p>This listener supports stack trace filtering to reduce verbosity (console output, for
+example). For production or integration builds, it is recommended to keep the full stacks.
+For developer runs, the default set of filters (enabled by default) can declutter the output
+a bit. An example stack trace filter, with default options and two custom filters, is shown
+below.</p>
+
+<pre id="snippet-4_1" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-4_1", '\
+    <!-- Filter stack traces (with default and custom filters) --> \n\
+    <report-text>                                     \n\
+      <junit4:filtertrace defaults="true" enabled="true"> \n\
+        <containsstring contains=".MyClass." />       \n\
+        <containsregex pattern="^(\s+at )(foo\.bar\.)" /> \n\
+      </junit4:filtertrace>                           \n\
+    </report-text>                                    \n\
+');
+</script></pre>
+
+<p>The level of verbosity of the output can be fine-tuned to one's needs by disabling
+or enabling test statuses and suite summaries or each test's output. Experimenting
+highly recommended.</p>
+
+<h4>report-ant-xml</h4>
+
+<p>Another listener is <code>report-ant-xml</code> which can produce XML files suitable
+for <a href="http://ant.apache.org/manual/Tasks/junitreport.html">junitreport</a> task (although
+we highly recommend using the built-in JSON report.</p>
+                                                          
+<pre id="snippet-5" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-5", '\
+<junit4>                                                                                  \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+  <listeners>                                                                             \n\
+    <!--                                                                                  \n\
+    Emit XMLs to tmp/test-results-dir, do not use Maven extensions (marks skipped tests). \n\
+    -->                                                                                   \n\
+    <report-ant-xml dir="tmp/test-results-dir" mavenExtensions="false"                    \n\
+                    outputStreams="yes"                                />                 \n\
+  </listeners>                                                                            \n\
+</junit4>                                                                                 \n\
+');
+</script></pre>
+
+<h4>report-json</h4>
+
+<p>Yet another built-in listener is producing a modern JSON output with test data and
+an accompanying HTML5 file for visualizing it:</p>
+
+<pre id="snippet-6" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-6", '\
+<junit4>                                                                                  \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+  <listeners>                                                                             \n\
+    <listeners>                                                                           \n\
+      <report-json file="json/output.html" projectName="MyProjectName"                    \n\
+                    outputStreams="yes"                                />                 \n\
+    </listeners>                                                                          \n\
+  </listeners>                                                                            \n\
+</junit4>                                                                                 \n\
+');
+</script></pre>
+
+<p>An example of a HTML5 report produced by the above can be seen <a href="http://builds.carrot2.org/browse/C2HEAD-SOURCES/latest/artifact/JOB1/JUnit-Test-Report/index.html">here</a>, for example. 
+
+<h3>Load balancing of test suites</h3>
+
+<p>Suites can be scattered across forked JVMs randomly or using a greedy load-balancing algorithm
+(and followed by job-stealing if needed). For load balancing, previous execution 
+statistics will be needed. These statistics should ideally come from a single machine and multiple
+executions so that they average the influence of the environment etc.</p>
+
+<p>A dedicated listener is used to collect and update statistics. The configuration below shows
+both the listener and a balancer configuration. The balancer uses multiple sources for collecting
+statistics (for example precomputed statistics and previous local runs):</p>
+
+<pre id="snippet-7" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-7", '\
+<junit4>                                                              \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+  <listeners>                                                         \n\
+    <report-execution-times                                           \n\
+      file="${basedir}/local-hints.log" historyLength="5" />          \n\
+  </listeners>                                                        \n\
+                                                                      \n\
+  <balancers>                                                         \n\
+    <execution-times>                                                 \n\
+      <fileset dir="${basedir}" includes="etc/static-hints*.log" />   \n\
+      <fileset dir="${basedir}" includes="tmp/local-hints.log" />     \n\
+    </execution-times>                                                \n\
+  </balancers>                                                        \n\
+</junit4>                                                             \n\
+');
+</script></pre>
+
+
+<h3>Capturing original JVM output</h3>
+
+<p>JUnit4 has been designed to run reports and aggregation of test events on the master
+JVM, not on the forked JVMs. This slightly complicates things when diagnostic JVM messages
+are used because these messages are printed directly to original stream descriptors
+by the JVM, bypassing System.out or System.err substitutions.</p>
+
+<p>In those rare cases when the original JVM output streams are needed (possibly
+mixed with what the tests have printed), junit4 can be configured to leave the original
+streams on disk or pipe them to ANT's output. An example is shown below:</p> 
+
+<pre id="snippet-8" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-8", '\
+<junit4 sysouts="true" jvmoutputaction="pipe,ignore"> \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+</junit4>                                                             \n\
+');
+</script></pre>
+
+<p>Should one need to preserve the original output files (in case they are large, for example),
+the configuration would then look as follows:</p>
+
+<pre id="snippet-9" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-9", '\
+<junit4 sysouts="true" jvmoutputaction="warn"> \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+</junit4>                                                             \n\
+');
+</script></pre>
+
+<p>This would result in the following message being printed to ANT (note
+the output file name contains an execution-unique element to avoid clashing with other
+forked JVMs or builds).</p>  
+
+<pre>
+[junit4:junit4] JVM J0: stdout was not empty, see: /home/[...]/junit4-J0-1058309761ea5fafd.sysout
+[junit4:junit4] JVM J0: stderr was not empty, see: /home/[...]/junit4-J0-1058309761ea5fafd.syserr
+</pre>
+
+</body>
+</html>
