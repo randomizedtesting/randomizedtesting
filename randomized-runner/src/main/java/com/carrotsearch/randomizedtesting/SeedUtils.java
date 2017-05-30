@@ -60,11 +60,17 @@ public final class SeedUtils {
   public static String formatSeedChain(Randomness... randomnesses) {
     StringBuilder b = new StringBuilder();
     b.append("[");
+    b.append(buildSeedChain(randomnesses));
+    b.append("]");
+    return b.toString();
+  }
+
+  public static String buildSeedChain(Randomness... randomnesses) {
+    StringBuilder b = new StringBuilder();
     for (int i = 0; i < randomnesses.length; i++) {
       if (i > 0) b.append(":");
       b.append(formatSeed(randomnesses[i].getSeed()));
     }
-    b.append("]");
     return b.toString();
   }
 }
