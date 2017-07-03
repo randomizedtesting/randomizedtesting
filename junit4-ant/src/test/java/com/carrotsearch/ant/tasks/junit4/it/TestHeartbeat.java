@@ -12,5 +12,6 @@ public class TestHeartbeat extends JUnit4XmlTestBase {
     executeTarget("testHeartbeat");
     assertLogContains("HEARTBEAT J0");
     assertLogContains("at: HeartbeatSlow.method1");
+    assertLogDoesNotContain("java.lang.NullPointerException");
   }
 }

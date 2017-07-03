@@ -7,6 +7,12 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.5.2-SNAPSHOT ====================
 
+Bug Fixes
+
+  * GH-250: Non-bootstrapped ForkedJvmInfo causes NullPointerExceptions
+    (can happen on slow machines with low heartbeat setting). 
+    (Doug Turnbull via Dawid Weiss).
+
 ======================= randomizedtesting 2.5.1 ====================
 
 Changes in Backwards Compatibility

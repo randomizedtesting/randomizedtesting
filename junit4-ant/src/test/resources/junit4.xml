@@ -973,6 +973,8 @@
                 <include name="**/HeartbeatSlow.class" />
             </fileset>
 
+            <sysproperty key="junit4.tests.internal.initialDelayMs" value="3000" />
+
             <listeners>
                 <junit4:report-text />
             </listeners>

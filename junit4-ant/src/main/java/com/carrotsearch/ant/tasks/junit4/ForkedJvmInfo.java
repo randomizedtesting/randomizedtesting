@@ -74,6 +74,10 @@ public final class ForkedJvmInfo {
    * System properties on the slave.
    */
   public Map<String,String> getSystemProperties() {
+    if (bootstrapEvent == null) {
+      throw new RuntimeException("Bootstrap event not yet received.");
+    }
+
     return bootstrapEvent.getSystemProperties();
   }
 
@@ -82,7 +86,12 @@ public final class ForkedJvmInfo {
    * (Java 8 will have real PID support, supposedly).
    */
   public String getPidString() {
-    return bootstrapEvent.getPidString();
+    BootstrapEvent event = this.bootstrapEvent;
+    if (event == null) {
+      return "(?)";
+    } else {
+      return event.getPidString();
+    }
   }
 
   /**

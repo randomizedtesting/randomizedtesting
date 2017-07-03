@@ -110,6 +110,13 @@ public class SlaveMain {
       SlaveMain.class.getName() + ".fireRunnerFailure";
 
   /**
+   * Delay the initial bootstrap event from the forked JVM 
+   * (used in tests).
+   */
+  public static final String SYSPROP_FORKEDJVM_DELAY_MS =
+      "junit4.tests.internal.initialDelayMs";
+
+  /**
    * Event sink.
    */
   private final Serializer serializer;
@@ -333,6 +340,12 @@ public class SlaveMain {
       if (eventsFile == null) {
         throw new IOException("You must specify communication channel for events.");
       }
+
+      // Delay the forked JVM a bit (for tests).
+      if (System.getProperty(SYSPROP_FORKEDJVM_DELAY_MS) != null) {
+        Thread.sleep(Integer.parseInt(System.getProperty(SYSPROP_FORKEDJVM_DELAY_MS)));
+      }
+      
       // Send bootstrap package.
       serializer = new Serializer(new EventsOutputStream(eventsFile))
         .serialize(new BootstrapEvent())
