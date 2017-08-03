@@ -70,7 +70,7 @@
     <version.assertj>2.2.0</version.assertj>
 
     <version.maven-antrun-plugin>1.8</version.maven-antrun-plugin>
-    <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
+    <version.maven-enforcer-plugin>3.0.0-M1</version.maven-enforcer-plugin>
     <version.maven-clean-plugin>3.0.0</version.maven-clean-plugin>
     <version.maven-javadoc-plugin>2.10.4</version.maven-javadoc-plugin>
     <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>

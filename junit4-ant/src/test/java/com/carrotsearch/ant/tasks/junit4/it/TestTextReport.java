@@ -32,7 +32,9 @@ public class TestTextReport extends JUnit4XmlTestBase {
   @Test 
   public void reasonForIgnoredByDisabledGroup() {
     super.executeTarget("reasonForIgnoredByDisabledGroup");
-    assertLogContains("(@DisabledGroup(value=foo bar))");
+    String log = getLog();
+    Assert.assertTrue(log.contains("(@DisabledGroup(value=foo bar))") ||
+                      log.contains("(@DisabledGroup(value=\"foo bar\"))"));
   }
 
 	@Test 
@@ -103,8 +105,7 @@ public class TestTextReport extends JUnit4XmlTestBase {
   public void filtertrace_custom() {
     super.executeTarget("filtertrace_custom");
 
-    assertLogContains("at sun.reflect.");
-    assertLogContains("at java.lang.reflect.Method");
+    assertLogContains("java.lang.reflect.Method");
     assertLogDoesNotContain("at org.junit.");
     assertLogDoesNotContain(".SlaveMain.");
   }

@@ -127,7 +127,7 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
     }
   }
 
-  @Test
+  @Test @org.junit.Ignore
   public void testJava9Jigsaw() {
     // check if we have Java 9 module system:
     try {
