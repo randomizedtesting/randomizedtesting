@@ -5,7 +5,7 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.5.3-SNAPSHOT ====================
+======================= randomizedtesting 2.5.3 ====================
 
 Bug Fixes
 
