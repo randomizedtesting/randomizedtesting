@@ -20,7 +20,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -68,8 +67,8 @@ import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
 import com.carrotsearch.randomizedtesting.annotations.TestCaseInstanceProvider;
 import com.carrotsearch.randomizedtesting.annotations.TestCaseOrdering;
-import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
 import com.carrotsearch.randomizedtesting.annotations.TestContextRandomSupplier;
+import com.carrotsearch.randomizedtesting.annotations.TestMethodProviders;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakAction;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakFilters;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakGroup;
@@ -247,12 +246,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** Class suite description. */
   private Description suiteDescription;
 
-  /** Applies filters to suite classes. */
-  private List<Filter> suiteFilters = new ArrayList<Filter>();
-
-  /** Applies filters to test cases. */
-  private List<Filter> testFilters = new ArrayList<Filter>();
-
   /**
    * All tests are executed under a specified thread group so that we can have some control
    * over how many threads have been started/ stopped. System daemons shouldn't be under
@@ -393,6 +386,19 @@ public final class RandomizedRunner extends Runner implements Filterable {
       suiteDescription = Description.createSuiteDescription(suiteClass);
       testCandidates = collectTestCandidates(suiteDescription);
       this.groupEvaluator = new GroupEvaluator(testCandidates);
+
+      // GH-251: Apply suite and test filters early so that the returned Description gets updated.
+      if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD())) != null) {
+        filter(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD())));
+      }
+      
+      if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS())) != null) {
+        Filter suiteFilter = new ClassGlobFilter(System.getProperty(SYSPROP_TESTCLASS()));
+        if (!suiteFilter.shouldRun(suiteDescription)) {
+          suiteDescription.getChildren().clear();
+          testCandidates.clear();
+        }
+      }
     } catch (Throwable t) {
       throw new InitializationError(t);
     }
@@ -444,7 +450,37 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @Override
   public void filter(Filter filter) throws NoTestsRemainException {
-    this.testFilters.add(filter);
+    // Apply the filter to test candidates.
+    testCandidates = applyFilters(suiteClass, testCandidates, Collections.singleton(filter));
+
+    // Prune any removed tests from the already created Descriptions
+    // and prune any empty resulting suites. 
+    Set<Description> descriptions = Collections.newSetFromMap(new IdentityHashMap<Description, Boolean>());
+    for (TestCandidate tc : testCandidates) {
+      descriptions.add(tc.description);
+    }
+
+    prune(suiteDescription, descriptions);
+  }
+
+  private static void prune(Description suite, Set<Description> permitted) {
+    if (suite.isSuite()) {
+      ArrayList<Description> children = suite.getChildren();
+      ArrayList<Description> retained = new ArrayList<>(children.size());
+      for (Description child : children) {
+        if (child.isSuite()) {
+          prune(child, permitted);
+          if (!child.getChildren().isEmpty()) {
+            retained.add(child);
+          }
+        } else if (permitted.contains(child)) {
+          retained.add(child);
+        }
+      }
+
+      children.clear();
+      children.addAll(retained);
+    }
   }
 
   /**
@@ -475,14 +511,6 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   private void processSystemProperties() {
-    if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS())) != null) {
-      suiteFilters.add(new ClassGlobFilter(System.getProperty(SYSPROP_TESTCLASS())));
-    }
-    
-    if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD())) != null) {
-      testFilters.add(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD())));
-    }
-
     try {
       String jvmCount = System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT);
       String jvmId = System.getProperty(SysGlobals.CHILDVM_SYSPROP_JVM_ID);
@@ -654,11 +682,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
       }
 
-      // Filter out test candidates to see if there's anything left.
-      // If not, don't bother running class hooks.
-      final List<TestCandidate> tests = getFilteredTestCandidates(notifier);
+      final List<TestCandidate> tests = testCandidates;
       if (!tests.isEmpty()) {
         Map<TestCandidate, Boolean> ignored = determineIgnoredTests(tests);
+
         if (ignored.size() == tests.size()) {
           // All tests ignored, ignore class hooks but report all the ignored tests.
           for (TestCandidate c : tests) {
@@ -1134,24 +1161,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
       notifier.removeListener(r);
   }
 
-  /**
-   * Apply filtering to candidates.
-   */
-  private List<TestCandidate> getFilteredTestCandidates(RunNotifier notifier) {
-    // Apply suite filters.
-    if (!suiteFilters.isEmpty()) {
-      for (Filter f : suiteFilters) {
-        if (!f.shouldRun(suiteDescription)) {
-          return Collections.emptyList();
-        }
-      }
-    }
-
-    // Apply method filters.
-    final List<TestCandidate> filtered = new ArrayList<TestCandidate>(testCandidates);
-    if (!testFilters.isEmpty()) {
-      for (Iterator<TestCandidate> i = filtered.iterator(); i.hasNext(); ) {
-        final TestCandidate candidate = i.next();
+  private static List<TestCandidate> applyFilters(Class<?> suiteClass, 
+                                                  List<TestCandidate> testCandidates, 
+                                                  Collection<Filter> testFilters) {
+    final List<TestCandidate> filtered;
+    if (testFilters.isEmpty()) {
+      filtered = new ArrayList<TestCandidate>(testCandidates);
+    } else {
+      filtered = new ArrayList<>(testCandidates.size());
+      for (TestCandidate candidate : testCandidates) {
+        boolean shouldRun = true;
         for (Filter f : testFilters) {
           // Inquire for both full description (possibly with parameters and seed)
           // and simplified description (just method name).
@@ -1160,13 +1179,16 @@ public final class RandomizedRunner extends Runner implements Filterable {
                   suiteClass, candidate.method.getName()))) {
             continue;
           }
-  
-          i.remove();
+
+          shouldRun = false;
           break;
+        }
+
+        if (shouldRun) {
+          filtered.add(candidate);
         }
       }
     }
-
     return filtered;
   }
 
@@ -1405,7 +1427,9 @@ public final class RandomizedRunner extends Runner implements Filterable {
         }
 
         if (!formattedArguments.trim().isEmpty()) {
-          formattedArguments = " {" + formattedArguments + "}";
+          // GH-253: IntelliJ only recognizes test names for re-runs when " [...]" is used...
+          // Leave for now (backward compat?)
+          formattedArguments = " {" + formattedArguments.trim() + "}";
         }
 
         Description description = Description.createSuiteDescription(
