@@ -224,6 +224,7 @@
               <inclusion>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
+                <filter>!module-info.class</filter>
               </inclusion>
               <inclusion>
                 <groupId>org.simpleframework</groupId>
