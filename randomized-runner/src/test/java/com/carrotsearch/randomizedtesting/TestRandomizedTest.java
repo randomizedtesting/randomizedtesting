@@ -146,14 +146,20 @@ public class TestRandomizedTest extends RandomizedTest {
   }
 
   @Test
-  public void testRandomTimeZone() {
-    final String[] availableIDs = TimeZone.getAvailableIDs();
-    Arrays.sort(availableIDs);
-    for (String id : availableIDs) {
-      assertNotNull(id);
-      if (TimeZone.getTimeZone(id) == null) {
-        fail("getTimeZone null: " + id);
+  public void testRandomTimeZone() throws Exception {
+    try {
+      final String[] availableIDs = TimeZone.getAvailableIDs();
+      Arrays.sort(availableIDs);
+      for (String id : availableIDs) {
+        assertNotNull(id);
+        if (TimeZone.getTimeZone(id) == null) {
+          fail("getTimeZone null: " + id);
+        }
       }
+    } catch (Exception e) {
+      System.out.println("Wtf.");
+      e.printStackTrace();
+      throw e;
     }
 
     assertNotNull(randomTimeZone());
