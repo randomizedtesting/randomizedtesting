@@ -7,6 +7,10 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.5.4-SNAPSHOT ====================
 
+Bug Fixes
+
+  * TimeZone.getAvailableIDs() can throw an NPE on JDK 1.7 and modern systems.
+
 ======================= randomizedtesting 2.5.3 ====================
 
 Bug Fixes

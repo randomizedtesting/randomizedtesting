@@ -533,7 +533,14 @@ public class RandomizedTest {
    * tests execute in a different way.</p>
    */
   public static TimeZone randomTimeZone() {
-    final String[] availableIDs = TimeZone.getAvailableIDs();
+    final String[] availableIDs;
+    try {
+      availableIDs = TimeZone.getAvailableIDs();
+    } catch (NullPointerException e) {
+      // If it's Java 1.7, it's a known bug, just dodge the problem.
+      return TimeZone.getDefault();
+    }
+
     Arrays.sort(availableIDs);
     return TimeZone.getTimeZone(randomFrom(availableIDs));
   }
