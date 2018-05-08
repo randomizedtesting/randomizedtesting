@@ -1,7 +1,7 @@
 
 <project default="test" xmlns:junit4="antlib:com.carrotsearch.junit4">
     <presetdef name="javac">
-        <javac deprecation="false" debug="true" target="1.7" source="1.7" encoding="UTF-8" includeantruntime="false" />
+        <javac deprecation="false" debug="true" encoding="UTF-8" includeantruntime="false" />
     </presetdef>
 
     <property name="tmp.dir" location="${basedir}/target" />
