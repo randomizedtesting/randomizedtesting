@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.Arrays;
 
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
@@ -145,6 +147,15 @@ public class TestRandomizedTest extends RandomizedTest {
 
   @Test
   public void testRandomTimeZone() {
+    final String[] availableIDs = TimeZone.getAvailableIDs();
+    Arrays.sort(availableIDs);
+    for (String id : availableIDs) {
+      assertNotNull(id);
+      if (TimeZone.getTimeZone(id) == null) {
+        fail("getTimeZone null: " + id);
+      }
+    }
+
     assertNotNull(randomTimeZone());
   }
 
