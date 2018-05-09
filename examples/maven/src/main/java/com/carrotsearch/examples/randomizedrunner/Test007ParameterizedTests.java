@@ -48,7 +48,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
  * <p>{@link ParametersFactory} can be combined with other annotations such as 
  * {@link Repeat} or {@link Seeds} as shown in {@link #paramsWithRepeatAndSeeds()}.
  * 
- * <p>Note that {@link ParametersFactory#argumentFormatting()} permits custom 
+ * <p>Note that {@code ParametersFactory.argumentFormatting()} permits custom 
  * test case naming, see the example factory in this class.
  */
 public class Test007ParameterizedTests extends RandomizedTest {
