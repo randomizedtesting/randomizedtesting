@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import com.carrotsearch.ant.tasks.junit4.runlisteners.UserDefinedRunListeners;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
@@ -245,12 +246,23 @@ public class SlaveMain {
         try {
           Runner runner = request.getRunner();
           methodFilter.apply(runner);
+
+          // New RunListener instances should be added per class and then removed from the RunNotifier
+          ArrayList<RunListener> runListenerInstances = UserDefinedRunListeners.generateInstances();
+
+          for(RunListener runListener : runListenerInstances) {
+            fNotifier.addListener(runListener);
+          }
   
           fNotifier.fireTestRunStarted(runner.getDescription());
           debug(debug, "Runner.run(" + clName + ")");
           runner.run(fNotifier);
           debug(debug, "Runner.done(" + clName + ")");
           fNotifier.fireTestRunFinished(result);
+
+          for(RunListener runListener : runListenerInstances) {
+            fNotifier.removeListener(runListener);
+          }
         } catch (NoTestsRemainException e) {
           // Don't complain if all methods have been filtered out. 
           // I don't understand the reason why this exception has been
