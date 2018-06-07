@@ -326,6 +326,13 @@ public class JUnit4Mojo extends AbstractMojo {
   private PlexusConfiguration listeners;
 
   /**
+   * Raw runListeners configuration. Same XML as for ANT.
+   */
+  @Parameter
+  private PlexusConfiguration runListeners;
+
+
+  /**
    * Raw assertions configuration. Same XML as for ANT.
    */
   @Parameter
@@ -665,6 +672,9 @@ public class JUnit4Mojo extends AbstractMojo {
         
         consoleReport.addAttribute("showSuiteSummary",  "true");
     }
+
+    // Copy over runlisteners
+    appendRawXml(runListeners, junit4);
 
     // Copy over assertions
     appendRawXml(assertions, junit4);

@@ -47,6 +47,11 @@
         name="report-execution-times" 
         classname="com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport" />
 
+    <!-- RunListeners -->
+    <typedef
+        name="run-listener"
+        classname="com.carrotsearch.ant.tasks.junit4.runlisteners.UserDefinedRunListener" />
+
     <!-- Misc data types -->
     <typedef
         name="duplicate"

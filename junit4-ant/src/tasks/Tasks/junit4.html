@@ -484,8 +484,6 @@ description in the <a href="http://ant.apache.org/manual/Tasks/exec.html#env">ex
 <p>You can control enablement of Java 1.4 assertions with an
 <a href="http://ant.apache.org/manual/Types/assertions.html"><tt>&lt;assertions&gt;</tt></a>
 subelement.</p>
- 
-
 
 <h3>listeners and reports</h3>
 
@@ -605,7 +603,26 @@ an accompanying HTML5 file for visualizing it:</p>
 ');
 </script></pre>
 
-<p>An example of a HTML5 report produced by the above can be seen <a href="http://builds.carrot2.org/browse/C2HEAD-SOURCES/latest/artifact/JOB1/JUnit-Test-Report/index.html">here</a>, for example. 
+<p>An example of a HTML5 report produced by the above can be seen <a href="http://builds.carrot2.org/browse/C2HEAD-SOURCES/latest/artifact/JOB1/JUnit-Test-Report/index.html">here</a>, for example.
+
+<h3>runlisteners</h3>
+
+<p>You can attach custom JUnit 4 RunListeners to your tests like this: </p>
+
+<pre id="snippet-7" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-7", '\
+<junit4>                                                                                  \n\
+                                                                      \n\
+  <!-- configure suites and classpaths of course -->                  \n\
+                                                                      \n\
+  <runlisteners>                                                                          \n\
+    <junit4:run-listener className="com.company.RunListener1" />                                  \n\
+    <junit4:run-listener className="com.company.RunListener2" />                                  \n\
+  </runlisteners>                                                                         \n\
+</junit4>                                                                                 \n\
+');
+</script></pre>
+
+<p>Each RunListener defined is added to each class before execution and removed after</p>
 
 <h3>Load balancing of test suites</h3>
 
@@ -618,7 +635,7 @@ executions so that they average the influence of the environment etc.</p>
 both the listener and a balancer configuration. The balancer uses multiple sources for collecting
 statistics (for example precomputed statistics and previous local runs):</p>
 
-<pre id="snippet-7" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-7", '\
+<pre id="snippet-8" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-8", '\
 <junit4>                                                              \n\
                                                                       \n\
   <!-- configure suites and classpaths of course -->                  \n\
@@ -650,7 +667,7 @@ by the JVM, bypassing System.out or System.err substitutions.</p>
 mixed with what the tests have printed), junit4 can be configured to leave the original
 streams on disk or pipe them to ANT's output. An example is shown below:</p> 
 
-<pre id="snippet-8" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-8", '\
+<pre id="snippet-9" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-9", '\
 <junit4 sysouts="true" jvmoutputaction="pipe,ignore"> \n\
                                                                       \n\
   <!-- configure suites and classpaths of course -->                  \n\
@@ -662,7 +679,7 @@ streams on disk or pipe them to ANT's output. An example is shown below:</p>
 <p>Should one need to preserve the original output files (in case they are large, for example),
 the configuration would then look as follows:</p>
 
-<pre id="snippet-9" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-9", '\
+<pre id="snippet-10" class="prettyprint lang-xml"><script type="text/javascript">appendText("snippet-10", '\
 <junit4 sysouts="true" jvmoutputaction="warn"> \n\
                                                                       \n\
   <!-- configure suites and classpaths of course -->                  \n\
