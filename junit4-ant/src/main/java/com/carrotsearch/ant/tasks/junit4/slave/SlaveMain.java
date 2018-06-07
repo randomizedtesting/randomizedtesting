@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.carrotsearch.ant.tasks.junit4.runlisteners.UserDefinedRunListeners;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
@@ -104,6 +103,11 @@ public class SlaveMain {
   public static final String OPTION_DEBUGSTREAM = "-debug";
 
   /**
+   * UserDefinedRunListeners defined the Junit4 XML
+   */
+  public static final String OPTION_USERDEFINEDRUNLISTENERS = "-userDefinedRunListeners";
+
+  /**
    * Fire a runner failure after startup to verify messages
    * are propagated properly. Not really useful in practice...
    */
@@ -130,7 +134,10 @@ public class SlaveMain {
 
   /** Debug stream to flush progress information to. */
   private File debugMessagesFile;
-  
+
+  /** List of RunListener classes */
+  private String userDefinedRunListeners;
+
   /** 
    * Multiplex calls to System streams to both event stream
    * and the original streams?
@@ -248,7 +255,7 @@ public class SlaveMain {
           methodFilter.apply(runner);
 
           // New RunListener instances should be added per class and then removed from the RunNotifier
-          ArrayList<RunListener> runListenerInstances = UserDefinedRunListeners.generateInstances();
+          ArrayList<RunListener> runListenerInstances = generateInstances();
 
           for(RunListener runListener : runListenerInstances) {
             fNotifier.addListener(runListener);
@@ -321,6 +328,7 @@ public class SlaveMain {
       File  eventsFile = null;
       boolean suitesOnStdin = false;
       List<String> testClasses = new ArrayList<>();
+      String userDefinedRunListeners = null;
 
       while (!args.isEmpty()) {
         String option = args.pop();
@@ -337,6 +345,8 @@ public class SlaveMain {
             raf.setLength(0);
             raf.close();
           }
+        } else if (option.equals(OPTION_USERDEFINEDRUNLISTENERS)) {
+          userDefinedRunListeners = args.pop();
         } else if (option.startsWith(OPTION_DEBUGSTREAM)) {
           debugStream = true;
         } else if (option.startsWith("@")) {
@@ -369,6 +379,7 @@ public class SlaveMain {
       final SlaveMain main = new SlaveMain(serializer);
       main.flushFrequently = flushFrequently;
       main.debugMessagesFile = debugStream ? new File(eventsFile.getAbsolutePath() + ".debug"): null;
+      main.userDefinedRunListeners = userDefinedRunListeners;
 
       final Iterator<String> stdInput;
       if (suitesOnStdin) { 
@@ -520,5 +531,22 @@ public class SlaveMain {
       // Can't do anything, really. Probably an OOM?
       w.println("ERROR: Couldn't even serialize a warning.");
     }
+  }
+
+  /**
+   * Generates JUnit 4 RunListener instances for any user defined RunListeners
+   */
+  private ArrayList<RunListener> generateInstances() throws Exception {
+    ArrayList<RunListener> instances = new ArrayList<>();
+
+    if(userDefinedRunListeners != null) {
+      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+      for (String className : Arrays.asList(userDefinedRunListeners.split(","))) {
+        instances.add(RunListener.class.cast(classLoader.loadClass(className).newInstance()));
+      }
+    }
+
+    return instances;
   }
 }

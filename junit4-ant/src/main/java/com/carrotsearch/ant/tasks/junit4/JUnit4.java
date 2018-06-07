@@ -933,13 +933,6 @@ public class JUnit4 extends Task {
       aggregatedBus.register(o);
     }
 
-    // Create System property if there are any user defined RunListeners
-    if(!runListeners.isEmpty()) {
-      String classNames = runListeners.stream().map(x -> x.getClassName()).collect(Collectors.joining(","));
-
-      createJvmarg().setValue("-DuserDefinedRunListeners=" + classNames);
-    }
-
     if (testCollection.testClasses.isEmpty()) {
       aggregatedBus.post(new AggregatedQuitEvent());
     } else {
@@ -1432,6 +1425,14 @@ public class JUnit4 extends Task {
     }
 
     InputStream eventStream = new TailInputStream(eventFile);
+
+    // Process userDefinedRunListeners.  Only add argument if userDefinedRunListeners were defined
+    if (!runListeners.isEmpty()) {
+      String classNames = runListeners.stream().map(x -> x.getClassName()).collect(Collectors.joining(","));
+
+      commandline.createArgument().setValue(SlaveMain.OPTION_USERDEFINEDRUNLISTENERS);
+      commandline.createArgument().setValue(classNames);
+    }
 
     // Set up input suites file.
     commandline.createArgument().setValue("@" + classNamesFile.toAbsolutePath().normalize());
