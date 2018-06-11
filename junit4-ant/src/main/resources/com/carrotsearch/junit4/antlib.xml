@@ -50,7 +50,7 @@
     <!-- RunListeners -->
     <typedef
         name="run-listener"
-        classname="com.carrotsearch.ant.tasks.junit4.runlisteners.UserDefinedRunListener" />
+        classname="com.carrotsearch.ant.tasks.junit4.runlisteners.RunListenerClass" />
 
     <!-- Misc data types -->
     <typedef

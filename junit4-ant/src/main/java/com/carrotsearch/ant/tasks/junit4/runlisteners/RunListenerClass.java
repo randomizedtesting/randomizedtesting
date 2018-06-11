@@ -1,7 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4.runlisteners;
 
-public class UserDefinedRunListener {
-    private String className = null;
+public final class RunListenerClass {
+    private String className;
 
     public String getClassName() {
         return className.trim();

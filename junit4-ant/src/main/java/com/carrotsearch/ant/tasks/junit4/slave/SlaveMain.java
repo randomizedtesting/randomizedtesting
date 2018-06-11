@@ -103,9 +103,9 @@ public class SlaveMain {
   public static final String OPTION_DEBUGSTREAM = "-debug";
 
   /**
-   * UserDefinedRunListeners defined the Junit4 XML
+   * User-defined RunListener classes.
    */
-  public static final String OPTION_USERDEFINEDRUNLISTENERS = "-userDefinedRunListeners";
+  public static final String OPTION_RUN_LISTENERS = "-runListeners";
 
   /**
    * Fire a runner failure after startup to verify messages
@@ -136,7 +136,7 @@ public class SlaveMain {
   private File debugMessagesFile;
 
   /** List of RunListener classes */
-  private String userDefinedRunListeners;
+  private String runListeners;
 
   /** 
    * Multiplex calls to System streams to both event stream
@@ -255,19 +255,18 @@ public class SlaveMain {
           methodFilter.apply(runner);
 
           // New RunListener instances should be added per class and then removed from the RunNotifier
-          ArrayList<RunListener> runListenerInstances = generateInstances();
-
-          for(RunListener runListener : runListenerInstances) {
+          ArrayList<RunListener> runListenerInstances = instantiateRunListeners();
+          for (RunListener runListener : runListenerInstances) {
             fNotifier.addListener(runListener);
           }
-  
+
           fNotifier.fireTestRunStarted(runner.getDescription());
           debug(debug, "Runner.run(" + clName + ")");
           runner.run(fNotifier);
           debug(debug, "Runner.done(" + clName + ")");
           fNotifier.fireTestRunFinished(result);
 
-          for(RunListener runListener : runListenerInstances) {
+          for (RunListener runListener : runListenerInstances) {
             fNotifier.removeListener(runListener);
           }
         } catch (NoTestsRemainException e) {
@@ -328,7 +327,7 @@ public class SlaveMain {
       File  eventsFile = null;
       boolean suitesOnStdin = false;
       List<String> testClasses = new ArrayList<>();
-      String userDefinedRunListeners = null;
+      String runListeners = null;
 
       while (!args.isEmpty()) {
         String option = args.pop();
@@ -345,8 +344,8 @@ public class SlaveMain {
             raf.setLength(0);
             raf.close();
           }
-        } else if (option.equals(OPTION_USERDEFINEDRUNLISTENERS)) {
-          userDefinedRunListeners = args.pop();
+        } else if (option.equals(OPTION_RUN_LISTENERS)) {
+          runListeners = args.pop();
         } else if (option.startsWith(OPTION_DEBUGSTREAM)) {
           debugStream = true;
         } else if (option.startsWith("@")) {
@@ -379,7 +378,7 @@ public class SlaveMain {
       final SlaveMain main = new SlaveMain(serializer);
       main.flushFrequently = flushFrequently;
       main.debugMessagesFile = debugStream ? new File(eventsFile.getAbsolutePath() + ".debug"): null;
-      main.userDefinedRunListeners = userDefinedRunListeners;
+      main.runListeners = runListeners;
 
       final Iterator<String> stdInput;
       if (suitesOnStdin) { 
@@ -536,14 +535,12 @@ public class SlaveMain {
   /**
    * Generates JUnit 4 RunListener instances for any user defined RunListeners
    */
-  private ArrayList<RunListener> generateInstances() throws Exception {
+  private ArrayList<RunListener> instantiateRunListeners() throws Exception {
     ArrayList<RunListener> instances = new ArrayList<>();
 
-    if(userDefinedRunListeners != null) {
-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
-      for (String className : Arrays.asList(userDefinedRunListeners.split(","))) {
-        instances.add(RunListener.class.cast(classLoader.loadClass(className).newInstance()));
+    if (runListeners != null) {
+      for (String className : Arrays.asList(runListeners.split(","))) {
+        instances.add((RunListener) this.instantiate(className).newInstance());
       }
     }
 

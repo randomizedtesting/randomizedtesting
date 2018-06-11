@@ -7,6 +7,10 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.6.2-SNAPSHOT ====================
 
+New Features
+
+  * GH-261: Ant and Maven runner can specify external JUnit 4 RunListeners.
+    (Steven Zaluk)
 
 ======================= randomizedtesting 2.6.1 ====================
 
