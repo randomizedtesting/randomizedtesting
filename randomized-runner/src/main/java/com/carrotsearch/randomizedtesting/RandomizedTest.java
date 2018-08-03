@@ -158,6 +158,7 @@ public class RandomizedTest {
   /** 
    * A random integer from 0..max (inclusive). 
    */
+  @Deprecated
   public static int randomInt(int max) {
     return RandomNumbers.randomIntBetween(getRandom(), 0, max);
   }
@@ -165,6 +166,7 @@ public class RandomizedTest {
   /** 
    * A random long from 0..max (inclusive). 
    */
+  @Deprecated
   public static long randomLong(long max) {
     return RandomNumbers.randomLongBetween(getRandom(), 0, max);
   }

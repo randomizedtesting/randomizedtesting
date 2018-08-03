@@ -29,7 +29,7 @@ public class OutOfOrderSysouts extends RandomizedTest {
 
   @Before
   public void before() {
-    sleep(1 + randomInt(20));
+    sleep(1 + randomIntBetween(0, 20));
   }
   
   @AfterClass

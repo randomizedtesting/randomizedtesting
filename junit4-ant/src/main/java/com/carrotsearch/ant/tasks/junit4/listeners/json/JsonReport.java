@@ -1,16 +1,16 @@
 package com.carrotsearch.ant.tasks.junit4.listeners.json;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import com.google.common.io.Files;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
@@ -25,7 +25,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.io.Files;
 import com.google.common.io.Resources;
 
 /**
@@ -33,7 +32,7 @@ import com.google.common.io.Resources;
  */
 public class JsonReport implements AggregatedEventListener {
   private JUnit4 junit4;
-  private File targetFile;
+  private Path targetFile;
 
   private String jsonpMethod;
   private JsonWriter jsonWriter;
@@ -41,7 +40,7 @@ public class JsonReport implements AggregatedEventListener {
   private String projectName;
   
   private Map<Integer, ForkedJvmInfo> slaves = new TreeMap<>();
-  private OutputStreamWriter writer;
+  private Writer writer;
 
   private static enum OutputMethod {
     JSON,
@@ -79,7 +78,7 @@ public class JsonReport implements AggregatedEventListener {
         method = OutputMethod.JSON;
       }
     }
-    this.targetFile = file;
+    this.targetFile = file.toPath();
   }
 
   /**
@@ -133,15 +132,14 @@ public class JsonReport implements AggregatedEventListener {
     }
     
     try {
-      Files.createParentDirs(targetFile);
+      java.nio.file.Files.createDirectories(targetFile);
 
-      File jsonFile = targetFile;
+      Path jsonFile = targetFile;
       if (method == OutputMethod.HTML) {
-        jsonFile = new File(removeExtension(targetFile.getAbsolutePath()) + ".jsonp");
+        jsonFile = Paths.get(removeExtension(targetFile.toAbsolutePath().toString()) + ".jsonp");
       }
 
-      writer = new OutputStreamWriter(
-          new BufferedOutputStream(new FileOutputStream(jsonFile)),Charsets.UTF_8);
+      writer = java.nio.file.Files.newBufferedWriter(jsonFile, StandardCharsets.UTF_8);
       
       if (!Strings.isNullOrEmpty(jsonpMethod)) {
         writer.write(jsonpMethod);
@@ -172,8 +170,9 @@ public class JsonReport implements AggregatedEventListener {
   }
 
   private String removeExtension(String name) {
-    if (name.indexOf(".") > 0) {
-      name = name.substring(0, name.lastIndexOf("."));
+    int idx = name.lastIndexOf('.');
+    if (idx > 0) {
+      name = name.substring(0, idx);
     }
     return name;
   }
@@ -261,10 +260,10 @@ public class JsonReport implements AggregatedEventListener {
   /**
    * Copy HTML/JS/CSS scaffolding to a targetFile's directory.
    */
-  private void copyScaffolding(File targetFile) throws IOException {
+  private void copyScaffolding(Path target) throws IOException {
     String resourcePrefix = "com/carrotsearch/ant/tasks/junit4/templates/json/";
 
-    File parent = targetFile.getParentFile();
+    Path parent = target.getParent();
 
     // Handle index.html substitutitons.
     ClassLoader cl = this.getClass().getClassLoader();
@@ -272,9 +271,10 @@ public class JsonReport implements AggregatedEventListener {
         Resources.toString(
             cl.getResource(resourcePrefix + "index.html"), Charsets.UTF_8);
     index = index.replaceAll(Pattern.quote("tests-output.jsonp"),
-        removeExtension(targetFile.getName()) + ".jsonp");
-    Files.write(index, targetFile, Charsets.UTF_8);
-    
+        removeExtension(target.getFileName().toString()) + ".jsonp");
+
+    java.nio.file.Files.write(target, index.getBytes(StandardCharsets.UTF_8));
+
     // Copy over the remaining files. This is hard coded but scanning a JAR seems like an overkill.
     String [] resources = {
         "js/jquery-1.7.1.min.js",
@@ -293,15 +293,14 @@ public class JsonReport implements AggregatedEventListener {
     };
 
     for (String resource : resources) {
-      File target = new File(parent, resource);
-      if (!target.getParentFile().exists()) {
-        target.getParentFile().mkdirs();
-      }
+      Path file = parent.resolve(resource);
+      java.nio.file.Files.createDirectories(file.getParent());
+
       URL res = cl.getResource(resourcePrefix + resource);
       if (res == null) {
         throw new IOException("Could not find the required report resource: " + resource);
       }
-      Files.write(Resources.toByteArray(res), target); 
+      java.nio.file.Files.write(file, Resources.toByteArray(res));
     }
   }
 }

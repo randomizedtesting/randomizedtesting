@@ -5,6 +5,12 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
+======================= randomizedtesting 2.6.4 ====================
+
+Changes in Backwards Compatibility
+
+  * GH-265: Deprecate RandomizedTest.randomInt(v) and RandomizedTest.randomLong(v).
+
 ======================= randomizedtesting 2.6.3 ====================
 
 Bug Fixes

@@ -27,7 +27,7 @@ public abstract class StringGeneratorTestBase extends RandomizedTest {
   @Test @Repeat(iterations = 10)
   public void checkRandomCodePointLength() {
     int from = iterationFix(randomIntBetween(1, 100));
-    int to = from + randomInt(100);
+    int to = from + randomIntBetween(0, 100);
 
     String s = generator.ofCodePointsLength(getRandom(), from, to);
     int codepoints = s.codePointCount(0, s.length());
@@ -46,7 +46,7 @@ public abstract class StringGeneratorTestBase extends RandomizedTest {
   @Test @Repeat(iterations = 10)
   public void checkRandomCodeUnitLength() {
     int from = iterationFix(randomIntBetween(1, 100));
-    int to = from + randomInt(100);
+    int to = from + randomIntBetween(0, 100);
 
     String s = generator.ofCodeUnitsLength(getRandom(), from, to);
     int codeunits = s.length();
