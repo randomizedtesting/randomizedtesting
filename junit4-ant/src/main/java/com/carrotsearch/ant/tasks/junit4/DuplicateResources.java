@@ -12,6 +12,7 @@ import org.apache.tools.ant.types.ResourceCollection;
  * Duplicate nested resources N times. Useful for running
  * suites multiple times with load balancing.
  */
+@SuppressWarnings("rawtypes")
 public class DuplicateResources extends DataType implements ResourceCollection {
   private final List<ResourceCollection> rcs = new ArrayList<ResourceCollection>();
   private int times; 
@@ -27,16 +28,17 @@ public class DuplicateResources extends DataType implements ResourceCollection {
     this.times = times;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public Iterator<Resource> iterator() {
+  public Iterator iterator() {
     return getElements().iterator();
   }
 
-  private List<Resource> getElements() {
-    List<Resource> elements = new ArrayList<Resource>();
+  private List<Object> getElements() {
+    List<Object> elements = new ArrayList<Object>();
     for (ResourceCollection rc : rcs) {
-      for (Iterator<Resource> i = rc.iterator(); i.hasNext();) {
-        final Resource o = i.next();
+      for (Iterator i = rc.iterator(); i.hasNext();) {
+        final Object o = i.next();
         for (int t = 0; t < times; t++) {
           elements.add(o);
         }
