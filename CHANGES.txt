@@ -13,6 +13,12 @@ Bug Fixes
 
   * GH-267: Project does not build/ test on Java 11
 
+Improvements
+
+  * GH-253: IntelliJ only recognizes proper test methods for re-runs
+    when descriptions have " [...]" instead of " {...}. This fix uses square
+    brackets on IntelliJ runner.
+
 Changes in Backwards Compatibility
 
   * GH-265: Deprecate RandomizedTest.randomInt(v) and RandomizedTest.randomLong(v).

@@ -1429,7 +1429,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (!formattedArguments.trim().isEmpty()) {
           // GH-253: IntelliJ only recognizes test names for re-runs when " [...]" is used...
           // Leave for now (backward compat?)
-          formattedArguments = " {" + formattedArguments.trim() + "}";
+          if (containerRunner == RunnerContainer.IDEA) {
+            formattedArguments = " [" + formattedArguments.trim() + "]";
+          } else {
+            formattedArguments = " {" + formattedArguments.trim() + "}";
+          }
         }
 
         Description description = Description.createSuiteDescription(
