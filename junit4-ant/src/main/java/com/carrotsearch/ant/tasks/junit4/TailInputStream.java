@@ -14,9 +14,9 @@ class TailInputStream extends InputStream {
   /** How long to sleep (millis) before checking for updates? */
   private static final long TAIL_CHECK_DELAY = 250;
 
-  private RandomAccessFile raf;
-
+  private final RandomAccessFile raf;
   private volatile boolean closed;
+  private volatile boolean complete;
 
   public TailInputStream(Path file) throws FileNotFoundException {
     this.raf = new RandomAccessFile(file.toFile(), "r");
@@ -29,6 +29,9 @@ class TailInputStream extends InputStream {
     try {
       int c;
       while ((c = raf.read()) == -1) {
+        if (complete) {
+          return -1; // EOF;
+        }
         try {
           Thread.sleep(TAIL_CHECK_DELAY);
         } catch (InterruptedException e) {
@@ -61,6 +64,10 @@ class TailInputStream extends InputStream {
       if (rafRead == -1) {
         // If nothing in the buffer, wait.
         do {
+          if (complete) {
+            return -1; // EOF;
+          }
+
           try {
             Thread.sleep(TAIL_CHECK_DELAY);
           } catch (InterruptedException e) {
@@ -91,5 +98,13 @@ class TailInputStream extends InputStream {
   public void close() throws IOException {
     closed = true;
     this.raf.close();
+  }
+
+  /**
+   * Changes the semantics of tailing so that from the moment of calling this method on,
+   * hitting an EOF on the tailed file will cause an EOF in read methods.
+   */
+  public void completeAtEnd() {
+    complete = true;
   }
 }

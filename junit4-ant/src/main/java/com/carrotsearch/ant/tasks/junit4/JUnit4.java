@@ -1424,7 +1424,7 @@ public class JUnit4 extends Task {
       commandline.createArgument().setValue(SlaveMain.OPTION_DEBUGSTREAM);
     }
 
-    InputStream eventStream = new TailInputStream(eventFile);
+    TailInputStream eventStream = new TailInputStream(eventFile);
 
     // Process user-defined RunListener classes.
     if (!runListeners.isEmpty()) {
@@ -1637,7 +1637,7 @@ public class JUnit4 extends Task {
   @SuppressForbidden("legitimate sysstreams.")
   private Execute forkProcess(ForkedJvmInfo slaveInfo, EventBus eventBus, 
       CommandlineJava commandline, 
-      InputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {
+      TailInputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {
     try {
       final LocalSlaveStreamHandler streamHandler = 
           new LocalSlaveStreamHandler(

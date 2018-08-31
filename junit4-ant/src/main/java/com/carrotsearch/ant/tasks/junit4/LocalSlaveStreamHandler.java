@@ -40,7 +40,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private OutputStreamWriter stdinWriter;
 
   private final PrintStream warnStream;
-  private final InputStream eventStream;
+  private final TailInputStream eventStream;
   
   private volatile boolean stopping;
 
@@ -53,7 +53,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private final OutputStream streamsBufferWrapper;
 
   public LocalSlaveStreamHandler(
-      EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, InputStream eventStream,
+      EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, TailInputStream eventStream,
       OutputStream sysout, OutputStream syserr, long heartbeat, final RandomAccessFile streamsBuffer) {
     this.eventBus = eventBus;
     this.warnStream = warnStream;
@@ -284,6 +284,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
       }
 
       // Wait for all stream pumpers.
+      eventStream.completeAtEnd();
       for (Thread t : pumpers) {
         t.join();
         t.interrupt();
