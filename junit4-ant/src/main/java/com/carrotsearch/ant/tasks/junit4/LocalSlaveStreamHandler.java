@@ -115,8 +115,8 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   public void start() throws IOException {
     lastActivity = System.currentTimeMillis();
 
-    pumpers.add(new Thread(new StreamPumper(stdout, sysout), "pumper-stdout"));
-    pumpers.add(new Thread(new StreamPumper(stderr, syserr), "pumper-stderr"));
+    pumpers.add(new Thread(new SimpleStreamPumper(stdout, sysout), "pumper-stdout"));
+    pumpers.add(new Thread(new SimpleStreamPumper(stderr, syserr), "pumper-stderr"));
     pumpers.add(new Thread("pumper-events") {
       public void run() {
         pumpEvents(eventStream);
@@ -231,6 +231,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
         try {
           switch (event.getType()) {
             case QUIT:
+              Thread.sleep(2000);
               eventBus.post(event);
               return;
 
@@ -283,10 +284,9 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
         watchdog.interrupt();
       }
 
-      // Terminate all other pumpers.
-      final int defaultDelay = 2000;
+      // Wait for all stream pumpers.
       for (Thread t : pumpers) {
-        t.join(defaultDelay);
+        t.join();
         t.interrupt();
       }
     } catch (InterruptedException e) {
