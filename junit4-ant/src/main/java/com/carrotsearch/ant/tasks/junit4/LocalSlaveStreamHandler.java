@@ -231,7 +231,6 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
         try {
           switch (event.getType()) {
             case QUIT:
-              Thread.sleep(2000);
               eventBus.post(event);
               return;
 
