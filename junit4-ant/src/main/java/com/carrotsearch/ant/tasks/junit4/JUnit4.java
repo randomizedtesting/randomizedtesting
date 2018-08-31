@@ -1824,7 +1824,7 @@ public class JUnit4 extends Task {
             final String REPLICATE_CLASS = "com.carrotsearch.randomizedtesting.annotations.ReplicateOnEachVm";
             final TestClass testClass = new TestClass();
             ClassReader reader = new ClassReader(is);
-            ClassVisitor annotationVisitor = new ClassVisitor(Opcodes.ASM5) {
+            ClassVisitor annotationVisitor = new ClassVisitor(Opcodes.ASM7_EXPERIMENTAL) {
               @Override
               public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 String className = Type.getType(desc).getClassName();

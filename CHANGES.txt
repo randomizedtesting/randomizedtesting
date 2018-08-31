@@ -7,6 +7,10 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.6.4 ====================
 
+Bug Fixes
+
+  * GH-267: Project does not build/ test on Java 11
+
 Changes in Backwards Compatibility
 
   * GH-265: Deprecate RandomizedTest.randomInt(v) and RandomizedTest.randomLong(v).
