@@ -9,9 +9,11 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Bug Fixes
 
-  * GH-266: QUIT event may not be read from the event log on slow machines
+  * GH-255: Invalid event nesting on security logging crashes the runner.
 
-  * GH-267: Project does not build/ test on Java 11
+  * GH-266: QUIT event may not be read from the event log on slow machines.
+
+  * GH-267: Project does not build/ test on Java 11.
 
 Improvements
 

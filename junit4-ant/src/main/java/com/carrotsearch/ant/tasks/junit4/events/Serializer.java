@@ -95,39 +95,52 @@ public class Serializer implements Closeable {
         return this;
       }
 
-      // SlaveMain.warn("Serializing " + event.getType(), null);
       flushQueue();
 
       return this;
     }
   }
 
+  private final AtomicBoolean isFlushing = new AtomicBoolean();
   private void flushQueue() throws IOException {
-    assert Thread.holdsLock(lock);
+    if (!Thread.holdsLock(lock)) throw new IllegalStateException("Must be holding a lock on flushing.");
 
-    while (!events.isEmpty()) {
-      if (writer == null) {
-        throw new IOException("Serializer already closed, with " + events.size() + " events on queue.");
-      }
-
-      final RemoteEvent event = events.removeFirst();
-      try {
-        AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
-          @Override
-          public Void run() throws Exception {
-            jsonWriter.beginArray();
-            jsonWriter.value(event.getType().name());
-            event.serialize(jsonWriter);
-            jsonWriter.endArray();
-            writer.write("\n\n");
-            return null;
-          }
-        });
-      } catch (Throwable t) {
-        doForcedShutdown = t;
-        break;
-      }
+    if (isFlushing.getAndSet(true)) {
+      // We're already flushing, return.
+      // SlaveMain.warn("Flush queue already flushing", null);
+      return;
     }
+    
+    // SlaveMain.warn("Flush queue start", null);
+    try {
+      while (!events.isEmpty()) {
+        if (writer == null) {
+          throw new IOException("Serializer already closed, with " + events.size() + " events on queue.");
+        }
+
+        final RemoteEvent event = events.removeFirst();
+        try {
+          // SlaveMain.warn("Serializing " + event.getType(), null);
+          AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+            @Override
+            public Void run() throws Exception {
+              jsonWriter.beginArray();
+              jsonWriter.value(event.getType().name());
+              event.serialize(jsonWriter);
+              jsonWriter.endArray();
+              writer.write("\n\n");
+              return null;
+            }
+          });
+        } catch (Throwable t) {
+          doForcedShutdown = t;
+          break;
+        }
+      }
+    } finally {
+      isFlushing.set(false);
+    }
+    // SlaveMain.warn("Flush queue end", null);
 
     if (doForcedShutdown != null) {
       // We can't do a stack bang here so any call is a risk of hitting SOE again.
