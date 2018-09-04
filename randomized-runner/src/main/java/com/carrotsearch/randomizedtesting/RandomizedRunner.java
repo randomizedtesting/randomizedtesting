@@ -42,6 +42,7 @@ import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
+import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
@@ -228,7 +229,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   final Randomness runnerRandomness;
 
   /** 
-   * If {@link #SYSPROP_RANDOM_SEED} property is used with two arguments (master:method)
+   * If {@link SysGlobals#SYSPROP_RANDOM_SEED} property is used with two arguments (master:method)
    * then this field contains method-level override. 
    */
   private Randomness testCaseRandomnessOverride;
@@ -236,7 +237,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** 
    * The number of each test's randomized iterations.
    * 
-   * @see #SYSPROP_ITERATIONS
+   * @see SysGlobals#SYSPROP_ITERATIONS
    */
   private final Integer iterationsOverride;
 
@@ -259,7 +260,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private final List<RunListener> autoListeners = new ArrayList<RunListener>();
 
   /**
-   * @see #SYSPROP_APPEND_SEED
+   * @see SysGlobals#SYSPROP_APPEND_SEED
    */
   private boolean appendSeedParameter;
 
@@ -1251,7 +1252,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Collect all test candidates, regardless if they will be executed or not. At this point
    * individual test methods are also expanded into multiple executions corresponding
-   * to the number of iterations ({@link #SYSPROP_ITERATIONS}) and the initial method seed 
+   * to the number of iterations ({@link SysGlobals#SYSPROP_ITERATIONS}) and the initial method seed
    * is preassigned. 
    * 
    * <p>The order of test candidates is shuffled based on the runner's random.</p> 
@@ -1628,7 +1629,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Determine method iteration count based on (first declaration order wins):
    * <ul>
-   *  <li>global property {@link #SYSPROP_ITERATIONS}.</li>
+   *  <li>global property {@link SysGlobals#SYSPROP_ITERATIONS}.</li>
    *  <li>method annotation {@link Repeat}.</li>
    *  <li>class annotation {@link Repeat}.</li>
    *  <li>The default (1).</li>

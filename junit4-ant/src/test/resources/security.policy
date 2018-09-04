@@ -1,16 +1,12 @@
 
-
-grant codeBase "file:${{java.ext.dirs}}/*" {
-  permission java.security.AllPermission;
-};
-
 //// permission for the junit4 jar
 grant codeBase "${junit4.jar.url}" {
-  // needed in context of class discovery
+  // needed because JUnit requests/ runners don't use access controler contexts
+  // and the access control domain propagates up the stack.
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   // needed for io stream handling
   permission java.lang.RuntimePermission "setIO";
-
+  // needed for accessing log files, etc.
   permission java.io.FilePermission "${basedir}${/}*", "read,write,delete,execute";
 };
 

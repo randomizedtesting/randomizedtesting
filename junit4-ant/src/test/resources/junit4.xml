@@ -1548,7 +1548,7 @@
     <junit4.preconf haltonfailure="false" fork="true" dir="${basedir}">
       <jvmarg value="-Djava.security.manager" />
       <jvmarg value="-Djava.security.debug=access,failure" />
-      <jvmarg value="-Djava.security.policy==${basedir}/security.policy" />
+      <jvmarg value="-Djava.security.policy=${basedir}/security.policy" />
       <jvmarg value="-Djunit.jar.url=${junit.jar.url}" />
       <jvmarg value="-Djunit4.jar.url=${junit4.jar.url}" />
       <jvmarg value="-Drandomizedtesting.jar.url=${randomizedtesting.jar.url}" />

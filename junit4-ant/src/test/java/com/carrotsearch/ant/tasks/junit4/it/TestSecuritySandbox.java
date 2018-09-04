@@ -15,8 +15,7 @@ public class TestSecuritySandbox extends JUnit4XmlTestBase {
   @Test
   public void gh255() {
     super.executeTarget("gh255");
-
-    String log = getLog();
     assertLogContains("access denied (\"java.util.PropertyPermission\" \"foo\" \"write\")");
+    assertLogContains("Tests summary: 1 suite, 1 test, 1 error");
   }
 }
