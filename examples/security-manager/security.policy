@@ -11,6 +11,9 @@ grant codeBase "file:${{java.ext.dirs}}/*" {
 grant codeBase "${junit4.jar.url}" {
   // needed for io stream handling
   permission java.lang.RuntimePermission "setIO";
+  // workaround for junit access control context bug in processing
+  // class test request.
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
 };
 
 //// permissions for the randomized runner jar
