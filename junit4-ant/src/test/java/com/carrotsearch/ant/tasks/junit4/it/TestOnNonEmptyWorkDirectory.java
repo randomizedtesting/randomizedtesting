@@ -25,8 +25,8 @@ public class TestOnNonEmptyWorkDirectory extends JUnit4XmlTestBase {
     assertLogContains("Cwd of a forked JVM already exists and is not empty");
   }
 
-  @Test 
-  @Ignore // https://github.com/randomizedtesting/randomizedtesting/issues/247
+  // https://github.com/randomizedtesting/randomizedtesting/issues/247
+  @Test
   public void tmpDirUnderCwd() {
     executeTarget("onNonEmptyWorkDirectory-tmpDirUnderCwd");
     assertLogContains("Created tmpfile");

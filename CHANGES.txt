@@ -9,6 +9,9 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Bug Fixes
 
+  * GH-247: Allow java.io.tmpdir to be placed under cwd with isolated
+    directories and nonEmptyWorkDirAction=wipe.
+
   * GH-255: Invalid event nesting on security logging crashes the runner.
 
   * GH-266: QUIT event may not be read from the event log on slow machines.

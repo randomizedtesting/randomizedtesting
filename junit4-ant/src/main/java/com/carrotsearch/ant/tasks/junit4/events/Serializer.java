@@ -110,7 +110,7 @@ public class Serializer implements Closeable {
       // SlaveMain.warn("Flush queue already flushing", null);
       return;
     }
-    
+
     // SlaveMain.warn("Flush queue start", null);
     try {
       while (!events.isEmpty()) {

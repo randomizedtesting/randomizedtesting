@@ -13,12 +13,7 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryNotEmptyException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
@@ -1639,6 +1634,12 @@ public class JUnit4 extends Task {
       CommandlineJava commandline, 
       TailInputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {
     try {
+      String tempDir = commandline.getSystemProperties().getVariablesVector().stream()
+        .filter(v -> v.getKey().equals("java.io.tmpdir"))
+        .map(v -> v.getValue())
+        .findAny()
+        .orElse(null);
+
       final LocalSlaveStreamHandler streamHandler = 
           new LocalSlaveStreamHandler(
               eventBus, testsClassLoader, System.err, eventStream, 
@@ -1646,7 +1647,7 @@ public class JUnit4 extends Task {
 
       // Add certain properties to allow identification of the forked JVM from within
       // the subprocess. This can be used for policy files etc.
-      final Path cwd = getWorkingDirectory(slaveInfo);
+      final Path cwd = getWorkingDirectory(slaveInfo, tempDir);
 
       Variable v = new Variable();
       v.setKey(CHILDVM_SYSPROP_CWD);
@@ -1686,7 +1687,7 @@ public class JUnit4 extends Task {
     }
   }
 
-  private Path getWorkingDirectory(ForkedJvmInfo jvmInfo) throws IOException {
+  private Path getWorkingDirectory(ForkedJvmInfo jvmInfo, String tempDir) throws IOException {
     Path baseDir = (dir == null ? getProject().getBaseDir().toPath() : dir);
     final Path forkedDir;
     if (isolateWorkingDirectories) {
@@ -1705,18 +1706,23 @@ public class JUnit4 extends Task {
               log("Cwd of a forked JVM already exists and is not empty, trying to wipe: " 
                   + existingFiles, Project.MSG_DEBUG);
               try {
+                Path tempPath = tempDir == null ? null : forkedDir.resolve(tempDir);
                 Files.walkFileTree(forkedDir, new SimpleFileVisitor<Path>() {
                   @Override
                   public FileVisitResult postVisitDirectory(Path dir, IOException iterationError) throws IOException {
                     if (iterationError != null) {
                       throw iterationError;
                     }
-                    if (forkedDir != dir) {
+
+                    if (Files.isSameFile(dir, forkedDir) ||
+                        (tempPath != null && Files.isSameFile(dir, tempPath))) {
+                      // Do not delete cwd or an explicit java.io.tmpdir folder underneath.
+                    } else {
                       Files.delete(dir);
                     }
                     return FileVisitResult.CONTINUE;
                   }
-            
+
                   @Override
                   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     Files.delete(file);
@@ -1729,17 +1735,10 @@ public class JUnit4 extends Task {
                   }
                 });
               } catch (IOException e) {
-                throw new BuildException("An exception occurred while trying to wipe the working directory: "
-                    + forkedDir, e);
+                throw new BuildException(
+                    "An exception occurred while trying to wipe the working directory: " + forkedDir, e);
               }
-
-              existingFiles = listFiles(forkedDir);
-              if (existingFiles.isEmpty()) {
-                break;
-              } else {
-                // Intentional fall-through.
-              }
-
+              break;
             case FAIL:
               throw new BuildException("Cwd of a forked JVM already exists and is not empty "
                   + "and setOnNonEmptyWorkDirectory=" + nonEmptyWorkDirAction + ": " + existingFiles);
