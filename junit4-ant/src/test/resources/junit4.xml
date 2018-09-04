@@ -1529,5 +1529,34 @@
         </junit4:report-text>
       </listeners>
     </junit4:junit4>
-  </target>  
+  </target>
+
+  <target name="gh255">
+    <makeurl property="junit.jar.url">
+      <fileset dir="../dependency" includes="junit-*.jar" />
+    </makeurl>
+    <makeurl property="junit4.jar.url">
+        <fileset dir="..">
+            <include name="junit4-*.jar" />
+            <exclude name="*_proguard_base.jar" />
+        </fileset>
+    </makeurl>
+    <makeurl property="randomizedtesting.jar.url">
+        <fileset dir="../dependency" includes="randomizedtesting-runner*.jar" />
+    </makeurl>
+
+    <junit4.preconf haltonfailure="false" fork="true" dir="${basedir}">
+      <jvmarg value="-Djava.security.manager" />
+      <jvmarg value="-Djava.security.debug=access,failure" />
+      <jvmarg value="-Djava.security.policy==${basedir}/security.policy" />
+      <jvmarg value="-Djunit.jar.url=${junit.jar.url}" />
+      <jvmarg value="-Djunit4.jar.url=${junit4.jar.url}" />
+      <jvmarg value="-Drandomizedtesting.jar.url=${randomizedtesting.jar.url}" />
+      <jvmarg value="-Dbasedir=${basedir}" />
+
+      <fileset dir="${basedir}">
+        <include name="**/tests/TestSecuritySandbox.class" />
+      </fileset>
+    </junit4.preconf>
+  </target>
 </project>

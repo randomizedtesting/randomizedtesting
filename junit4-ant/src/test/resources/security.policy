@@ -1,0 +1,42 @@
+
+
+grant codeBase "file:${{java.ext.dirs}}/*" {
+  permission java.security.AllPermission;
+};
+
+//// permission for the junit4 jar
+grant codeBase "${junit4.jar.url}" {
+  // needed in context of class discovery
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  // needed for io stream handling
+  permission java.lang.RuntimePermission "setIO";
+
+  permission java.io.FilePermission "${basedir}${/}*", "read,write,delete,execute";
+};
+
+//// permissions for the randomized runner jar
+grant codeBase "${randomizedtesting.jar.url}" {
+  // optionally needed for access to private test methods (e.g. beforeClass)
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  // needed to handle uncaught exceptions from other threads
+  permission java.lang.RuntimePermission "setDefaultUncaughtExceptionHandler";
+  // needed for getTopThreads
+  permission java.lang.RuntimePermission "modifyThreadGroup";
+  // needed for TestClass creation
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  // needed for ThreadLeakControl
+  permission java.lang.RuntimePermission "getStackTrace";
+};
+
+//// permissions for the junit jar
+grant codeBase "${junit.jar.url}" {
+  // needed for TestClass creation
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+};
+
+//// Test class permission: we want this to be minimal!
+grant {
+  permission java.util.PropertyPermission "*", "read";
+  permission java.io.FilePermission "${junit4.childvm.cwd}${/}*", "read,write,delete";
+  permission java.io.FilePermission "${junit4.tempDir}${/}*", "read,write,delete";
+};

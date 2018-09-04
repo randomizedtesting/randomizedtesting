@@ -103,29 +103,29 @@ public class Serializer implements Closeable {
   }
 
   private void flushQueue() throws IOException {
-    synchronized (lock) {
-      while (!events.isEmpty()) {
-        if (writer == null) {
-          throw new IOException("Serializer already closed, with " + events.size() + " events on queue.");
-        }
+    assert Thread.holdsLock(lock);
 
-        final RemoteEvent event = events.removeFirst();
-        try {
-          AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
-            @Override
-            public Void run() throws Exception {
-              jsonWriter.beginArray();
-              jsonWriter.value(event.getType().name());
-              event.serialize(jsonWriter);
-              jsonWriter.endArray();
-              writer.write("\n\n");
-              return null;
-            }
-          });
-        } catch (Throwable t) {
-          doForcedShutdown = t;
-          break;
-        }
+    while (!events.isEmpty()) {
+      if (writer == null) {
+        throw new IOException("Serializer already closed, with " + events.size() + " events on queue.");
+      }
+
+      final RemoteEvent event = events.removeFirst();
+      try {
+        AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
+          @Override
+          public Void run() throws Exception {
+            jsonWriter.beginArray();
+            jsonWriter.value(event.getType().name());
+            event.serialize(jsonWriter);
+            jsonWriter.endArray();
+            writer.write("\n\n");
+            return null;
+          }
+        });
+      } catch (Throwable t) {
+        doForcedShutdown = t;
+        break;
       }
     }
 
