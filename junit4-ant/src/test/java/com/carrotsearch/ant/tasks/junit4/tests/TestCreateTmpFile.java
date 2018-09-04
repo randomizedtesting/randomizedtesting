@@ -9,9 +9,7 @@ import java.nio.file.Paths;
 
 import org.junit.Test;
 
-import com.carrotsearch.randomizedtesting.RandomizedTest;
-
-public class TestCreateTmpFile extends RandomizedTest {
+public class TestCreateTmpFile {
   @Test
   public void createTmpFile() throws IOException {
     Path path = Paths.get(System.getProperty("java.io.tmpdir")).toAbsolutePath();
