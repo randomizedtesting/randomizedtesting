@@ -20,6 +20,10 @@ Bug Fixes
 
 Improvements
 
+  * An additional property 'junit4.tempDir' is passed to forked JVMs to allow
+    easier configuration of security policy files. This folder must have 
+    read/ write file policy.
+
   * Added a test case that runs with a security manager enabled.
 
   * GH-253: IntelliJ only recognizes proper test methods for re-runs
