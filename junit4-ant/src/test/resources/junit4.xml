@@ -1545,7 +1545,7 @@
         <fileset dir="../dependency" includes="randomizedtesting-runner*.jar" />
     </makeurl>
 
-    <junit4.preconf haltonfailure="false" fork="true" dir="${basedir}">
+    <junit4.preconf haltonfailure="false" dir="${basedir}">
       <jvmarg value="-Djava.security.manager" />
       <jvmarg value="-Djava.security.debug=access,failure" />
       <jvmarg value="-Djava.security.policy=${basedir}/security.policy" />
