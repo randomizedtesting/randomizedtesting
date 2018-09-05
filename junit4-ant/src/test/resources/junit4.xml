@@ -17,8 +17,7 @@
         <classpath refid="junit.classpath" />
         <classpath>
             <fileset dir=".." id="fileset.junit4">
-                <include name="junit4-ant*.jar" />
-                <exclude name="*proguard_base.jar" />
+                <filename regex="junit4\-ant\-([0-9]|\.)+(-SNAPSHOT)?.jar" />
             </fileset>
         </classpath>
     </taskdef>
@@ -1541,6 +1540,16 @@
     <makeurl property="randomizedtesting.jar.url">
       <fileset dir="../dependency" includes="randomizedtesting-runner*.jar" />
     </makeurl>
+
+    <fail message="More than one file?">
+        <condition>
+         <not>
+             <resourcecount count="1">
+                 <fileset refid="fileset.junit4" />
+             </resourcecount>
+         </not>
+        </condition>
+    </fail>
 
     <junit4.preconf haltonfailure="false" dir="${basedir}">
       <jvmarg value="-Djava.security.manager" />
