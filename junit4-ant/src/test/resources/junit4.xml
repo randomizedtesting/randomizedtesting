@@ -1536,10 +1536,7 @@
       <fileset dir="../dependency" includes="junit-*.jar" />
     </makeurl>
     <makeurl property="junit4.jar.url">
-        <fileset dir="..">
-            <include name="junit4-*.jar" />
-            <exclude name="*_proguard_base.jar" />
-        </fileset>
+        <fileset refid="fileset.junit4" />
     </makeurl>
     <makeurl property="randomizedtesting.jar.url">
         <fileset dir="../dependency" includes="randomizedtesting-runner*.jar" />
@@ -1553,6 +1550,10 @@
       <jvmarg value="-Djunit4.jar.url=${junit4.jar.url}" />
       <jvmarg value="-Drandomizedtesting.jar.url=${randomizedtesting.jar.url}" />
       <jvmarg value="-Dbasedir=${basedir}" />
+
+      <classpath>
+        <fileset refid="fileset.junit4" />
+      </classpath>
 
       <fileset dir="${basedir}">
         <include name="**/tests/TestSecuritySandbox.class" />

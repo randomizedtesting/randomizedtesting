@@ -1,7 +1,7 @@
 
 //// permission for the junit4 jar
 grant codeBase "${junit4.jar.url}" {
-  // needed because JUnit requests/ runners don't use access controler contexts
+  // needed because JUnit requests/ runners don't use access controller contexts
   // and the access control domain propagates up the stack.
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   // needed for io stream handling
@@ -34,5 +34,5 @@ grant codeBase "${junit.jar.url}" {
 grant {
   permission java.util.PropertyPermission "*", "read";
   permission java.io.FilePermission "${junit4.childvm.cwd}${/}*", "read,write,delete";
-  permission java.io.FilePermission "${junit4.tempDir}${/}*", "read,write,delete";
+  permission java.io.FilePermission "${basedir}${/}*", "read,write,delete,execute";
 };
