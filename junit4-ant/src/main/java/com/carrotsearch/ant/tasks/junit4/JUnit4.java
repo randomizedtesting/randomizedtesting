@@ -190,6 +190,12 @@ public class JUnit4 extends Task {
   /** System property passed to forked VMs: current working directory (absolute). */
   private static final String CHILDVM_SYSPROP_CWD = "junit4.childvm.cwd";
 
+  /**
+   * System property passed to forked VMs: junit4's temporary folder location
+   * (must have read/write access if security manager is used).
+   */
+  private static final String SYSPROP_TEMPDIR = "junit4.tempDir";
+
   /** What to do on JVM output? */
   public static enum JvmOutputAction {
     PIPE,
@@ -1652,6 +1658,11 @@ public class JUnit4 extends Task {
       Variable v = new Variable();
       v.setKey(CHILDVM_SYSPROP_CWD);
       v.setFile(cwd.toAbsolutePath().normalize().toFile());
+      commandline.addSysproperty(v);
+
+      v = new Variable();
+      v.setKey(SYSPROP_TEMPDIR);
+      v.setFile(getTempDir().toAbsolutePath().normalize().toFile());
       commandline.addSysproperty(v);
 
       v = new Variable();

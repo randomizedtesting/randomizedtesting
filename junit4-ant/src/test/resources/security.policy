@@ -7,7 +7,7 @@ grant codeBase "${junit4.jar.url}" {
   // needed for io stream handling
   permission java.lang.RuntimePermission "setIO";
   // needed for accessing log files, etc.
-  permission java.io.FilePermission "${basedir}${/}*", "read,write,delete,execute";
+  permission java.io.FilePermission "${junit4.tempDir}${/}*", "read,write,delete,execute";
 };
 
 //// permissions for the randomized runner jar
@@ -34,5 +34,4 @@ grant codeBase "${junit.jar.url}" {
 grant {
   permission java.util.PropertyPermission "*", "read";
   permission java.io.FilePermission "${junit4.childvm.cwd}${/}*", "read,write,delete";
-  permission java.io.FilePermission "${basedir}${/}*", "read,write,delete,execute";
 };
