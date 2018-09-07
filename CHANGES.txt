@@ -5,7 +5,12 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.6.5 ====================
+======================= randomizedtesting 2.7.0 ====================
+
+Changes in Backwards Compatibility
+
+  * GH-270: Upgrade to support JUnit 4.12. This also means that Hamcrest
+    is required (as JUnit 4.12 uses it).
 
 ======================= randomizedtesting 2.6.4 ====================
 
