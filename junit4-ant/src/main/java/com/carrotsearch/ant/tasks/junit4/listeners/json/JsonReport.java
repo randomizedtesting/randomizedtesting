@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+import com.google.common.io.Files;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 
@@ -25,7 +26,6 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.eventbus.Subscribe;
-import com.google.common.io.Files;
 import com.google.common.io.Resources;
 
 /**
@@ -273,7 +273,8 @@ public class JsonReport implements AggregatedEventListener {
             cl.getResource(resourcePrefix + "index.html"), Charsets.UTF_8);
     index = index.replaceAll(Pattern.quote("tests-output.jsonp"),
         removeExtension(targetFile.getName()) + ".jsonp");
-    Files.write(index, targetFile, Charsets.UTF_8);
+
+    Files.write(index.getBytes(Charsets.UTF_8), targetFile);
     
     // Copy over the remaining files. This is hard coded but scanning a JAR seems like an overkill.
     String [] resources = {
