@@ -10,8 +10,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
-
-import junit.framework.Assert;
+import org.junit.Assert;
 
 public class TestUncaughtExceptionsDuplicated extends WithNestedTestClass {
   public static class Nested1 extends RandomizedTest {

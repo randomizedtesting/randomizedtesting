@@ -9,7 +9,7 @@ import org.hamcrest.Description;
  * own exception and handle it properly in {@link RandomizedRunner}.
  */
 @SuppressWarnings("serial") 
-class InternalAssumptionViolatedException extends org.junit.internal.AssumptionViolatedException {
+class InternalAssumptionViolatedException extends org.junit.AssumptionViolatedException {
   private final String message;
 
   public InternalAssumptionViolatedException(String message) {

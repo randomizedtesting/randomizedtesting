@@ -39,6 +39,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.Assert;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -80,8 +81,6 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies.Conseque
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 import com.carrotsearch.randomizedtesting.annotations.TimeoutSuite;
 import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
-
-import junit.framework.Assert;
 
 /**
  * A {@link Runner} implementation for running randomized test cases with 

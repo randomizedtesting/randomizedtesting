@@ -2,7 +2,7 @@ package com.carrotsearch.examples.randomizedrunner;
 
 import java.util.concurrent.*;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 

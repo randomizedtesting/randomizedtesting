@@ -2,13 +2,13 @@ package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.junit.After;
 import org.junit.Test;
+import org.junit.Assert;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 
-import junit.framework.Assert;
 
 /**
  * Test global timeout override (-Dtests.timeout=1000!).
