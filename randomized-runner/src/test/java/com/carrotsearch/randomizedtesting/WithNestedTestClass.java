@@ -120,7 +120,7 @@ public class WithNestedTestClass {
       .around(dumpLoggerOutputOnFailure);
   }
 
-  @Rule
+  @ClassRule
   public final static TestRule ruleChain;
 
   /** For capturing sysout. */

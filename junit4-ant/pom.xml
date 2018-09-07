@@ -189,7 +189,7 @@
           </execution>
         </executions>
         <configuration>
-          <includeGroupIds>com.carrotsearch.randomizedtesting,junit,org.ow2.asm</includeGroupIds>
+          <includeGroupIds>com.carrotsearch.randomizedtesting,junit,org.hamcrest,org.ow2.asm</includeGroupIds>
         </configuration>
       </plugin>
 

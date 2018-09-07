@@ -5,6 +5,7 @@
     <path id="junit.classpath">
         <fileset dir="..">
             <include name="dependency/junit-*.jar" />
+            <include name="dependency/hamcrest-*.jar" />
         </fileset>
     </path>
 
