@@ -1,11 +1,10 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
 import org.junit.Test;
+import org.junit.Assert;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
-
-import junit.framework.Assert;
 
 /**
  * Test {@link Test#timeout()}.

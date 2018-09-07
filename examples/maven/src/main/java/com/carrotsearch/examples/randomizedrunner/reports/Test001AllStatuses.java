@@ -1,7 +1,6 @@
 package com.carrotsearch.examples.randomizedrunner.reports;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;

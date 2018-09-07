@@ -14,7 +14,7 @@ import org.junit.runner.notification.Failure;
 
 import com.carrotsearch.randomizedtesting.annotations.Timeout;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 /**
  * Check out of scope {@link Random} use.

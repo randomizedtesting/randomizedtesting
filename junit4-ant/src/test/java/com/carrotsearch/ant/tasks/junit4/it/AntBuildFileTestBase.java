@@ -1,6 +1,6 @@
 package com.carrotsearch.ant.tasks.junit4.it;
 
-import static org.junit.matchers.JUnitMatchers.containsString;
+import static org.hamcrest.CoreMatchers.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

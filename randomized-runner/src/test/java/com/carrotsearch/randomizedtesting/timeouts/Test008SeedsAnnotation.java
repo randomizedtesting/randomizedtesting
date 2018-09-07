@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.junit.Assert;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.Utils;
@@ -15,7 +16,6 @@ import com.carrotsearch.randomizedtesting.annotations.Repeat;
 import com.carrotsearch.randomizedtesting.annotations.Seed;
 import com.carrotsearch.randomizedtesting.annotations.Seeds;
 
-import junit.framework.Assert;
 
 /**
  * Check {@link Seeds}.
