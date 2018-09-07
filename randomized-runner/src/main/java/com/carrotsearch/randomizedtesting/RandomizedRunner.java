@@ -460,27 +460,31 @@ public final class RandomizedRunner extends Runner implements Filterable {
       descriptions.add(tc.description);
     }
 
-    prune(suiteDescription, descriptions);
+    suiteDescription = prune(suiteDescription, descriptions);
   }
 
-  private static void prune(Description suite, Set<Description> permitted) {
+  private static Description prune(Description suite, Set<Description> permitted) {
     if (suite.isSuite()) {
       ArrayList<Description> children = suite.getChildren();
       ArrayList<Description> retained = new ArrayList<>(children.size());
       for (Description child : children) {
         if (child.isSuite()) {
-          prune(child, permitted);
+          final Description description = prune(child, permitted);
           if (!child.getChildren().isEmpty()) {
-            retained.add(child);
+            retained.add(description);
           }
         } else if (permitted.contains(child)) {
           retained.add(child);
         }
       }
 
-      children.clear();
-      children.addAll(retained);
+      final Description suiteDescription = suite.childlessCopy();
+      for (Description description : retained) {
+        suiteDescription.addChild(description);
+      }
+      return suiteDescription;
     }
+    return suite;
   }
 
   /**
