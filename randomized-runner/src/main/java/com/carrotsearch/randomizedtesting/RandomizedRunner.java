@@ -40,10 +40,9 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.Assert;
-import org.junit.internal.AssumptionViolatedException;
+import org.junit.AssumptionViolatedException;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
-import org.junit.runner.Request;
 import org.junit.runner.Result;
 import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
@@ -709,7 +708,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
             s.evaluate();
           } catch (Throwable t) {
             t = augmentStackTrace(t, runnerRandomness);
-            if (t instanceof AssumptionViolatedException) {
+            if (isAssumptionViolated(t)) {
               // Fire assumption failure before method ignores. (GH-103).
               notifier.fireTestAssumptionFailed(new Failure(suiteDescription, t));
   
@@ -851,7 +850,8 @@ public final class RandomizedRunner extends Runner implements Filterable {
     String ignoreReason = ge.getIgnoreReason(c.method, suiteClass);
     if (ignoreReason != null) {
       notifier.fireTestStarted(c.description);
-      notifier.fireTestAssumptionFailed(new Failure(c.description, new InternalAssumptionViolatedException(ignoreReason)));
+      notifier.fireTestAssumptionFailed(new Failure(c.description,
+          new AssumptionViolatedException(ignoreReason)));
       notifier.fireTestFinished(c.description);
     }
   }
@@ -947,7 +947,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
       s.evaluate();
     } catch (Throwable e) {
       e = augmentStackTrace(e);
-      if (e instanceof AssumptionViolatedException) {
+      if (isAssumptionViolated(e)) {
         notifier.fireTestAssumptionFailed(new Failure(c.description, e));
       } else {
         fireTestFailure(notifier, c.description, e);
@@ -1498,7 +1498,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
             args.add((Object[]) o);
           }
         } catch (InvocationTargetException e) {
-          if (AssumptionViolatedException.class.isInstance(e.getCause())) {
+          if (isAssumptionViolated(e.getCause())) {
             return Collections.emptyList();
           }
           Rethrow.rethrow(e.getCause());
@@ -1519,6 +1519,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
       }
     }
     return testCases;  
+  }
+
+  private boolean isAssumptionViolated(Throwable cause) {
+    return cause instanceof org.junit.AssumptionViolatedException ||
+           cause instanceof org.junit.internal.AssumptionViolatedException;
   }
 
   /**

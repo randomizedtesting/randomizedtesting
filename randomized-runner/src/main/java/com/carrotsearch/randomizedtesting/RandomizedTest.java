@@ -22,6 +22,7 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assume;
+import org.junit.AssumptionViolatedException;
 import org.junit.runner.RunWith;
 
 import com.carrotsearch.randomizedtesting.annotations.Listeners;
@@ -710,7 +711,7 @@ public class RandomizedTest {
 
   /**
    * @param condition
-   *          If <code>false</code> an {@link InternalAssumptionViolatedException} is
+   *          If <code>false</code> an {@link AssumptionViolatedException} is
    *          thrown by this method and the test case (should be) ignored (or
    *          rather technically, flagged as a failure not passing a certain
    *          assumption). Tests that are assumption-failures do not break
@@ -721,7 +722,7 @@ public class RandomizedTest {
   public static void assumeTrue(String message, boolean condition) {
     if (!condition) {
       // @see {@link Rants#RANT_2}.
-      throw new InternalAssumptionViolatedException(message);
+      throw new AssumptionViolatedException(message);
     }
   }
 
@@ -738,7 +739,7 @@ public class RandomizedTest {
   public static void assumeNoException(String msg, Throwable t) {
     if (t != null) {
       // This does chain the exception as the cause.
-      throw new InternalAssumptionViolatedException(msg, t);
+      throw new AssumptionViolatedException(msg, t);
     }
   }
   
