@@ -263,7 +263,7 @@ public class JsonReport implements AggregatedEventListener {
    */
   private void copyScaffolding(File targetFile) throws IOException {
     String resourcePrefix = "com/carrotsearch/ant/tasks/junit4/templates/json/";
-p
+
     File parent = targetFile.getParentFile();
 
     // Handle index.html substitutitons.
