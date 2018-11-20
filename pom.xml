@@ -73,7 +73,7 @@
     <version.maven-enforcer-plugin>3.0.0-M1</version.maven-enforcer-plugin>
     <version.maven-clean-plugin>3.0.0</version.maven-clean-plugin>
     <version.maven-javadoc-plugin>3.0.0</version.maven-javadoc-plugin>
-    <version.maven-surefire-plugin>2.19.1</version.maven-surefire-plugin>
+    <version.maven-surefire-plugin>3.0.0-M1</version.maven-surefire-plugin>
     <version.forbiddenapis>2.5</version.forbiddenapis>
   </properties>
 
