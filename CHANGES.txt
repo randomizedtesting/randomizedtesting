@@ -7,6 +7,11 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.7.1 ====================
 
+Bug Fixes
+
+  * GH-271: Methods with ( or ) in them can't be selected directly using
+    glob filters.
+
 ======================= randomizedtesting 2.7.0 ====================
 
 Bug Fixes
