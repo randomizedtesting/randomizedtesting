@@ -55,6 +55,12 @@ public class PrintEventListener extends RunListener {
 
   @Override
   public void testIgnored(Description description) throws Exception {
-    out.println("Ignored : " + description.getMethodName());
+    String methodName = description.getMethodName();
+    if (methodName == null) {
+      // Ignored due to class-level @Ignore or some other reason.
+      out.println("Ignored : " + description.getDisplayName());
+    } else {
+      out.println("Ignored : " + description.getMethodName());
+    }
   }
 }

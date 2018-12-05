@@ -7,6 +7,11 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.7.2 ====================
 
+Improvements
+
+  * GH-274: PrintEventListener should emit display name if method name
+    is not available in testIgnored callback.
+
 ======================= randomizedtesting 2.7.1 ====================
 
 Bug Fixes
