@@ -759,7 +759,6 @@ class ThreadLeakControl {
       boolean allDead;
       final int restorePriority = Thread.currentThread().getPriority();
       do {
-        System.out.println("attempt: " + interruptAttempts);
         allDead = true;
         try {
           Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
