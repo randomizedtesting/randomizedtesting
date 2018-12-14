@@ -759,6 +759,7 @@ class ThreadLeakControl {
       boolean allDead;
       final int restorePriority = Thread.currentThread().getPriority();
       do {
+        System.out.println("attempt: " + interruptAttempts);
         allDead = true;
         try {
           Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
@@ -773,7 +774,7 @@ class ThreadLeakControl {
             final Thread t = i.next();
             if (t.isAlive()) {
               allDead = false;
-              t.join(Math.max(1, waitDeadline - System.currentTimeMillis()));
+              join(t, Math.max(1, waitDeadline - System.currentTimeMillis()));
             } else {
               i.remove();
             }
@@ -781,7 +782,7 @@ class ThreadLeakControl {
         } catch (InterruptedException e) {
           interruptAttempts = 0;
         }
-      } while (!allDead && --interruptAttempts >= 0);
+      } while (!allDead && --interruptAttempts > 0);
       Thread.currentThread().setPriority(restorePriority);
   
       // Check after the last join.
@@ -819,12 +820,29 @@ class ThreadLeakControl {
       Thread t = new Thread(r, Thread.currentThread().getName() + "-worker");
       RandomizedContext.cloneFor(t);
       t.start();
-      t.join(timeout);
+      join(t, timeout);
     }
 
     final boolean timedOut = !r.completed;
     if (r.error != null) errors.add(r.error);
     return timedOut;
+  }
+
+  static void join(Thread t, long millis) throws InterruptedException {
+    if (millis <= 0) {
+      throw new IllegalArgumentException("Timeout must be positive: " + millis);
+    }
+
+    long deadline = System.currentTimeMillis() + millis;
+    while (t.isAlive()) {
+      long delay = deadline - System.currentTimeMillis();
+      if (delay > 0) {
+        // Don't wait longer than a few millis, then recheck condition.
+        Thread.sleep(Math.min(250, delay));
+      } else {
+        break;
+      }
+    }
   }
 
   boolean isTimedOut() {
