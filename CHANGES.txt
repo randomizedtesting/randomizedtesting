@@ -7,6 +7,11 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.7.3 ====================
 
+Bug Fixes
+
+  * GH-276: Annotations on overriden methods are not picked up (annotations
+    on overrides of @Test methods are not picked up).
+
 ======================= randomizedtesting 2.7.2 ====================
 
 Bug Fixes

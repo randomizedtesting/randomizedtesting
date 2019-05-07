@@ -253,13 +253,17 @@ public final class ClassModel {
 outer:
     for (Map.Entry<Method,MethodModel> e : getMethods().entrySet()) {
       MethodModel mm = e.getValue();
+
       if (mm.element.isAnnotationPresent(annotation)) {
-        for (mm = mm.getDown(); mm != null; mm = mm.getDown()) {
-          if (mm.element.isAnnotationPresent(annotation)) {
+        for (MethodModel next = mm.getDown(); next != null; next = next.getDown()) {
+          if (next.element.isAnnotationPresent(annotation)) {
+            // At least one override has the annotation on it, so skip any super methods
+            // because it'd double the test.
             continue outer;
           }
         }
-        result.put(e.getKey(), e.getValue());
+
+        result.put(e.getKey(), mm);
       }
     }
     return Collections.unmodifiableMap(result);
