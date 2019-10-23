@@ -4,11 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.charset.Charset;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -20,6 +16,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import org.junit.Assume;
 import org.junit.AssumptionViolatedException;
@@ -351,20 +348,18 @@ public class RandomizedTest {
       if (globalTempDir == null) {
         String tempDirPath = System.getProperty("java.io.tmpdir");
         if (tempDirPath == null) 
-          throw new Error("No property java.io.tmpdir?");
+          throw new IOException("No property java.io.tmpdir?");
 
         Path tempDir = Paths.get(tempDirPath);
         if (!Files.isDirectory(tempDir) || !Files.isWritable(tempDir)) {
-          throw new Error("Temporary folder not accessible: " + tempDir.toAbsolutePath());
+          throw new IOException("Temporary folder not accessible: " + tempDir.toAbsolutePath());
         }
 
-        SimpleDateFormat tsFormat = new SimpleDateFormat("'tests-'yyyyMMddHHmmss'-'SSS", Locale.ROOT);
-        String dirName = tsFormat.format(new Date());
-        final Path tmpFolder = tempDir.resolve(dirName);
-        // I assume mkdir is filesystem-atomic and only succeeds if the 
-        // directory didn't previously exist?
-        Files.createDirectories(tmpFolder);
-        globalTempDir = tmpFolder;
+        globalTempDir = createTemp(tempDir, true, () -> {
+          SimpleDateFormat tsFormat = new SimpleDateFormat("'tests-'yyyyMMddHHmmss'-'SSS", Locale.ROOT);
+          return tsFormat.format(new Date());
+        });
+
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @SuppressForbidden("Legitimate use of syserr.")
             public void run() {
@@ -372,7 +367,7 @@ public class RandomizedTest {
                 rmDir(globalTempDir);
               } catch (IOException e) {
                 // Not much else to do but to log and quit.
-                System.err.println("Could not delete temporary folder: " 
+                System.err.println("Could not delete global temporary folder: "
                     + globalTempDir.toAbsolutePath() + ". Cause: ");
                 e.printStackTrace(System.err);
               }
@@ -381,6 +376,32 @@ public class RandomizedTest {
       }
       return globalTempDir;
     }
+  }
+
+  private static Path createTemp(Path parent, boolean dir, Supplier<String> nameSupplier) throws IOException {
+    int retries = 10;
+    Path target;
+    do {
+      try {
+        Path candidate = parent.resolve(nameSupplier.get());
+        if (dir) {
+          target = Files.createDirectory(candidate);
+        } else {
+          target = Files.createFile(candidate);
+        }
+        break;
+      } catch (FileAlreadyExistsException e) {
+        if (--retries < 0) {
+          throw new IOException("Could not create a unique temporary folder under: " + parent);
+        }
+        try {
+          Thread.sleep(new Random().nextInt(250));
+        } catch (InterruptedException ex) {
+          throw new IOException(ex);
+        }
+      }
+    } while (true);
+    return target;
   }
 
   /**
@@ -399,8 +420,7 @@ public class RandomizedTest {
   public static Path newTempDir(LifecycleScope scope) throws IOException {
     checkContext();
     synchronized (RandomizedTest.class) {
-      Path tempDir = globalTempDir().resolve(nextTempName());
-      Files.createDirectories(tempDir);
+      Path tempDir = createTemp(globalTempDir(), true, RandomizedTest::nextTempName);
       getContext().closeAtEnd(new TempPathResource(tempDir), scope);
       return tempDir;
     }
@@ -440,8 +460,7 @@ public class RandomizedTest {
   public static Path newTempFile(LifecycleScope scope) throws IOException {
     checkContext();
     synchronized (RandomizedTest.class) {
-      Path tempFile = globalTempDir().resolve(nextTempName());
-      Files.createFile(tempFile);
+      Path tempFile = createTemp(globalTempDir(), false, RandomizedTest::nextTempName);
       getContext().closeAtEnd(new TempPathResource(tempFile), scope);
       return tempFile;
     }

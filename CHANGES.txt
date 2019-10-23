@@ -5,6 +5,13 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
+======================= randomizedtesting 2.7.4 ====================
+
+Bug Fixes
+
+  * GH-280: Potential race condition in global temp folder generation.
+
+
 ======================= randomizedtesting 2.7.3 ====================
 
 Bug Fixes
