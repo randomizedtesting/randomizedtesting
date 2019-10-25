@@ -135,7 +135,7 @@ import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
  * @see RandomizedContext
  * @see TestMethodProviders
  */
-public final class RandomizedRunner extends Runner implements Filterable {
+public class RandomizedRunner extends Runner implements Filterable {
   /**
    * Fake package of a stack trace entry inserted into exceptions thrown by 
    * test methods. These stack entries contain additional information about
@@ -183,7 +183,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Test candidate (model).
    */
-  class TestCandidate {
+  public class TestCandidate {
     public final long seed;
     public final Description description;
     public final Method method;
@@ -869,7 +869,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Decorate a {@link Statement} with {@link BeforeClass} hooks.
    */
-  private Statement withClassBefores(final Statement s) {
+  protected Statement withClassBefores(final Statement s) {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -885,7 +885,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     };
   }
 
-  private Statement withClassAfters(final Statement s) {
+  protected Statement withClassAfters(final Statement s) {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -912,7 +912,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Wrap with {@link ClassRule}s.
    */
-  private Statement withClassRules(Statement s) {
+  protected Statement withClassRules(Statement s) {
     List<TestRule> classRules = getAnnotatedFieldValues(null, ClassRule.class, TestRule.class);
     for (TestRule rule : classRules) {
       s = rule.apply(s, suiteDescription);
@@ -960,7 +960,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Wrap before and after hooks.
    */
-  private Statement wrapBeforeAndAfters(Statement s, final TestCandidate c, final Object instance) {
+  protected Statement wrapBeforeAndAfters(Statement s, final TestCandidate c, final Object instance) {
     // Process @Before hooks. The first @Before to fail will immediately stop processing any other @Befores.
     final List<Method> befores = getShuffledMethods(Before.class);
     if (!befores.isEmpty()) {
@@ -1015,7 +1015,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /**
    * Wrap the given statement into another catching the expected exception, if declared.
    */
-  private Statement wrapExpectedExceptions(final Statement s, TestCandidate c) {
+  protected Statement wrapExpectedExceptions(final Statement s, TestCandidate c) {
     Test ann = c.method.getAnnotation(Test.class);
 
     if (ann == null) {
@@ -1052,7 +1052,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Wrap the given statement in any declared MethodRules (old style rules).
    */
   @SuppressWarnings("deprecation")
-  private Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
+  protected Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
     FrameworkMethod fm = new FrameworkMethod(c.method);
 
     // Old-style MethodRules first.
