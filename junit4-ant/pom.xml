@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.carrotsearch.randomizedtesting</groupId>
     <artifactId>randomizedtesting-parent</artifactId>
-    <version>2.7.5-SNAPSHOT</version>
+    <version>2.7.5</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -54,8 +54,8 @@
     </dependency>
 
     <dependency>
-      <groupId>org.simpleframework</groupId>
-      <artifactId>simple-xml</artifactId>
+      <groupId>com.carrotsearch.thirdparty</groupId>
+      <artifactId>simple-xml-safe</artifactId>
       <scope>provided</scope>
     </dependency>
 
@@ -101,11 +101,6 @@
                 </excludes>
                 <classesDirectory>${project.build.directory}/dontinclude</classesDirectory>
                 <classpathDependencyExcludes>
-                    <!--
-                    Leave in for tests.
-                    <classpathDependencyExcludes>asm:asm</classpathDependencyExcludes>
-                    <classpathDependencyExcludes>org.simpleframework:simple-xml</classpathDependencyExcludes>
-                    -->
                     <classpathDependencyExcludes>com.carrotsearch.randomizedtesting:randomizedtesting-runner</classpathDependencyExcludes>
                     <classpathDependencyExcludes>com.google.guava:guava</classpathDependencyExcludes>
                 </classpathDependencyExcludes>
@@ -227,8 +222,8 @@
                 <filter>!module-info.class</filter>
               </inclusion>
               <inclusion>
-                <groupId>org.simpleframework</groupId>
-                <artifactId>simple-xml</artifactId>
+                <groupId>com.carrotsearch.thirdparty</groupId>
+                <artifactId>simple-xml-safe</artifactId>
               </inclusion>
               <inclusion>
                 <groupId>com.carrotsearch.randomizedtesting</groupId>

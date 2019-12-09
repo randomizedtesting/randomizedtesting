@@ -29,9 +29,9 @@
     </dependency>
     
     <dependency>
-      <groupId>org.simpleframework</groupId>
-      <artifactId>simple-xml</artifactId>
-      <version>2.6.2</version>
+      <groupId>com.carrotsearch.thirdparty</groupId>
+      <artifactId>simple-xml-safe</artifactId>
+      <version>2.7.1</version>
     </dependency>
   </dependencies>
 
@@ -71,7 +71,7 @@
               <leaveTemporary>true</leaveTemporary>
               <ifNoTests>warn</ifNoTests>
               <classpathDependencyExcludes>
-                <dependency>org.simpleframework:simple-xml</dependency>
+                <dependency>com.carrotsearch.thirdparty:simple-xml-safe</dependency>
               </classpathDependencyExcludes>
 
               <argLine>

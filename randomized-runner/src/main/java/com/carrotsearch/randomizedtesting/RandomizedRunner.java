@@ -460,6 +460,10 @@ public final class RandomizedRunner extends Runner implements Filterable {
     }
 
     suiteDescription = prune(suiteDescription, descriptions);
+
+    if (testCandidates.isEmpty()) {
+      throw new NoTestsRemainException();
+    }
   }
 
   private static Description prune(Description suite, Set<Description> permitted) {
