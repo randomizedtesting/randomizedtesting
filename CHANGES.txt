@@ -5,8 +5,12 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.7.6-SNAPSHOT ====================
+======================= randomizedtesting 2.7.6 ====================
 
+Improvements
+
+  * Use thread join internally to wait for forked timeouting test thread
+    instead of a hardcoded sleep (dumb!).
 
 ======================= randomizedtesting 2.7.5 ====================
 
