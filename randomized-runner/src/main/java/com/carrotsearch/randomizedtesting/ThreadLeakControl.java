@@ -29,7 +29,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import org.junit.Test;
@@ -773,7 +778,7 @@ class ThreadLeakControl {
             final Thread t = i.next();
             if (t.isAlive()) {
               allDead = false;
-              join(t, Math.max(1, waitDeadline - System.currentTimeMillis()));
+              join(t, Math.max(1, waitDeadline - System.currentTimeMillis()), Thread::sleep);
             } else {
               i.remove();
             }
@@ -816,10 +821,31 @@ class ThreadLeakControl {
     if (timeout == 0) {
       r.run();
     } else {
-      Thread t = new Thread(r, Thread.currentThread().getName() + "-worker");
+      final Lock lock = new ReentrantLock();
+      final Condition done = lock.newCondition();
+      Thread t = new Thread(() -> {
+        try {
+          r.run();
+        } finally {
+          lock.lock();
+          try {
+            done.signalAll();
+          } finally {
+            lock.unlock();
+          }
+        }
+      }, Thread.currentThread().getName() + "-worker");
       RandomizedContext.cloneFor(t);
-      t.start();
-      join(t, timeout);
+
+      lock.lock();
+      try {
+        t.start();
+        join(t, timeout, (millis) -> {
+          done.await(millis, TimeUnit.MILLISECONDS);
+        });
+      } finally {
+        lock.unlock();
+      }
     }
 
     final boolean timedOut = !r.completed;
@@ -827,7 +853,11 @@ class ThreadLeakControl {
     return timedOut;
   }
 
-  static void join(Thread t, long millis) throws InterruptedException {
+  static interface AwaitCond {
+    void await(long millis) throws InterruptedException;
+  }
+
+  static void join(Thread t, long millis, AwaitCond cond) throws InterruptedException {
     if (millis <= 0) {
       throw new IllegalArgumentException("Timeout must be positive: " + millis);
     }
@@ -837,7 +867,9 @@ class ThreadLeakControl {
       long delay = deadline - System.currentTimeMillis();
       if (delay > 0) {
         // Don't wait longer than a few millis, then recheck condition.
-        t.join(Math.min(250, delay));
+        // We use sleep because Thread.join() is synchronized and this thread may
+        // get stuck on getting the monitor for an indefinite amount of time.
+        cond.await(Math.min(250, delay));
       } else {
         break;
       }
