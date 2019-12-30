@@ -29,12 +29,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Logger;
 
 import org.junit.Test;
@@ -82,13 +79,13 @@ class ThreadLeakControl {
    */
   private final static Logger LOGGER = RandomizedRunner.logger;
 
-  /** 
+  /**
    * How many attempts to interrupt and then kill a runaway thread before giving up?
    */
   private final int killAttempts;
 
   /**
-   * How long to wait between attempts to kill a runaway thread (millis). 
+   * How long to wait between attempts to kill a runaway thread (millis).
    */
   private final int killWait;
 
@@ -103,7 +100,7 @@ class ThreadLeakControl {
   private final Set<Thread> expectedSuiteState;
 
   /**
-   * Atomic section for passing notifier events.  
+   * Atomic section for passing notifier events.
    */
   private final Object notifierLock = new Object();
 
@@ -116,7 +113,7 @@ class ThreadLeakControl {
    * Test timeout.
    */
   private TimeoutValue testTimeout;
-  
+
   /**
    * Suite timeout.
    */
@@ -126,7 +123,7 @@ class ThreadLeakControl {
    * Built-in filters.
    */
   private final List<ThreadFilter> builtinFilters;
-  
+
   /**
    * User filter (compound).
    */
@@ -189,7 +186,7 @@ class ThreadLeakControl {
         targetNotifier.fireTestFailure(failure);
       }
     }
-    
+
     @Override
     public void fireTestIgnored(Description description) {
       synchronized (notifierLock) {
@@ -264,7 +261,7 @@ class ThreadLeakControl {
       return this.t == t;
     }
   }
-  
+
   private static ThreadFilter or(final ThreadFilter... filters) {
     return new ThreadFilter() {
       @Override
@@ -299,7 +296,7 @@ class ThreadLeakControl {
       if (t.getName().equals("JFR request timer")) {
         return true;
       }
-      
+
       // J9 memory pool thread.
       if (t.getName().equals("MemoryPoolMXBean notification dispatcher")) {
         return true;
@@ -324,11 +321,11 @@ class ThreadLeakControl {
       Collections.reverse(stack);
 
       // Explicit check for GC$Daemon
-      if (stack.size() >= 1 && 
+      if (stack.size() >= 1 &&
           stack.get(0).getClassName().startsWith("sun.misc.GC$Daemon")) {
         return true;
       }
-      
+
       return false;
     }
   }
@@ -347,16 +344,16 @@ class ThreadLeakControl {
     suiteTimeout = new TimeoutValue(SYSPROP_TIMEOUT_SUITE(), DEFAULT_TIMEOUT_SUITE);
 
     builtinFilters = Arrays.asList(
-           new ThisThreadFilter(Thread.currentThread()),
-           new KnownSystemThread());
+        new ThisThreadFilter(Thread.currentThread()),
+        new KnownSystemThread());
 
     // Determine a set of expected threads up front (unfiltered).
     expectedSuiteState = Collections.unmodifiableSet(Threads.getAllThreads());
   }
 
   /**
-   * Runs a {@link Statement} and keeps any exception and 
-   * completion flag. 
+   * Runs a {@link Statement} and keeps any exception and
+   * completion flag.
    */
   private static class StatementRunner implements Runnable {
     private final Statement s;
@@ -389,7 +386,7 @@ class ThreadLeakControl {
   }
 
   /**
-   * A {@link Statement} for wrapping suite-level execution. 
+   * A {@link Statement} for wrapping suite-level execution.
    */
   Statement forSuite(final Statement s, final Description suiteDescription) {
     final Class<?> suiteClass = RandomizedContext.current().getTargetClass();
@@ -429,14 +426,14 @@ class ThreadLeakControl {
           if (subNotifier.testInProgress != null) {
             targetNotifier.fireTestFailure(
                 new Failure(subNotifier.testInProgress,
-                RandomizedRunner.augmentStackTrace(
-                    emptyStack(new Exception("Test abandoned because suite timeout was reached.")))));
+                    RandomizedRunner.augmentStackTrace(
+                        emptyStack(new Exception("Test abandoned because suite timeout was reached.")))));
             targetNotifier.fireTestFinished(subNotifier.testInProgress);
           }
 
           // throw suite failure (timeout).
           errors.add(RandomizedRunner.augmentStackTrace(
-              emptyStack(new Exception("Suite timeout exceeded (>= " + timeout + " msec)."))));        
+              emptyStack(new Exception("Suite timeout exceeded (>= " + timeout + " msec)."))));
         }
 
         final AnnotatedElement [] chain = { suiteClass, DefaultAnnotationValues.class };
@@ -457,7 +454,7 @@ class ThreadLeakControl {
   }
 
   /**
-   * A {@link Statement} for wrapping test-level execution. 
+   * A {@link Statement} for wrapping test-level execution.
    */
   Statement forTest(final Statement s, final TestCandidate c) {
     final int timeout = determineTimeout(c);
@@ -485,8 +482,8 @@ class ThreadLeakControl {
               emptyStack(new Exception("Test timeout exceeded (>= " + timeout + " msec)."))));
         }
 
-        final AnnotatedElement [] chain = 
-          { c.method, c.getTestClass(), DefaultAnnotationValues.class };
+        final AnnotatedElement [] chain =
+            { c.method, c.getTestClass(), DefaultAnnotationValues.class };
         List<Throwable> threadLeakErrors = timedOut ? new ArrayList<Throwable>() : errors;
         checkThreadLeaks(beforeTestState, threadLeakErrors, LifecycleScope.TEST, c.description, chain);
         processUncaught(errors, runner.handler.getUncaughtAndClear());
@@ -513,7 +510,7 @@ class ThreadLeakControl {
    * Instantiate a full set of {@link ThreadFilter}s for a suite.
    */
   private ThreadFilter instantiateFilters(List<Throwable> errors, Class<?> suiteClass) {
-    ThreadLeakFilters ann = 
+    ThreadLeakFilters ann =
         firstAnnotated(ThreadLeakFilters.class, suiteClass, DefaultAnnotationValues.class);
 
     final ArrayList<ThreadFilter> filters = new ArrayList<ThreadFilter>();
@@ -533,13 +530,13 @@ class ThreadLeakControl {
   }
 
   /**
-   * Clears a {@link Throwable}'s stack. 
+   * Clears a {@link Throwable}'s stack.
    */
   private static <T extends Throwable> T emptyStack(T t) {
     t.setStackTrace(new StackTraceElement [0]);
     return t;
   }
-  
+
   /**
    * Process uncaught exceptions.
    */
@@ -551,12 +548,12 @@ class ThreadLeakControl {
   }
 
   /**
-   * Perform a thread leak check at the given scope. 
+   * Perform a thread leak check at the given scope.
    */
   @SuppressWarnings("deprecation")
   protected void checkThreadLeaks(
       Set<Thread> expectedState,
-      List<Throwable> errors, 
+      List<Throwable> errors,
       LifecycleScope scope, Description description,
       AnnotatedElement... annotationChain)
   {
@@ -571,7 +568,7 @@ class ThreadLeakControl {
       return;
     }
 
-    // Check for the set of live threads, with optional lingering. 
+    // Check for the set of live threads, with optional lingering.
     int lingerTime = firstAnnotated(ThreadLeakLingering.class, annotationChain).linger();
     HashSet<Thread> threads = getThreads(suiteFilters);
     threads.removeAll(expectedState);
@@ -588,7 +585,7 @@ class ThreadLeakControl {
 
           threads = getThreads(suiteFilters);
           threads.removeAll(expectedState);
-          if (threads.isEmpty() || System.currentTimeMillis() > deadline) 
+          if (threads.isEmpty() || System.currentTimeMillis() > deadline)
             break;
         } while (true);
       } catch (InterruptedException e) {
@@ -599,7 +596,7 @@ class ThreadLeakControl {
     if (threads.isEmpty()) {
       return;
     }
-    
+
     // Take one more snapshot, this time including stack traces (costly).
     HashMap<Thread,StackTraceElement[]> withTraces = getThreadsWithTraces(suiteFilters);
     withTraces.keySet().removeAll(expectedState);
@@ -693,7 +690,7 @@ class ThreadLeakControl {
     }
     return formatThreadStacks(getThreadsWithTraces());
   }
-  
+
   private static StackTraceElement[] getStackTrace(final Thread t) {
     return AccessController.doPrivileged(new PrivilegedAction<StackTraceElement[]>() {
       @Override
@@ -711,7 +708,7 @@ class ThreadLeakControl {
     final Set<Thread> threads = getThreads(filters);
     final HashMap<Thread,StackTraceElement[]> r = new HashMap<Thread,StackTraceElement[]>();
     for (Thread t : threads) {
-        r.put(t, getStackTrace(t));
+      r.put(t, getStackTrace(t));
     }
     return r;
   }
@@ -758,7 +755,7 @@ class ThreadLeakControl {
       // This means we have an unknown ordering of interrupt calls but
       // there is very little we can do about it, really.
       final HashSet<Thread> ordered = new HashSet<Thread>(threads);
-  
+
       int interruptAttempts = this.killAttempts;
       int interruptWait = this.killWait;
       boolean allDead;
@@ -770,7 +767,7 @@ class ThreadLeakControl {
           for (Thread t : ordered) {
             t.interrupt();
           }
-          
+
           // Maximum wait time. Progress through the threads, trying to join but
           // decrease the join time each time.
           long waitDeadline = System.currentTimeMillis() + interruptWait;
@@ -788,7 +785,7 @@ class ThreadLeakControl {
         }
       } while (!allDead && --interruptAttempts > 0);
       Thread.currentThread().setPriority(restorePriority);
-  
+
       // Check after the last join.
       HashMap<Thread,StackTraceElement[]> zombies = new HashMap<Thread,StackTraceElement[]>();
       for (Thread t : ordered) {
@@ -796,7 +793,7 @@ class ThreadLeakControl {
           zombies.put(t, getStackTrace(t));
         }
       }
-  
+
       if (zombies.isEmpty()) {
         LOGGER.info("All leaked threads terminated.");
       } else {
@@ -815,37 +812,32 @@ class ThreadLeakControl {
   /**
    * Fork or not depending on the timeout value.
    */
-  boolean forkTimeoutingTask(StatementRunner r, int timeout, List<Throwable> errors) 
+  boolean forkTimeoutingTask(StatementRunner r, int timeout, List<Throwable> errors)
       throws InterruptedException
   {
     if (timeout == 0) {
       r.run();
     } else {
-      final Lock lock = new ReentrantLock();
-      final Condition done = lock.newCondition();
+      final Thread owner = Thread.currentThread();
+      final AtomicBoolean done = new AtomicBoolean();
+
       Thread t = new Thread(() -> {
         try {
           r.run();
         } finally {
-          lock.lock();
-          try {
-            done.signalAll();
-          } finally {
-            lock.unlock();
-          }
+          done.set(true);
+          LockSupport.unpark(owner);
         }
       }, Thread.currentThread().getName() + "-worker");
       RandomizedContext.cloneFor(t);
 
-      lock.lock();
-      try {
-        t.start();
-        join(t, timeout, (millis) -> {
-          done.await(millis, TimeUnit.MILLISECONDS);
-        });
-      } finally {
-        lock.unlock();
-      }
+      t.start();
+      join(t, timeout, (millis) -> {
+        LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(millis));
+        if (done.get()) {
+          t.join();
+        }
+      });
     }
 
     final boolean timedOut = !r.completed;
@@ -891,7 +883,7 @@ class ThreadLeakControl {
 
   /**
    * Determine timeout for a suite.
-   * 
+   *
    * @return Returns timeout in milliseconds or 0 if the test should run until
    *         finished (possibly blocking forever).
    */
@@ -902,7 +894,7 @@ class ThreadLeakControl {
 
   /**
    * Determine timeout for a single test method (candidate).
-   *  
+   *
    * @return Returns timeout in milliseconds or 0 if the test should run until
    *         finished (possibly blocking forever).
    */
@@ -927,7 +919,7 @@ class ThreadLeakControl {
     }
 
     return testTimeout.getTimeout(timeout);
-  }  
+  }
 
   /**
    * Returns an annotation's instance declared on any annotated element (first one wins)
