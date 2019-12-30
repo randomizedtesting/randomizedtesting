@@ -579,7 +579,7 @@ class ThreadLeakControl {
           // Check every few hundred milliseconds until deadline occurs. We want to break out
           // sooner than the maximum lingerTime but there is no explicit even that
           // would wake us up, so poll periodically.
-          Thread.sleep(250);
+          Thread.sleep(100);
 
           threads = getThreads(suiteFilters);
           threads.removeAll(expectedState);
@@ -837,7 +837,7 @@ class ThreadLeakControl {
       long delay = deadline - System.currentTimeMillis();
       if (delay > 0) {
         // Don't wait longer than a few millis, then recheck condition.
-        Thread.sleep(Math.min(250, delay));
+        t.join(Math.min(250, delay));
       } else {
         break;
       }
