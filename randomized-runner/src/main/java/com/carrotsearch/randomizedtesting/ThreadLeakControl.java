@@ -297,6 +297,11 @@ class ThreadLeakControl {
         return true;
       }
 
+      // Explicit check for YourKit Java Profiler (YJP) agent thread.
+      if (t.getName().equals("YJPAgent-Telemetry")) {
+        return true;
+      }
+
       // J9 memory pool thread.
       if (t.getName().equals("MemoryPoolMXBean notification dispatcher")) {
         return true;
