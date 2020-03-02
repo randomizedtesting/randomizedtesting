@@ -388,7 +388,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
 
       // GH-251: Apply suite and test filters early so that the returned Description gets updated.
       if (emptyToNull(System.getProperty(SYSPROP_TESTMETHOD())) != null) {
-        filter(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD())));
+        try {
+          filter(new MethodGlobFilter(System.getProperty(SYSPROP_TESTMETHOD())));
+        } catch (NoTestsRemainException e) {
+          // Ignore the exception in the constructor.
+        }
       }
       
       if (emptyToNull(System.getProperty(SYSPROP_TESTCLASS())) != null) {

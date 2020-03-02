@@ -7,6 +7,12 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.7.7-SNAPSHOT ====================
 
+Bug Fixes
+
+  * GH-283: RandomizedRunner throws `NoTestsRemainException` from the
+    constructor when method filter is supplied and no methods match
+    (Mark Vieira).
+
 ======================= randomizedtesting 2.7.6 ====================
 
 Improvements
