@@ -9,6 +9,8 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Improvements
 
+  * GH-289: Bump asm to 8.0.1.
+
   * PR-287: Bump dom4j from 2.1.1 to 2.1.3.
 
 ======================= randomizedtesting 2.7.7 ====================
