@@ -7,6 +7,11 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 ======================= randomizedtesting 2.7.9-SNAPSHOT ====================
 
+Other:
+
+  * Update JUnit dependency to 4.13.
+
+  * Update Ant dependency to 1.9.15.
 
 ======================= randomizedtesting 2.7.8 ====================
 
