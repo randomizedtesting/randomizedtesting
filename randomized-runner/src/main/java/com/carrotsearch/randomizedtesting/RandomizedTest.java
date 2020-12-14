@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
@@ -48,10 +49,10 @@ public class RandomizedTest {
 
   /* Commonly used charsets (these must be supported by every JVM). */
 
-  protected static final Charset UTF8 = Charset.forName("UTF-8");
-  protected static final Charset UTF16 = Charset.forName("UTF-16");
-  protected static final Charset ISO8859_1 = Charset.forName("ISO-8859-1");
-  protected static final Charset US_ASCII = Charset.forName("US-ASCII");
+  protected static final Charset UTF8 = StandardCharsets.UTF_8;
+  protected static final Charset UTF16 = StandardCharsets.UTF_16;
+  protected static final Charset ISO8859_1 = StandardCharsets.ISO_8859_1;
+  protected static final Charset US_ASCII = StandardCharsets.US_ASCII;
 
   /* This charset does not need to be supported, but I don't know any JVM under which it wouldn't be. */
   
