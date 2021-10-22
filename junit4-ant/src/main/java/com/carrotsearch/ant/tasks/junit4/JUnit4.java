@@ -1835,7 +1835,7 @@ public class JUnit4 extends Task {
             final TestClass testClass = new TestClass();
             ClassReader reader = new ClassReader(is);
             @SuppressWarnings("deprecation")
-            ClassVisitor annotationVisitor = new ClassVisitor(Opcodes.ASM8) {
+            ClassVisitor annotationVisitor = new ClassVisitor(Opcodes.ASM9) {
               @Override
               public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 String className = Type.getType(desc).getClassName();
