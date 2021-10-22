@@ -5,9 +5,10 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.7.9-SNAPSHOT ====================
+======================= randomizedtesting 2.7.9 ====================
 
 Other:
+
   * Update ASM to 9.2 to support JDK 17
 
   * Update JUnit dependency to 4.13.1.
