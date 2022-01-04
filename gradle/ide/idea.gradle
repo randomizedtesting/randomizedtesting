@@ -1,0 +1,47 @@
+
+// Try to detect IntelliJ model loader early.
+rootProject.ext {
+  isIdea = System.getProperty("idea.active") != null ||
+      gradle.startParameter.taskNames.contains('idea') ||
+      gradle.startParameter.taskNames.contains('cleanIdea')
+
+  if (isIdea) {
+    logger.lifecycle("IntelliJ Idea IDE detected.")
+  }
+}
+
+// Apply intellij plugin to all projects.
+allprojects {
+  apply plugin: 'idea'
+
+  idea {
+    module {
+      outputDir file('build/idea/classes/main')
+      testOutputDir file('build/idea/classes/test')
+      downloadSources = true
+    }
+  }
+}
+
+// GH-37: skip certain long tasks if we're building within IntelliJ.
+//
+// The exception is when we're launching something - then it's very likely
+// we'll need to build packages from scratch.
+if (rootProject.isIdea && !rootProject.properties.keySet().any {it.startsWith("intellij.launch") }) {
+  gradle.taskGraph.whenReady { taskGraph ->
+    def tasks = taskGraph.getAllTasks()
+
+    def skipTasks = [
+      // Skip WAR or ZIP assembly.
+      ".*:(war|zip)"
+    ]
+
+    tasks.each { task ->
+      def taskPath = task.path
+      if (skipTasks.any {pattern -> taskPath ==~ pattern}) {
+        logger.debug("Skipping task on IntelliJ: " + taskPath)
+        task.enabled = false
+      }
+    }
+  }
+}
