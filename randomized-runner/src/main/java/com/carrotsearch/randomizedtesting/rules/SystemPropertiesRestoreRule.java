@@ -24,13 +24,31 @@ public class SystemPropertiesRestoreRule implements TestRule {
   /**
    * Ignored property keys.
    */
-  private final HashSet<String> ignoredProperties;
+  private final Set<String> ignoredProperties;
+
+  /** properties we set up front for the duration of the test */
+  private final Map<String, String> setProperties;
 
   /**
    * Restores all properties.
    */
   public SystemPropertiesRestoreRule() {
-    this(Collections.<String>emptySet());
+    this.ignoredProperties = Collections.emptySet();
+    this.setProperties = Collections.emptyMap();
+  }
+
+  /** Equivalent to calling {@link System#setProperty(String, String)} when the test starts. */
+  public SystemPropertiesRestoreRule(String key, String value) {
+    this(Collections.singletonMap(key, value));
+  }
+
+  /**
+   * Equivalent to calling {@link System#setProperty(String, String)} on each of the provided
+   * properties when the test starts.
+   */
+  public SystemPropertiesRestoreRule(Map<String, String> setProperties) {
+    this.setProperties = new HashMap<>(setProperties);//defensive clone
+    this.ignoredProperties = Collections.emptySet();
   }
 
   /**
@@ -38,6 +56,7 @@ public class SystemPropertiesRestoreRule implements TestRule {
    */
   public SystemPropertiesRestoreRule(Set<String> ignoredProperties) {
     this.ignoredProperties = new HashSet<String>(ignoredProperties);
+    this.setProperties = Collections.emptyMap();
   }
 
   /**
@@ -45,6 +64,7 @@ public class SystemPropertiesRestoreRule implements TestRule {
    */
   public SystemPropertiesRestoreRule(String... ignoredProperties) {
     this.ignoredProperties = new HashSet<String>(Arrays.asList(ignoredProperties));
+    this.setProperties = Collections.emptyMap();
   }
 
   @Override
@@ -54,6 +74,9 @@ public class SystemPropertiesRestoreRule implements TestRule {
       public void evaluate() throws Throwable {
         TreeMap<String,String> before = systemPropertiesAsMap();
         try {
+          for (Map.Entry<String, String> entry : setProperties.entrySet()) {
+            System.setProperty(entry.getKey(), entry.getValue());
+          }
           s.evaluate();
         } finally {
           TreeMap<String,String> after = systemPropertiesAsMap();
