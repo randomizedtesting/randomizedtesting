@@ -4,16 +4,16 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 /**
- * An event published when a slave is idle and waits for new suite classes.
+ * An event published when a forked JVM is idle and waits for new suite classes.
  */
-class SlaveIdle {
+class ForkedJvmIdle {
   private OutputStreamWriter stdin;
 
   /** For delegation. */
-  SlaveIdle() {
+  ForkedJvmIdle() {
   }
   
-  public SlaveIdle(OutputStreamWriter stdin) {
+  public ForkedJvmIdle(OutputStreamWriter stdin) {
     this.stdin = stdin;
   }
 

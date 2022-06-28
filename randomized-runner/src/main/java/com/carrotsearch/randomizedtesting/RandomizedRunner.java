@@ -104,7 +104,7 @@ import com.carrotsearch.randomizedtesting.rules.StatementAdapter;
  *   methods declared in superclasses are called after methods declared in subclasses,</li>
  *   <li>{@link BeforeClass}, {@link Before}, {@link AfterClass}, {@link After}
  *   methods declared within the same class are called in <b>randomized</b> order
- *   derived from the master seed (repeatable with the same seed),</li>
+ *   derived from the main seed (repeatable with the same seed),</li>
  * </ul>
  * 
  * <p>Deviations from "standard" JUnit:
@@ -223,11 +223,11 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** The class with test methods (suite). */
   private final Class<?> suiteClass;
 
-  /** The runner's seed (master). */
+  /** The runner's seed (main seed). */
   final Randomness runnerRandomness;
 
   /** 
-   * If {@link SysGlobals#SYSPROP_RANDOM_SEED} property is used with two arguments (master:method)
+   * If {@link SysGlobals#SYSPROP_RANDOM_SEED} property is used with two arguments (main:method)
    * then this field contains method-level override. 
    */
   private Randomness testCaseRandomnessOverride;
@@ -324,7 +324,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
     // behavior slightly.
     this.containerRunner = detectContainer();
 
-    // Initialize the runner's master seed/ randomness source.
+    // Initialize the runner's main seed/ randomness source.
     {
       List<SeedDecorator> decorators = new ArrayList<SeedDecorator>();
       for (SeedDecorators decAnn : getAnnotationsFromClassHierarchy(testClass, SeedDecorators.class)) {
@@ -929,7 +929,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   }
 
   /**
-   * Runs a single test in the "master" test thread.
+   * Runs a single test in the "main" test thread.
    */
   void runSingleTest(final RunNotifier notifier, 
                      final TestCandidate c,

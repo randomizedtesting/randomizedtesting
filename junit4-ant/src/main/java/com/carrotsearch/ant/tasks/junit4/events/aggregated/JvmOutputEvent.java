@@ -18,7 +18,7 @@ public class JvmOutputEvent {
     this.jvmOutput = jvmOutput;
   }
   
-  public ForkedJvmInfo getSlave() {
+  public ForkedJvmInfo getForkedJvmInfo() {
     return childInfo;
   }
 

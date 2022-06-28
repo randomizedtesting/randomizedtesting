@@ -30,7 +30,7 @@ import com.carrotsearch.randomizedtesting.annotations.ThreadLeakZombies;
  * 
  * <p>The same annotation can be used to wait for background threads 
  * which we don't have any control on, but we know they will eventually terminate.
- * For example, a terminated {@link Executor} does not wait (join) with its slave
+ * For example, a terminated {@link Executor} does not wait (join) with its forked
  * threads so lingering here is required. This is shown in method {@link #executorLeak()}. This
  * method will fail (from time to time, it isn't guaranteed) if no lingering time is given.
  * 

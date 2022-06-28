@@ -50,11 +50,11 @@ public class TestSeedDecorator extends WithNestedTestClass {
   }
 
   @Test
-  public void testDecoratedMaster() {
-    String masterSeed = SeedUtils.formatSeed(new Random().nextLong());
-    System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), masterSeed);
+  public void testDecoratedMainSeed() {
+    String mainSeed = SeedUtils.formatSeed(new Random().nextLong());
+    System.setProperty(SysGlobals.SYSPROP_RANDOM_SEED(), mainSeed);
 
-    // These classes should get a different master seed (perturbed by decorator).
+    // These classes should get a different main seed (perturbed by decorator).
     runTests(Nested1.class, Nested2.class, Nested3.class, Nested4.class);
 
     // All four classes get the same initial "runner" seed.
@@ -62,7 +62,7 @@ public class TestSeedDecorator extends WithNestedTestClass {
     Assert.assertEquals(1, new HashSet<String>(runnerSeeds).toArray().length);
 
     // @BeforeClass scope strings for Nested1 and Nested2 should be the same
-    // because these classes share identical master seed.
+    // because these classes share identical main seed.
     Assertions.assertThat(strings.get(1)).isEqualTo(strings.get(0));
     // but Nested3 and Nested4 have a seed decorator so strings there
     // should be different.

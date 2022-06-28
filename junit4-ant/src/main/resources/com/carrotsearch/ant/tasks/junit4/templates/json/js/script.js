@@ -138,7 +138,7 @@
       if (suite.suiteFailures.length > 0) {
         $.each(suite.suiteFailures, function(i, failure) {
           suite.tests.push({
-            slave: suite.slave,
+            forkedJvm: suite.forkedJvm,
             startTimestamp: suite.startTimestamp,
             executionTime: 1,
             description: {
@@ -349,7 +349,7 @@
             },
             type: "result"
           },
-          numericColumn("slave", "JVM"),
+          numericColumn("forkedJvm", "JVM"),
           {
             id: "timestamp",
             label: "Start",
@@ -388,7 +388,7 @@
               signature: test.description.packageClassMethodName,
               result: test.status,
               time: test.executionTime,
-              slave: test.slave,
+              forkedJvm: test.forkedJvm,
               timestamp: test.startTimestamp,
               test: test
             })
@@ -761,7 +761,7 @@
   // Refreshes the summary box based on the current parameters
   function refreshSummary() {
     var counts = aggregate(data, testCount, { "global":global, "byStatus":byStatus }, currentFilter);
-    var times = aggregate(data, totalTime, { "global":global, "bySlave":bySlave }, currentFilter);
+    var times = aggregate(data, totalTime, { "global":global, "byForkedJvm":byForkedJvm }, currentFilter);
 
     var $summary = $("#summary").html("").attr("class", "");
     if ((counts.global || 0) == 0) {
@@ -771,10 +771,10 @@
     $("<p />").html(tmpl("\
         #{tests} executed in\
         #{time} ms on\
-        <a href='#'>#{slaves}</a>.", {
+        <a href='#'>#{forkedJvms}</a>.", {
       tests: countText(counts.global || 0, "test"),
       time: times.global,
-      slaves: countText(keys(times.bySlave).length, "slave")
+      forkedJvms: countText(keys(times.byForkedJvm).length, "forked JVM")
     })).appendTo($summary);
 
     var html = "";
@@ -1093,8 +1093,8 @@
     return test.status;
   }
 
-  function bySlave(test) {
-    return test.slave;
+  function byForkedJvm(test) {
+    return test.forkedJvm;
   }
 
   function byPackage(test) {

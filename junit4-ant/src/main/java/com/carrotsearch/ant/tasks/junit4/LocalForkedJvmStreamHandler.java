@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
-import org.apache.tools.ant.taskdefs.StreamPumper;
 
 import com.carrotsearch.ant.tasks.junit4.events.BootstrapEvent;
 import com.carrotsearch.ant.tasks.junit4.events.Deserializer;
@@ -26,7 +25,7 @@ import com.google.common.eventbus.EventBus;
 /**
  * Establish event passing with a subprocess and pump events to the bus.
  */
-public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
+public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
   private final EventBus eventBus;
   private final ClassLoader refLoader;
 
@@ -52,7 +51,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
   private final RandomAccessFile streamsBuffer;
   private final OutputStream streamsBufferWrapper;
 
-  public LocalSlaveStreamHandler(
+  public LocalForkedJvmStreamHandler(
       EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, TailInputStream eventStream,
       OutputStream sysout, OutputStream syserr, long heartbeat, final RandomAccessFile streamsBuffer) {
     this.eventBus = eventBus;
@@ -235,7 +234,7 @@ public class LocalSlaveStreamHandler implements ExecuteStreamHandler {
               return;
 
             case IDLE:
-              eventBus.post(new SlaveIdle(stdinWriter));
+              eventBus.post(new ForkedJvmIdle(stdinWriter));
               break;
 
             case BOOTSTRAP:

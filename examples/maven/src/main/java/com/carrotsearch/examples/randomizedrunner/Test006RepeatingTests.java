@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 
 /**
  * In example {@link Test005RecoveringRandomSeed} we presented
- * {@link Randomness} contexts and how they are derived from a master seed. Once
+ * {@link Randomness} contexts and how they are derived from a main seed. Once
  * you know a certain test case fails it is usually beneficial to immediately
  * check if it <b>always fails</b> on a given seed (which means there is a
  * deterministic failure scenario). A simple way to do so would be to re-run a
@@ -25,10 +25,10 @@ import static org.junit.Assert.*;
  * public void repeatFailure() { //...
  * </pre>
  * Note how the seed is fixed using {@link Seed} annotation (on the
- * method) rather than on the master. This ensures the method's context is
- * pinned to that value, but the master is still random. If you have
+ * method) rather than on the class. This ensures the method's context is
+ * pinned to that value, but the main seed is still random. If you have
  * {@link BeforeClass} hooks that depend on randomness you should use
- * suite-level {@link Seed} annotation and pin the master seed instead.
+ * suite-level {@link Seed} annotation and pin the main seed instead.
  * 
  * <p>You can also set {@link Repeat#useConstantSeed()} to <code>false</code> and
  * then every iteration of the test method will have a pseudo-random context derived

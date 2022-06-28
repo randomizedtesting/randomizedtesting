@@ -6,7 +6,7 @@ import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonReader;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 
 /**
- * Final message sent from the slave. Also signals orderly shutdown.
+ * Final message sent from the forked JVM. Also signals orderly shutdown.
  */
 public class QuitEvent extends AbstractEvent {
   public QuitEvent() {

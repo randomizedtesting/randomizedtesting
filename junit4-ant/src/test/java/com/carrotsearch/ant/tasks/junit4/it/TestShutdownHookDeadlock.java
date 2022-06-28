@@ -6,7 +6,7 @@ import org.junit.Test;
 
 public class TestShutdownHookDeadlock extends JUnit4XmlTestBase {
   @Test
-  public void slavehanging() {
+  public void forkedjvmhanging() {
     long start = System.currentTimeMillis();
     executeForkedTarget("shutdownhook", 120 * 1000L);
     long end = System.currentTimeMillis();

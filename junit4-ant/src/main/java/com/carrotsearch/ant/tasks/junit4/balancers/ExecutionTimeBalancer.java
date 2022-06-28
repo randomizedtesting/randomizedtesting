@@ -15,10 +15,10 @@ import com.carrotsearch.ant.tasks.junit4.listeners.ExecutionTimesReport;
  * {@link ExecutionTimesReport}.
  */
 public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBalancer {
-  private static class SlaveLoad {
-    public static final Comparator<SlaveLoad> ASCENDING_BY_ESTIMATED_FINISH = new Comparator<SlaveLoad>() {
+  private static class ForkedJvmLoad {
+    public static final Comparator<ForkedJvmLoad> ASCENDING_BY_ESTIMATED_FINISH = new Comparator<ForkedJvmLoad>() {
       @Override
-      public int compare(SlaveLoad o1, SlaveLoad o2) {
+      public int compare(ForkedJvmLoad o1, ForkedJvmLoad o2) {
         if (o1.estimatedFinish < o2.estimatedFinish) {
           return -1;
         } else if (o1.estimatedFinish == o2.estimatedFinish) {
@@ -32,7 +32,7 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
     public final int id;
     public long estimatedFinish;
 
-    public SlaveLoad(int id) {
+    public ForkedJvmLoad(int id) {
       this.id = id;
     }
   }
@@ -69,12 +69,12 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
 
   /**
    * Assign based on execution time history. The algorithm is a greedy heuristic
-   * assigning the longest remaining test to the slave with the
+   * assigning the longest remaining test to the forked JVM with the
    * shortest-completion time so far. This is not optimal but fast and provides
    * a decent average assignment.
    */
   @Override
-  public List<Assignment> assign(Collection<String> suiteNames, int slaves, long seed) {
+  public List<Assignment> assign(Collection<String> suiteNames, int forkedJvmCount, long seed) {
     // Read hints first.
     final Map<String,List<Long>> hints = ExecutionTimesReport.mergeHints(resources, suiteNames);
 
@@ -94,37 +94,37 @@ public class ExecutionTimeBalancer extends ProjectComponent implements SuiteBala
     Collections.sort(costs, SuiteHint.DESCENDING_BY_WEIGHT);
 
     // Apply the assignment heuristic.
-    final PriorityQueue<SlaveLoad> pq = new PriorityQueue<SlaveLoad>(
-        slaves, SlaveLoad.ASCENDING_BY_ESTIMATED_FINISH);
-    for (int i = 0; i < slaves; i++) {
-      pq.add(new SlaveLoad(i));
+    final PriorityQueue<ForkedJvmLoad> pq = new PriorityQueue<ForkedJvmLoad>(
+        forkedJvmCount, ForkedJvmLoad.ASCENDING_BY_ESTIMATED_FINISH);
+    for (int i = 0; i < forkedJvmCount; i++) {
+      pq.add(new ForkedJvmLoad(i));
     }
 
     final List<Assignment> assignments = new ArrayList<>();
     for (SuiteHint hint : costs) {
-      SlaveLoad slave = pq.remove();
-      slave.estimatedFinish += hint.cost;
-      pq.add(slave);
+      ForkedJvmLoad forkedJvm = pq.remove();
+      forkedJvm.estimatedFinish += hint.cost;
+      pq.add(forkedJvm);
 
       owner.log("Expected execution time for " + hint.suiteName + ": " +
           Duration.toHumanDuration(hint.cost),
           Project.MSG_DEBUG);
 
-      assignments.add(new Assignment(hint.suiteName, slave.id, (int) hint.cost));
+      assignments.add(new Assignment(hint.suiteName, forkedJvm.id, (int) hint.cost));
     }
 
     // Dump estimated execution times.
-    TreeMap<Integer, SlaveLoad> ordered = new TreeMap<Integer, SlaveLoad>();
+    TreeMap<Integer, ForkedJvmLoad> ordered = new TreeMap<Integer, ForkedJvmLoad>();
     while (!pq.isEmpty()) {
-      SlaveLoad slave = pq.remove();
-      ordered.put(slave.id, slave);
+      ForkedJvmLoad forkedJvmLoad = pq.remove();
+      ordered.put(forkedJvmLoad.id, forkedJvmLoad);
     }
     for (Integer id : ordered.keySet()) {
-      final SlaveLoad slave = ordered.get(id);
+      final ForkedJvmLoad forkedJvmLoad = ordered.get(id);
       owner.log(String.format(Locale.ROOT, 
           "Expected execution time on JVM J%d: %8.2fs",
-          slave.id,
-          slave.estimatedFinish / 1000.0f), 
+          forkedJvmLoad.id,
+          forkedJvmLoad.estimatedFinish / 1000.0f),
           verbose ? Project.MSG_INFO : Project.MSG_DEBUG);
     }
 

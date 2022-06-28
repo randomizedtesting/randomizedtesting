@@ -6,10 +6,10 @@ import org.junit.Test;
 
 import com.carrotsearch.ant.tasks.junit4.tests.FireUnhandledRunnerException;
 
-public class TestUnhandledSlaveFailure extends JUnit4XmlTestBase {
+public class TestUnhandledForkedJvmFailure extends JUnit4XmlTestBase {
   @Test
-  public void checkSlaveMainFailure() throws IOException {
-    super.expectBuildExceptionContaining("slavemainfailure", "process threw an exception");
+  public void checkForkedMainFailure() throws IOException {
+    super.expectBuildExceptionContaining("forkedmainfailure", "process threw an exception");
     assertLogContains(FireUnhandledRunnerException.EXCEPTION_MESSAGE);
   }
 }

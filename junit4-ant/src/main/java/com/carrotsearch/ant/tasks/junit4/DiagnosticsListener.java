@@ -9,19 +9,19 @@ import com.carrotsearch.ant.tasks.junit4.events.QuitEvent;
 import com.google.common.eventbus.Subscribe;
 
 public class DiagnosticsListener {
-  private final ForkedJvmInfo slave;
+  private final ForkedJvmInfo forkedJvmInfo;
 
   private boolean quitReceived;
   private Task task;
 
-  public DiagnosticsListener(ForkedJvmInfo slave, JUnit4 task) {
+  public DiagnosticsListener(ForkedJvmInfo forkedJvmInfo, JUnit4 task) {
     this.task = task;
-    this.slave = slave;
+    this.forkedJvmInfo = forkedJvmInfo;
   }
 
   @Subscribe
   public void receiveAll(IEvent e) {
-    task.log("Packet received, slave#" + slave.id + ">" + e.getType(), Project.MSG_DEBUG);
+    task.log("Packet received, forkedJvm#" + forkedJvmInfo.id + ">" + e.getType(), Project.MSG_DEBUG);
   }
 
   @Subscribe

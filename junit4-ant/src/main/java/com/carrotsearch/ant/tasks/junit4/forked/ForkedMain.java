@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4.slave;
+package com.carrotsearch.ant.tasks.junit4.forked;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -12,9 +12,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayDeque;
@@ -24,7 +21,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.carrotsearch.randomizedtesting.RandomizedRunner;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
@@ -47,9 +43,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 
 /**
- * A slave process running the actual tests on the target JVM.
+ * A forked JVM process running the actual tests on the target JVM.
  */
-public class SlaveMain {
+public class ForkedMain {
   /** Runtime exception. */
   public static final int ERR_EXCEPTION = 240;
 
@@ -116,7 +112,7 @@ public class SlaveMain {
    * are propagated properly. Not really useful in practice...
    */
   public static final String SYSPROP_FIRERUNNERFAILURE =
-      SlaveMain.class.getName() + ".fireRunnerFailure";
+      ForkedMain.class.getName() + ".fireRunnerFailure";
 
   /**
    * Delay the initial bootstrap event from the forked JVM 
@@ -163,9 +159,9 @@ public class SlaveMain {
   }
 
   /**
-   * Creates a slave emitting events to the given serializer.
+   * Creates a forked JVM emitting events to the given serializer.
    */
-  public SlaveMain(Serializer serializer) {
+  public ForkedMain(Serializer serializer) {
     this.serializer = serializer;
   }
 
@@ -308,7 +304,7 @@ public class SlaveMain {
         if (flushFrequently)
           serializer.flush();
       } catch (Exception e) {
-        warn("Could not report failure back to master.", t);
+        warn("Could not report failure back to main JVM.", t);
       }
       return null;
     }
@@ -379,7 +375,7 @@ public class SlaveMain {
       // Redirect original streams and start running tests.
       redirectStreams(serializer, flushFrequently);
 
-      final SlaveMain main = new SlaveMain(serializer);
+      final ForkedMain main = new ForkedMain(serializer);
       main.flushFrequently = flushFrequently;
       main.debugMessagesFile = debugStream ? new File(eventsFile.getAbsolutePath() + ".debug"): null;
       main.runListeners = runListeners;

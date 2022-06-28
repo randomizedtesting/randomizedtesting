@@ -60,7 +60,7 @@
         <!--
         Run junit4 tests.
         -->
-        <junit4:junit4 jvm="" dir="${tmp.dir}" maxmemory="50m" haltonfailure="false" failureProperty="tests.failed" parallelism="1" shuffleOnSlave="true" leaveTemporary="false" seed="" printSummary="false">
+        <junit4:junit4 jvm="" dir="${tmp.dir}" maxmemory="50m" haltonfailure="false" failureProperty="tests.failed" parallelism="1" shuffleOnForkedJvm="true" leaveTemporary="false" seed="" printSummary="false">
             <classpath>
                 <pathelement location="${tmp.dir}/classes" />
                 <fileset dir="${libs.dir}" includes="*.jar" />

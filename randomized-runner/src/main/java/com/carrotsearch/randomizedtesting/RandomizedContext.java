@@ -80,7 +80,7 @@ public final class RandomizedContext {
   }
 
   /**
-   * Returns the runner's master seed, formatted.
+   * Returns the runner's main seed, formatted.
    */
   public String getRunnerSeedAsString() {
     checkDisposed();

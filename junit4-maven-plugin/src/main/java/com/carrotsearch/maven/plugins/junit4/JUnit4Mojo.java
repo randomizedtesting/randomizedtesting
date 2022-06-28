@@ -86,7 +86,7 @@ public class JUnit4Mojo extends AbstractMojo {
   private MavenProject project;
 
   /**
-   * Base directory to invoke slave VMs in. Also note <code>isolateWorkingDirectories</code>
+   * Base directory to invoke forked VMs in. Also note <code>isolateWorkingDirectories</code>
    * parameter.
    */
   @Parameter(
@@ -135,12 +135,23 @@ public class JUnit4Mojo extends AbstractMojo {
 
   /**
    * Predictably shuffle tests order after balancing. This will help in spreading
-   * lighter and heavier tests over a single slave's execution timeline while
+   * lighter and heavier tests over a single forked JVM execution timeline while
+   * still keeping the same tests order depending on the seed.
+   *
+   * @deprecated Use {@link #shuffleOnForkedJvm}
+   */
+  @Parameter(defaultValue = "true")
+  @Deprecated
+  private boolean shuffleOnSlave = JUnit4.DEFAULT_SHUFFLE_ON_FORKED_JVM;
+
+  /**
+   * Predictably shuffle tests order after balancing. This will help in spreading
+   * lighter and heavier tests over a single forked JVM execution timeline while
    * still keeping the same tests order depending on the seed.
    */
   @Parameter(defaultValue = "true")
-  private boolean shuffleOnSlave = JUnit4.DEFAULT_SHUFFLE_ON_SLAVE;
-  
+  private boolean shuffleOnForkedJvm = JUnit4.DEFAULT_SHUFFLE_ON_FORKED_JVM;
+
   /**
    * Prints the summary of all executed, ignored etc. tests at the end.
    */
@@ -182,7 +193,7 @@ public class JUnit4Mojo extends AbstractMojo {
   
   /**
    * Specifies the ratio of suites moved to dynamic assignment list. A dynamic
-   * assignment list dispatches suites to the first idle slave JVM. Theoretically
+   * assignment list dispatches suites to the first idle forked JVM. Theoretically
    * this is an optimal strategy, but it is usually better to have some static assignments
    * to avoid communication costs.
    * 
@@ -192,7 +203,7 @@ public class JUnit4Mojo extends AbstractMojo {
    * <p>The list of dynamic assignments is sorted by decreasing cost (always) and
    * is inherently prone to race conditions in distributing suites. Should there
    * be an error based on suite-dependency it will not be directly repeatable. In such
-   * case use the per-slave-jvm list of suites file dumped to disk for each slave JVM.
+   * case use the per-forked-jvm list of suites file dumped to disk for each forked JVM.
    * (see <code>leaveTemporary</code> parameter).
    */
   @Parameter(defaultValue = "0.25")
@@ -608,7 +619,7 @@ public class JUnit4Mojo extends AbstractMojo {
     if (statsPropertyPrefix != null) junit4.addAttribute("statsPropertyPrefix", statsPropertyPrefix);
     if (onNonEmptyWorkDirectory != null) junit4.addAttribute("onNonEmptyWorkDirectory", onNonEmptyWorkDirectory);
 
-    junit4.addAttribute("shuffleOnSlave", Boolean.toString(shuffleOnSlave));
+    junit4.addAttribute("shuffleOnForkedJvm", Boolean.toString(shuffleOnSlave && shuffleOnForkedJvm));
     junit4.addAttribute("printSummary", Boolean.toString(printSummary));
     junit4.addAttribute("isolateWorkingDirectories", Boolean.toString(isolateWorkingDirectories));
     junit4.addAttribute("haltOnFailure", Boolean.toString(haltOnFailure));

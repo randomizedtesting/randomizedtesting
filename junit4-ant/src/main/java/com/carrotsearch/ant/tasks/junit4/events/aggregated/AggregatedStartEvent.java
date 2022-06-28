@@ -2,22 +2,22 @@ package com.carrotsearch.ant.tasks.junit4.events.aggregated;
 
 
 /**
- * An event dispatched before any slave starts.
+ * An event dispatched before any forked JVM starts.
  */
 public class AggregatedStartEvent {
-  private int slaves;
+  private int forkedJvmCount;
   private int suiteCount;
 
-  public AggregatedStartEvent(int slaves, int suiteCount) {
-    this.slaves = slaves;
+  public AggregatedStartEvent(int forkedJvmCount, int suiteCount) {
+    this.forkedJvmCount = forkedJvmCount;
     this.suiteCount = suiteCount;
   }
   
   /**
-   * Number of slave processes.
+   * Number of forked JVM processes.
    */
-  public int getSlaveCount() {
-    return slaves;
+  public int getForkedJvmCount() {
+    return forkedJvmCount;
   }
 
   /**

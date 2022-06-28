@@ -196,7 +196,7 @@ that make little sense have been deprecated and are ignored. Attributes specific
   <tr>
     <td valign="top">tempdir</td>
     <td valign="top">Specify where to store temporary files. These temporary files include a list of suites passed
-      to each slave JVM so it is usually wise to just leave this attribute unset - the default is to take the value of the
+      to each forked JVM so it is usually wise to just leave this attribute unset - the default is to take the value of the
       <code>dir</code> attribute or the project's basedir.
     </td>
     <td align="center" valign="top">No</td>
@@ -230,7 +230,7 @@ that make little sense have been deprecated and are ignored. Attributes specific
   <tr class="junit4">
     <td valign="top">parallelism</td>
     <td valign="top">
-      The number of parallel slaves. Can be set to a constant <strong><code>max</code></strong> for the
+      The number of parallel forked JVMs. Can be set to a constant <strong><code>max</code></strong> for the
       maximum number of cores returned from <code>Runtime.availableProcessors</code> or 
       <strong><code>auto</code></strong> for sensible defaults depending on the number of cores.
       
@@ -245,7 +245,7 @@ that make little sense have been deprecated and are ignored. Attributes specific
     <td valign="top">dynamicAssignmentRatio</td>
     <td valign="top">
       Specifies the ratio of suites moved to dynamic assignment list (job-stealing). A dynamic
-      assignment list dispatches suites to the first idle slave JVM. Theoretically
+      assignment list dispatches suites to the first idle forked JVM. Theoretically
       this is an optimal strategy, but it is usually better to have some static assignments
       to avoid communication costs.
    
@@ -255,7 +255,7 @@ that make little sense have been deprecated and are ignored. Attributes specific
       <p>The list of dynamic assignments is sorted by decreasing cost (always) and
       is inherently prone to race conditions in distributing suites. Should there
       be an error based on suite-dependency it will not be directly repeatable. In such
-      case use the per-slave-jvm list of suites file dumped to disk for each slave JVM.
+      case use the per-forked-jvm list of suites file dumped to disk for each forked JVM.
       See <code>leaveTemporary</code> attribute.
     </td>
     <td align="center" valign="top">No; default is '0.25' (25% of all suites are assigned dynamically).</td>
@@ -267,7 +267,7 @@ that make little sense have been deprecated and are ignored. Attributes specific
       Specify random seed for anything that is randomized in <code>junit4</code>. The order of suites
       execution and suite-JVM assignments are a result of this seed for example.
 
-      <p>The master seed is also passed to slave JVMs as a system property (to bootstrap randomized runner).</p>
+      <p>The main seed is also passed to forked JVMs as a system property (to bootstrap randomized runner).</p>
     </td>
     <td align="center" valign="top">No; default is a randomly generated seed.</td>
   </tr>
@@ -282,10 +282,10 @@ that make little sense have been deprecated and are ignored. Attributes specific
   </tr>
 
   <tr class="junit4">
-    <td valign="top">shuffleOnSlave</td>
+    <td valign="top">shuffleOnForkedJvm</td>
     <td valign="top">
     Predictably shuffle tests order after balancing. This will help in spreading
-    lighter and heavier tests over a single slave's execution timeline while
+    lighter and heavier tests over a single forked JVM execution timeline while
     still keeping the same tests order depending on the seed. See nested elements
     for configuring load balancers.
     </td>
@@ -658,7 +658,7 @@ statistics (for example precomputed statistics and previous local runs):</p>
 
 <h3>Capturing original JVM output</h3>
 
-<p>JUnit4 has been designed to run reports and aggregation of test events on the master
+<p>JUnit4 has been designed to run reports and aggregation of test events on the main
 JVM, not on the forked JVMs. This slightly complicates things when diagnostic JVM messages
 are used because these messages are printed directly to original stream descriptors
 by the JVM, bypassing System.out or System.err substitutions.</p>

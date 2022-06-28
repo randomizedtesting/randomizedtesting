@@ -158,8 +158,8 @@
                 <packages>com.carrotsearch.ant.tasks.junit4.events*</packages>
               </group>
             </groups>
-            <header><![CDATA[<div id='header'><a class='logo' target='_top' href='http://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
-            <excludePackageNames>com.carrotsearch.ant.tasks.junit4.slave</excludePackageNames>
+            <header><![CDATA[<div id='header'><a class='logo' target='_top' href='https://labs.carrotsearch.com'></a>${project.name} v${project.version} <br>API Documentation</div>]]></header>
+            <excludePackageNames>com.carrotsearch.ant.tasks.junit4.forked</excludePackageNames>
           </configuration>
         </plugin>        
       </plugins>          

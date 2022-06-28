@@ -98,7 +98,7 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogDoesNotContain("at sun.reflect.");
     assertLogDoesNotContain("at java.lang.reflect.Method");
     assertLogDoesNotContain("at org.junit.runners.");
-    assertLogDoesNotContain("at com.carrotsearch.ant.tasks.junit4.slave.SlaveMain");
+    assertLogDoesNotContain("at com.carrotsearch.ant.tasks.junit4.forked.ForkedMain");
   }
   
   @Test 
@@ -107,7 +107,7 @@ public class TestTextReport extends JUnit4XmlTestBase {
 
     assertLogContains("java.lang.reflect.Method");
     assertLogDoesNotContain("at org.junit.");
-    assertLogDoesNotContain(".SlaveMain.");
+    assertLogDoesNotContain(".ForkedMain.");
   }
   
   @Test 

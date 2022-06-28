@@ -40,7 +40,7 @@ public class JsonReport implements AggregatedEventListener {
 
   private String projectName;
   
-  private Map<Integer, ForkedJvmInfo> slaves = new TreeMap<>();
+  private Map<Integer, ForkedJvmInfo> forkedJvms = new TreeMap<>();
   private OutputStreamWriter writer;
 
   private static enum OutputMethod {
@@ -202,7 +202,7 @@ public class JsonReport implements AggregatedEventListener {
       if (jsonWriter == null)
         return;
 
-      slaves.put(e.getSlave().id, e.getSlave());
+      forkedJvms.put(e.getForkedJvmInfo().id, e.getForkedJvmInfo());
       e.serialize(jsonWriter, outputStreams);
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -231,9 +231,9 @@ public class JsonReport implements AggregatedEventListener {
     try {
       jsonWriter.endArray();
 
-      jsonWriter.name("slaves");
+      jsonWriter.name("forkedJvms");
       jsonWriter.beginObject();
-      for (Map.Entry<Integer, ForkedJvmInfo> entry : slaves.entrySet()) {
+      for (Map.Entry<Integer, ForkedJvmInfo> entry : forkedJvms.entrySet()) {
         jsonWriter.name(Integer.toString(entry.getKey()));
         entry.getValue().serialize(jsonWriter);
       }

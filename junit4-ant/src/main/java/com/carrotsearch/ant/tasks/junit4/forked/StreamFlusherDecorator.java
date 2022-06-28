@@ -1,4 +1,4 @@
-package com.carrotsearch.ant.tasks.junit4.slave;
+package com.carrotsearch.ant.tasks.junit4.forked;
 
 import org.junit.runner.notification.RunListener;
 

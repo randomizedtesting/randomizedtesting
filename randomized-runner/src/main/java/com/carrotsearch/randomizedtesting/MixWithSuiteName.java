@@ -4,7 +4,7 @@ import com.carrotsearch.randomizedtesting.annotations.SeedDecorators;
 
 /**
  * A {@link SeedDecorator} to be used with {@link SeedDecorators} annotation
- * to modify the master {@link Randomness} with a hash off the suite's class name.
+ * to modify the main {@link Randomness} with a hash off the suite's class name.
  */
 public class MixWithSuiteName implements SeedDecorator {
   private long xorHash;

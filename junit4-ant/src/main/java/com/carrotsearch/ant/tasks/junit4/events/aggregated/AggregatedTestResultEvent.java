@@ -17,7 +17,7 @@ import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
 public class AggregatedTestResultEvent implements AggregatedResultEvent {
   private final Description suite;
   private final Description description;
-  private final ForkedJvmInfo slave;
+  private final ForkedJvmInfo forkedJvmInfo;
 
   private TestStatus status = TestStatus.OK;
   private List<FailureMirror> failures = new ArrayList<>();
@@ -34,10 +34,10 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   /** Associated {@link TestFinishedEvent}. */
   private TestFinishedEvent testFinishedEvent;
 
-  public AggregatedTestResultEvent(ForkedJvmInfo slave, Description suiteDescription, Description description) {
+  public AggregatedTestResultEvent(ForkedJvmInfo forkedJvmInfo, Description suiteDescription, Description description) {
     this.description = description;
     this.suite = suiteDescription;
-    this.slave = slave;
+    this.forkedJvmInfo = forkedJvmInfo;
   }
 
   @Override
@@ -57,8 +57,8 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   }
 
   @Override
-  public ForkedJvmInfo getSlave() {
-    return slave;
+  public ForkedJvmInfo getForkedJvmInfo() {
+    return forkedJvmInfo;
   }
 
   @Override
@@ -74,7 +74,7 @@ public class AggregatedTestResultEvent implements AggregatedResultEvent {
   }
 
   /**
-   * Execution start timestamp (on the slave).
+   * Execution start timestamp (on the forked JVM).
    */
   public long getStartTimestamp() {
     return testFinishedEvent.getStartTimestamp();

@@ -16,7 +16,7 @@ import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonToken;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 
 /**
- * Initial message sent from the slave to the master (if forked locally).
+ * Initial message sent from the forked JVM to the main JVM (if forked locally).
  */
 public class BootstrapEvent extends AbstractEvent {
   private static final List<String> GUARANTEED_PROPERTIES = Arrays.asList(
@@ -103,14 +103,14 @@ public class BootstrapEvent extends AbstractEvent {
   }
 
   /**
-   * Default charset on the slave.
+   * Default charset on the forked JVM.
    */
   public String getDefaultCharsetName() {
     return defaultCharset;
   }
 
   /**
-   * System properties on the slave.
+   * System properties on the forked JVM.
    */
   public Map<String,String> getSystemProperties() {
     return systemProperties;

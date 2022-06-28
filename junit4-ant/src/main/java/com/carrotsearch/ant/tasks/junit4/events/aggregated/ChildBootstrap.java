@@ -9,7 +9,7 @@ public class ChildBootstrap {
     this.childInfo = childInfo;
   }
   
-  public ForkedJvmInfo getSlave() {
+  public ForkedJvmInfo getForkedJvmInfo() {
     return childInfo;
   }
 }

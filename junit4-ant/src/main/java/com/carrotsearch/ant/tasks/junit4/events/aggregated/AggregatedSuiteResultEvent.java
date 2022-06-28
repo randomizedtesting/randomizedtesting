@@ -25,7 +25,7 @@ import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.carrotsearch.randomizedtesting.WriterOutputStream;
 
 public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
-  private transient final ForkedJvmInfo slave;
+  private transient final ForkedJvmInfo forkedJvm;
 
   private final long executionTime;
   private final long startTimestamp;
@@ -47,7 +47,7 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
       long startTimestamp, 
       long executionTime) {
     this.startEvent = startEvent;
-    this.slave = id;
+    this.forkedJvm = id;
     this.tests = tests;
     this.suiteFailures = suiteFailures;
     this.description = description;
@@ -89,8 +89,8 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   }
   
   @Override
-  public ForkedJvmInfo getSlave() {
-    return slave;
+  public ForkedJvmInfo getForkedJvmInfo() {
+    return forkedJvm;
   }
 
   @Override
@@ -106,7 +106,7 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   }
 
   /**
-   * Execution start timestamp (on the slave).
+   * Execution start timestamp (on the forked JVM).
    */
   public long getStartTimestamp() {
     return startTimestamp;
@@ -164,7 +164,7 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   public void serialize(JsonWriter w, boolean outputStreams) throws IOException {
     w.beginObject();
 
-    w.name("slave").value(getSlave().id);
+    w.name("forkedJvm").value(getForkedJvmInfo().id);
     w.name("startTimestamp").value(getStartTimestamp());
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.ROOT);
@@ -198,7 +198,7 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
 
   private void serialize(JsonWriter w, SimpleDateFormat sdf, AggregatedTestResultEvent e) throws IOException {
     w.beginObject();
-    w.name("slave").value(e.getSlave().id);
+    w.name("forkedJvm").value(e.getForkedJvmInfo().id);
     w.name("startTimestamp").value(e.getStartTimestamp());
     w.name("startTimestampDate").value(sdf.format(new Date(e.getStartTimestamp())));
     w.name("executionTime").value(e.getExecutionTime());
@@ -237,7 +237,7 @@ public class AggregatedSuiteResultEvent implements AggregatedResultEvent {
   }
 
   private void serializeEvents(JsonWriter w, boolean outputStreams) throws IOException {
-    final Charset charset = getSlave().getCharset();
+    final Charset charset = getForkedJvmInfo().getCharset();
     int lineBuffer = 160;
     final StringWriter out = new StringWriter();
     final StringWriter err = new StringWriter();

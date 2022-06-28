@@ -11,20 +11,20 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
 /**
  * {@link RandomizedRunner} uses several "contexts", each of which is assigned a
  * predictable {@link Random} and is modeled using a {@link Randomness}
- * instance. The "suite" or "master" context is available from
+ * instance. The "suite" or "main" context is available from
  * {@link BeforeClass} or {@link AfterClass} hooks, for example. Each test
- * method has a nested context with a random seed derived from the master. This
+ * method has a nested context with a random seed derived from the main seed. This
  * way even though the order of tests is shuffled and each test can make a
  * random number of calls to its own context's {@link Random} instance, the
- * global execution paths can always be repeated from the same master seed. The
- * question is: how do we know what master seed was used? There are at least two
+ * global execution paths can always be repeated from the same main seed. The
+ * question is: how do we know what main seed was used? There are at least two
  * ways to find out.
  * 
- * <p>The master seed is always available from
+ * <p>The main seed is always available from
  * {@link RandomizedContext#getRunnerSeedAsString()} so one can simply print it to the
  * console. The current context's {@link Randomness} itself can be printed to the
- * console. In two methods in this class {@link #printMasterContext()} and {@link #printContext()} 
- * we print the master seed and current context's {@link Randomness}, note how the static 
+ * console. In two methods in this class {@link #printMainContext()} and {@link #printContext()}
+ * we print the main seed and current context's {@link Randomness}, note how the static
  * context's {@link Randomness} is identical with the runner's but the test context 
  * is a derived value. 
  * <pre>
@@ -51,9 +51,9 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
  * </pre>
  * 
  * The first line of the stack trace is a synthetic (non-existing) class with "source file"
- * entry containing all contexts' seeds on the stack (from master to the current test method).
- * In this case, you can see the master context first (<tt>AF567B2B9F8A8F1C</tt>), followed
- * by the test's context (<tt>44E2D1A039274F2A</tt>). The entire class has a fixed master seed
+ * entry containing all contexts' seeds on the stack (from main to the current test method).
+ * In this case, you can see the main context first (<tt>AF567B2B9F8A8F1C</tt>), followed
+ * by the test's context (<tt>44E2D1A039274F2A</tt>). The entire class has a fixed main seed
  * so that the result will always be the same here:
  * <pre>
  * {@literal @}{@link Seed}("AF567B2B9F8A8F1C")
@@ -63,7 +63,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seed;
 @Seed("AF567B2B9F8A8F1C")
 public class Test005RecoveringRandomSeed extends RandomizedTest {
   @BeforeClass
-  public static void printMasterContext() {
+  public static void printMainContext() {
     System.out.println("# Static context (@BeforeClass)");
     System.out.println(getContext().getRunnerSeedAsString());
     System.out.println(RandomizedContext.current().getRandomness());

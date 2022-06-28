@@ -5,12 +5,12 @@ import java.lang.annotation.*;
 import com.carrotsearch.randomizedtesting.SeedDecorator;
 
 /**
- * Allows modifying the master seed (before the suite is started).
+ * Allows modifying the main seed (before the suite is started).
  * 
- * <p>Use this annotation when you want to perturb or modify the master seed. This may be
+ * <p>Use this annotation when you want to perturb or modify the main seed. This may be
  * useful if there are decisions taken in static contexts of multiple suites. In such a case
  * these decisions would always be identical (because at static context level the seed is 
- * always derived from the same master). With a {@link SeedDecorator} one can perturb
+ * always derived from the same main seed). With a {@link SeedDecorator} one can perturb
  * the seed for every suite. 
  * 
  * <ul>

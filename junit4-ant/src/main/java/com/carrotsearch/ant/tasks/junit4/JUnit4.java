@@ -43,6 +43,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.carrotsearch.ant.tasks.junit4.forked.ForkedMain;
+import com.carrotsearch.ant.tasks.junit4.forked.ForkedMainSafe;
 import com.carrotsearch.ant.tasks.junit4.runlisteners.RunListenerClass;
 import org.apache.tools.ant.AntClassLoader;
 import org.apache.tools.ant.BuildException;
@@ -79,8 +81,6 @@ import com.carrotsearch.ant.tasks.junit4.events.aggregated.AggregatingListener;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.ChildBootstrap;
 import com.carrotsearch.ant.tasks.junit4.events.aggregated.JvmOutputEvent;
 import com.carrotsearch.ant.tasks.junit4.listeners.AggregatedEventListener;
-import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
-import com.carrotsearch.ant.tasks.junit4.slave.SlaveMainSafe;
 import com.carrotsearch.randomizedtesting.ClassGlobFilter;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser.Node;
@@ -105,7 +105,7 @@ import com.google.common.io.FileWriteMode;
 /**
  * An ANT task to run JUnit4 tests. Differences (benefits?) compared to ANT's default JUnit task:
  * <ul>
- *  <li>Built-in parallel test execution support (spawns multiple JVMs to avoid 
+ *  <li>Built-in parallel test execution support (spawns multiple JVMs to avoid
  *  test interactions).</li>
  *  <li>Randomization of the order of test suites within a single JVM.</li>
  *  <li>Aggregates and synchronizes test events from executors. All reports run on
@@ -114,7 +114,7 @@ import com.google.common.io.FileWriteMode;
  *  Report listeners use Google Guava's {@link EventBus} and receive full information
  *  about tests' execution (including skipped, assumption-skipped tests, streamlined
  *  output and error stream chunks, etc.).</li>
- *  <li>JUnit 4.10+ is required both for the task and for the tests classpath. 
+ *  <li>JUnit 4.10+ is required both for the task and for the tests classpath.
  *  Older versions will cause build failure.</li>
  *  <li>Integration with {@link RandomizedRunner} (randomization seed is passed to
  *  children JVMs).</li>
@@ -157,8 +157,8 @@ public class JUnit4 extends Task {
   /** @see #setParallelism(String) */
   public static final String PARALLELISM_MAX = "max";
 
-  /** Default value of {@link #setShuffleOnSlave}. */
-  public static final boolean DEFAULT_SHUFFLE_ON_SLAVE = true;
+  /** Default value of {@link #setShuffleOnForkedJvm(boolean)}. */
+  public static final boolean DEFAULT_SHUFFLE_ON_FORKED_JVM = true;
 
   /** Default value of {@link #setParallelism}. */
   public static final String  DEFAULT_PARALLELISM = "1";
@@ -168,7 +168,7 @@ public class JUnit4 extends Task {
 
   /** Default value of {@link #setHaltOnFailure}. */
   public static final boolean DEFAULT_HALT_ON_FAILURE = true;
-  
+
   /** Default value of {@link #setIsolateWorkingDirectories(boolean)}. */
   public static final boolean DEFAULT_ISOLATE_WORKING_DIRECTORIES = true;
 
@@ -180,7 +180,7 @@ public class JUnit4 extends Task {
 
   /** Default value of {@link #setSysouts}. */
   public static final boolean DEFAULT_SYSOUTS = false;
-  
+
   /** Default value of {@link #setDebugStream}. */
   public static final boolean DEFAULT_DEBUGSTREAM = false;
 
@@ -222,17 +222,17 @@ public class JUnit4 extends Task {
   /**
    * @see #setSysouts
    */
-  private boolean sysouts = DEFAULT_SYSOUTS; 
+  private boolean sysouts = DEFAULT_SYSOUTS;
 
   /**
    * @see #setDebugStream
    */
-  private boolean debugStream = DEFAULT_DEBUGSTREAM; 
+  private boolean debugStream = DEFAULT_DEBUGSTREAM;
 
   /**
-   * Slave VM command line.
+   * Forked JVM command line.
    */
-  private CommandlineJava slaveCommand = new CommandlineJava();
+  private CommandlineJava forkedJvmCommandLine = new CommandlineJava();
 
   /**
    * Set new environment for the forked process?
@@ -243,12 +243,12 @@ public class JUnit4 extends Task {
    * @see #setUniqueSuiteNames
    */
   private boolean uniqueSuiteNames = DEFAULT_UNIQUE_SUITE_NAME;
-  
+
   /**
    * Environment variables to use in the forked JVM.
    */
   private Environment env = new Environment();
-  
+
   /**
    * Directory to invoke forked VMs in.
    */
@@ -273,9 +273,9 @@ public class JUnit4 extends Task {
    * Property to set if there were test failures or errors.
    */
   private String failureProperty;
-  
+
   /**
-   * A folder to store temporary files in. Defaults to {@link #dir} or  
+   * A folder to store temporary files in. Defaults to {@link #dir} or
    * the project's basedir.
    */
   private Path tempDir;
@@ -297,7 +297,7 @@ public class JUnit4 extends Task {
 
   /**
    * Class loader used to resolve annotations and classes referenced from annotations
-   * when {@link Description}s containing them are passed from slaves.
+   * when {@link Description}s containing them are passed from forked JVMs.
    */
   private AntClassLoader testsClassLoader;
 
@@ -344,44 +344,44 @@ public class JUnit4 extends Task {
   private float dynamicAssignmentRatio = DEFAULT_DYNAMIC_ASSIGNMENT_RATIO;
 
   /**
-   * @see #setShuffleOnSlave(boolean)
+   * @see #setShuffleOnForkedJvm(boolean)
    */
-  private boolean shuffleOnSlave = DEFAULT_SHUFFLE_ON_SLAVE;
+  private boolean shuffleOnForkedJvm = DEFAULT_SHUFFLE_ON_FORKED_JVM;
 
   /**
    * @see #setHeartbeat
    */
-  private long heartbeat; 
-  
+  private long heartbeat;
+
   /**
    * @see #setIfNoTests
    */
   private NoTestsAction ifNoTests = NoTestsAction.IGNORE;
-  
+
   /**
    * @see #setStatsPropertyPrefix
    */
   private String statsPropertyPrefix;
-  
+
   /**
-   * 
+   *
    */
   public JUnit4() {
     resources = new Resources();
   }
 
   /**
-   * What should be done on unexpected JVM output? JVM may write directly to the 
+   * What should be done on unexpected JVM output? JVM may write directly to the
    * original descriptors, bypassing redirections of System.out and System.err. Typically,
    * these messages will be important and should fail the build (permgen space exceeded,
    * compiler errors, crash dumps). However, certain legitimate logs (gc activity, class loading
    * logs) are also printed to these streams so sometimes the output can be ignored.
-   * 
-   * <p>Allowed values (any comma-delimited combination of): {@link JvmOutputAction} 
+   *
+   * <p>Allowed values (any comma-delimited combination of): {@link JvmOutputAction}
    * constants.
    */
   public void setJvmOutputAction(String jvmOutputActions) {
-    EnumSet<JvmOutputAction> actions = EnumSet.noneOf(JvmOutputAction.class); 
+    EnumSet<JvmOutputAction> actions = EnumSet.noneOf(JvmOutputAction.class);
     for (String s : jvmOutputActions.split("[\\,\\ ]+")) {
       s = s.trim().toUpperCase(Locale.ROOT);
       actions.add(JvmOutputAction.valueOf(s));
@@ -393,13 +393,13 @@ public class JUnit4 extends Task {
    * If set to true, any sysout and syserr calls will be written to original
    * output and error streams (and in effect will appear as "jvm output". By default
    * sysout and syserrs are captured and proxied to the event stream to be synchronized
-   * with other test events but occasionally one may want to synchronize them with direct 
-   * JVM output (to synchronize with compiler output or GC output for example). 
+   * with other test events but occasionally one may want to synchronize them with direct
+   * JVM output (to synchronize with compiler output or GC output for example).
    */
   public void setSysouts(boolean sysouts) {
     this.sysouts = sysouts;
   }
-  
+
   /**
    * Enables a debug stream from each forked JVM. This will create an additional file
    * next to each events file. For debugging the framework only, not a general-purpose setting.
@@ -407,7 +407,7 @@ public class JUnit4 extends Task {
   public void setDebugStream(boolean debugStream) {
     this.debugStream = debugStream;
   }
-  
+
   /**
    * Allow or disallow duplicate suite names in resource collections. By default this option
    * is <code>true</code> because certain ANT-compatible report types (like XML reports)
@@ -416,7 +416,7 @@ public class JUnit4 extends Task {
   public void setUniqueSuiteNames(boolean uniqueSuiteNames) {
     this.uniqueSuiteNames = uniqueSuiteNames;
   }
-  
+
   /**
    * @see #setUniqueSuiteNames(boolean)
    */
@@ -426,17 +426,17 @@ public class JUnit4 extends Task {
 
   /**
    * Specifies the ratio of suites moved to dynamic assignment list. A dynamic
-   * assignment list dispatches suites to the first idle slave JVM. Theoretically
+   * assignment list dispatches suites to the first idle forked JVM. Theoretically
    * this is an optimal strategy, but it is usually better to have some static assignments
    * to avoid communication costs.
-   * 
+   *
    * <p>A ratio of 0 means only static assignments are used. A ratio of 1 means
    * only dynamic assignments are used.
-   * 
+   *
    * <p>The list of dynamic assignments is sorted by decreasing cost (always) and
    * is inherently prone to race conditions in distributing suites. Should there
    * be an error based on suite-dependency it will not be directly repeatable. In such
-   * case use the per-slave-jvm list of suites file dumped to disk for each slave JVM.
+   * case use the per-forked-jvm list of suites file dumped to disk for each forked JVM.
    * (see {@link #setLeaveTemporary(boolean)}).
    */
   public void setDynamicAssignmentRatio(float ratio) {
@@ -448,13 +448,13 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * The number of parallel slaves. Can be set to a constant "max" for the
-   * number of cores returned from {@link Runtime#availableProcessors()} or 
+   * The number of parallel forked JVMs. Can be set to a constant "max" for the
+   * number of cores returned from {@link Runtime#availableProcessors()} or
    * "auto" for sensible defaults depending on the number of cores.
    * The default is a single subprocess.
-   * 
-   * <p>Note that this setting forks physical JVM processes so it multiplies the 
-   * requirements for heap memory, IO, etc. 
+   *
+   * <p>Note that this setting forks physical JVM processes so it multiplies the
+   * requirements for heap memory, IO, etc.
    */
   public void setParallelism(String parallelism) {
     this.parallelism = parallelism;
@@ -466,18 +466,18 @@ public class JUnit4 extends Task {
   public void setFailureProperty(String failureProperty) {
     this.failureProperty = failureProperty;
   }
-  
+
   /**
    * Do not propagate the old environment when new environment variables are specified.
    */
   public void setNewEnvironment(boolean v) {
     this.newEnvironment = v;
   }
-  
+
   /**
    * Initial random seed used for shuffling test suites and other sources
-   * of pseudo-randomness. If not set, any random value is set. 
-   * 
+   * of pseudo-randomness. If not set, any random value is set.
+   *
    * <p>The seed's format is compatible with {@link RandomizedRunner} so that
    * seed can be fixed for suites and methods alike.
    */
@@ -505,23 +505,35 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * @see #setSeed(String) 
+   * @see #setSeed(String)
    */
   public String getSeed() {
     return random;
-  }  
+  }
 
   /**
    * Predictably shuffle tests order after balancing. This will help in spreading
-   * lighter and heavier tests over a single slave's execution timeline while
-   * still keeping the same tests order depending on the seed. 
-   */ 
+   * lighter and heavier tests over a single forked JVM execution timeline while
+   * still keeping the same tests order depending on the seed.
+   *
+   * @deprecated Use {@link #setShuffleOnForkedJvm(boolean)}
+   */
+  @Deprecated()
   public void setShuffleOnSlave(boolean shuffle) {
-    this.shuffleOnSlave = shuffle;
+    setShuffleOnForkedJvm(shuffle);
+  }
+
+  /**
+   * Predictably shuffle tests order after balancing. This will help in spreading
+   * lighter and heavier tests over a single forked JVM execution timeline while
+   * still keeping the same tests order depending on the seed.
+   */
+  public void setShuffleOnForkedJvm(boolean shuffle) {
+    this.shuffleOnForkedJvm = shuffle;
   }
 
   /*
-   * 
+   *
    */
   @Override
   public void setProject(Project project) {
@@ -531,9 +543,9 @@ public class JUnit4 extends Task {
     this.classpath = new org.apache.tools.ant.types.Path(getProject());
     this.bootclasspath = new org.apache.tools.ant.types.Path(getProject());
   }
-  
+
   /**
-   * Prints the summary of all executed, ignored etc. tests at the end. 
+   * Prints the summary of all executed, ignored etc. tests at the end.
    */
   public void setPrintSummary(boolean printSummary) {
     this.printSummary = printSummary;
@@ -548,7 +560,7 @@ public class JUnit4 extends Task {
 
   /**
    * Set the maximum memory to be used by all forked JVMs.
-   * 
+   *
    * @param max
    *          the value as defined by <tt>-mx</tt> or <tt>-Xmx</tt> in the java
    *          command line options.
@@ -565,7 +577,7 @@ public class JUnit4 extends Task {
   public void setLeaveTemporary(boolean leaveTemporary) {
     this.leaveTemporary = leaveTemporary;
   }
-  
+
   /**
    * Add an additional argument to any forked JVM.
    */
@@ -602,7 +614,7 @@ public class JUnit4 extends Task {
 
   /**
    * A {@link org.apache.tools.ant.types.Environment.Variable} with an additional
-   * attribute specifying whether or not empty values should be propagated or ignored.  
+   * attribute specifying whether or not empty values should be propagated or ignored.
    */
   public static class ExtendedVariable extends Environment.Variable {
     private boolean ignoreEmptyValue = false;
@@ -620,7 +632,7 @@ public class JUnit4 extends Task {
       return getContent() + " (ignoreEmpty=" + ignoreEmptyValue + ")";
     }
   }
-  
+
   /**
    * Adds a system property to any forked JVM.
    */
@@ -629,7 +641,7 @@ public class JUnit4 extends Task {
       getCommandline().addSysproperty(sysp);
     }
   }
-  
+
   /**
    * A {@link PropertySet} with an additional
    * attribute specifying whether or not empty values should be propagated or ignored.
@@ -660,13 +672,13 @@ public class JUnit4 extends Task {
   /**
    * Adds a set of properties that will be used as system properties that tests
    * can access.
-   * 
+   *
    * This might be useful to transfer Ant properties to the testcases.
    */
   public void addConfiguredSyspropertyset(ExtendedPropertySet sysp) {
     getCommandline().addSyspropertyset(sysp);
   }
-  
+
   /**
    * The command used to invoke the Java Virtual Machine, default is 'java'. The
    * command is resolved by java.lang.Runtime.exec().
@@ -678,9 +690,9 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * If set to <code>true</code> each slave JVM gets a separate working directory
-   * under whatever is set in {@link #setDir(File)}. The directory naming for each slave
-   * follows: "S<i>num</i>", where <i>num</i> is slave's number. Directories are created
+   * If set to <code>true</code> each forked JVM gets a separate working directory
+   * under whatever is set in {@link #setDir(File)}. The directory naming for each forked JVM
+   * follows: "S<i>num</i>", where <i>num</i> is forked JVM number. Directories are created
    * automatically and removed unless {@link #setLeaveTemporary(boolean)} is set to
    * <code>true</code>.
    */
@@ -724,7 +736,7 @@ public class JUnit4 extends Task {
    */
   public void add(ResourceCollection rc) {
     resources.add(rc);
-  }  
+  }
 
   /**
    * Creates a new list of listeners.
@@ -759,7 +771,7 @@ public class JUnit4 extends Task {
 
   /**
    * Adds path to classpath used for tests.
-   * 
+   *
    * @return reference to the classpath in the embedded java command line
    */
   public org.apache.tools.ant.types.Path createClasspath() {
@@ -768,13 +780,13 @@ public class JUnit4 extends Task {
 
   /**
    * Adds a path to the bootclasspath.
-   * 
+   *
    * @return reference to the bootclasspath in the embedded java command line
    */
   public org.apache.tools.ant.types.Path createBootclasspath() {
     return bootclasspath.createPath();
   }
-  
+
   /* ANT-junit compat only. */
   public void setFork(boolean fork) {
     warnUnsupported("fork");
@@ -783,7 +795,7 @@ public class JUnit4 extends Task {
   public void setForkmode(String forkMode) {
     warnUnsupported("forkmode");
   }
-  
+
   public void setHaltOnError(boolean haltOnError) {
     warnUnsupported("haltonerror");
   }
@@ -812,7 +824,7 @@ public class JUnit4 extends Task {
   public void setReloading(String v) {
     warnUnsupported("reloading");
   }
-  
+
   public void setClonevm(String v) {
     warnUnsupported("clonevm");
   }
@@ -824,7 +836,7 @@ public class JUnit4 extends Task {
   public void setLogfailedtests(String v) {
     warnUnsupported("logfailedtests");
   }
-  
+
   public void setEnableTestListenerEvents(String v) {
     warnUnsupported("enableTestListenerEvents");
   }
@@ -853,7 +865,7 @@ public class JUnit4 extends Task {
    * number of seconds. The heartbeat detects
    * no-event intervals and will report them to listeners. Notably, text report report will
    * emit heartbeat information (to a file or console).
-   * 
+   *
    * <p>Setting the heartbeat to zero means no detection.
    */
   public void setHeartbeat(long heartbeat) {
@@ -866,7 +878,7 @@ public class JUnit4 extends Task {
   public void setStatsPropertyPrefix(String statsPropertyPrefix) {
     this.statsPropertyPrefix = statsPropertyPrefix;
   }
-  
+
   @Override
   public void execute() throws BuildException {
     validateJUnit4();
@@ -874,16 +886,16 @@ public class JUnit4 extends Task {
 
     // Initialize random if not already provided.
     if (random == null) {
-      this.random = MoreObjects.firstNonNull( 
+      this.random = MoreObjects.firstNonNull(
           Strings.emptyToNull(getProject().getProperty(SYSPROP_RANDOM_SEED())),
           SeedUtils.formatSeed(new Random().nextLong()));
     }
-    masterSeed();
+    mainSeed();
 
     // Say hello and continue.
     log("<JUnit4> says " +
-        RandomPicks.randomFrom(new Random(masterSeed()), WELCOME_MESSAGES) +
-        " Master seed: " + getSeed(), Project.MSG_INFO);
+        RandomPicks.randomFrom(new Random(mainSeed()), WELCOME_MESSAGES) +
+        " Main seed: " + getSeed(), Project.MSG_INFO);
 
     // Pass the random seed property.
     createJvmarg().setValue("-D" + SYSPROP_PREFIX() + "=" + CURRENT_PREFIX());
@@ -917,13 +929,13 @@ public class JUnit4 extends Task {
     }
 
     // Process test classes and resources.
-    long start = System.currentTimeMillis();    
+    long start = System.currentTimeMillis();
     final TestsCollection testCollection = processTestResources();
 
     final EventBus aggregatedBus = new EventBus("aggregated");
     final TestsSummaryEventListener summaryListener = new TestsSummaryEventListener();
     aggregatedBus.register(summaryListener);
-    
+
     for (Object o : listeners) {
       if (o instanceof ProjectComponent) {
         ((ProjectComponent) o).setProject(getProject());
@@ -946,30 +958,30 @@ public class JUnit4 extends Task {
       }
 
       final int jvmCount = determineForkedJvmCount(testCollection);
-      final List<ForkedJvmInfo> slaveInfos = new ArrayList<>();
+      final List<ForkedJvmInfo> forkedJvmInfos = new ArrayList<>();
       for (int jvmid = 0; jvmid < jvmCount; jvmid++) {
-        final ForkedJvmInfo slaveInfo = new ForkedJvmInfo(jvmid, jvmCount);
-        slaveInfos.add(slaveInfo);
+        final ForkedJvmInfo forkedJvmInfo = new ForkedJvmInfo(jvmid, jvmCount);
+        forkedJvmInfos.add(forkedJvmInfo);
       }
 
-      
+
       if (jvmCount > 1 && uniqueSuiteNames && testCollection.hasReplicatedSuites()) {
         throw new BuildException(String.format(Locale.ROOT,
             "There are test suites that request JVM replication and the number of forked JVMs %d is larger than 1. Run on a single JVM.",
             jvmCount));
       }
 
-      // Prepare a pool of suites dynamically dispatched to slaves as they become idle.
-      final Deque<String> stealingQueue = 
-          new ArrayDeque<String>(loadBalanceSuites(slaveInfos, testCollection, balancers));
+      // Prepare a pool of suites dynamically dispatched to forked JVMs as they become idle.
+      final Deque<String> stealingQueue =
+          new ArrayDeque<String>(loadBalanceSuites(forkedJvmInfos, testCollection, balancers));
       aggregatedBus.register(new Object() {
         @Subscribe
-        public void onSlaveIdle(SlaveIdle slave) {
+        public void onForkedJvmIdle(ForkedJvmIdle forkedJvmIdle) {
           if (stealingQueue.isEmpty()) {
-            slave.finished();
+            forkedJvmIdle.finished();
           } else {
             String suiteName = stealingQueue.pop();
-            slave.newSuite(suiteName);
+            forkedJvmIdle.newSuite(suiteName);
           }
         }
       });
@@ -988,68 +1000,68 @@ public class JUnit4 extends Task {
       }
 
       // Create callables for the executor.
-      final List<Callable<Void>> slaves = new ArrayList<>();
-      for (int slave = 0; slave < jvmCount; slave++) {
-        final ForkedJvmInfo slaveInfo = slaveInfos.get(slave);
-        slaves.add(new Callable<Void>() {
+      final List<Callable<Void>> forkedJvms = new ArrayList<>();
+      for (int forked = 0; forked < jvmCount; forked++) {
+        final ForkedJvmInfo forkedJvmInfo = forkedJvmInfos.get(forked);
+        forkedJvms.add(new Callable<Void>() {
           @Override
           public Void call() throws Exception {
-            executeSlave(slaveInfo, aggregatedBus);
+            forkJvm(forkedJvmInfo, aggregatedBus);
             return null;
           }
         });
       }
 
       ExecutorService executor = Executors.newCachedThreadPool();
-      aggregatedBus.post(new AggregatedStartEvent(slaves.size(),
+      aggregatedBus.post(new AggregatedStartEvent(forkedJvms.size(),
           // TODO: this doesn't account for replicated suites.
           testCollection.testClasses.size()));
 
       try {
-        List<Future<Void>> all = executor.invokeAll(slaves);
+        List<Future<Void>> all = executor.invokeAll(forkedJvms);
         executor.shutdown();
 
-        for (int i = 0; i < slaves.size(); i++) {
+        for (int i = 0; i < forkedJvms.size(); i++) {
           Future<Void> f = all.get(i);
           try {
             f.get();
           } catch (ExecutionException e) {
-            slaveInfos.get(i).executionError = e.getCause();
+            forkedJvmInfos.get(i).executionError = e.getCause();
           }
         }
       } catch (InterruptedException e) {
-        log("Master interrupted? Weird.", Project.MSG_ERR);
+        log("Main JVM interrupted? Weird.", Project.MSG_ERR);
       }
       aggregatedBus.post(new AggregatedQuitEvent());
 
-      for (ForkedJvmInfo si : slaveInfos) {
+      for (ForkedJvmInfo si : forkedJvmInfos) {
         if (si.start > 0 && si.end > 0) {
           log(String.format(Locale.ROOT, "JVM J%d: %8.2f .. %8.2f = %8.2fs",
               si.id,
               (si.start - start) / 1000.0f,
               (si.end - start) / 1000.0f,
-              (si.getExecutionTime() / 1000.0f)), 
+              (si.getExecutionTime() / 1000.0f)),
               Project.MSG_INFO);
         }
       }
       log("Execution time total: " + Duration.toHumanDuration(
           (System.currentTimeMillis() - start)));
 
-      ForkedJvmInfo slaveInError = null;
-      for (ForkedJvmInfo i : slaveInfos) {
+      ForkedJvmInfo jvmInError = null;
+      for (ForkedJvmInfo i : forkedJvmInfos) {
         if (i.executionError != null) {
           log("ERROR: JVM J" + i.id + " ended with an exception, command line: " + i.getCommandLine());
-          log("ERROR: JVM J" + i.id + " ended with an exception: " + 
+          log("ERROR: JVM J" + i.id + " ended with an exception: " +
               Throwables.getStackTraceAsString(i.executionError), Project.MSG_ERR);
-          if (slaveInError == null) {
-            slaveInError = i;
+          if (jvmInError == null) {
+            jvmInError = i;
           }
         }
       }
 
-      if (slaveInError != null) {
-        throw new BuildException("At least one slave process threw an exception, first: "
-            + slaveInError.executionError.getMessage(), slaveInError.executionError);
+      if (jvmInError != null) {
+        throw new BuildException("At least one forked process threw an exception, first: "
+            + jvmInError.executionError.getMessage(), jvmInError.executionError);
       }
     }
 
@@ -1060,7 +1072,7 @@ public class JUnit4 extends Task {
 
     if (!testsSummary.isSuccessful()) {
       if (!Strings.isNullOrEmpty(failureProperty)) {
-        getProject().setNewProperty(failureProperty, "true");        
+        getProject().setNewProperty(failureProperty, "true");
       }
       if (haltOnFailure) {
         throw new BuildException(String.format(Locale.ROOT,
@@ -1137,7 +1149,7 @@ public class JUnit4 extends Task {
     if (tempDir == null) {
       throw new BuildException("Temporary directory cannot be null.");
     }
-    
+
     if (Files.exists(tempDir)) {
       if (!Files.isDirectory(tempDir)) {
         throw new BuildException("Temporary directory is not a folder: " + tempDir.toAbsolutePath());
@@ -1167,12 +1179,12 @@ public class JUnit4 extends Task {
 
   /**
    * Perform load balancing of the set of suites. Sets {@link ForkedJvmInfo#testSuites}
-   * to suites preassigned to a given slave and returns a pool of suites
+   * to suites preassigned to a given forked JVM and returns a pool of suites
    * that should be load-balanced dynamically based on job stealing.
    */
   private List<String> loadBalanceSuites(List<ForkedJvmInfo> jvmInfo,
       TestsCollection testsCollection, List<SuiteBalancer> balancers) {
-    
+
     // Order test suites identically for balancers.
     // and split into replicated and non-replicated suites.
     Map<Boolean,List<String>> partitioned = sortAndSplitReplicated(testsCollection.testClasses);
@@ -1196,7 +1208,7 @@ public class JUnit4 extends Task {
       balancer.setOwner(this);
       final List<Assignment> assignments =
           balancer.assign(
-              Collections.unmodifiableCollection(remaining), jvmCount, masterSeed());
+              Collections.unmodifiableCollection(remaining), jvmCount, mainSeed());
 
       for (Assignment e : assignments) {
         if (e == null) {
@@ -1208,12 +1220,12 @@ public class JUnit4 extends Task {
 
         log(String.format(Locale.ROOT,
             "Assignment hint: J%-2d (cost %5d) %s (by %s)",
-            e.slaveId,
+            e.forkedJvmId,
             e.estimatedCost,
             e.suiteName,
             balancer.getClass().getSimpleName()), Project.MSG_VERBOSE);
 
-        perJvmAssignments.get(e.slaveId).add(e);
+        perJvmAssignments.get(e.forkedJvmId).add(e);
       }
     }
 
@@ -1221,16 +1233,16 @@ public class JUnit4 extends Task {
       throw new RuntimeException("Not all suites assigned?: " + remaining);
     }
 
-    if (shuffleOnSlave) {
-      // Shuffle suites on slaves so that the result is always the same wrt master seed
+    if (shuffleOnForkedJvm) {
+      // Shuffle suites on forked JVMs so that the result is always the same wrt main seed
       // (sort first, then shuffle with a constant seed).
       for (List<Assignment> assignments : perJvmAssignments.values()) {
         Collections.sort(assignments);
-        Collections.shuffle(assignments, new Random(this.masterSeed()));
+        Collections.shuffle(assignments, new Random(this.mainSeed()));
       }
     }
 
-    // Take a fraction of suites scheduled as last on each slave and move them to a common
+    // Take a fraction of suites scheduled as last on each forked JVM and move them to a common
     // job-stealing queue.
     List<SuiteHint> stealingQueueWithHints = new ArrayList<>();
     for (ForkedJvmInfo si : jvmInfo) {
@@ -1238,7 +1250,7 @@ public class JUnit4 extends Task {
       int moveToCommon = (int) (assignments.size() * dynamicAssignmentRatio);
 
       if (moveToCommon > 0) {
-        final List<Assignment> movedToCommon = 
+        final List<Assignment> movedToCommon =
             assignments.subList(assignments.size() - moveToCommon, assignments.size());
         for (Assignment a : movedToCommon) {
           stealingQueueWithHints.add(new SuiteHint(a.suiteName, a.estimatedCost));
@@ -1246,9 +1258,9 @@ public class JUnit4 extends Task {
         movedToCommon.clear();
       }
 
-      final ArrayList<String> slaveSuites = (si.testSuites = new ArrayList<>());
+      final ArrayList<String> forkedJvmSuites = (si.testSuites = new ArrayList<>());
       for (Assignment a : assignments) {
-        slaveSuites.add(a.suiteName);
+        forkedJvmSuites.add(a.suiteName);
       }
     }
 
@@ -1262,10 +1274,10 @@ public class JUnit4 extends Task {
         for (String suite : replicated) {
             si.testSuites.add(suite);
         }
-        if (shuffleOnSlave) {
-          // Shuffle suites on slaves so that the result is always the same wrt master seed
+        if (shuffleOnForkedJvm) {
+          // Shuffle suites on forked JVMs so that the result is always the same wrt main seed
           // (sort first, then shuffle with a constant seed).
-          Collections.shuffle(si.testSuites, new Random(this.masterSeed()));
+          Collections.shuffle(si.testSuites, new Random(this.mainSeed()));
         }
       }
     }
@@ -1318,9 +1330,9 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Return the master seed of {@link #getSeed()}.
+   * Return the main seed of {@link #getSeed()}.
    */
-  private long masterSeed() {
+  private long mainSeed() {
     long[] seeds = SeedUtils.parseSeedChain(getSeed());
     if (seeds.length < 1) {
       throw new BuildException("Random seed is required.");
@@ -1378,51 +1390,51 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Attach listeners and execute a slave process.
+   * Attach listeners and execute a forked JVM subprocess.
    */
-  private void executeSlave(final ForkedJvmInfo slave, final EventBus aggregatedBus)
+  private void forkJvm(final ForkedJvmInfo forkedJvmInfo, final EventBus aggregatedBus)
     throws Exception
   {
     final String uniqueSeed = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.ROOT).format(new Date());
 
-    final Path classNamesFile = tempFile(uniqueSeed, "junit4-J" + slave.id, ".suites", getTempDir());
+    final Path classNamesFile = tempFile(uniqueSeed, "junit4-J" + forkedJvmInfo.id, ".suites", getTempDir());
     temporaryFiles.add(classNamesFile);
 
-    final Path classNamesDynamic = tempFile(uniqueSeed, "junit4-J" + slave.id, ".dynamic-suites", getTempDir());
-    final Path streamsBufferFile = tempFile(uniqueSeed, "junit4-J" + slave.id, ".spill", getTempDir());
+    final Path classNamesDynamic = tempFile(uniqueSeed, "junit4-J" + forkedJvmInfo.id, ".dynamic-suites", getTempDir());
+    final Path streamsBufferFile = tempFile(uniqueSeed, "junit4-J" + forkedJvmInfo.id, ".spill", getTempDir());
 
     // Dump all test class names to a temporary file.
-    String testClassPerLine = Joiner.on("\n").join(slave.testSuites);
+    String testClassPerLine = Joiner.on("\n").join(forkedJvmInfo.testSuites);
     log("Test class names:\n" + testClassPerLine, Project.MSG_VERBOSE);
     Files.write(classNamesFile, testClassPerLine.getBytes(StandardCharsets.UTF_8));
 
     // Prepare command line for java execution.
     CommandlineJava commandline;
     commandline = (CommandlineJava) getCommandline().clone();
-    commandline.createClasspath(getProject()).add(addSlaveClasspath());
-    commandline.setClassname(SlaveMainSafe.class.getName());
-    if (slave.slaves == 1) {
-      commandline.createArgument().setValue(SlaveMain.OPTION_FREQUENT_FLUSH);
+    commandline.createClasspath(getProject()).add(addForkedJvmClasspath());
+    commandline.setClassname(ForkedMainSafe.class.getName());
+    if (forkedJvmInfo.forkedJvmCount == 1) {
+      commandline.createArgument().setValue(ForkedMain.OPTION_FREQUENT_FLUSH);
     }
 
     // Set up full output files.
     Path sysoutFile = tempFile(uniqueSeed,
-        "junit4-J" + slave.id, ".sysout", getTempDir());
+        "junit4-J" + forkedJvmInfo.id, ".sysout", getTempDir());
     Path syserrFile = tempFile(uniqueSeed,
-        "junit4-J" + slave.id, ".syserr", getTempDir());
+        "junit4-J" + forkedJvmInfo.id, ".syserr", getTempDir());
 
     // Set up communication channel.
-    Path eventFile = tempFile(uniqueSeed, "junit4-J" + slave.id, ".events", getTempDir());
+    Path eventFile = tempFile(uniqueSeed, "junit4-J" + forkedJvmInfo.id, ".events", getTempDir());
     temporaryFiles.add(eventFile);
-    commandline.createArgument().setValue(SlaveMain.OPTION_EVENTSFILE);
+    commandline.createArgument().setValue(ForkedMain.OPTION_EVENTSFILE);
     commandline.createArgument().setFile(eventFile.toFile());
-    
+
     if (sysouts) {
-      commandline.createArgument().setValue(SlaveMain.OPTION_SYSOUTS);
+      commandline.createArgument().setValue(ForkedMain.OPTION_SYSOUTS);
     }
-    
+
     if (debugStream) {
-      commandline.createArgument().setValue(SlaveMain.OPTION_DEBUGSTREAM);
+      commandline.createArgument().setValue(ForkedMain.OPTION_DEBUGSTREAM);
     }
 
     TailInputStream eventStream = new TailInputStream(eventFile);
@@ -1431,7 +1443,7 @@ public class JUnit4 extends Task {
     if (!runListeners.isEmpty()) {
       String classNames = runListeners.stream().map(x -> x.getClassName()).collect(Collectors.joining(","));
 
-      commandline.createArgument().setValue(SlaveMain.OPTION_RUN_LISTENERS);
+      commandline.createArgument().setValue(ForkedMain.OPTION_RUN_LISTENERS);
       commandline.createArgument().setValue(classNames);
     }
 
@@ -1441,39 +1453,39 @@ public class JUnit4 extends Task {
     // May or may not use dynamic load balancing, but if == 0 then we're for sure
     // not using it.
     if (dynamicAssignmentRatio > 0) {
-      commandline.createArgument().setValue(SlaveMain.OPTION_STDIN);
+      commandline.createArgument().setValue(ForkedMain.OPTION_STDIN);
     }
 
-    final EventBus eventBus = new EventBus("slave-" + slave.id);
-    final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(slave, this);
+    final EventBus eventBus = new EventBus("forked-" + forkedJvmInfo.id);
+    final DiagnosticsListener diagnosticsListener = new DiagnosticsListener(forkedJvmInfo, this);
     eventBus.register(diagnosticsListener);
-    eventBus.register(new AggregatingListener(aggregatedBus, slave));
+    eventBus.register(new AggregatingListener(aggregatedBus, forkedJvmInfo));
 
     final AtomicReference<Charset> clientCharset = new AtomicReference<Charset>();
-    final AtomicBoolean clientWithLimitedCharset = new AtomicBoolean(); 
+    final AtomicBoolean clientWithLimitedCharset = new AtomicBoolean();
     final PrintWriter w = new PrintWriter(Files.newBufferedWriter(classNamesDynamic, StandardCharsets.UTF_8));
     eventBus.register(new Object() {
       @Subscribe
-      public void onIdleSlave(final SlaveIdle idleSlave) {
-        aggregatedBus.post(new SlaveIdle() {
+      public void onIdleForkedJvm(final ForkedJvmIdle idleForkedJvm) {
+        aggregatedBus.post(new ForkedJvmIdle() {
           @Override
           public void finished() {
-            idleSlave.finished();
+            idleForkedJvm.finished();
           }
 
           @Override
           public void newSuite(String suiteName) {
             if (!clientCharset.get().newEncoder().canEncode(suiteName)) {
               clientWithLimitedCharset.set(true);
-              log("Forked JVM J" + slave.id + " skipped suite (cannot encode suite name in charset " +
+              log("Forked JVM J" + forkedJvmInfo.id + " skipped suite (cannot encode suite name in charset " +
                   clientCharset.get() + "): " + suiteName, Project.MSG_WARN);
               return;
             }
 
-            log("Forked JVM J" + slave.id + " stole suite: " + suiteName, Project.MSG_VERBOSE);
+            log("Forked JVM J" + forkedJvmInfo.id + " stole suite: " + suiteName, Project.MSG_VERBOSE);
             w.println(suiteName);
             w.flush();
-            idleSlave.newSuite(suiteName);
+            idleForkedJvm.newSuite(suiteName);
           }
         });
       }
@@ -1483,15 +1495,15 @@ public class JUnit4 extends Task {
         Charset cs = Charset.forName(((BootstrapEvent) e).getDefaultCharsetName());
         clientCharset.set(cs);
 
-        slave.start = System.currentTimeMillis();
-        slave.setBootstrapEvent(e);
-        aggregatedBus.post(new ChildBootstrap(slave));
+        forkedJvmInfo.start = System.currentTimeMillis();
+        forkedJvmInfo.setBootstrapEvent(e);
+        aggregatedBus.post(new ChildBootstrap(forkedJvmInfo));
       }
 
       @Subscribe
       public void receiveQuit(QuitEvent e) {
-        slave.end = System.currentTimeMillis();
-      }      
+        forkedJvmInfo.end = System.currentTimeMillis();
+      }
     });
 
     Closer closer = Closer.create();
@@ -1502,29 +1514,29 @@ public class JUnit4 extends Task {
       OutputStream syserr = closer.register(new BufferedOutputStream(Files.newOutputStream(syserrFile)));
       RandomAccessFile streamsBuffer = closer.register(new RandomAccessFile(streamsBufferFile.toFile(), "rw"));
 
-      Execute execute = forkProcess(slave, eventBus, commandline, eventStream, sysout, syserr, streamsBuffer);
-      log("Forked JVM J" + slave.id + " finished with exit code: " + execute.getExitValue(), Project.MSG_DEBUG);
+      Execute execute = forkProcess(forkedJvmInfo, eventBus, commandline, eventStream, sysout, syserr, streamsBuffer);
+      log("Forked JVM J" + forkedJvmInfo.id + " finished with exit code: " + execute.getExitValue(), Project.MSG_DEBUG);
 
       if (execute.isFailure()) {
         final int exitStatus = execute.getExitValue();
         switch (exitStatus) {
-          case SlaveMain.ERR_NO_JUNIT:
+          case ForkedMain.ERR_NO_JUNIT:
             throw new BuildException("Forked JVM's classpath must include a junit4 JAR.");
-          case SlaveMain.ERR_OLD_JUNIT:
+          case ForkedMain.ERR_OLD_JUNIT:
             throw new BuildException("Forked JVM's classpath must use JUnit 4.10 or newer.");
           default:
             Closeables.close(sysout, false);
             Closeables.close(syserr, false);
 
             StringBuilder message = new StringBuilder();
-            if (exitStatus == SlaveMain.ERR_OOM) {
+            if (exitStatus == ForkedMain.ERR_OOM) {
               message.append("Forked JVM ran out of memory.");
             } else {
               message.append("Forked process returned with error code: ").append(exitStatus).append(".");
             }
 
             if (Files.size(sysoutFile) > 0 || Files.size(syserrFile) > 0) {
-              if (exitStatus != SlaveMain.ERR_OOM) {
+              if (exitStatus != ForkedMain.ERR_OOM) {
                 message.append(" Very likely a JVM crash. ");
               }
 
@@ -1554,8 +1566,8 @@ public class JUnit4 extends Task {
         Files.delete(streamsBufferFile);
 
         // Check sysout/syserr lengths.
-        checkJvmOutput(aggregatedBus, sysoutFile, slave, "stdout");
-        checkJvmOutput(aggregatedBus, syserrFile, slave, "stderr");        
+        checkJvmOutput(aggregatedBus, sysoutFile, forkedJvmInfo, "stdout");
+        checkJvmOutput(aggregatedBus, syserrFile, forkedJvmInfo, "stderr");
       }
     }
 
@@ -1564,7 +1576,7 @@ public class JUnit4 extends Task {
     }
 
     if (clientWithLimitedCharset.get() && dynamicAssignmentRatio > 0) {
-      throw new BuildException("Forked JVM J" + slave.id + " was not be able to decode class names when using" +
+      throw new BuildException("Forked JVM J" + forkedJvmInfo.id + " was not be able to decode class names when using" +
           " charset: " + clientCharset + ". Do not use " +
           "dynamic suite balancing to work around this problem (-DdynamicAssignmentRatio=0).");
     }
@@ -1633,11 +1645,11 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Execute a slave process. Pump events to the given event bus.
+   * Execute a forked JVM subprocess. Pump events to the given event bus.
    */
   @SuppressForbidden("legitimate sysstreams.")
-  private Execute forkProcess(ForkedJvmInfo slaveInfo, EventBus eventBus, 
-      CommandlineJava commandline, 
+  private Execute forkProcess(ForkedJvmInfo forkedJvmInfo, EventBus eventBus,
+      CommandlineJava commandline,
       TailInputStream eventStream, OutputStream sysout, OutputStream syserr, RandomAccessFile streamsBuffer) {
     try {
       String tempDir = commandline.getSystemProperties().getVariablesVector().stream()
@@ -1646,14 +1658,14 @@ public class JUnit4 extends Task {
         .findAny()
         .orElse(null);
 
-      final LocalSlaveStreamHandler streamHandler = 
-          new LocalSlaveStreamHandler(
-              eventBus, testsClassLoader, System.err, eventStream, 
+      final LocalForkedJvmStreamHandler streamHandler =
+          new LocalForkedJvmStreamHandler(
+              eventBus, testsClassLoader, System.err, eventStream,
               sysout, syserr, heartbeat, streamsBuffer);
 
       // Add certain properties to allow identification of the forked JVM from within
       // the subprocess. This can be used for policy files etc.
-      final Path cwd = getWorkingDirectory(slaveInfo, tempDir);
+      final Path cwd = getWorkingDirectory(forkedJvmInfo, tempDir);
 
       Variable v = new Variable();
       v.setKey(CHILDVM_SYSPROP_CWD);
@@ -1667,19 +1679,19 @@ public class JUnit4 extends Task {
 
       v = new Variable();
       v.setKey(SysGlobals.CHILDVM_SYSPROP_JVM_ID);
-      v.setValue(Integer.toString(slaveInfo.id));
+      v.setValue(Integer.toString(forkedJvmInfo.id));
       commandline.addSysproperty(v);
 
       v = new Variable();
       v.setKey(SysGlobals.CHILDVM_SYSPROP_JVM_COUNT);
-      v.setValue(Integer.toString(slaveInfo.slaves));
+      v.setValue(Integer.toString(forkedJvmInfo.forkedJvmCount));
       commandline.addSysproperty(v);
 
       // Emit command line before -stdin to avoid confusion.
-      slaveInfo.slaveCommandLine = escapeAndJoin(commandline.getCommandline());
-      log("Forked child JVM at '" + cwd.toAbsolutePath().normalize() + 
-          "', command (may need escape sequences for your shell):\n" + 
-          slaveInfo.slaveCommandLine, Project.MSG_VERBOSE);
+      forkedJvmInfo.forkedCommandLine = escapeAndJoin(commandline.getCommandline());
+      log("Forked child JVM at '" + cwd.toAbsolutePath().normalize() +
+          "', command (may need escape sequences for your shell):\n" +
+          forkedJvmInfo.forkedCommandLine, Project.MSG_VERBOSE);
 
       final Execute execute = new Execute();
       execute.setCommandline(commandline.getCommandline());
@@ -1689,7 +1701,7 @@ public class JUnit4 extends Task {
       execute.setNewenvironment(newEnvironment);
       if (env.getVariables() != null)
         execute.setEnvironment(env.getVariables());
-      log("Starting JVM J" + slaveInfo.id, Project.MSG_DEBUG);
+      log("Starting JVM J" + forkedJvmInfo.id, Project.MSG_DEBUG);
       execute.execute();
       return execute;
     } catch (IOException e) {
@@ -1709,12 +1721,12 @@ public class JUnit4 extends Task {
         if (!existingFiles.isEmpty()) {
           switch (nonEmptyWorkDirAction) {
             case IGNORE:
-              log("Cwd of a forked JVM already exists and is not empty: " 
+              log("Cwd of a forked JVM already exists and is not empty: "
                   + existingFiles + " (ignoring).", Project.MSG_DEBUG);
               break;
-  
+
             case WIPE:
-              log("Cwd of a forked JVM already exists and is not empty, trying to wipe: " 
+              log("Cwd of a forked JVM already exists and is not empty, trying to wipe: "
                   + existingFiles, Project.MSG_DEBUG);
               try {
                 Path tempPath = tempDir == null ? null : forkedDir.resolve(tempDir);
@@ -1784,7 +1796,7 @@ public class JUnit4 extends Task {
 
   /**
    * Process test resources. If there are any test resources that are _not_ class files,
-   * this will cause a build error.   
+   * this will cause a build error.
    */
   private TestsCollection processTestResources() {
     TestsCollection collection = new TestsCollection();
@@ -1794,7 +1806,7 @@ public class JUnit4 extends Task {
     boolean javaSourceWarn = false;
     while (iter.hasNext()) {
       final Resource r = iter.next();
-      if (!r.isExists()) 
+      if (!r.isExists())
         throw new BuildException("Test class resource does not exist?: " + r.getName());
 
       try {
@@ -1806,7 +1818,7 @@ public class JUnit4 extends Task {
             .replace('/', '.')
             .replace('\\', '.');
           collection.add(new TestClass(className));
-          
+
           if (!javaSourceWarn) {
             log("Source (.java) files used for naming source suites. This is discouraged, " +
             		"use a resource collection pointing to .class files instead.", Project.MSG_INFO);
@@ -1816,9 +1828,9 @@ public class JUnit4 extends Task {
           // Assume .class file.
           InputStream is = r.getInputStream();
           if (!is.markSupported()) {
-            is = new BufferedInputStream(is);          
+            is = new BufferedInputStream(is);
           }
-  
+
           try {
             is.mark(4);
             if (is.read() != 0xca ||
@@ -1849,7 +1861,7 @@ public class JUnit4 extends Task {
             reader.accept(annotationVisitor, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
             testClass.className = reader.getClassName().replace('/', '.');
             log("Test class parsed: " + r.getName() + " as " + testClass.className, Project.MSG_DEBUG);
-            
+
             collection.add(testClass);
           } finally {
             is.close();
@@ -1875,30 +1887,30 @@ public class JUnit4 extends Task {
   }
 
   /**
-   * Returns the slave VM command line.
+   * Returns the forked JVM command line.
    */
   private CommandlineJava getCommandline() {
-    return slaveCommand;
+    return forkedJvmCommandLine;
   }
 
   /**
    * Adds a classpath source which contains the given resource.
-   * 
+   *
    * TODO: [GH-213] this is extremely ugly; separate the code required to run on the
    * forked JVM into an isolated bundle and either create it on-demand (in temp.
    * files location?) or locate it in classpath somehow (in a portable way).
    */
-  private org.apache.tools.ant.types.Path addSlaveClasspath() {
+  private org.apache.tools.ant.types.Path addForkedJvmClasspath() {
     org.apache.tools.ant.types.Path path = new org.apache.tools.ant.types.Path(getProject());
 
-    String [] REQUIRED_SLAVE_CLASSES = {
-        SlaveMain.class.getName(),
+    String [] REQUIRED_FORKED_JVM_CLASSES = {
+        ForkedMain.class.getName(),
         Strings.class.getName(),
         MethodGlobFilter.class.getName(),
         TeeOutputStream.class.getName()
     };
 
-    for (String clazz : Arrays.asList(REQUIRED_SLAVE_CLASSES)) {
+    for (String clazz : Arrays.asList(REQUIRED_FORKED_JVM_CLASSES)) {
       String resource = clazz.replace(".", "/") + ".class";
       File f = LoaderUtils.getResourceSource(getClass().getClassLoader(), resource);
       if (f != null) {

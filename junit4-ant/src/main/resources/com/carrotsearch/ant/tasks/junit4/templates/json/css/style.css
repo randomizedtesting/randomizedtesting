@@ -443,7 +443,7 @@ th.result > span {
   font-size: 13px;
   color: #000;
 }
-th.slave {
+th.forkedJvm {
   width: 3.8em;
 }
 th.timestamp {

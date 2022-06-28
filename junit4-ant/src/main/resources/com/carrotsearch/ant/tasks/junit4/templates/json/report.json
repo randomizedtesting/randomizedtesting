@@ -1,7 +1,7 @@
-testData({
+{
   "junit4": {
     "tests.seed": "84784D1BB9382FB8",
-    "project.name": "Nice project"
+    "project.name": "junit4"
   },
   "suites": [
     {
@@ -640,4 +640,4 @@ testData({
       }
     }
   }
-});
+}

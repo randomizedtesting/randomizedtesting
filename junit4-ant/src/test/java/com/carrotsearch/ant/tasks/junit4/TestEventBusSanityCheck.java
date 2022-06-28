@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
 @ThreadLeakScope(Scope.SUITE)
 @ThreadLeakLingering(linger = 1000)
 public class TestEventBusSanityCheck extends RandomizedTest {
-  static class SlaveIdle {
+  static class ForkedJvmIdle {
     public void finished() {
       sleep(randomIntBetween(1, 50));
     }
@@ -53,7 +53,7 @@ public class TestEventBusSanityCheck extends RandomizedTest {
       volatile Thread foo;
 
       @Subscribe
-      public void onSlaveIdle(SlaveIdle slave) {
+      public void onForkedJvmIdle(ForkedJvmIdle forkedJvmIdle) {
         final Thread other = foo;
         if (other != null) {
           hadErrors.set(true);
@@ -63,10 +63,10 @@ public class TestEventBusSanityCheck extends RandomizedTest {
         foo = Thread.currentThread();
         
         if (stealingQueue.isEmpty()) {
-          slave.finished();
+          forkedJvmIdle.finished();
         } else {
           String suiteName = stealingQueue.pop();
-          slave.newSuite(suiteName);
+          forkedJvmIdle.newSuite(suiteName);
         }
         
         foo = null;
@@ -75,17 +75,17 @@ public class TestEventBusSanityCheck extends RandomizedTest {
 
     // stress.
     ExecutorService executor = Executors.newCachedThreadPool();
-    final List<Callable<Void>> slaves = new ArrayList<>();
+    final List<Callable<Void>> forkedJvms = new ArrayList<>();
     for (int i = 0; i < randomIntBetween(1, 10); i++) {
-      slaves.add(new Callable<Void>() {
+      forkedJvms.add(new Callable<Void>() {
         @Override
         public Void call() throws Exception {
-          aggregatedBus.post(new SlaveIdle());
+          aggregatedBus.post(new ForkedJvmIdle());
           return null;
         }
       });
     }
-    for (Future<Void> f : executor.invokeAll(slaves)) {
+    for (Future<Void> f : executor.invokeAll(forkedJvms)) {
       f.get();
     }
     executor.shutdown();

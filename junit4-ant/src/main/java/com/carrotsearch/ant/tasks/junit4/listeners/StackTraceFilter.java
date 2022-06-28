@@ -26,7 +26,7 @@ public class StackTraceFilter {
       Pattern.compile("^(\\s+at )(sun\\.reflect\\.)"),
       Pattern.compile("^(\\s+at )(java\\.lang\\.reflect\\.Method\\.invoke\\()"),
       // randomizedtesting's own launcher.
-      Pattern.compile("^(\\s+at )(com\\.carrotsearch\\.ant\\.tasks\\.junit4\\.slave\\.SlaveMain)"));
+      Pattern.compile("^(\\s+at )(com\\.carrotsearch\\.ant\\.tasks\\.junit4\\.forked\\.ForkedMain)"));
   
   /** 
    * Whether or not to use the default filters.

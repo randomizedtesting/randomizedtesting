@@ -13,7 +13,7 @@ import com.carrotsearch.ant.tasks.junit4.events.mirrors.FailureMirror;
  */
 public interface AggregatedResultEvent {
   public Description getDescription();
-  public ForkedJvmInfo getSlave();
+  public ForkedJvmInfo getForkedJvmInfo();
   public boolean isSuccessful();
   public List<FailureMirror> getFailures();
   List<IEvent> getEventStream();  

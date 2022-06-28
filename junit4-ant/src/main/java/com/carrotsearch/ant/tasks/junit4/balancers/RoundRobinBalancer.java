@@ -13,12 +13,12 @@ import com.carrotsearch.ant.tasks.junit4.SuiteBalancer;
 public class RoundRobinBalancer implements SuiteBalancer {
  
   @Override
-  public List<Assignment> assign(Collection<String> suiteNames, int slaves, long seed) {
+  public List<Assignment> assign(Collection<String> suiteNames, int forkedJvmCount, long seed) {
     List<Assignment> result = new ArrayList<>();
     int i = 0;
     for (String suite : suiteNames) {
       result.add(new Assignment(suite, i++, 0));
-      if (i >= slaves) i = 0;
+      if (i >= forkedJvmCount) i = 0;
     }
     return result;
   }

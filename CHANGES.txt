@@ -5,7 +5,11 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.7.10-SNAPSHOT ====================
+======================= randomizedtesting 2.8.0-SNAPSHOT ====================
+
+Other:
+
+  * GH-304: Replace master/slave with main/forkedjvm terminology.
 
 ======================= randomizedtesting 2.7.9 ====================
 
@@ -367,7 +371,7 @@ Changes in Backwards Compatibility
 
 New Features
  
-  * GH-191: "Tests with failures" should repeat the master seed at the end 
+  * GH-191: "Tests with failures" should repeat the main seed at the end
     of the report. (Dawid Weiss)
 
 Bug Fixes

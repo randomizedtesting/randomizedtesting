@@ -8,8 +8,8 @@ import org.junit.Test;
 
 public class TestCrashesAndExceptions extends JUnit4XmlTestBase {
   @Test
-  public void slavehanging() {
-    executeTarget("slavehanging");
+  public void forkedjvmhanging() {
+    executeTarget("forkedjvmhanging");
     assertLogContains("Caused by: java.lang.ArithmeticException");
   }
   

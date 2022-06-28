@@ -24,7 +24,7 @@
     </taskdef>
 
     <presetdef name="junit4.preconf">
-        <junit4:junit4 haltonfailure="true" parallelism="1" shuffleOnSlave="true" onNonEmptyWorkDirectory="wipe">
+        <junit4:junit4 haltonfailure="true" parallelism="1" shuffleOnForkedJvm="true" onNonEmptyWorkDirectory="wipe">
             <classpath refid="tests.classpath" />
 
             <listeners>
@@ -637,10 +637,10 @@
         </junit4.preconf>
     </target>
 
-    <target name="slavehanging">
+    <target name="forkedjvmhanging">
         <junit4.preconf haltonfailure="false" parallelism="1">
             <fileset dir="${basedir}">
-                <include name="**/SlaveHanging*.class" />
+                <include name="**/ForkedJvmHanging*.class" />
                 <exclude name="**/*$*" />
             </fileset>
         </junit4.preconf>
@@ -931,7 +931,7 @@
     </target>
   
     <target name="randomsysproperty">
-        <!-- Fix the master seed in advance to allow repeatable selection of attributes. -->
+        <!-- Fix the main seed in advance to allow repeatable selection of attributes. -->
         <local name="tests.seed" />
         <junit4:pickseed property="tests.seed" />
 
@@ -1074,7 +1074,7 @@
    </target>
 
    <target name="sysoutoom">
-      <junit4:junit4 onNonEmptyWorkDirectory="wipe" haltonfailure="true" parallelism="2" shuffleOnSlave="true">
+      <junit4:junit4 onNonEmptyWorkDirectory="wipe" haltonfailure="true" parallelism="2" shuffleOnForkedJvm="true">
           <classpath refid="tests.classpath" />
 
           <fileset dir="${basedir}">
@@ -1096,7 +1096,7 @@
    </target>
    
    <target name="sysouts_passthrough">
-      <junit4:junit4 onNonEmptyWorkDirectory="wipe" haltonfailure="true" parallelism="1" shuffleOnSlave="true">
+      <junit4:junit4 onNonEmptyWorkDirectory="wipe" haltonfailure="true" parallelism="1" shuffleOnForkedJvm="true">
           <classpath refid="tests.classpath" />
 
           <fileset dir="${basedir}">
@@ -1111,7 +1111,7 @@
       <delete file="${basedir}/large.log" />
    </target>
 
-    <target name="slavemainfailure">
+    <target name="forkedmainfailure">
         <junit4.preconf haltonfailure="true">
             <fileset dir="${basedir}">
                 <include name="**/FireUnhandledRunnerException.class" />
@@ -1245,10 +1245,7 @@
       <listeners>
         <junit4:report-text>
           <junit4:filtertrace>
-            <!-- custom filters. 
-                <containsstring contains=".SlaveMain." /> 
-                <containsregex pattern="^(\s+at )(org\.junit\.)" /> 
-             -->
+            <!-- no custom filters. -->
           </junit4:filtertrace>
         </junit4:report-text>
       </listeners>
@@ -1266,7 +1263,7 @@
       <listeners>
         <junit4:report-text>
           <junit4:filtertrace defaults="false">
-              <containsstring contains=".SlaveMain." /> 
+              <containsstring contains=".ForkedMain." />
               <containsregex pattern="^(\s+at )(org\.junit\.)" /> 
           </junit4:filtertrace>
         </junit4:report-text>

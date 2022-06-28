@@ -58,7 +58,7 @@ public class TestContextRandom extends WithNestedTestClass {
    * annotation on a method.
    */
   @Test
-  @Ignore("Forked threads get the master seed (by-design).")
+  @Ignore("Forked threads get the main seed (by-design).")
   public void testFixedSeedSubthreads() {
     runTests(Nested3.class);
     List<Integer> run1 = new ArrayList<Integer>(numbers);

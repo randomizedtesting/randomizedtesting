@@ -140,12 +140,12 @@ public class WithNestedTestClass {
   private static StringWriter loggingMessages;
 
   /**
-   * Master logger.
+   * Main logger.
    */
   private static Logger logger;
 
   /**
-   * Previous handlers attached to the master.
+   * Previous handlers..
    */
   private static Handler[] handlers;
 

@@ -15,18 +15,18 @@ import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
 import com.carrotsearch.randomizedtesting.WriterOutputStream;
 
 /**
- * Static slave information.
+ * Static forked JVM information.
  */
 public final class ForkedJvmInfo {
   /**
-   * Unique sequential slave identifier.
+   * Unique sequential identifier.
    */
   public final int id;
 
   /**
-   * The number of executed slaves, total.
+   * The number of executed forked JVMs, total.
    */
-  public final int slaves;
+  public final int forkedJvmCount;
 
   /**
    * Bootstrap event.
@@ -39,28 +39,28 @@ public final class ForkedJvmInfo {
   long start, end;
 
   /**
-   * Execute these test suites on this slave.
+   * Execute these test suites on this forked JVM.
    */
   ArrayList<String> testSuites;
 
   /**
-   * Complete slave command line invocation string. 
+   * Complete command line invocation string.
    */
-  String slaveCommandLine;
+  String forkedCommandLine;
 
   /**
-   * Execution error if anything bad happened on the slave.
+   * Execution error if anything bad happened.
    */
   Throwable executionError;
 
   /* */
-  public ForkedJvmInfo(int id, int slaves) {
+  public ForkedJvmInfo(int id, int forkedJvmCount) {
     this.id = id;
-    this.slaves = slaves;
+    this.forkedJvmCount = forkedJvmCount;
   }
 
   /**
-   * Return the {@link Charset} used to encode stream bytes from the slave.
+   * Return the {@link Charset} used to encode stream bytes from the forked JVM.
    */
   public Charset getCharset() {
     if (bootstrapEvent != null) {
@@ -71,7 +71,7 @@ public final class ForkedJvmInfo {
   }
 
   /**
-   * System properties on the slave.
+   * System properties on the forked JVM.
    */
   public Map<String,String> getSystemProperties() {
     if (bootstrapEvent == null) {
@@ -95,14 +95,14 @@ public final class ForkedJvmInfo {
   }
 
   /**
-   * Command line string used to invoke the slave.
+   * Command line string used to invoke the forked JVM
    */
   public String getCommandLine() {
-    return slaveCommandLine;
+    return forkedCommandLine;
   }
   
   /**
-   * JVM name (slave).
+   * JVM name.
    */
   public String getJvmName() {
     return getSystemProperties().get("java.vm.name") + ", " +
@@ -110,14 +110,14 @@ public final class ForkedJvmInfo {
   }
 
   /**
-   * Slave execution time.
+   * Forked JVM execution time.
    */
   long getExecutionTime() {
     return end - start;
   }
   
   /**
-   * Set the bootstrap event associated with this slave. 
+   * Set the bootstrap event associated with this forked JVM.
    */
   void setBootstrapEvent(BootstrapEvent e) {
     this.bootstrapEvent = e;

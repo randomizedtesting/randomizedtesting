@@ -27,7 +27,7 @@ import com.carrotsearch.randomizedtesting.annotations.Seeds;
  * under a single suite class for simplicity). Every execution of class
  * {@link Test004MoreRandomness.OrderRandomized} will be different, shuffling
  * test methods around (and the random numbers written to the output). 
- * We can "pin" the execution order by forcing the master random
+ * We can "pin" the execution order by forcing the main random
  * seed using {@link Seed} annotation on the class (or a system property
  * {@link SysGlobals#SYSPROP_RANDOM_SEED}). Doing so also fixes all derivative random
  * generators in all tests - this is shown in  

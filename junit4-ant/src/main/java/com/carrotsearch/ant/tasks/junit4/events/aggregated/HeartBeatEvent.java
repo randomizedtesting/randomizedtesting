@@ -11,13 +11,13 @@ import com.carrotsearch.ant.tasks.junit4.ForkedJvmInfo;
  * not guaranteed (and may be null).
  */
 public final class HeartBeatEvent {
-  private final ForkedJvmInfo slave;
+  private final ForkedJvmInfo forkedJvmInfo;
   private final Description description;
   private final long lastActivity;
   private final long currentTime;
 
-  public HeartBeatEvent(ForkedJvmInfo slave, Description description, long lastActivity, long currentTime) {
-    this.slave = slave;
+  public HeartBeatEvent(ForkedJvmInfo forkedJvmInfo, Description description, long lastActivity, long currentTime) {
+    this.forkedJvmInfo = forkedJvmInfo;
     this.description = description;
     this.lastActivity = lastActivity;
     this.currentTime = currentTime;
@@ -39,7 +39,7 @@ public final class HeartBeatEvent {
     return getCurrentTime() - getLastActivity();
   }
 
-  public ForkedJvmInfo getSlave() {
-    return slave;
+  public ForkedJvmInfo getForkedJvmInfo() {
+    return forkedJvmInfo;
   }
 }

@@ -21,7 +21,7 @@ import com.google.common.eventbus.Subscribe;
  */
 public class AggregatingListener {
   private EventBus target;
-  private ForkedJvmInfo slave;
+  private ForkedJvmInfo forkedJvmInfo;
 
   private AggregatedSuiteStartedEvent startEvent;
   private Description lastSuite;
@@ -34,9 +34,9 @@ public class AggregatingListener {
   /**
    * @param target Which event bus to repost aggregated events to?
    */
-  public AggregatingListener(EventBus target, ForkedJvmInfo slave) {
+  public AggregatingListener(EventBus target, ForkedJvmInfo forkedJvmInfo) {
     this.target = target;
-    this.slave = slave;
+    this.forkedJvmInfo = forkedJvmInfo;
   }
 
   @Subscribe
@@ -45,7 +45,7 @@ public class AggregatingListener {
       switch (e.getType()) {
         case APPEND_STDOUT:
         case APPEND_STDERR:
-          target.post(new PartialOutputEvent(slave, e));
+          target.post(new PartialOutputEvent(forkedJvmInfo, e));
           // fall through.
         case TEST_STARTED:
         case TEST_FINISHED:
@@ -74,7 +74,7 @@ public class AggregatingListener {
     }
 
     target.post(new HeartBeatEvent(
-        slave,
+        forkedJvmInfo,
         current,
         e.lastActivity,
         e.currentTime
@@ -90,14 +90,14 @@ public class AggregatingListener {
     suiteFailures = new ArrayList<>();
     eventStream = new ArrayList<>();
     lastSuite = e.getDescription();
-    startEvent = new AggregatedSuiteStartedEvent(slave, e);
+    startEvent = new AggregatedSuiteStartedEvent(forkedJvmInfo, e);
 
     target.post(startEvent);
   }
 
   @Subscribe
   public void receiveTestStart(TestStartedEvent e) {
-    tests.push(new AggregatedTestResultEvent(slave, lastSuite, e.getDescription()));
+    tests.push(new AggregatedTestResultEvent(forkedJvmInfo, lastSuite, e.getDescription()));
     testStartStreamMarker = eventStream.size();
   }
 
@@ -157,7 +157,7 @@ public class AggregatingListener {
   public void receiveSuiteEnd(SuiteCompletedEvent e) {
     target.post(new AggregatedSuiteResultEvent(
         startEvent,
-        slave, 
+        forkedJvmInfo,
         e.getDescription(), 
         suiteFailures, 
         Lists.newArrayList(tests.descendingIterator()), 

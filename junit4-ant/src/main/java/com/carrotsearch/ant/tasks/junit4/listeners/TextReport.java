@@ -367,9 +367,9 @@ public class TextReport implements AggregatedEventListener {
     logShort("Executing " +
         totalSuites + Pluralize.pluralize(totalSuites, " suite") +
         " with " + 
-        e.getSlaveCount() + Pluralize.pluralize(e.getSlaveCount(), " JVM") + ".\n", false);
+        e.getForkedJvmCount() + Pluralize.pluralize(e.getForkedJvmCount(), " JVM") + ".\n", false);
 
-    forkedJvmCount = e.getSlaveCount();
+    forkedJvmCount = e.getForkedJvmCount();
     jvmIdFormat = " J%-" + (1 + (int) Math.floor(Math.log10(forkedJvmCount))) + "d";
 
     outWriter = new PrefixedWriter(stdoutIndent, output, DEFAULT_MAX_LINE_WIDTH);
@@ -378,12 +378,12 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onChildBootstrap(ChildBootstrap e) throws IOException {
-      logShort("Started J" + e.getSlave().id + " PID(" + e.getSlave().getPidString() + ").");
+      logShort("Started J" + e.getForkedJvmInfo().id + " PID(" + e.getForkedJvmInfo().getPidString() + ").");
   }
 
   @Subscribe
   public void onHeartbeat(HeartBeatEvent e) throws IOException {
-      logShort("HEARTBEAT J" + e.getSlave().id + " PID(" + e.getSlave().getPidString() + "): " +
+      logShort("HEARTBEAT J" + e.getForkedJvmInfo().id + " PID(" + e.getForkedJvmInfo().getPidString() + "): " +
           formatTime(e.getCurrentTime()) + ", stalled for " +
           formatDurationInSeconds(e.getNoEventDuration()) + " at: " +
           (e.getDescription() == null ? "<unknown>" : formatDescription(e.getDescription())));
@@ -414,7 +414,7 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onSuiteStart(AggregatedSuiteStartedEvent e) throws IOException {
-    final Charset charset = e.getSlave().getCharset();
+    final Charset charset = e.getForkedJvmInfo().getCharset();
     outStream = new WriterOutputStream(outWriter, charset, DEFAULT_MAX_LINE_WIDTH, true);
     errStream = new WriterOutputStream(errWriter, charset, DEFAULT_MAX_LINE_WIDTH, true);
 
@@ -443,11 +443,11 @@ public class TextReport implements AggregatedEventListener {
 
   @Subscribe
   public void onJvmOutput(JvmOutputEvent e) throws IOException {
-    final String id = Integer.toString(e.getSlave().id);
+    final String id = Integer.toString(e.getForkedJvmInfo().id);
     output.append(">>> JVM J").append(id)
           .append(" emitted unexpected output (verbatim) ----\n");
 
-    try (Reader r = Files.newReader(e.getJvmOutputFile(), e.getSlave().getCharset())) {
+    try (Reader r = Files.newReader(e.getJvmOutputFile(), e.getForkedJvmInfo().getCharset())) {
       CharStreams.copy(r, output);
     }
     output.append("<<< JVM J" + id + ": EOF ----\n");    
@@ -575,7 +575,7 @@ public class TextReport implements AggregatedEventListener {
         suitesCompleted,
         totalSuites,
         totalErrors == 0 ? "" : " (" + totalErrors + "!)",
-        e.getSlave().slaves > 1 ? " on J" + e.getSlave().id : "",
+        e.getForkedJvmInfo().forkedJvmCount > 1 ? " on J" + e.getForkedJvmInfo().id : "",
         e.getExecutionTime() / 1000.0d));
     b.append(e.getTests().size()).append(Pluralize.pluralize(e.getTests().size(), " test"));
 
@@ -612,7 +612,7 @@ public class TextReport implements AggregatedEventListener {
     line.append(Strings.padEnd(statusNames.get(status), 8, ' '));
     line.append(formatDurationInSeconds(timeMillis));
     if (forkedJvmCount > 1) {
-      line.append(String.format(Locale.ROOT, jvmIdFormat, result.getSlave().id));
+      line.append(String.format(Locale.ROOT, jvmIdFormat, result.getForkedJvmInfo().id));
     }
     line.append(" | ");
 

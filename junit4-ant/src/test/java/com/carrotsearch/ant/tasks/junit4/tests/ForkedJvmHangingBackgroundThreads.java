@@ -5,7 +5,7 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 
 
-public class SlaveHangingBackgroundThreads {
+public class ForkedJvmHangingBackgroundThreads {
   static {
     final CountDownLatch latch = new CountDownLatch(1);
     new Thread("background-non-daemon") {

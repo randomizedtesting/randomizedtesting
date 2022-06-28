@@ -37,7 +37,7 @@ public class PickSeedTask extends Task {
     String seedValue = Strings.emptyToNull(getProject().getProperty(propertyName)); 
     if (seedValue == null) {
       seedValue = SeedUtils.formatSeed(new Random().nextLong());
-      log("Picking master seed for property '" + propertyName + "': "
+      log("Picking main seed for property '" + propertyName + "': "
           + seedValue, Project.MSG_VERBOSE);
       getProject().setProperty(propertyName, seedValue);
     } else {

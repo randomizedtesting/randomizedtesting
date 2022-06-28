@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonReader;
 
 /**
- * Events (messages) passed between the slave and the master.
+ * Events (messages) passed between the forked JVM and the main JVM.
  */
 public enum EventType {
   BOOTSTRAP(BootstrapEvent.class),

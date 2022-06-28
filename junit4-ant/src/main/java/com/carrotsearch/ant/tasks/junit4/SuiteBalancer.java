@@ -14,9 +14,9 @@ public interface SuiteBalancer {
     public final String suiteName;
 
     /**
-     * Slave assignment.
+     * forked JVM assignment.
      */
-    public final int slaveId;
+    public final int forkedJvmId;
     
     /**
      * Estimated cost; informational only (depends on the balancer). May be zero
@@ -24,9 +24,9 @@ public interface SuiteBalancer {
      */
     public final int estimatedCost;
 
-    public Assignment(String suiteName, int slaveId, int estimatedCost) {
+    public Assignment(String suiteName, int forkedJvmId, int estimatedCost) {
       this.suiteName = suiteName;
-      this.slaveId = slaveId;
+      this.forkedJvmId = forkedJvmId;
       this.estimatedCost = estimatedCost;
     }
 
@@ -34,7 +34,7 @@ public interface SuiteBalancer {
     public int compareTo(Assignment other) {
       int v = this.suiteName.compareTo(other.suiteName);
       if (v == 0) {
-        v = this.slaveId - other.slaveId;
+        v = this.forkedJvmId - other.forkedJvmId;
       }
       return v;
     }
@@ -46,11 +46,11 @@ public interface SuiteBalancer {
   void setOwner(JUnit4 owner);
   
   /**
-   * Provide assignments for suite names and a given number of slaves.
+   * Provide assignments for suite names and a given number of forked JVMs.
    * 
    * @return Returns an ordered list with assignments. Any suite name not present
    *         in the keys of the returned map will be assigned by following
    *         balancers (or randomly).
    */
-  List<Assignment> assign(Collection<String> suiteNames, int slaves, long seed);
+  List<Assignment> assign(Collection<String> suiteNames, int forkedJvmCount, long seed);
 }

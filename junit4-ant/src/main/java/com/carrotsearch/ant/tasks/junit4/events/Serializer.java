@@ -11,7 +11,7 @@ import java.util.ArrayDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.carrotsearch.ant.tasks.junit4.gson.stream.JsonWriter;
-import com.carrotsearch.ant.tasks.junit4.slave.SlaveMain;
+import com.carrotsearch.ant.tasks.junit4.forked.ForkedMain;
 import com.google.common.base.Charsets;
 
 /**
@@ -55,14 +55,14 @@ public class Serializer implements Closeable {
             Throwable reason = doForcedShutdown;
             if (reason != null) {
               try {
-                SlaveMain.warn("Unhandled exception in event serialization.", reason);
+                ForkedMain.warn("Unhandled exception in event serialization.", reason);
               } finally {
                 Runtime.getRuntime().halt(0);
               }
             }
           }
         } catch (Throwable t) {
-          SlaveMain.warn("Unreachable code. Complete panic.", t);
+          ForkedMain.warn("Unreachable code. Complete panic.", t);
         }
       }
       
@@ -71,7 +71,7 @@ public class Serializer implements Closeable {
         return new UncaughtExceptionHandler() {
           @Override
           public void uncaughtException(Thread t, Throwable e) {
-            SlaveMain.warn("Unreachable code. Complete panic.", e);
+            ForkedMain.warn("Unreachable code. Complete panic.", e);
           }
         };
       }
@@ -91,7 +91,7 @@ public class Serializer implements Closeable {
       // we enqueue the event and continue, serializing them in order.
       events.addLast(event);
       if (events.size() > 1) {
-        // SlaveMain.warn("Serializing " + event.getType() + " (postponed, " + events.size() + " in queue)", null);
+        // ForkedMain.warn("Serializing " + event.getType() + " (postponed, " + events.size() + " in queue)", null);
         return this;
       }
 
@@ -107,11 +107,11 @@ public class Serializer implements Closeable {
 
     if (isFlushing.getAndSet(true)) {
       // We're already flushing, return.
-      // SlaveMain.warn("Flush queue already flushing", null);
+      // ForkedMain.warn("Flush queue already flushing", null);
       return;
     }
 
-    // SlaveMain.warn("Flush queue start", null);
+    // ForkedMain.warn("Flush queue start", null);
     try {
       while (!events.isEmpty()) {
         if (writer == null) {
@@ -120,7 +120,7 @@ public class Serializer implements Closeable {
 
         final RemoteEvent event = events.removeFirst();
         try {
-          // SlaveMain.warn("Serializing " + event.getType(), null);
+          // ForkedMain.warn("Serializing " + event.getType(), null);
           AccessController.doPrivileged(new PrivilegedExceptionAction<Void>() {
             @Override
             public Void run() throws Exception {
@@ -140,7 +140,7 @@ public class Serializer implements Closeable {
     } finally {
       isFlushing.set(false);
     }
-    // SlaveMain.warn("Flush queue end", null);
+    // ForkedMain.warn("Flush queue end", null);
 
     if (doForcedShutdown != null) {
       // We can't do a stack bang here so any call is a risk of hitting SOE again.
@@ -157,11 +157,11 @@ public class Serializer implements Closeable {
   public Serializer flush() throws IOException {
     synchronized (lock) {
       if (writer != null) {
-        // SlaveMain.warn("flushing...", null);
+        // ForkedMain.warn("flushing...", null);
         flushQueue();
         writer.flush();
       } else {
-        // SlaveMain.warn("flushing failed (serializer closed)", null);
+        // ForkedMain.warn("flushing failed (serializer closed)", null);
       }
       return this;
     }
@@ -169,7 +169,7 @@ public class Serializer implements Closeable {
 
   public void close() throws IOException {
     synchronized (lock) {
-      // SlaveMain.warn("closing...", null);
+      // ForkedMain.warn("closing...", null);
       if (writer != null) {
         serialize(new QuitEvent());
         flushQueue();

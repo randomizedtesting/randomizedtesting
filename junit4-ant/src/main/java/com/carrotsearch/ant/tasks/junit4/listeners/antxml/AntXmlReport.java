@@ -195,7 +195,7 @@ public class AntXmlReport implements AggregatedEventListener {
 
     suite.hostname = "nohost.nodomain";
     suite.name = e.getDescription().getDisplayName();
-    suite.properties = buildModel(e.getSlave().getSystemProperties());
+    suite.properties = buildModel(e.getForkedJvmInfo().getSystemProperties());
     suite.time = e.getExecutionTime() / 1000.0;
     suite.timestamp = df.format(new Date(e.getStartTimestamp()));
 
@@ -233,7 +233,7 @@ public class AntXmlReport implements AggregatedEventListener {
     StringWriter sysout = new StringWriter();
     StringWriter syserr = new StringWriter();
     if (outputStreams) {
-      e.getSlave().decodeStreams(e.getEventStream(), sysout, syserr);
+      e.getForkedJvmInfo().decodeStreams(e.getEventStream(), sysout, syserr);
     }
     suite.sysout = sysout.toString();
     suite.syserr = syserr.toString();

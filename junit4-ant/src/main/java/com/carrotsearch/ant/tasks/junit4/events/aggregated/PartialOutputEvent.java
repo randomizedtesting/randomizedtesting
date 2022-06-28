@@ -5,20 +5,20 @@ import com.carrotsearch.ant.tasks.junit4.events.IEvent;
 import com.carrotsearch.ant.tasks.junit4.events.IStreamEvent;
 
 /**
- * Partial output emitted from a given slave.
+ * Partial output emitted from the forked JVM.
  */
 public class PartialOutputEvent {
-  private ForkedJvmInfo slave;
+  private ForkedJvmInfo forkedJvmInfo;
   private IEvent event;
 
-  public PartialOutputEvent(ForkedJvmInfo slave, IEvent e) {
+  public PartialOutputEvent(ForkedJvmInfo forkedJvmInfo, IEvent e) {
     assert e instanceof IStreamEvent;
-    this.slave = slave;
+    this.forkedJvmInfo = forkedJvmInfo;
     this.event = e;
   }
   
-  public ForkedJvmInfo getSlave() {
-    return slave;
+  public ForkedJvmInfo getForkedJvmInfo() {
+    return forkedJvmInfo;
   }
   
   public IEvent getEvent() {
