@@ -9,7 +9,10 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Other:
 
-  * GH-304: Replace master/slave with main/forkedjvm terminology.
+  * GH-304: Replace master/slave with main/forkedjvm terminology. This change
+    may result in backward incompatibilities if you used low-level event bus
+    subscription methods or JSON reports. Grep and replace 'slave' with 'forkedJvm'
+    and 'master' with 'main' seed.
 
 ======================= randomizedtesting 2.7.9 ====================
 
