@@ -66,7 +66,7 @@
     <gpg.passphrase></gpg.passphrase>
 
     <version.junit>4.13.1</version.junit>
-    <version.ant>1.9.15</version.ant>
+    <version.ant>1.10.9</version.ant>
     <version.assertj>2.2.0</version.assertj>
 
     <version.maven-antrun-plugin>1.8</version.maven-antrun-plugin>
