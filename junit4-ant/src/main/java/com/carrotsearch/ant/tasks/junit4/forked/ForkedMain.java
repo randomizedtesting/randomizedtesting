@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.runner.Description;
 import org.junit.runner.Request;
@@ -426,8 +427,9 @@ public class ForkedMain {
   private static void tryWaitingForGC() {
     // We could try to preallocate memory mx bean and count collections...
     // there is no guarantee it doesn't allocate stuff too though.
-    final long timeout = System.currentTimeMillis() + 2000;
-    while (System.currentTimeMillis() < timeout) {
+    final long duration = TimeUnit.SECONDS.toNanos(2);
+    final long startTime = System.nanoTime();
+    while (System.nanoTime() - startTime < duration) {
       System.gc(); 
       try {
         Thread.sleep(250);
