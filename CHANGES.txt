@@ -5,7 +5,15 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
-======================= randomizedtesting 2.8.0-SNAPSHOT ====================
+======================= randomizedtesting 2.8.1 ====================
+
+Bug Fixes:
+
+  * GH-307: Use monotonic clock instead of wall clock for detecting
+    deadlines as VMs and operating systems may shift wall clock resulting
+    in unpredictable behavior.
+
+======================= randomizedtesting 2.8.0 ====================
 
 Other:
 
