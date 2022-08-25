@@ -594,7 +594,7 @@ class ThreadLeakControl {
       threads.removeAll(expectedState);
 
       if (lingerTime > 0 && !threads.isEmpty()) {
-        final long deadline = System.currentTimeMillis() + lingerTime;
+        final DeadlineClock deadlineClock = new DeadlineClock(TimeUnit.MILLISECONDS, lingerTime);
         try {
           LOGGER.warning("Will linger awaiting termination of " + threads.size() + " leaked thread(s).");
           do {
@@ -605,7 +605,7 @@ class ThreadLeakControl {
 
             threads = getThreads(suiteFilters);
             threads.removeAll(expectedState);
-            if (threads.isEmpty() || System.currentTimeMillis() > deadline)
+            if (threads.isEmpty() || deadlineClock.isAfterDeadline())
               break;
           } while (true);
         } catch (InterruptedException e) {
@@ -795,12 +795,12 @@ class ThreadLeakControl {
 
           // Maximum wait time. Progress through the threads, trying to join but
           // decrease the join time each time.
-          long waitDeadline = System.currentTimeMillis() + interruptWait;
+          DeadlineClock waitDeadlineClock = new DeadlineClock(TimeUnit.MILLISECONDS, interruptWait);
           for (Iterator<Thread> i = ordered.iterator(); i.hasNext(); ) {
             final Thread t = i.next();
             if (t.isAlive()) {
               allDead = false;
-              join(t, Math.max(1, waitDeadline - System.currentTimeMillis()), Thread::sleep);
+              join(t, Math.max(1, waitDeadlineClock.timeUntilDeadline(TimeUnit.MILLISECONDS)), Thread::sleep);
             } else {
               i.remove();
             }
@@ -878,14 +878,14 @@ class ThreadLeakControl {
       throw new IllegalArgumentException("Timeout must be positive: " + millis);
     }
 
-    long deadline = System.currentTimeMillis() + millis;
+    DeadlineClock deadlineClock = new DeadlineClock(TimeUnit.MILLISECONDS, millis);
     while (t.isAlive()) {
-      long delay = deadline - System.currentTimeMillis();
-      if (delay > 0) {
+      long untilDeadline = deadlineClock.timeUntilDeadline(TimeUnit.MILLISECONDS);
+      if (untilDeadline > 0) {
         // Don't wait longer than a few millis, then recheck condition.
         // We use sleep because Thread.join() is synchronized and this thread may
         // get stuck on getting the monitor for an indefinite amount of time.
-        cond.await(Math.min(250, delay));
+        cond.await(Math.min(250, untilDeadline));
       } else {
         break;
       }
