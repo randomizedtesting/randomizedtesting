@@ -1,5 +1,7 @@
 package com.carrotsearch.ant.tasks.junit4.forked;
 
+import java.util.concurrent.TimeUnit;
+
 final class JvmExit {
   final static void halt(final int code) {
     // try to exit gracefully by calling system.exit. If we terminate within 5 seconds, fine.
@@ -11,11 +13,12 @@ final class JvmExit {
       }
     };
 
-    long deadline = System.currentTimeMillis() + 5 * 1000;
+    final long duration = TimeUnit.SECONDS.toNanos(5);
+    final long startTime = System.nanoTime();
     exiter.start();
     
     try {
-      while (System.currentTimeMillis() < deadline) {
+      while (System.nanoTime() - startTime < duration) {
         Thread.sleep(500);
       }
     } catch (Throwable t) {}

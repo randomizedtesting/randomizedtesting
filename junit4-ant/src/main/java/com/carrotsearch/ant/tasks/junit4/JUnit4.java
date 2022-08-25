@@ -929,7 +929,6 @@ public class JUnit4 extends Task {
     }
 
     // Process test classes and resources.
-    long start = System.currentTimeMillis();
     final TestsCollection testCollection = processTestResources();
 
     final EventBus aggregatedBus = new EventBus("aggregated");
@@ -949,7 +948,7 @@ public class JUnit4 extends Task {
     if (testCollection.testClasses.isEmpty()) {
       aggregatedBus.post(new AggregatedQuitEvent());
     } else {
-      start = System.currentTimeMillis();
+      long start = System.currentTimeMillis();
 
       // Check if we allow duplicate suite names. Some reports (ANT compatible XML
       // reports) will have a problem with duplicate suite names, for example.
