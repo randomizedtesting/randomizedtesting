@@ -1,5 +1,6 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
+import com.carrotsearch.randomizedtesting.DeadlineClock;
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 import com.carrotsearch.randomizedtesting.SysGlobals;
 import com.carrotsearch.randomizedtesting.WithNestedTestClass;
@@ -12,6 +13,7 @@ import org.junit.runner.notification.Failure;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -69,8 +71,8 @@ public class Test021SuiteTimeoutHanging extends WithNestedTestClass {
     });
     tester.start();
 
-    long deadline = System.currentTimeMillis() + 10000;
-    while (System.currentTimeMillis() < deadline && tester.isAlive()) {
+    DeadlineClock deadlineClock = new DeadlineClock(TimeUnit.SECONDS, 10);
+    while (deadlineClock.isBeforeDeadline() && tester.isAlive()) {
       Thread.sleep(250);
     }
 

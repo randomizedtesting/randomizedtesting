@@ -1,6 +1,7 @@
 package com.carrotsearch.randomizedtesting.timeouts;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,11 +43,12 @@ public class Test012RunawayThreadsKilledAtOnce extends WithNestedTestClass {
 
   @Test
   public void testLotsOfStubbornThreads() {
-    long start = System.currentTimeMillis();
+    long start = System.nanoTime();
     FullResult result = runTests(NestedClass.class);
-    long end = System.currentTimeMillis();
+    long end = System.nanoTime();
 
     Assert.assertEquals(1, result.getFailureCount());
-    Assert.assertTrue((end - start) + " msec?", (end - start) < 1000 * 10);
+    long msec = TimeUnit.NANOSECONDS.toMillis(end - start);
+    Assert.assertTrue(msec + " msec?", msec < 1000 * 10);
   }
 }
