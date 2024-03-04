@@ -1061,7 +1061,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
    */
   @SuppressWarnings("deprecation")
   private Statement wrapMethodRules(Statement s, TestCandidate c, Object instance) {
-    FrameworkMethod fm = new FrameworkMethod(c.method);
+    FrameworkMethod fm = AccessController.doPrivileged(new PrivilegedAction<FrameworkMethod>() {
+      @Override
+      public FrameworkMethod run() {
+        return new FrameworkMethod(c.method);
+      }
+    });
 
     // Old-style MethodRules first.
     List<org.junit.rules.MethodRule> methodRules = 
