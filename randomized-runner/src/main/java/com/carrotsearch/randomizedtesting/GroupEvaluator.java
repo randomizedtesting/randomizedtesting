@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.carrotsearch.randomizedtesting.FilterExpressionParser.IContext;
 import com.carrotsearch.randomizedtesting.FilterExpressionParser.Node;
@@ -39,12 +40,12 @@ public final class GroupEvaluator {
     }
   }
 
-  private final HashMap<Class<? extends Annotation>, TestGroupInfo> testGroups;
+  private final Map<Class<? extends Annotation>, TestGroupInfo> testGroups;
   private final Node filter;
   private String filterExpression;
 
   GroupEvaluator(List<TestCandidate> testCandidates) {
-    testGroups = collectGroups(testCandidates);
+    testGroups = new ConcurrentHashMap<>(collectGroups(testCandidates));
 
     filterExpression = System.getProperty(SysGlobals.SYSPROP_TESTFILTER());
     if (filterExpression != null && filterExpression.trim().isEmpty()) {
@@ -108,10 +109,8 @@ public final class GroupEvaluator {
       for (Annotation ann : element.getAnnotations()) {
         Class<? extends Annotation> annType = ann.annotationType();
         if (annType.isAnnotationPresent(TestGroup.class)) {
-          if (!testGroups.containsKey(annType)) {
-            testGroups.put(annType, new TestGroupInfo(annType));
-          }
-          annotations.put(testGroups.get(annType).name, ann);
+          TestGroupInfo testGroupInfo = testGroups.computeIfAbsent(annType, k -> new TestGroupInfo(annType));
+          annotations.put(testGroupInfo.name, ann);
         }
       }
     }
@@ -158,21 +157,21 @@ public final class GroupEvaluator {
   }
 
   /**
-   * @return Returns the current state of the an annotation marked with 
+   * @return Returns the current state of an annotation marked with
    *         {@link TestGroup}. Note that tests may be enabled or disabled using filtering
-   *         expressions so an enabled group does not necessarily mean a test marked with
+   *         expressions so an "enabled" group does not necessarily mean a test marked with
    *         this group will be executed.
    */
   public boolean isGroupEnabled(Class<? extends Annotation> testGroupAnnotation) {
-    if (!testGroups.containsKey(testGroupAnnotation)) {
+    TestGroupInfo testGroupInfo = testGroups.computeIfAbsent(testGroupAnnotation, k -> {
       if (!testGroupAnnotation.isAnnotationPresent(TestGroup.class)) {
         throw new IllegalArgumentException("This annotation is not marked with @"
-            + TestGroup.class.getName() + ": " + testGroupAnnotation.getName());
+                + TestGroup.class.getName() + ": " + testGroupAnnotation.getName());
       }
 
-      testGroups.put(testGroupAnnotation, new TestGroupInfo(testGroupAnnotation));
-    }
+      return new TestGroupInfo(testGroupAnnotation);
+    });
 
-    return testGroups.get(testGroupAnnotation).enabled;
+    return testGroupInfo.enabled;
   }
 }
