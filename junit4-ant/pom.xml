@@ -217,6 +217,10 @@
                 <filter>!com/google/common/eventbus/SynchronizedEventHandler.class</filter>
               </inclusion>
               <inclusion>
+                <groupId>com.google.guava</groupId>
+                <artifactId>failureaccess</artifactId>
+              </inclusion>
+              <inclusion>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
                 <filter>!module-info.class</filter>
@@ -249,7 +253,7 @@
           <dependency>
             <groupId>net.sf.proguard</groupId>
             <artifactId>proguard</artifactId>
-            <version>4.6-customized</version>
+            <version>0.0-custom-renamer</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/proguard.jar</systemPath>
           </dependency>
