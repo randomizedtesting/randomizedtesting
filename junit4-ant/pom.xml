@@ -93,6 +93,7 @@
                 <goal>test</goal>
               </goals>
               <configuration>
+                <skipTests>${skipTests}</skipTests>
                 <includes>
                    <include>**/it/Test*.java</include>
                 </includes>
