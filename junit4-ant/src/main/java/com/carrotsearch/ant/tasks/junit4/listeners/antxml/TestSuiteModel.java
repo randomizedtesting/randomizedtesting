@@ -48,8 +48,8 @@ public class TestSuiteModel
     public List<TestCaseModel> testcases = new ArrayList<>();
 
     @Element(name = "system-out", data = true, required = true)
-    public String sysout = "";
+    public Object sysout = "";
 
     @Element(name = "system-err", data = true, required = true)
-    public String syserr = "";
+    public Object syserr = "";
 }

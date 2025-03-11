@@ -5,6 +5,13 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
+======================= randomizedtesting 2.8.3 ====================
+
+Bug Fixes:
+
+  * GH-314: Hidden failed tests due to OOM (event bus exceptions
+    should propagate to the top-level task and fail). (Miklós Karakó)
+
 ======================= randomizedtesting 2.8.2 ====================
 
 Bug Fixes:

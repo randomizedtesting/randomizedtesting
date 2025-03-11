@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.tools.ant.taskdefs.ExecuteStreamHandler;
 
@@ -40,7 +41,7 @@ public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
 
   private final PrintStream warnStream;
   private final TailInputStream eventStream;
-  
+
   private volatile boolean stopping;
 
   private List<Thread> pumpers = new ArrayList<>();
@@ -50,11 +51,14 @@ public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
   private final long heartbeat;
   private final RandomAccessFile streamsBuffer;
   private final OutputStream streamsBufferWrapper;
+  private final AtomicBoolean fatalError;
 
   public LocalForkedJvmStreamHandler(
+      AtomicBoolean fatalError,
       EventBus eventBus, ClassLoader classLoader, PrintStream warnStream, TailInputStream eventStream,
       OutputStream sysout, OutputStream syserr, long heartbeat, final RandomAccessFile streamsBuffer) {
     this.eventBus = eventBus;
+    this.fatalError = fatalError;
     this.warnStream = warnStream;
     this.refLoader = classLoader;
     this.eventStream = eventStream;
@@ -84,7 +88,7 @@ public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
   public void setProcessErrorStream(InputStream is) throws IOException {
     this.stderr = is;
   }
-  
+
   @Override
   public void setProcessOutputStream(InputStream is) throws IOException {
     this.stdout = is;
@@ -99,12 +103,12 @@ public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
    * A timestamp of last received event (GH-106).
    */
   private volatile Long lastActivity;
-  
+
   /**
    * Watchdog thread if heartbeat is to be measured.
    */
   private Thread watchdog;
-  
+
   /**
    * Client charset extracted from {@link BootstrapEvent}.
    */
@@ -130,15 +134,15 @@ public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
           final long HEARTBEAT_EVENT_THRESHOLD = heartbeatMillis;
           try {
             long lastObservedUpdate = lastActivity;
-            long reportDeadline = lastObservedUpdate + HEARTBEAT_EVENT_THRESHOLD; 
+            long reportDeadline = lastObservedUpdate + HEARTBEAT_EVENT_THRESHOLD;
             while (true) {
               Thread.sleep(HEARTBEAT);
-  
+
               Long last = lastActivity;
               if (last == null) {
                 break; // terminated.
               }
-  
+
               if (last != lastObservedUpdate) {
                 lastObservedUpdate = last;
                 reportDeadline = last + HEARTBEAT_EVENT_THRESHOLD;
@@ -160,6 +164,7 @@ public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
     // Start all pumper threads.
     UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
       public void uncaughtException(Thread t, Throwable e) {
+        fatalError.set(true);
         warnStream.println("Unhandled exception in thread: " + t);
         e.printStackTrace(warnStream);
       }
@@ -254,24 +259,26 @@ public class LocalForkedJvmStreamHandler implements ExecuteStreamHandler {
               event = new OnDiskStreamEvent(event.getType(), streamsBuffer, bufferStart, bufferEnd);
               eventBus.post(event);
               break;
-              
+
             default:
               eventBus.post(event);
           }
         } catch (Throwable t) {
-          warnStream.println("Event bus dispatch error: " + t.toString());
+          fatalError.set(true);
+          warnStream.println("Event bus dispatch error: " + t);
           t.printStackTrace(warnStream);
         }
       }
       lastActivity = null;
     } catch (Throwable e) {
       if (!stopping) {
-        warnStream.println("Event stream error: " + e.toString());
+        fatalError.set(true);
+        warnStream.println("Event stream error: " + e);
         e.printStackTrace(warnStream);
       }
     }
   }
-  
+
   @Override
   public void stop() {
     lastActivity = null;

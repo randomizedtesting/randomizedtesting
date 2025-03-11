@@ -1657,8 +1657,10 @@ public class JUnit4 extends Task {
         .findAny()
         .orElse(null);
 
+      final AtomicBoolean fatalError = new AtomicBoolean(false);
       final LocalForkedJvmStreamHandler streamHandler =
           new LocalForkedJvmStreamHandler(
+              fatalError,
               eventBus, testsClassLoader, System.err, eventStream,
               sysout, syserr, heartbeat, streamsBuffer);
 
@@ -1702,6 +1704,10 @@ public class JUnit4 extends Task {
         execute.setEnvironment(env.getVariables());
       log("Starting JVM J" + forkedJvmInfo.id, Project.MSG_DEBUG);
       execute.execute();
+      if (fatalError.get()) {
+        throw new BuildException("A fatal error occurred somewhere in the even bus " +
+                "propagation infrastructure. Take a look at syserr log for more information.");
+      }
       return execute;
     } catch (IOException e) {
       throw new BuildException("Could not start the child process. Run ant with -verbose to get" +
