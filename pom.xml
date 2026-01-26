@@ -67,7 +67,7 @@
 
     <version.junit>4.13.1</version.junit>
     <version.ant>1.10.15</version.ant>
-    <version.assertj>2.2.0</version.assertj>
+    <version.assertj>3.27.7</version.assertj>
     <version.asm>9.7.1</version.asm>
 
     <version.maven-antrun-plugin>1.8</version.maven-antrun-plugin>
