@@ -13,8 +13,7 @@
   <name><![CDATA[RandomizedTesting JUnit4 ANT Task]]></name>
 
   <properties>
-    <proguard.java.home>${java.home}</proguard.java.home>
-    <proguard.rt.jar>${proguard.java.home}/lib/rt.jar</proguard.rt.jar>
+    <shade.target.package>com.carrotsearch.ant.tasks.junit4.dependencies</shade.target.package>
   </properties>
 
   <dependencies>
@@ -39,31 +38,27 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Embedded into standalone JAR. -->
+    <!-- Embedded into standalone JAR (shaded). -->
 
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>com.carrotsearch.thirdparty</groupId>
       <artifactId>simple-xml-safe</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>com.carrotsearch.randomizedtesting</groupId>
       <artifactId>randomizedtesting-runner</artifactId>
       <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -198,67 +193,72 @@
       </plugin>
 
       <plugin>
-        <groupId>com.pyx4me</groupId>
-        <artifactId>proguard-maven-plugin</artifactId>
-        <version>2.0.4</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.5.1</version>
         <executions>
           <execution>
             <phase>package</phase>
             <goals>
-              <goal>proguard</goal>
+              <goal>shade</goal>
             </goals>
+            <configuration>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <artifactSet>
+                <includes>
+                  <include>com.google.guava:guava</include>
+                  <include>com.google.guava:failureaccess</include>
+                  <include>org.ow2.asm:asm</include>
+                  <include>com.carrotsearch.thirdparty:simple-xml-safe</include>
+                  <include>com.carrotsearch.randomizedtesting:randomizedtesting-runner</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>com.google.guava:guava</artifact>
+                  <excludes>
+                    <exclude>com/google/common/eventbus/SynchronizedEventHandler.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.ow2.asm:asm</artifact>
+                  <excludes>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>com.google</pattern>
+                  <shadedPattern>${shade.target.package}.com.google</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb</pattern>
+                  <shadedPattern>${shade.target.package}.org.objectweb</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.simpleframework</pattern>
+                  <shadedPattern>${shade.target.package}.org.simpleframework</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.carrotsearch.randomizedtesting</pattern>
+                  <shadedPattern>${shade.target.package}.com.carrotsearch.randomizedtesting</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"/>
+              </transformers>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <assembly>
-            <inclusions>
-              <inclusion>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <filter>!com/google/common/eventbus/SynchronizedEventHandler.class</filter>
-              </inclusion>
-              <inclusion>
-                <groupId>com.google.guava</groupId>
-                <artifactId>failureaccess</artifactId>
-              </inclusion>
-              <inclusion>
-                <groupId>org.ow2.asm</groupId>
-                <artifactId>asm</artifactId>
-                <filter>!module-info.class</filter>
-              </inclusion>
-              <inclusion>
-                <groupId>com.carrotsearch.thirdparty</groupId>
-                <artifactId>simple-xml-safe</artifactId>
-              </inclusion>
-              <inclusion>
-                <groupId>com.carrotsearch.randomizedtesting</groupId>
-                <artifactId>randomizedtesting-runner</artifactId>              
-              </inclusion>
-            </inclusions>
-          </assembly>
-
-          <addMavenDescriptor>true</addMavenDescriptor>
-          <attach>true</attach>
-          <appendClassifier>false</appendClassifier>
-          <obfuscate>true</obfuscate>
-          <outputDirectory>${project.build.directory}</outputDirectory>
-          <proguardInclude>${basedir}/src/proguard/rules.pro</proguardInclude>
-          <options>
-            <option>-printusage ${project.build.directory}/proguard_dead.txt</option>
-          </options>
-          <libs>
-            <lib>${proguard.rt.jar}</lib>
-          </libs>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>net.sf.proguard</groupId>
-            <artifactId>proguard</artifactId>
-            <version>0.0-custom-renamer</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/proguard.jar</systemPath>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
 
@@ -273,44 +273,5 @@
     </resources>
   </build>
   
-  <profiles>
-    <profile>
-      <id>jdk19-compat</id>
-      <activation>
-        <jdk>[1.9,]</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-enforcer-plugin</artifactId>
-            <version>${version.maven-enforcer-plugin}</version>
-            <inherited>false</inherited>
-            <executions>
-              <execution>
-                <id>enforce-proguard-java-home</id>
-                <phase>validate</phase>
-                <goals>
-                  <goal>enforce</goal>
-                </goals>
-                <configuration>
-                  <rules>
-                    <requireFilesExist>
-                      <files>
-                        <file>${proguard.rt.jar}</file>
-                      </files>
-                     <message>
-                     IMPORTANT! You must set proguard.rt.jar or proguard.java.home manually for obfuscation.
-                     </message>
-                     </requireFilesExist>
-                  </rules>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>  
 </project>
 

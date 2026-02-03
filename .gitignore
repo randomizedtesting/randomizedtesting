@@ -12,3 +12,4 @@ target/
 *.versionsBackup
 *.swp
 *~
+dependency-reduced-pom.xml
