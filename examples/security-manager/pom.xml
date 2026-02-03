@@ -148,7 +148,7 @@
               <goal>junit4</goal>
             </goals>
             <!-- run in integration-test phase, so jars are "like production" for permission -->
-            <phase>integration-test</phase>
+            <phase>${securitymanager.test.phase}</phase>
             <configuration>
               <leaveTemporary>false</leaveTemporary>
               <haltOnFailure>true</haltOnFailure>
@@ -195,4 +195,28 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!-- Default profile: run security manager tests -->
+    <profile>
+      <id>securitymanager-tests</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <securitymanager.test.phase>integration-test</securitymanager.test.phase>
+      </properties>
+    </profile>
+    
+    <!-- JDK 18+: SecurityManager is deprecated for removal and doesn't work -->
+    <profile>
+      <id>skip-securitymanager-jdk18</id>
+      <activation>
+        <jdk>[18,)</jdk>
+      </activation>
+      <properties>
+        <securitymanager.test.phase>none</securitymanager.test.phase>
+      </properties>
+    </profile>
+  </profiles>
 </project>
