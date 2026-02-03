@@ -598,10 +598,12 @@ final class RamUsageEstimator {
                   return null;
                 }
               });
-            } catch (Exception e) {
-              throw new IllegalStateException("Unable to access '" + f + "' to estimate memory usage", e);
+              referenceFields.add(f);
+            } catch (RuntimeException e) {
+              // On Java 9+, setAccessible may throw InaccessibleObjectException
+              // for fields in modules that are not open. We skip such fields
+              // which means the memory estimate will be a lower bound.
             }
-            referenceFields.add(f);
           }
         }
       }

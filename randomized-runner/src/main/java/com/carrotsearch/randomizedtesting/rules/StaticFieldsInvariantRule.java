@@ -119,6 +119,11 @@ public class StaticFieldsInvariantRule implements TestRule {
                 }
               } catch (SecurityException e) {
                 errors.add(new RuntimeException("Could not access field '" + field.getName() + "'.", e));
+              } catch (RuntimeException e) {
+                // On Java 9+, setAccessible may throw InaccessibleObjectException
+                // for fields in modules that are not open. Skip such fields.
+              } catch (IllegalAccessException e) {
+                // Field is not accessible, skip it.
               }
             }
           }
