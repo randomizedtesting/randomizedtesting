@@ -31,10 +31,10 @@ public class TestTextReport extends JUnit4XmlTestBase {
   public void reasonForIgnoredByDisabledGroup() {
     super.executeTarget("reasonForIgnoredByDisabledGroup");
     String log = getLog();
-    Assert.assertTrue(log.contains("(@DisabledGroup(value=foo bar))") ||
-                      log.contains("(@DisabledGroup(value=\"foo bar\"))") ||
-                      log.contains("(@DisabledGroup(\"foo bar\"))")
-    );
+    Assert.assertTrue(log.contains("@DisabledGroup(value=foo bar)") ||
+                      log.contains("@DisabledGroup(value=\"foo bar\")") ||
+                      log.contains("@DisabledGroup(\"foo bar\")"));
+    Assert.assertTrue(log.contains("sys property: tests.disabledgroup"));
   }
 
   @Test

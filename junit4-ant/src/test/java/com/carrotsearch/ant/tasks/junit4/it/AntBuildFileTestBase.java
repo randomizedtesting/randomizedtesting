@@ -131,6 +131,9 @@ public class AntBuildFileTestBase {
     java.setOutputproperty("stdout");
     java.setErrorProperty("stderr");
 
+    java.createJvmarg().setValue("-Xmx100m");
+    java.createJvmarg().setValue("-XX:TieredStopAtLevel=1");
+
     java.createArg().setValue("-f");
     java.createArg().setValue(getProject().getUserProperty(MagicNames.ANT_FILE));
     java.createArg().setValue(target);
