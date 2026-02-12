@@ -9,6 +9,8 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Other:
 
+  * GH-319: java 9 - java 25 compatibility and build dependency updates.
+
   * GH-318: fix java 9+ compatibility; upgrade proguard (renamer fork) to
     more modern version. (David Pilato, Dawid Weiss)
 
