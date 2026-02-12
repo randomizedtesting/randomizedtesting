@@ -27,4 +27,6 @@ jobs:
         distribution: 'zulu'
         cache: maven
     - name: Build and verify with Maven
-      run: mvn verify package
+      run: |
+        mvn -version
+        mvn verify package
