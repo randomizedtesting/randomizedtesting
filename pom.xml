@@ -559,6 +559,12 @@
             <configuration>
               <publishingServerId>central</publishingServerId>
               <autoPublish>false</autoPublish>
+              <excludeArtifacts>
+                <excludeArtifact>junit4-maven-plugin-tests</excludeArtifact>
+                <excludeArtifact>randomizedtesting-examples</excludeArtifact>
+                <excludeArtifact>randomizedtesting-examples-ant</excludeArtifact>
+                <excludeArtifact>randomizedtesting-security-manager-example</excludeArtifact>
+              </excludeArtifacts>
             </configuration>
           </plugin>
 
