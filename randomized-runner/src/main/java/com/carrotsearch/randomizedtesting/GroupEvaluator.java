@@ -119,7 +119,8 @@ public final class GroupEvaluator {
     for (Annotation ann : annotations.values()) {
       TestGroupInfo g = testGroups.get(ann.annotationType());
       if (!g.enabled) {
-        defaultState = "'" + g.name + "' test group is disabled (" + toString(ann) + ")";
+        defaultState = "'" + g.name + "' test group is not enabled (annotation: "
+                       + toString(ann) + ", sys property: " + g.sysProperty + ")";
         break;
       }
     }

@@ -9,6 +9,9 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Other:
 
+  * GH-321: Display system property used to enable a test group in
+    assumption-ignore message #321
+
   * GH-319: java 9 - java 25 compatibility and build dependency updates.
 
   * GH-318: fix java 9+ compatibility; upgrade proguard (renamer fork) to
