@@ -92,19 +92,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-antrun-plugin</artifactId>
-      <version>${version.maven-antrun-plugin}</version>
-      <type>jar</type>
-      <exclusions>
-        <exclusion>
-          <artifactId>maven-project</artifactId>
-          <groupId>org.apache.maven</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
   </dependencies>
 
   <build>

@@ -140,11 +140,11 @@
             <phase>pre-integration-test</phase>
             <configuration>
               <exportAntProperties>true</exportAntProperties>
-              <tasks>
+              <target>
                 <makeurl file="${junit:junit:jar}" property="junit.jar.url"/>
                 <makeurl file="${com.carrotsearch.randomizedtesting:junit4-ant:jar}" property="junit4.jar.url"/>
                 <makeurl file="${com.carrotsearch.randomizedtesting:randomizedtesting-runner:jar}" property="randomizedtesting.jar.url"/>
-              </tasks>
+              </target>
             </configuration>
           </execution>
         </executions>

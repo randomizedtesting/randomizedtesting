@@ -55,7 +55,7 @@
   </scm>
 
   <properties>
-    <minimum.maven.version>3.2.5</minimum.maven.version>
+    <minimum.maven.version>3.6.3</minimum.maven.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -70,12 +70,12 @@
     <version.assertj>3.27.7</version.assertj>
     <version.asm>9.9.1</version.asm>
 
-    <version.maven-antrun-plugin>1.8</version.maven-antrun-plugin>
-    <version.maven-enforcer-plugin>3.0.0-M1</version.maven-enforcer-plugin>
-    <version.maven-clean-plugin>3.0.0</version.maven-clean-plugin>
-    <version.maven-javadoc-plugin>3.0.0</version.maven-javadoc-plugin>
-    <version.maven-surefire-plugin>3.0.0-M1</version.maven-surefire-plugin>
-    <version.forbiddenapis>2.5</version.forbiddenapis>
+    <version.maven-antrun-plugin>3.2.0</version.maven-antrun-plugin>
+    <version.maven-enforcer-plugin>3.6.2</version.maven-enforcer-plugin>
+    <version.maven-clean-plugin>3.5.0</version.maven-clean-plugin>
+    <version.maven-javadoc-plugin>3.12.0</version.maven-javadoc-plugin>
+    <version.maven-surefire-plugin>3.5.4</version.maven-surefire-plugin>
+    <version.forbiddenapis>3.8</version.forbiddenapis>
   </properties>
 
   <modules>
@@ -180,7 +180,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.5.1</version>
+          <version>3.21.0</version>
         </plugin>
 
         <plugin>
@@ -205,43 +205,43 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
+          <version>3.1.4</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.5</version>
+          <version>3.15.2</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.0.1</version>
+          <version>3.4.0</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.8.0</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.0.2</version>
+          <version>3.5.0</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
-          <version>2.5.2</version>
+          <version>3.1.4</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.0.1</version>
+          <version>3.4.0</version>
         </plugin>
 
         <plugin>
@@ -253,19 +253,19 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>2.10</version>
+          <version>3.10.0</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.5.1</version>
+          <version>3.15.0</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.6</version>
+          <version>3.2.8</version>
         </plugin>
 
         <plugin>
@@ -296,13 +296,13 @@
         <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>5.1.9</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-project-info-reports-plugin</artifactId>
-          <version>2.9</version>
+          <version>3.9.0</version>
         </plugin>
 
         <plugin>
@@ -314,7 +314,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-invoker-plugin</artifactId>
-          <version>2.0.0</version>
+          <version>3.9.1</version>
         </plugin>
         
         <plugin>
@@ -464,7 +464,7 @@
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-scm-publish-plugin</artifactId>
-              <version>1.1</version>
+              <version>3.3.0</version>
               <configuration>
                 <scmBranch>gh-pages</scmBranch>
               </configuration>
@@ -652,9 +652,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <configuration>
-          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-        </configuration>
         <reportSets>
           <reportSet>
             <reports>
