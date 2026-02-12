@@ -29,4 +29,5 @@ jobs:
     - name: Build and verify with Maven
       run: |
         mvn -version
-        mvn verify package
+        mvn verify
+        mvn package
