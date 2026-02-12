@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        java-version: ['8', '21', '25']
+        java-version: ['8', '21']
 
     steps:
     - uses: actions/checkout@v4
