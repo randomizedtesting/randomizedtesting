@@ -14,7 +14,7 @@
 
   <properties>
     <proguard.java.home>${java.home}</proguard.java.home>
-    <proguard.rt.jar>${proguard.java.home}/lib/rt.jar</proguard.rt.jar>
+    <proguard.jdk-runtime-base.jar>${proguard.java.home}/lib/rt.jar</proguard.jdk-runtime-base.jar>
   </properties>
 
   <dependencies>
@@ -247,10 +247,11 @@
             <option>-printusage ${project.build.directory}/proguard_dead.txt</option>
           </options>
           <libs>
-            <lib>${proguard.rt.jar}</lib>
+            <lib>${proguard.jdk-runtime-base.jar}</lib>
           </libs>
         </configuration>
         <dependencies>
+            <!-- custom fork https://github.com/dweiss/proguard -->
           <dependency>
             <groupId>net.sf.proguard</groupId>
             <artifactId>proguard</artifactId>
@@ -272,12 +273,22 @@
         </resource>
     </resources>
   </build>
-  
+
   <profiles>
     <profile>
       <id>jdk19-compat</id>
       <activation>
         <jdk>[1.9,]</jdk>
+      </activation>
+      <properties>
+        <proguard.jdk-runtime-base.jar>${proguard.java.home}/jmods/java.base.jmod</proguard.jdk-runtime-base.jar>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>enforce-proguard-rt-jar</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <build>
         <plugins>
@@ -297,12 +308,13 @@
                   <rules>
                     <requireFilesExist>
                       <files>
-                        <file>${proguard.rt.jar}</file>
+                        <file>${proguard.jdk-runtime-base.jar}</file>
                       </files>
-                     <message>
-                     IMPORTANT! You must set proguard.rt.jar or proguard.java.home manually for obfuscation.
-                     </message>
-                     </requireFilesExist>
+                      <message>
+                      proguard.jdk-runtime-base.jar does not exist: ${proguard.jdk-runtime-base.jar}
+                      Set proguard.jdk-runtime-base.jar or proguard.java.home manually.
+                      </message>
+                    </requireFilesExist>
                   </rules>
                 </configuration>
               </execution>
@@ -311,6 +323,6 @@
         </plugins>
       </build>
     </profile>
-  </profiles>  
+  </profiles>
 </project>
 

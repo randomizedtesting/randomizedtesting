@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +32,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.antrun.AntrunXmlPlexusConfigurationWriter;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -702,7 +704,7 @@ public class JUnit4Mojo extends AbstractMojo {
   }
 
   /**
-   * Append raw XML configuration. 
+   * Append raw XML configuration.
    */
   private void appendRawXml(PlexusConfiguration config, Element elem) {
     try {
@@ -711,8 +713,7 @@ public class JUnit4Mojo extends AbstractMojo {
       }
 
       StringWriter writer = new StringWriter();
-      AntrunXmlPlexusConfigurationWriter xmlWriter = new AntrunXmlPlexusConfigurationWriter();
-      xmlWriter.write(config, writer);
+      writePlexusConfiguration(config, writer);
       Element root = new SAXReader().read(
           new StringReader(writer.toString())).getRootElement();
       root.detach();
@@ -720,6 +721,35 @@ public class JUnit4Mojo extends AbstractMojo {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Write a PlexusConfiguration tree as XML.
+   */
+  private static void writePlexusConfiguration(PlexusConfiguration config, StringWriter writer)
+      throws XMLStreamException {
+    XMLStreamWriter xml = XMLOutputFactory.newFactory().createXMLStreamWriter(writer);
+    try {
+      writePlexusConfiguration(config, xml);
+    } finally {
+      xml.close();
+    }
+  }
+
+  private static void writePlexusConfiguration(PlexusConfiguration config, XMLStreamWriter xml)
+      throws XMLStreamException {
+    xml.writeStartElement(config.getName());
+    for (String attrName : config.getAttributeNames()) {
+      xml.writeAttribute(attrName, config.getAttribute(attrName, ""));
+    }
+    String value = config.getValue(null);
+    if (value != null) {
+      xml.writeCharacters(value);
+    }
+    for (PlexusConfiguration child : config.getChildren()) {
+      writePlexusConfiguration(child, xml);
+    }
+    xml.writeEndElement();
   }
 
   /**

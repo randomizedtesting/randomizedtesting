@@ -5,6 +5,13 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
+======================= randomizedtesting 2.8.4 ====================
+
+Other:
+
+  * GH-318: fix java 9+ compatibility; upgrade proguard (renamer fork) to
+    more modern version. (David Pilato, Dawid Weiss)
+
 ======================= randomizedtesting 2.8.3 ====================
 
 Other:

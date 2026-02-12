@@ -42,6 +42,43 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <!-- Security manager was removed in JDK 25. -->
+    <profile>
+      <id>skip-security-manager-tests-jdk25</id>
+      <activation>
+        <jdk>[25,)</jdk>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>enforce-urls-were-set</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
       <plugin>
@@ -103,11 +140,11 @@
             <phase>pre-integration-test</phase>
             <configuration>
               <exportAntProperties>true</exportAntProperties>
-              <tasks>
+              <target>
                 <makeurl file="${junit:junit:jar}" property="junit.jar.url"/>
                 <makeurl file="${com.carrotsearch.randomizedtesting:junit4-ant:jar}" property="junit4.jar.url"/>
                 <makeurl file="${com.carrotsearch.randomizedtesting:randomizedtesting-runner:jar}" property="randomizedtesting.jar.url"/>
-              </tasks>
+              </target>
             </configuration>
           </execution>
         </executions>
