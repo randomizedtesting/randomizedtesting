@@ -9,7 +9,8 @@ https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
 Other:
 
-  * upgrade proguard (renamer fork) to more modern version.
+  * GH-318: fix java 9+ compatibility; upgrade proguard (renamer fork) to
+    more modern version. (David Pilato, Dawid Weiss)
 
 ======================= randomizedtesting 2.8.3 ====================
 

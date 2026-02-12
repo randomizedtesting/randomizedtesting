@@ -1,27 +1,25 @@
 package com.carrotsearch.ant.tasks.junit4.it;
 
 
-import java.util.regex.Pattern;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.carrotsearch.ant.tasks.junit4.tests.FailInAfterClass;
 import com.carrotsearch.ant.tasks.junit4.tests.ReasonForAssumptionIgnored;
+import java.util.regex.Pattern;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test report-text listener.
  */
 public class TestTextReport extends JUnit4XmlTestBase {
-  @Test 
+  @Test
   public void suiteerror() {
     super.executeTarget("suiteerror");
-    
+
     int count = countPattern(getLog(), FailInAfterClass.MESSAGE);
     Assert.assertEquals(1, count);
   }
 
-  @Test 
+  @Test
   public void reasonForIgnored() {
     super.executeTarget("reasonForIgnored");
     assertLogContains("@DisabledGroup");
@@ -29,37 +27,39 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogContains("(Ignored method.)");
   }
 
-  @Test 
+  @Test
   public void reasonForIgnoredByDisabledGroup() {
     super.executeTarget("reasonForIgnoredByDisabledGroup");
     String log = getLog();
     Assert.assertTrue(log.contains("(@DisabledGroup(value=foo bar))") ||
-                      log.contains("(@DisabledGroup(value=\"foo bar\"))"));
+                      log.contains("(@DisabledGroup(value=\"foo bar\"))") ||
+                      log.contains("(@DisabledGroup(\"foo bar\"))")
+    );
   }
 
-	@Test 
-	public void reasonForSuiteAssumptionIgnored() {
-	  super.executeTarget("reasonForSuiteAssumptionIgnored");
+  @Test
+  public void reasonForSuiteAssumptionIgnored() {
+    super.executeTarget("reasonForSuiteAssumptionIgnored");
 
-	  int count = countPattern(getLog(), ReasonForAssumptionIgnored.MESSAGE);
+    int count = countPattern(getLog(), ReasonForAssumptionIgnored.MESSAGE);
     Assert.assertEquals(2, count);
-	}
+  }
 
-  @Test 
+  @Test
   public void listeners() {
     super.executeTarget("listeners");
     assertLogContains("testStarted: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
     assertLogContains("testFinished: passing(com.carrotsearch.ant.tasks.junit4.tests.SuiteListeners)");
   }
 
-  @Test 
+  @Test
   public void timestamps() {
     super.executeTarget("timestamps");
     Assert.assertTrue(getLog(),
         Pattern.compile("\\[([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{3})\\]").matcher(getLog()).find());
   }
-  
-  @Test 
+
+  @Test
   public void sysoutsOnSuiteFailure() {
     super.executeTarget("sysoutsOnSuiteFailure");
     assertLogContains("ignored-sysout");
@@ -68,8 +68,8 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogContains("beforeclass-sysout");
     super.restoreSyserr.println(getLog());
   }
-  
-  @Test 
+
+  @Test
   public void sysoutsOnSuiteTimeout() {
     super.executeTarget("sysoutsOnSuiteTimeout");
     assertLogContains("beforeclass-sysout");
@@ -80,18 +80,18 @@ public class TestTextReport extends JUnit4XmlTestBase {
         log.indexOf("Suite execution timed out:"));
   }
 
-  @Test 
+  @Test
   public void sysoutsPassthrough() {
     super.executeTarget("sysouts_passthrough");
   }
 
-  @Test 
+  @Test
   public void failureslist() {
     super.executeTarget("failureslist");
     assertLogContains("Tests with failures");
   }
 
-  @Test 
+  @Test
   public void filtertrace_default() {
     super.executeTarget("filtertrace_default");
 
@@ -100,8 +100,8 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogDoesNotContain("at org.junit.runners.");
     assertLogDoesNotContain("at com.carrotsearch.ant.tasks.junit4.forked.ForkedMain");
   }
-  
-  @Test 
+
+  @Test
   public void filtertrace_custom() {
     super.executeTarget("filtertrace_custom");
 
@@ -109,10 +109,10 @@ public class TestTextReport extends JUnit4XmlTestBase {
     assertLogDoesNotContain("at org.junit.");
     assertLogDoesNotContain(".ForkedMain.");
   }
-  
-  @Test 
+
+  @Test
   public void errorsSoFarIndicator() {
     super.executeTarget("errorsSoFar");
     assertLogContains("Completed [1/1 (1!)]");
-  }  
+  }
 }

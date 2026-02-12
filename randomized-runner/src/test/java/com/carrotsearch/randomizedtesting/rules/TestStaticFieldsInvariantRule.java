@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
+import org.junit.Assume;
+import org.junit.AssumptionViolatedException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -34,9 +36,9 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
         };
       }
     };
-    
+
     @ClassRule
-    public static TestRule classRules = 
+    public static TestRule classRules =
       RuleChain
         .outerRule(assumeNotNestedRule)
         .around(new StaticFieldsInvariantRule(LEAK_THRESHOLD, true));
@@ -46,8 +48,8 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
   }
 
   public static class Smaller extends Base {
-    static byte [] field0; 
-    
+    static byte [] field0;
+
     @BeforeClass
     private static void setup() {
       field0 = new byte [LEAK_THRESHOLD / 2];
@@ -74,7 +76,7 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
                   ref4, ref5, ref6;
 
     static Object ref7 = null;
-    
+
     static {
       Map<String,Object> map = new HashMap<String,Object>();
       map.put("key", new byte [1024 * 1024 * 2]);
@@ -83,22 +85,34 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
   }
 
   @Test
-  public void testReferencesCountedMultipleTimes() { 
+  public void testReferencesCountedMultipleTimes() {
+    ignoreAfterJava9();
     FullResult runClasses = runTests(MultipleReferences.class);
     Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }
 
-  @Test
+  private void ignoreAfterJava9() {
+    try {
+      Class.class.getMethod("getModule");
+      throw new AssumptionViolatedException("Won't work on Java9+");
+    } catch (NoSuchMethodException e) {
+      // Ok, pre-java 9.
+    }
+  }
+
+    @Test
   public void testPassingUnderThreshold() {
+    ignoreAfterJava9();
     FullResult runClasses = runTests(Smaller.class);
     Assertions.assertThat(runClasses.getFailures()).isEmpty();
   }
-  
+
   @Test
   public void testFailingAboveThreshold() {
+    ignoreAfterJava9();
     FullResult runClasses = runTests(Exceeding.class);
     Assertions.assertThat(runClasses.getFailures()).hasSize(1);
-    
+
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())
       .contains(".field0")
       .contains(".field1")
@@ -106,10 +120,10 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
       .contains(".field3")
       .doesNotContain(".field5");
   }
-  
+
   static class Holder {
     private final Path path;
-    
+
     Holder() {
       this.path = Paths.get(".");
       final String name = this.path.getClass().getName();
@@ -117,17 +131,17 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
         name.startsWith("sun.") || name.startsWith("jdk."));
     }
   }
-  
+
   public static class FailsJava9 extends Base {
-    static Holder field0; 
-    
+    static Holder field0;
+
     @BeforeClass
     private static void setup() throws Exception {
       field0 = new Holder();
     }
   }
 
-  @Test @org.junit.Ignore
+  @Test
   public void testJava9Jigsaw() {
     // check if we have Java 9 module system:
     try {
@@ -135,10 +149,10 @@ public class TestStaticFieldsInvariantRule extends WithNestedTestClass {
     } catch (Exception e) {
       RandomizedTest.assumeTrue("This test requires Java 9 module system (Jigsaw)", false);
     }
-  
+
     FullResult runClasses = runTests(FailsJava9.class);
     Assertions.assertThat(runClasses.getFailures()).hasSize(1);
-    
+
     Assertions.assertThat(runClasses.getFailures().get(0).getTrace())
       .contains("sizes cannot be measured due to security restrictions or Java 9")
       .contains(".field0");
