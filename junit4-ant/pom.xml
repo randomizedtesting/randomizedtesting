@@ -251,6 +251,7 @@
           </libs>
         </configuration>
         <dependencies>
+            <!-- custom fork https://github.com/dweiss/proguard -->
           <dependency>
             <groupId>net.sf.proguard</groupId>
             <artifactId>proguard</artifactId>
