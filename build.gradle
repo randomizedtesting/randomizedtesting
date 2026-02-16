@@ -1,0 +1,30 @@
+allprojects {
+  group = 'com.carrotsearch.randomizedtesting'
+  version = '0.1.0-SNAPSHOT'
+}
+
+subprojects {
+  apply plugin: 'java-library'
+
+  repositories {
+    mavenCentral()
+  }
+
+  java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    modularity.inferModulePath = true
+  }
+
+  tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+  }
+
+  testing {
+    suites {
+      test {
+        useJUnitJupiter(libs.versions.junit)
+      }
+    }
+  }
+}

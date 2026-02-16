@@ -1,0 +1,15 @@
+dependencies {
+    testImplementation libs.assertj
+
+    // randomizedtesting and junit4 + vintage test engine.
+    testImplementation libs.junit4
+    testImplementation libs.randomizedtesting
+    testImplementation libs.junit.vintage.engine
+
+    // junit5.
+    testImplementation libs.junit.jupiter.engine
+}
+
+tasks.withType(Test).configureEach {
+    systemProperty("tests.iters", "3")
+}

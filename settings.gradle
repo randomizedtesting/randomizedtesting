@@ -1,0 +1,3 @@
+rootProject.name = 'randomizedtesting'
+
+include 'randomizedtesting-junit5-example'

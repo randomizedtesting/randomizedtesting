@@ -1,0 +1,11 @@
+[versions]
+assertj = "3.27.6"
+junit = "6.0.2"
+
+[libraries]
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
+junit4 = { module = "junit:junit", version = "4.13" }
+randomizedtesting = { module = "com.carrotsearch.randomizedtesting:randomizedtesting-runner", version = "2.8.4" }

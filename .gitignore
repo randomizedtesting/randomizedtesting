@@ -12,3 +12,6 @@ target/
 *.versionsBackup
 *.swp
 *~
+
+build/
+.gradle/
