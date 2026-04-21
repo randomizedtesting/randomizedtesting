@@ -2,8 +2,11 @@
 RANDOMIZED TESTING
 ==================
 
-JUnit test runner and plugins for running JUnit tests
+JUnit4 test runner and plugins for running JUnit tests
 with pseudo-randomness.
+
+For JUnit5/ Jupiter, see this:
+  https://github.com/randomizedtesting/randomizedtesting-jupiter
 
 See the following for more information:
   Docs: https://github.com/randomizedtesting/randomizedtesting/wiki
