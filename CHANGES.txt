@@ -5,6 +5,16 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
+======================= randomizedtesting 2.9.0 ====================
+
+Other:
+
+  * tests.useSquareBracketsForArgs parameter controls how reiteration and other
+    parameters are appended to test descriptors. Historically, curly brackets
+    were used. Gradle and Intellij require square brackets to "detect" method
+    name properly. If you rely on previous behavior, pass:
+    tests.useSquareBracketsForArgs=false (Dawid Weiss)
+
 ======================= randomizedtesting 2.8.4 ====================
 
 Other:

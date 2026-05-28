@@ -263,6 +263,12 @@ public final class RandomizedRunner extends Runner implements Filterable {
   private boolean appendSeedParameter;
 
   /**
+   * Use {@code [...]} method suffix for parameterized and reiteration method "names" in test descriptors.
+   * This allows gradle and idea to find the test correctly.
+   */
+  private boolean useSquareBracketsForArgs;
+
+  /**
    * Stack trace filtering/ dumping.
    */
   private final TraceFormatting traces;
@@ -310,6 +316,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
   /** Creates a new runner for the given class. */
   public RandomizedRunner(Class<?> testClass) throws InitializationError {
     appendSeedParameter = RandomizedTest.systemPropertyAsBoolean(SYSPROP_APPEND_SEED(), false);
+    useSquareBracketsForArgs = RandomizedTest.systemPropertyAsBoolean(SYSPROP_USE_SQUARE_BRACKETS_FOR_ARGS(), true);
     
     if (RandomizedTest.systemPropertyAsBoolean(SYSPROP_STACKFILTERING(), true)) {
       this.traces = new TraceFormatting(DEFAULT_STACK_FILTERS);
@@ -1446,7 +1453,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
         if (!formattedArguments.trim().isEmpty()) {
           // GH-253: IntelliJ only recognizes test names for re-runs when " [...]" is used...
           // Leave for now (backward compat?)
-          if (containerRunner == RunnerContainer.IDEA) {
+          if (containerRunner == RunnerContainer.IDEA || useSquareBracketsForArgs) {
             formattedArguments = " [" + formattedArguments.trim() + "]";
           } else {
             formattedArguments = " {" + formattedArguments.trim() + "}";
@@ -1988,7 +1995,7 @@ public final class RandomizedRunner extends Runner implements Filterable {
    * Attempts to extract just the method name from parameterized notation. 
    */
   public static String methodName(Description description) {
-    return description.getMethodName().replaceAll("\\s?\\{.+\\}", "");
+    return description.getMethodName().replaceAll("\\s?((\\{.+})|(\\[.+]))", "");
   }
 
   /**

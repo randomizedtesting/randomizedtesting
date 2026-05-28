@@ -57,6 +57,7 @@ public final class SysGlobals {
   private final String SYSPROP_TIMEOUT_SUITE;
   private final String SYSPROP_APPEND_SEED;
   private final String SYSPROP_ASSERTS;
+  private final String SYSPROP_USE_SQUARE_BRACKETS_FOR_ARGS;
 
   // Singleton constructor.
   private SysGlobals(String prefix) {
@@ -74,6 +75,7 @@ public final class SysGlobals {
     this.SYSPROP_TIMEOUT_SUITE  = prefixWith(prefix, "timeoutSuite");
     this.SYSPROP_APPEND_SEED    = prefixWith(prefix, "appendseed");
     this.SYSPROP_ASSERTS        = prefixWith(prefix, "asserts");
+    this.SYSPROP_USE_SQUARE_BRACKETS_FOR_ARGS = prefixWith(prefix, "useSquareBracketsForArgs");
   }
 
   /** */
@@ -222,7 +224,12 @@ public final class SysGlobals {
    * 
    * @see RequireAssertionsRule
    */
-  public static String SYSPROP_ASSERTS() { return singleton().SYSPROP_ASSERTS; } 
+  public static String SYSPROP_ASSERTS() { return singleton().SYSPROP_ASSERTS; }
+
+  /**
+   * Use square brackets for appending method parameters and reiterations (instead of curly brackets).
+   */
+  public static String SYSPROP_USE_SQUARE_BRACKETS_FOR_ARGS() { return singleton().SYSPROP_USE_SQUARE_BRACKETS_FOR_ARGS; }
 
   /**
    * Prefix a given property name with a common prefix. The prefix itself can be overridden
