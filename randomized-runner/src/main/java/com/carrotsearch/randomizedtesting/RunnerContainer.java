@@ -7,5 +7,6 @@ package com.carrotsearch.randomizedtesting;
 enum RunnerContainer {
   ECLIPSE,
   IDEA,
-  UNKNOWN
+  JUNIT5_VINTAGE,
+  UNKNOWN;
 }
