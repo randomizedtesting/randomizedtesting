@@ -5,6 +5,13 @@ RandomizedTesting, Change Log
 For an up-to-date CHANGES file see 
 https://github.com/randomizedtesting/randomizedtesting/blob/master/CHANGES
 
+======================= randomizedtesting 2.9.1 ====================
+
+Bug Fixes:
+
+  * GH-324: JUnit5/Jupiter and Gradle --test filtering compatibility.
+    (Dawid Weiss)
+
 ======================= randomizedtesting 2.9.0 ====================
 
 Other:
