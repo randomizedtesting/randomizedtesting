@@ -335,6 +335,16 @@ class ThreadLeakControl {
         return true;
       }
 
+      // Explicit check for CompletableFuture's delayed executor thread (JDK < 25).
+      if (t.getName().equals("CompletableFutureDelayScheduler")) {
+        return true;
+      }
+
+      // The same thread, renamed in JDK 25+ (delayed tasks moved to the common fork-join pool).
+      if (t.getName().equals("ForkJoinPool.commonPool-delayScheduler")) {
+        return true;
+      }
+
       final List<StackTraceElement> stack = new ArrayList<StackTraceElement>(Arrays.asList(getStackTrace(t)));
       Collections.reverse(stack);
 
